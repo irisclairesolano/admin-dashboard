@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { adminApi } from '@/lib/api';
 import { CheckCircle2, XCircle, Clock, AlertCircle } from 'lucide-react';
 
@@ -46,57 +47,59 @@ export default function VerificationsPage() {
   const pendingUsers = users.filter(u => u.registration_status === 'pending_review');
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="mb-8">
-        <h1 className="text-3xl font-display text-ink">ID Verifications</h1>
-        <p className="text-ink-soft font-body mt-2">
+        <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">ID Verifications</h1>
+        <p className="text-ink-soft font-body mt-2 text-lg">
           Review and approve user-submitted government IDs to grant platform access.
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-ink-faint overflow-hidden">
+      <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-sm border border-white/50 overflow-hidden transition-all hover:shadow-lg">
         {pendingUsers.length === 0 ? (
-          <div className="p-12 flex flex-col items-center justify-center text-center">
-            <CheckCircle2 className="w-16 h-16 text-status-success mb-4" />
-            <h3 className="font-display text-xl text-ink">All caught up!</h3>
-            <p className="font-body text-ink-soft mt-2">There are no pending ID verifications at the moment.</p>
+          <div className="p-16 flex flex-col items-center justify-center text-center">
+            <div className="w-24 h-24 bg-status-success/10 rounded-full flex items-center justify-center mb-6 shadow-inner animate-pulse-slow">
+              <CheckCircle2 className="w-12 h-12 text-status-success" />
+            </div>
+            <h3 className="font-display text-2xl text-ink">All caught up!</h3>
+            <p className="font-body text-ink-soft mt-3 text-lg">There are no pending ID verifications at the moment.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left font-body">
-              <thead className="bg-paper-cream border-b border-ink-faint">
+              <thead className="bg-white/50 border-b border-ink-faint/50">
                 <tr>
-                  <th className="px-6 py-4 font-body-semibold text-ink-soft text-sm">User</th>
-                  <th className="px-6 py-4 font-body-semibold text-ink-soft text-sm">Role</th>
-                  <th className="px-6 py-4 font-body-semibold text-ink-soft text-sm">Submitted At</th>
-                  <th className="px-6 py-4 font-body-semibold text-ink-soft text-sm text-right">Action</th>
+                  <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">User</th>
+                  <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Role</th>
+                  <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Submitted At</th>
+                  <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-faint">
+              <tbody className="divide-y divide-ink-faint/30">
                 {pendingUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-paper/50 transition-colors">
-                    <td className="px-6 py-4">
+                  <tr key={user.id} className="hover:bg-white/60 transition-colors duration-200">
+                    <td className="px-8 py-5">
                       <div className="flex items-center">
-                        <div className="h-10 w-10 rounded-full bg-accent-sky flex items-center justify-center text-primary-dark font-body-bold">
+                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-accent-sky to-accent-skyDeep/40 flex items-center justify-center text-primary-dark font-body-bold text-lg shadow-inner">
                           {user.name.charAt(0)}
                         </div>
-                        <div className="ml-4">
-                          <div className="font-body-medium text-ink">{user.name}</div>
-                          <div className="text-sm text-ink-muted">{user.email}</div>
+                        <div className="ml-5">
+                          <div className="font-body-bold text-ink">{user.name}</div>
+                          <div className="text-sm text-ink-muted mt-0.5">{user.email}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-body-semibold capitalize ${
-                        user.role === 'employer' ? 'bg-accent-peach text-primary-dark' : 'bg-accent-mint text-accent-mintDeep'
+                    <td className="px-8 py-5">
+                      <span className={`px-4 py-1.5 rounded-full text-xs font-body-bold tracking-wide uppercase shadow-sm ${
+                        user.role === 'employer' ? 'bg-accent-peach border border-accent-peachBright/50 text-primary-dark' : 'bg-accent-mint border border-accent-mintDeep/30 text-accent-mintDeep'
                       }`}>
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-ink-soft">
-                      {new Date(user.updated_at).toLocaleDateString()}
+                    <td className="px-8 py-5 text-sm font-body-medium text-ink-soft">
+                      {new Date(user.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-8 py-5 text-right">
                       <button
                         onClick={() => setSelectedUser(user)}
                         className="bg-ink text-white px-4 py-2 rounded-lg text-sm font-body-medium hover:bg-ink-soft transition-colors"
@@ -138,11 +141,14 @@ export default function VerificationsPage() {
 
               <div className="bg-paper rounded-xl border border-ink-faint p-2 mb-6">
                 {selectedUser.document_url ? (
-                  <img 
-                    src={selectedUser.document_url} 
-                    alt="ID Document" 
-                    className="w-full h-auto object-contain max-h-[400px] rounded-lg"
-                  />
+                  <div className="relative w-full h-[400px]">
+                    <Image 
+                      src={selectedUser.document_url} 
+                      alt="ID Document" 
+                      fill
+                      className="object-contain rounded-lg"
+                    />
+                  </div>
                 ) : (
                   <div className="py-20 flex flex-col items-center text-ink-muted">
                     <AlertCircle className="w-12 h-12 mb-2" />

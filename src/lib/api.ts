@@ -70,5 +70,13 @@ export const adminApi = {
   
   resolveReport: async (id: number, status: 'resolved' | 'dismissed') => {
     return apiClient.patch(`/admin/reports/${id}`, { status });
+  },
+
+  getAnalytics: async (from?: string, to?: string) => {
+    const params = new URLSearchParams();
+    if (from) params.append('from', from);
+    if (to) params.append('to', to);
+    const queryString = params.toString();
+    return apiClient.get(`/admin/analytics${queryString ? `?${queryString}` : ''}`);
   }
 };
