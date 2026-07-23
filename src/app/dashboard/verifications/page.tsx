@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { adminApi } from '@/lib/api';
-import { CheckCircle2, XCircle, Clock, AlertCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 
 export default function VerificationsPage() {
   const [users, setUsers] = useState<any[]>([]);
