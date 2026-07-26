@@ -87,9 +87,25 @@ export default function AnalyticsDashboard() {
     })).slice(0, 10);
   })();
 
-  const COLORS = ['#E8744A', '#5A8AA8', '#6BA475', '#E9B854', '#8C7B6A', '#C9572D', '#3C647F', '#4A7A53', '#D69E3A', '#A39180'];
-
-  if (loading) return <div className="p-8 text-center text-ink-muted">Loading Analytics...</div>;
+  if (loading) {
+    return (
+      <div className="animate-pulse">
+        <div className="mb-8">
+          <div className="h-10 w-64 bg-gray-200 rounded-xl mb-3"></div>
+          <div className="h-5 w-96 bg-gray-200 rounded-lg"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-28 bg-gray-200 rounded-2xl"></div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="h-80 bg-gray-200 rounded-3xl"></div>
+          <div className="h-80 bg-gray-200 rounded-3xl"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
