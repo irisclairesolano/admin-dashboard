@@ -65,7 +65,7 @@ const cachedGet = async (url: string) => {
     if (stored) {
       try {
         localData = JSON.parse(stored);
-      } catch (e) {}
+      } catch {}
     }
   }
 
@@ -74,7 +74,7 @@ const cachedGet = async (url: string) => {
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('api_cache_' + url, JSON.stringify(response));
-      } catch (e) {}
+      } catch {}
     }
     return response;
   });

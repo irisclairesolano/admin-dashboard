@@ -87,6 +87,8 @@ export default function AnalyticsDashboard() {
     })).slice(0, 10);
   })();
 
+  const COLORS = ['#E8744A', '#5A8AA8', '#6BA475', '#E9B854', '#8C7B6A', '#C9572D', '#3C647F', '#4A7A53', '#D69E3A', '#A39180'];
+
   if (loading) {
     return (
       <div className="animate-pulse">
