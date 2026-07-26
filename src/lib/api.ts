@@ -22,53 +22,78 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Memory Cache for Instant Sidebar Navigation (60 second TTL)
+const apiCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 60 * 1000;
+
+export const clearApiCache = () => apiCache.clear();
+
+const cachedGet = async (url: string) => {
+  const cached = apiCache.get(url);
+  const now = Date.now();
+  if (cached && (now - cached.timestamp < CACHE_TTL)) {
+    return cached.data;
+  }
+  const response = await apiClient.get(url);
+  apiCache.set(url, { data: response, timestamp: now });
+  return response;
+};
+
 // Admin-specific API endpoints
 export const adminApi = {
   login: async (email: string, password: string) => {
+    clearApiCache();
     return apiClient.post('/auth/login', { email, password });
   },
   
   getVerifications: async () => {
-    return apiClient.get('/admin/verifications');
+    return cachedGet('/admin/verifications');
   },
   
   verifyUser: async (id: number, status: 'approved' | 'rejected') => {
+    clearApiCache();
     return apiClient.patch(`/admin/users/${id}/verify`, { status });
   },
   
   getUsers: async (trashed: boolean = false) => {
-    return apiClient.get(`/admin/users${trashed ? '?trashed=1' : ''}`);
+    return cachedGet(`/admin/users${trashed ? '?trashed=1' : ''}`);
   },
   
   suspendUser: async (id: number, is_suspended: boolean) => {
+    clearApiCache();
     return apiClient.patch(`/admin/users/${id}`, { is_suspended });
   },
   
   deleteUser: async (id: number) => {
+    clearApiCache();
     return apiClient.delete(`/admin/users/${id}`);
   },
 
   restoreUser: async (id: number) => {
+    clearApiCache();
     return apiClient.patch(`/admin/users/${id}/restore`);
   },
 
   getJobs: async (trashed: boolean = false) => {
-    return apiClient.get(`/admin/jobs${trashed ? '?trashed=1' : ''}`);
+    return cachedGet(`/admin/jobs${trashed ? '?trashed=1' : ''}`);
   },
 
   deleteJob: async (id: number) => {
+    clearApiCache();
     return apiClient.delete(`/admin/jobs/${id}`);
   },
 
   restoreJob: async (id: number) => {
+    clearApiCache();
     return apiClient.patch(`/admin/jobs/${id}/restore`);
   },
 
   getReports: async () => {
-    return apiClient.get('/admin/reports');
+    return cachedGet('/admin/reports');
   },
   
   resolveReport: async (id: number, status: 'resolved' | 'dismissed') => {
+    clearApiCache();
     return apiClient.patch(`/admin/reports/${id}`, { status });
   },
 
@@ -77,6 +102,6 @@ export const adminApi = {
     if (from) params.append('from', from);
     if (to) params.append('to', to);
     const queryString = params.toString();
-    return apiClient.get(`/admin/analytics${queryString ? `?${queryString}` : ''}`);
+    return cachedGet(`/admin/analytics${queryString ? `?${queryString}` : ''}`);
   }
 };
