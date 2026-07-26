@@ -41,7 +41,6 @@ export default function VerificationsPage() {
     }
   };
 
-  if (loading) return <div className="text-center py-20 font-body text-ink-muted">Loading verifications...</div>;
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
   const pendingUsers = users.filter(u => u.registration_status === 'pending_review');
@@ -56,7 +55,17 @@ export default function VerificationsPage() {
       </div>
 
       <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-sm border border-white/50 overflow-hidden transition-all hover:shadow-lg">
-        {pendingUsers.length === 0 ? (
+        {loading ? (
+          <div className="p-8 space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-ink-faint/30 rounded-2xl animate-pulse flex items-center justify-between px-6">
+                <div className="w-1/3 h-6 bg-ink-faint/50 rounded-lg"></div>
+                <div className="w-1/6 h-6 bg-ink-faint/50 rounded-lg"></div>
+                <div className="w-1/4 h-8 bg-ink-faint/50 rounded-lg"></div>
+              </div>
+            ))}
+          </div>
+        ) : pendingUsers.length === 0 ? (
           <div className="p-16 flex flex-col items-center justify-center text-center">
             <div className="w-24 h-24 bg-status-success/10 rounded-full flex items-center justify-center mb-6 shadow-inner animate-pulse-slow">
               <CheckCircle2 className="w-12 h-12 text-status-success" />

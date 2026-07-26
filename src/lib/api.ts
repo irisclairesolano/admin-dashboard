@@ -12,7 +12,6 @@ export const apiClient = axios.create({
 
 // Add interceptor to attach bearer token
 apiClient.interceptors.request.use((config) => {
-  // We'll store the token in localStorage for simplicity on the web
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('admin_token');
     if (token) {
@@ -22,21 +21,70 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Memory Cache for Instant Sidebar Navigation (60 second TTL)
-const apiCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 60 * 1000;
+// Handle 401 Unauthorized (expired token)
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
-export const clearApiCache = () => apiCache.clear();
+// Stale-While-Revalidate Cache for 0ms Admin Dashboard Renders
+const apiCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes TTL
+
+export const clearApiCache = () => {
+  apiCache.clear();
+  if (typeof window !== 'undefined') {
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('api_cache_')) localStorage.removeItem(key);
+    });
+  }
+};
 
 const cachedGet = async (url: string) => {
-  const cached = apiCache.get(url);
   const now = Date.now();
-  if (cached && (now - cached.timestamp < CACHE_TTL)) {
-    return cached.data;
+
+  // 1. Return from memory cache if fresh
+  const memoryCached = apiCache.get(url);
+  if (memoryCached && (now - memoryCached.timestamp < CACHE_TTL)) {
+    return memoryCached.data;
   }
-  const response = await apiClient.get(url);
-  apiCache.set(url, { data: response, timestamp: now });
-  return response;
+
+  // 2. Return from localStorage instantly while revalidating in background
+  let localData: any = null;
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('api_cache_' + url);
+    if (stored) {
+      try {
+        localData = JSON.parse(stored);
+      } catch (e) {}
+    }
+  }
+
+  const fetchPromise = apiClient.get(url).then(response => {
+    apiCache.set(url, { data: response, timestamp: Date.now() });
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('api_cache_' + url, JSON.stringify(response));
+      } catch (e) {}
+    }
+    return response;
+  });
+
+  if (localData) {
+    fetchPromise.catch(console.error); // Revalidate in background quietly
+    return localData;
+  }
+
+  return await fetchPromise;
 };
 
 // Admin-specific API endpoints

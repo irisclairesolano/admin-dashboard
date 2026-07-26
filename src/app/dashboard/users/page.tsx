@@ -60,7 +60,6 @@ export default function UsersPage() {
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) return <div className="text-center py-20 font-body text-ink-muted">Loading users...</div>;
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
   return (
@@ -86,8 +85,19 @@ export default function UsersPage() {
       </div>
 
       <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-sm border border-white/50 overflow-hidden transition-all hover:shadow-lg">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left font-body">
+        {loading ? (
+          <div className="p-8 space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-16 bg-ink-faint/30 rounded-2xl animate-pulse flex items-center justify-between px-6">
+                <div className="w-1/3 h-6 bg-ink-faint/50 rounded-lg"></div>
+                <div className="w-1/6 h-6 bg-ink-faint/50 rounded-lg"></div>
+                <div className="w-1/4 h-8 bg-ink-faint/50 rounded-lg"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left font-body">
             <thead className="bg-white/50 border-b border-ink-faint/50">
               <tr>
                 <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">User Details</th>
@@ -171,6 +181,7 @@ export default function UsersPage() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );
