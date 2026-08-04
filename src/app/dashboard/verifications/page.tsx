@@ -89,9 +89,17 @@ export default function VerificationsPage() {
                   <tr key={user.id} className="hover:bg-white/60 transition-colors duration-200">
                     <td className="px-8 py-5">
                       <div className="flex items-center">
-                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-accent-sky to-accent-skyDeep/40 flex items-center justify-center text-primary-dark font-body-bold text-lg shadow-inner">
-                          {user.name.charAt(0)}
-                        </div>
+                        {user.avatar_url ? (
+                          <img 
+                            src={user.avatar_url} 
+                            alt={user.name} 
+                            className="h-12 w-12 rounded-2xl object-cover shadow-inner"
+                          />
+                        ) : (
+                          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-accent-sky to-accent-skyDeep/40 flex items-center justify-center text-primary-dark font-body-bold text-lg shadow-inner">
+                            {user.name.charAt(0)}
+                          </div>
+                        )}
                         <div className="ml-5">
                           <div className="font-body-bold text-ink">{user.name}</div>
                           <div className="text-sm text-ink-muted mt-0.5">{user.email}</div>

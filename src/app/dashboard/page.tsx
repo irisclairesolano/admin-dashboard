@@ -87,7 +87,7 @@ export default function AnalyticsDashboard() {
     })).slice(0, 10);
   })();
 
-  const COLORS = ['#E8744A', '#5A8AA8', '#6BA475', '#E9B854', '#8C7B6A', '#C9572D', '#3C647F', '#4A7A53', '#D69E3A', '#A39180'];
+  const COLORS = ['#FFB6C1', '#87CEEB', '#90EE90', '#DDA0DD', '#F0E68C', '#FCD9C5', '#DCE9F2', '#D8EBDC', '#FFE9B0', '#E8DFCE'];
 
   if (loading) {
     return (
@@ -153,12 +153,12 @@ export default function AnalyticsDashboard() {
                 <Bar dataKey="employers" name="Employers" fill="url(#colorEmployers)" radius={[6, 6, 0, 0]} />
                 <defs>
                   <linearGradient id="colorWorkers" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#E8744A" stopOpacity={1}/>
-                    <stop offset="100%" stopColor="#C9572D" stopOpacity={0.8}/>
+                    <stop offset="0%" stopColor="#FFB6C1" stopOpacity={1}/>
+                    <stop offset="100%" stopColor="#FFB6C1" stopOpacity={0.7}/>
                   </linearGradient>
                   <linearGradient id="colorEmployers" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#5A8AA8" stopOpacity={1}/>
-                    <stop offset="100%" stopColor="#3C647F" stopOpacity={0.8}/>
+                    <stop offset="0%" stopColor="#87CEEB" stopOpacity={1}/>
+                    <stop offset="100%" stopColor="#87CEEB" stopOpacity={0.7}/>
                   </linearGradient>
                 </defs>
               </BarChart>
@@ -180,7 +180,7 @@ export default function AnalyticsDashboard() {
                 <Tooltip 
                   contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
                 />
-                <Line type="monotone" dataKey="jobs" name="Total Jobs" stroke="#6BA475" strokeWidth={4} dot={{ r: 5, fill: '#6BA475', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8, strokeWidth: 0, fill: '#4A7A53' }} />
+                <Line type="monotone" dataKey="jobs" name="Total Jobs" stroke="#3E7648" strokeWidth={4} dot={{ r: 5, fill: '#90EE90', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8, strokeWidth: 0, fill: '#3E7648' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -234,8 +234,8 @@ export default function AnalyticsDashboard() {
                   contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                <Bar dataKey="jobs" name="Job Postings" fill="#5A8AA8" radius={[0, 6, 6, 0]} barSize={12} />
-                <Bar dataKey="applications" name="Applications" fill="#6BA475" radius={[0, 6, 6, 0]} barSize={12} />
+                <Bar dataKey="jobs" name="Job Postings" fill="#87CEEB" radius={[0, 6, 6, 0]} barSize={12} />
+                <Bar dataKey="applications" name="Applications" fill="#90EE90" radius={[0, 6, 6, 0]} barSize={12} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -253,12 +253,12 @@ export default function AnalyticsDashboard() {
               <AreaChart data={transformedApplicationVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorApps" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#E8744A" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#E8744A" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#FFB6C1" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#FFB6C1" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorAppJobs" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#5A8AA8" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#5A8AA8" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#87CEEB" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#87CEEB" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
@@ -268,8 +268,8 @@ export default function AnalyticsDashboard() {
                   contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                <Area type="monotone" dataKey="applications" name="Applications" stroke="#E8744A" strokeWidth={3} fillOpacity={1} fill="url(#colorApps)" activeDot={{ r: 6, strokeWidth: 0 }} />
-                <Area type="monotone" dataKey="jobs" name="Unique Jobs" stroke="#5A8AA8" strokeWidth={3} fillOpacity={1} fill="url(#colorAppJobs)" activeDot={{ r: 6, strokeWidth: 0 }} />
+                <Area type="monotone" dataKey="applications" name="Applications" stroke="#FFB6C1" strokeWidth={3} fillOpacity={1} fill="url(#colorApps)" activeDot={{ r: 6, strokeWidth: 0 }} />
+                <Area type="monotone" dataKey="jobs" name="Unique Jobs" stroke="#87CEEB" strokeWidth={3} fillOpacity={1} fill="url(#colorAppJobs)" activeDot={{ r: 6, strokeWidth: 0 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>

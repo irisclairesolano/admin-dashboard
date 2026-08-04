@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
-import { UserX, Trash2, Search, ShieldAlert } from 'lucide-react';
+import { UserX, Trash2, Search, ShieldAlert, Eye } from 'lucide-react';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -10,6 +10,7 @@ export default function UsersPage() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [selectedIdUser, setSelectedIdUser] = useState<any | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -118,11 +119,19 @@ export default function UsersPage() {
                   <tr key={user.id} className={`transition-colors duration-200 ${user.is_suspended ? 'bg-status-error/5 hover:bg-status-error/10' : 'hover:bg-white/60'}`}>
                     <td className="px-8 py-5">
                       <div className="flex items-center">
-                        <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-body-bold text-lg shadow-inner ${
-                          user.is_suspended ? 'bg-status-error/20 text-status-error' : 'bg-gradient-to-br from-accent-sky to-accent-skyDeep/40 text-primary-dark'
-                        }`}>
-                          {user.name.charAt(0)}
-                        </div>
+                        {user.avatar_url ? (
+                          <img 
+                            src={user.avatar_url} 
+                            alt={user.name} 
+                            className="h-12 w-12 rounded-2xl object-cover shadow-inner"
+                          />
+                        ) : (
+                          <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-body-bold text-lg shadow-inner ${
+                            user.is_suspended ? 'bg-status-error/20 text-status-error' : 'bg-gradient-to-br from-accent-sky to-accent-skyDeep/40 text-primary-dark'
+                          }`}>
+                            {user.name.charAt(0)}
+                          </div>
+                        )}
                         <div className="ml-5">
                           <div className={`font-body-bold ${user.is_suspended ? 'text-status-error' : 'text-ink'}`}>{user.name}</div>
                           <div className="text-sm text-ink-muted mt-0.5">{user.email}</div>
@@ -149,6 +158,15 @@ export default function UsersPage() {
                     <td className="px-8 py-5 text-right">
                       {user.role !== 'admin' && (
                         <div className="flex justify-end space-x-3">
+                          {user.document_url && (
+                            <button
+                              onClick={() => setSelectedIdUser(user)}
+                              className="p-2.5 rounded-xl bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white transition-all shadow-sm"
+                              title="View Government ID"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          )}
                           <button
                             disabled={actionLoading === user.id}
                             onClick={() => handleSuspend(user.id, user.is_suspended)}
@@ -183,6 +201,59 @@ export default function UsersPage() {
         </div>
         )}
       </div>
+
+      {/* View ID Modal */}
+      {selectedIdUser && (
+        <div className="fixed inset-0 bg-ink/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-ink-faint flex justify-between items-center bg-paper-cream">
+              <h2 className="font-display text-2xl text-ink">Submitted ID Document</h2>
+              <button onClick={() => setSelectedIdUser(null)} className="text-ink-muted hover:text-ink">
+                <span className="text-2xl font-bold">&times;</span>
+              </button>
+            </div>
+            
+            <div className="p-6 flex-1 overflow-y-auto">
+              <div className="flex justify-between mb-6">
+                <div>
+                  <h3 className="font-body-bold text-ink text-lg">{selectedIdUser.name}</h3>
+                  <p className="text-ink-soft font-body">{selectedIdUser.email}</p>
+                </div>
+                <div className="text-right">
+                  <span className="capitalize font-body-medium text-ink-muted bg-paper px-3 py-1 rounded-lg border border-ink-faint">
+                    Role: {selectedIdUser.role}
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-paper rounded-xl border border-ink-faint p-2 mb-6">
+                {selectedIdUser.document_url ? (
+                  <div className="relative w-full h-[400px] flex items-center justify-center bg-black/5 rounded-lg overflow-hidden">
+                    <img 
+                      src={selectedIdUser.document_url} 
+                      alt="Government ID" 
+                      className="max-w-full max-h-full object-contain rounded-lg"
+                    />
+                  </div>
+                ) : (
+                  <div className="py-20 flex flex-col items-center text-ink-muted">
+                    <p>No document URL available.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-ink-faint bg-white flex justify-end">
+              <button
+                onClick={() => setSelectedIdUser(null)}
+                className="px-6 py-3 bg-ink text-white font-body-semibold rounded-xl hover:bg-ink-soft transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
