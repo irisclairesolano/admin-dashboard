@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
-import { UserX, Trash2, Search, ShieldAlert, Eye } from 'lucide-react';
+import { UserX, Trash2, Search, ShieldAlert, Eye, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -145,6 +145,19 @@ export default function UsersPage() {
                         }`}>
                           {user.role}
                         </span>
+                        {user.verification_status === 'approved' ? (
+                          <span className="flex items-center text-xs font-body-semibold text-status-success bg-status-success/10 px-3 py-1 rounded-full border border-status-success/20">
+                            <CheckCircle2 className="w-3 h-3 mr-1.5" /> Verified
+                          </span>
+                        ) : user.verification_status === 'pending' ? (
+                          <span className="flex items-center text-xs font-body-semibold text-status-gold bg-status-gold/10 px-3 py-1 rounded-full border border-status-gold/20">
+                            <AlertCircle className="w-3 h-3 mr-1.5 text-status-warning" /> Pending Review
+                          </span>
+                        ) : (
+                          <span className="flex items-center text-xs font-body-semibold text-ink-muted bg-paper px-3 py-1 rounded-full border border-ink-faint">
+                            Unverified
+                          </span>
+                        )}
                         {user.is_suspended && (
                           <span className="flex items-center text-xs font-body-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
                             <ShieldAlert className="w-3 h-3 mr-1.5" /> Suspended
@@ -226,20 +239,36 @@ export default function UsersPage() {
                 </div>
               </div>
 
-              <div className="bg-paper rounded-xl border border-ink-faint p-2 mb-6">
-                {selectedIdUser.document_url ? (
-                  <div className="relative w-full h-[400px] flex items-center justify-center bg-black/5 rounded-lg overflow-hidden">
-                    <img 
-                      src={selectedIdUser.document_url} 
-                      alt="Government ID" 
-                      className="max-w-full max-h-full object-contain rounded-lg"
-                    />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <span className="block font-body-semibold text-ink-soft text-sm mb-2">Government ID</span>
+                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[300px] flex items-center justify-center bg-black/5 overflow-hidden">
+                    {selectedIdUser.document_url ? (
+                      <img 
+                        src={selectedIdUser.document_url} 
+                        alt="Government ID" 
+                        className="max-w-full max-h-full object-contain rounded-lg"
+                      />
+                    ) : (
+                      <p className="text-ink-muted text-sm font-body-medium">No ID uploaded</p>
+                    )}
                   </div>
-                ) : (
-                  <div className="py-20 flex flex-col items-center text-ink-muted">
-                    <p>No document URL available.</p>
+                </div>
+
+                <div>
+                  <span className="block font-body-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
+                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[300px] flex items-center justify-center bg-black/5 overflow-hidden">
+                    {selectedIdUser.selfie_url ? (
+                      <img 
+                        src={selectedIdUser.selfie_url} 
+                        alt="Selfie holding ID" 
+                        className="max-w-full max-h-full object-contain rounded-lg"
+                      />
+                    ) : (
+                      <p className="text-ink-muted text-sm font-body-medium">No selfie uploaded</p>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             </div>
 

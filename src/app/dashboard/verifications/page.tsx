@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
-import { CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle2, XCircle } from 'lucide-react';
 
 export default function VerificationsPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -155,21 +155,36 @@ export default function VerificationsPage() {
                 </div>
               </div>
 
-              <div className="bg-paper rounded-xl border border-ink-faint p-2 mb-6">
-                {selectedUser.document_url ? (
-                  <div className="relative w-full h-[400px] flex items-center justify-center bg-black/5 rounded-lg overflow-hidden">
-                    <img 
-                      src={selectedUser.document_url} 
-                      alt="ID Document" 
-                      className="max-w-full max-h-full object-contain rounded-lg"
-                    />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <span className="block font-body-semibold text-ink-soft text-sm mb-2">Government ID</span>
+                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[300px] flex items-center justify-center bg-black/5 overflow-hidden">
+                    {selectedUser.document_url ? (
+                      <img 
+                        src={selectedUser.document_url} 
+                        alt="ID Document" 
+                        className="max-w-full max-h-full object-contain rounded-lg"
+                      />
+                    ) : (
+                      <p className="text-ink-muted text-sm font-body-medium">No ID uploaded</p>
+                    )}
                   </div>
-                ) : (
-                  <div className="py-20 flex flex-col items-center text-ink-muted">
-                    <AlertCircle className="w-12 h-12 mb-2" />
-                    <p>No document URL provided.</p>
+                </div>
+
+                <div>
+                  <span className="block font-body-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
+                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[300px] flex items-center justify-center bg-black/5 overflow-hidden">
+                    {selectedUser.selfie_url ? (
+                      <img 
+                        src={selectedUser.selfie_url} 
+                        alt="Selfie holding ID" 
+                        className="max-w-full max-h-full object-contain rounded-lg"
+                      />
+                    ) : (
+                      <p className="text-ink-muted text-sm font-body-medium">No selfie uploaded</p>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             </div>
 
