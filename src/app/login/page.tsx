@@ -52,8 +52,13 @@ export default function LoginPage() {
               <LogIn className="w-8 h-8 text-primary-dark" />
             </div>
           </div>
-          <h1 className="font-display text-4xl text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold mt-12">Admin Portal</h1>
-          <p className="font-body text-ink-soft mt-3 text-center text-lg">
+          <img 
+            src="/logo/04_Wordmark.png" 
+            alt="SIKAP Logo" 
+            className="h-12 object-contain mt-12 mb-2" 
+          />
+          <h2 className="font-display text-xl text-ink-soft font-semibold">Admin Portal</h2>
+          <p className="font-body text-ink-muted mt-2 text-center text-sm">
             Sign in to manage SIKAP verifications and user accounts.
           </p>
         </div>

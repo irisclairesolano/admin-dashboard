@@ -50,7 +50,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Mobile sidebar toggle */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-white/50 z-20 flex items-center justify-between px-4 shadow-sm">
-        <span className="font-display text-xl text-ink font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-dark to-ink">SIKAP Admin</span>
+        <div className="flex items-center">
+          <img 
+            src="/logo/04_Wordmark.png" 
+            alt="SIKAP Logo" 
+            className="h-8 object-contain" 
+          />
+          <span className="text-xs font-body-semibold text-ink-muted ml-2 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
+        </div>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-ink hover:bg-paper rounded-full transition-colors">
           {sidebarOpen ? <X /> : <Menu />}
         </button>
@@ -62,10 +69,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="h-20 flex items-center px-8 border-b border-ink-faint/30 lg:flex hidden">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center mr-3 shadow-md">
-            <span className="font-display text-2xl text-white font-bold leading-none">S</span>
-          </div>
-          <span className="font-display text-2xl text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold tracking-tight">SIKAP</span>
+          <img 
+            src="/logo/04_Wordmark.png" 
+            alt="SIKAP Logo" 
+            className="h-10 object-contain" 
+          />
+          <span className="text-xs font-body-semibold text-ink-muted ml-2.5 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
         </div>
 
         <div className="p-5 flex flex-col h-[calc(100vh-5rem)]">
