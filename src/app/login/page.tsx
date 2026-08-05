@@ -78,7 +78,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-5 py-3.5 bg-white/60 rounded-xl border border-ink-faint focus:bg-white focus:border-primary/50 outline-none font-body transition-all shadow-sm focus:shadow-md"
-              placeholder="admin@sikap.app"
+              placeholder="admin@sikap.ph"
               required
             />
           </div>
