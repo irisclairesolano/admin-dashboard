@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { adminApi } from '@/lib/api';
 import { CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 
@@ -158,12 +157,11 @@ export default function VerificationsPage() {
 
               <div className="bg-paper rounded-xl border border-ink-faint p-2 mb-6">
                 {selectedUser.document_url ? (
-                  <div className="relative w-full h-[400px]">
-                    <Image 
+                  <div className="relative w-full h-[400px] flex items-center justify-center bg-black/5 rounded-lg overflow-hidden">
+                    <img 
                       src={selectedUser.document_url} 
                       alt="ID Document" 
-                      fill
-                      className="object-contain rounded-lg"
+                      className="max-w-full max-h-full object-contain rounded-lg"
                     />
                   </div>
                 ) : (
