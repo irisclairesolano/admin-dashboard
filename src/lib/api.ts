@@ -98,9 +98,9 @@ export const adminApi = {
     return cachedGet('/admin/verifications');
   },
   
-  verifyUser: async (id: number, status: 'approved' | 'rejected') => {
+  verifyUser: async (id: number, status: 'approved' | 'rejected', rejection_reason?: string) => {
     clearApiCache();
-    return apiClient.patch(`/admin/users/${id}/verify`, { status });
+    return apiClient.patch(`/admin/users/${id}/verify`, { status, rejection_reason });
   },
   
   getUsers: async (trashed: boolean = false) => {
@@ -161,5 +161,10 @@ export const adminApi = {
   replyToTicket: async (id: number, admin_reply: string) => {
     clearApiCache();
     return apiClient.post(`/admin/support/${id}/reply`, { admin_reply });
+  },
+
+  updateSupportTicketStatus: async (id: number, status: 'open' | 'processing' | 'resolved') => {
+    clearApiCache();
+    return apiClient.patch(`/admin/support/${id}/status`, { status });
   }
 };

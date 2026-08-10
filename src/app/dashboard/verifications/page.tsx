@@ -10,6 +10,8 @@ export default function VerificationsPage() {
   const [error, setError] = useState('');
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [actionLoading, setActionLoading] = useState<'approved' | 'rejected' | null>(null);
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   const fetchVerifications = async () => {
     try {
@@ -30,8 +32,10 @@ export default function VerificationsPage() {
   const handleVerify = async (id: number, status: 'approved' | 'rejected') => {
     try {
       setActionLoading(status);
-      await adminApi.verifyUser(id, status);
+      await adminApi.verifyUser(id, status, status === 'rejected' ? rejectionReason : undefined);
       setSelectedUser(null);
+      setIsRejecting(false);
+      setRejectionReason('');
       fetchVerifications(); // Refresh list
     } catch (err: any) {
       alert('Action failed: ' + (err.response?.data?.message || err.message));
@@ -238,24 +242,64 @@ export default function VerificationsPage() {
               )}
             </div>
 
-            <div className="p-6 border-t border-ink-faint bg-white flex justify-end space-x-4">
-              <button
-                disabled={!!actionLoading}
-                onClick={() => handleVerify(selectedUser.id, 'rejected')}
-                className="px-6 py-3 border border-status-error text-status-error font-body-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50 flex items-center"
-              >
-                {actionLoading === 'rejected' && <span className="w-4 h-4 border-2 border-status-error border-t-transparent rounded-full animate-spin mr-2"></span>}
-                Reject ID
-              </button>
-              <button
-                disabled={!!actionLoading}
-                onClick={() => handleVerify(selectedUser.id, 'approved')}
-                className="px-6 py-3 bg-status-success text-white font-body-semibold rounded-xl hover:bg-status-success/90 transition-colors disabled:opacity-50 flex items-center"
-              >
-                {actionLoading === 'approved' && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>}
-                Approve & Verify
-              </button>
-            </div>
+            {isRejecting ? (
+              <div className="p-6 border-t border-ink-faint bg-white bg-status-error/5">
+                <h4 className="font-body-bold text-status-error mb-2">Rejection Reason</h4>
+                <p className="text-sm text-ink-soft mb-3">Please provide a reason to help the user understand what they need to fix.</p>
+                <div className="space-y-2 mb-4">
+                  {['Blurry photo', 'ID does not match face', 'Unsupported ID type', 'Missing back of ID'].map(preset => (
+                    <button
+                      key={preset}
+                      onClick={() => setRejectionReason(preset)}
+                      className={`px-3 py-1.5 text-sm rounded-lg border mr-2 mb-2 transition-colors ${rejectionReason === preset ? 'bg-status-error text-white border-status-error' : 'bg-white border-ink-faint text-ink-soft hover:bg-paper'}`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  placeholder="Or type a custom reason..."
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  className="w-full px-4 py-2 rounded-xl border border-ink-faint focus:border-status-error focus:ring-1 focus:ring-status-error mb-4"
+                />
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => { setIsRejecting(false); setRejectionReason(''); }}
+                    className="px-4 py-2 text-ink-soft font-body-medium hover:bg-paper rounded-xl"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    disabled={!!actionLoading || !rejectionReason.trim()}
+                    onClick={() => handleVerify(selectedUser.id, 'rejected')}
+                    className="px-6 py-2 bg-status-error text-white font-body-semibold rounded-xl hover:bg-status-error/90 transition-colors disabled:opacity-50 flex items-center"
+                  >
+                    {actionLoading === 'rejected' && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>}
+                    Confirm Rejection
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 border-t border-ink-faint bg-white flex justify-end space-x-4">
+                <button
+                  disabled={!!actionLoading}
+                  onClick={() => setIsRejecting(true)}
+                  className="px-6 py-3 border border-status-error text-status-error font-body-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50 flex items-center"
+                >
+                  Reject ID
+                </button>
+                <button
+                  disabled={!!actionLoading}
+                  onClick={() => handleVerify(selectedUser.id, 'approved')}
+                  className="px-6 py-3 bg-status-success text-white font-body-semibold rounded-xl hover:bg-status-success/90 transition-colors disabled:opacity-50 flex items-center"
+                >
+                  {actionLoading === 'approved' && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>}
+                  Approve & Verify
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

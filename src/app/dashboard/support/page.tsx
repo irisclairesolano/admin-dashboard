@@ -9,7 +9,7 @@ interface SupportTicket {
   user_id: number;
   subject: string;
   message: string;
-  status: 'open' | 'resolved';
+  status: 'open' | 'processing' | 'resolved';
   admin_reply: string | null;
   created_at: string;
   updated_at: string;
@@ -26,12 +26,13 @@ export default function SupportTicketsPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'resolved'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'processing' | 'resolved'>('all');
   
   // Modal state
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [replyText, setReplyText] = useState('');
   const [replying, setReplying] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
 
   const fetchTickets = async () => {
     try {
@@ -51,6 +52,24 @@ export default function SupportTicketsPage() {
     fetchTickets();
   }, []);
 
+  const handleStatusChange = async (newStatus: 'open' | 'processing' | 'resolved') => {
+    if (!selectedTicket) return;
+    try {
+      setStatusLoading(true);
+      await adminApi.updateSupportTicketStatus(selectedTicket.id, newStatus);
+      
+      setTickets(prev => prev.map(t => 
+        t.id === selectedTicket.id ? { ...t, status: newStatus } : t
+      ));
+      setSelectedTicket(prev => prev ? { ...prev, status: newStatus } : null);
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      alert('Failed to update status.');
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
   const handleReply = async () => {
     if (!selectedTicket || !replyText.trim()) return;
     try {
@@ -64,7 +83,7 @@ export default function SupportTicketsPage() {
           : t
       ));
       
-      setSelectedTicket(null);
+      setSelectedTicket(prev => prev ? { ...prev, status: 'resolved', admin_reply: replyText } : null);
       setReplyText('');
     } catch (err) {
       console.error('Failed to reply:', err);
@@ -106,7 +125,7 @@ export default function SupportTicketsPage() {
       {/* Filters */}
       <div className="bg-white/70 backdrop-blur-xl p-4 rounded-3xl border border-white/50 shadow-glass flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="flex gap-2">
-          {['all', 'open', 'resolved'].map(status => (
+          {['all', 'open', 'processing', 'resolved'].map(status => (
             <button
               key={status}
               onClick={() => setStatusFilter(status as any)}
@@ -152,9 +171,11 @@ export default function SupportTicketsPage() {
                 <span className={`px-3 py-1 rounded-full text-xs font-body-bold ${
                   ticket.status === 'open' 
                     ? 'bg-status-warning/20 text-status-warning' 
+                    : ticket.status === 'processing'
+                    ? 'bg-accent-sky/20 text-accent-skyDeep'
                     : 'bg-status-success/20 text-status-success'
                 }`}>
-                  {ticket.status === 'open' ? 'Open' : 'Resolved'}
+                  {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
                 </span>
                 <span className="text-xs text-ink-muted font-body">
                   {new Date(ticket.created_at).toLocaleDateString()}
@@ -214,7 +235,25 @@ export default function SupportTicketsPage() {
 
               {/* Message */}
               <div className="mb-8">
-                <h3 className="font-display-bold text-xl text-ink mb-2">{selectedTicket.subject}</h3>
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-display-bold text-xl text-ink">{selectedTicket.subject}</h3>
+                  <div className="flex bg-paper p-1 rounded-xl border border-ink-faint/30">
+                    {['open', 'processing', 'resolved'].map(s => (
+                      <button
+                        key={s}
+                        disabled={statusLoading}
+                        onClick={() => handleStatusChange(s as any)}
+                        className={`px-3 py-1.5 text-xs font-body-semibold rounded-lg transition-colors capitalize ${
+                          selectedTicket.status === s 
+                            ? 'bg-white shadow-sm text-ink border border-ink-faint/30' 
+                            : 'text-ink-muted hover:text-ink'
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="bg-white p-5 rounded-2xl border border-ink-faint/20 shadow-sm">
                   <p className="text-ink-soft font-body whitespace-pre-wrap">{selectedTicket.message}</p>
                 </div>
