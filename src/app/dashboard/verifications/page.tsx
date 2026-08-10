@@ -9,7 +9,7 @@ export default function VerificationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
-  const [actionLoading, setActionLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState<'approved' | 'rejected' | null>(null);
 
   const fetchVerifications = async () => {
     try {
@@ -29,14 +29,14 @@ export default function VerificationsPage() {
 
   const handleVerify = async (id: number, status: 'approved' | 'rejected') => {
     try {
-      setActionLoading(true);
+      setActionLoading(status);
       await adminApi.verifyUser(id, status);
       setSelectedUser(null);
       fetchVerifications(); // Refresh list
     } catch (err: any) {
       alert('Action failed: ' + (err.response?.data?.message || err.message));
     } finally {
-      setActionLoading(false);
+      setActionLoading(null);
     }
   };
 
@@ -240,18 +240,19 @@ export default function VerificationsPage() {
 
             <div className="p-6 border-t border-ink-faint bg-white flex justify-end space-x-4">
               <button
-                disabled={actionLoading}
+                disabled={!!actionLoading}
                 onClick={() => handleVerify(selectedUser.id, 'rejected')}
-                className="px-6 py-3 border border-status-error text-status-error font-body-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50"
+                className="px-6 py-3 border border-status-error text-status-error font-body-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50 flex items-center"
               >
+                {actionLoading === 'rejected' && <span className="w-4 h-4 border-2 border-status-error border-t-transparent rounded-full animate-spin mr-2"></span>}
                 Reject ID
               </button>
               <button
-                disabled={actionLoading}
+                disabled={!!actionLoading}
                 onClick={() => handleVerify(selectedUser.id, 'approved')}
                 className="px-6 py-3 bg-status-success text-white font-body-semibold rounded-xl hover:bg-status-success/90 transition-colors disabled:opacity-50 flex items-center"
               >
-                {actionLoading && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>}
+                {actionLoading === 'approved' && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>}
                 Approve & Verify
               </button>
             </div>
