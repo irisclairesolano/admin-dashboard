@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Users, UserCheck, LogOut, Menu, X, Flag, Briefcase, Archive } from 'lucide-react';
+import { LayoutDashboard, Users, UserCheck, LogOut, Menu, X, Flag, Briefcase, Archive, MessageSquare } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -37,6 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Verifications', href: '/dashboard/verifications', icon: UserCheck },
     { name: 'Users', href: '/dashboard/users', icon: Users },
     { name: 'Jobs', href: '/dashboard/jobs', icon: Briefcase },
+    { name: 'Support', href: '/dashboard/support', icon: MessageSquare },
     { name: 'Reports', href: '/dashboard/reports', icon: Flag },
     { name: 'Archives', href: '/dashboard/archives', icon: Archive },
   ];

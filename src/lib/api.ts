@@ -151,5 +151,15 @@ export const adminApi = {
     if (to) params.append('to', to);
     const queryString = params.toString();
     return cachedGet(`/admin/analytics${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // Support Tickets
+  getSupportTickets: async () => {
+    return cachedGet('/admin/support');
+  },
+  
+  replyToTicket: async (id: number, admin_reply: string) => {
+    clearApiCache();
+    return apiClient.post(`/admin/support/${id}/reply`, { admin_reply });
   }
 };
