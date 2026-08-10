@@ -186,6 +186,17 @@ export default function UsersPage() {
                           <span className="flex items-center text-xs font-body-semibold text-status-gold bg-status-gold/10 px-3 py-1 rounded-full border border-status-gold/20">
                             <AlertCircle className="w-3 h-3 mr-1.5 text-status-warning" /> Pending Review
                           </span>
+                        ) : user.verification_status === 'rejected' || user.registration_status === 'rejected' ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="flex items-center text-xs font-body-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
+                              <AlertCircle className="w-3 h-3 mr-1.5" /> Rejected
+                            </span>
+                            {user.rejection_reason && (
+                              <span className="text-xs text-status-error mt-1 max-w-[200px]">
+                                Reason: {user.rejection_reason}
+                              </span>
+                            )}
+                          </div>
                         ) : (
                           <span className="flex items-center text-xs font-body-semibold text-ink-muted bg-paper px-3 py-1 rounded-full border border-ink-faint">
                             Unverified

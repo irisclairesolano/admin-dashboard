@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
-import { Briefcase, Trash2, Search, MapPin } from 'lucide-react';
+import { Briefcase, Trash2, Search, MapPin, PauseCircle, PlayCircle } from 'lucide-react';
 
 export default function JobsPage() {
   const [jobs, setJobs] = useState<any[]>([]);
@@ -36,6 +36,24 @@ export default function JobsPage() {
       await fetchJobs();
     } catch (err: any) {
       alert('Failed to delete job: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleSuspendToggle = async (id: number, currentStatus: string) => {
+    const isSuspended = currentStatus === 'suspended';
+    const newStatus = isSuspended ? 'open' : 'suspended';
+    const actionText = isSuspended ? 'unsuspend' : 'suspend';
+
+    if (!confirm(`Are you sure you want to ${actionText} this job post?`)) return;
+
+    try {
+      setActionLoading(id);
+      await adminApi.updateJobStatus(id, newStatus);
+      await fetchJobs();
+    } catch (err: any) {
+      alert(`Failed to ${actionText} job: ` + (err.response?.data?.message || err.message));
     } finally {
       setActionLoading(null);
     }
@@ -126,20 +144,40 @@ export default function JobsPage() {
                     </td>
                     <td className="px-8 py-5">
                       <span className={`px-4 py-1.5 rounded-full text-xs font-body-bold uppercase tracking-wide shadow-sm ${
-                        job.status === 'open' ? 'bg-status-success/20 text-status-success border border-status-success/30' : 'bg-ink-faint/50 text-ink-soft border border-ink-faint'
+                        job.status === 'open' ? 'bg-status-success/20 text-status-success border border-status-success/30' : 
+                        job.status === 'suspended' ? 'bg-status-warning/20 text-status-warning border border-status-warning/30' : 
+                        'bg-ink-faint/50 text-ink-soft border border-ink-faint'
                       }`}>
                         {job.status}
                       </span>
                     </td>
                     <td className="px-8 py-5 text-right">
-                      <button
-                        disabled={actionLoading === job.id}
-                        onClick={() => handleDelete(job.id)}
-                        className="p-2.5 rounded-xl bg-white/80 border border-ink-faint/50 text-status-error hover:bg-status-error hover:text-white hover:border-status-error transition-all shadow-sm group"
-                        title="Soft Delete Job Post"
-                      >
-                        <Trash2 className="w-4 h-4 transition-transform group-hover:scale-110" />
-                      </button>
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          disabled={actionLoading === job.id}
+                          onClick={() => handleSuspendToggle(job.id, job.status)}
+                          className={`p-2.5 rounded-xl border transition-all shadow-sm group ${
+                            job.status === 'suspended'
+                              ? 'bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border-status-success/30'
+                              : 'bg-status-warning/10 text-status-warning hover:bg-status-warning hover:text-white border-status-warning/30'
+                          }`}
+                          title={job.status === 'suspended' ? "Unsuspend Job Post" : "Suspend Job Post"}
+                        >
+                          {job.status === 'suspended' ? (
+                            <PlayCircle className="w-4 h-4 transition-transform group-hover:scale-110" />
+                          ) : (
+                            <PauseCircle className="w-4 h-4 transition-transform group-hover:scale-110" />
+                          )}
+                        </button>
+                        <button
+                          disabled={actionLoading === job.id}
+                          onClick={() => handleDelete(job.id)}
+                          className="p-2.5 rounded-xl bg-white/80 border border-ink-faint/50 text-status-error hover:bg-status-error hover:text-white hover:border-status-error transition-all shadow-sm group"
+                          title="Soft Delete Job Post"
+                        >
+                          <Trash2 className="w-4 h-4 transition-transform group-hover:scale-110" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

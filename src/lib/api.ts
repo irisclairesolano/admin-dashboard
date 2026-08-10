@@ -131,6 +131,11 @@ export const adminApi = {
     return apiClient.delete(`/admin/jobs/${id}`);
   },
 
+  updateJobStatus: async (id: number, status: string) => {
+    clearApiCache();
+    return apiClient.patch(`/admin/jobs/${id}/status`, { status });
+  },
+
   restoreJob: async (id: number) => {
     clearApiCache();
     return apiClient.patch(`/admin/jobs/${id}/restore`);
