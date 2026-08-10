@@ -9,6 +9,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState<'all' | 'verified' | 'unverified' | 'rejected'>('all');
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [selectedIdUser, setSelectedIdUser] = useState<any | null>(null);
 
@@ -56,10 +57,19 @@ export default function UsersPage() {
     }
   };
 
-  const filteredUsers = users.filter(u => 
-    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(u => {
+    const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          u.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (!matchesSearch) return false;
+
+    if (filter === 'all') return true;
+    if (filter === 'verified') return u.verification_status === 'approved';
+    if (filter === 'rejected') return u.verification_status === 'rejected' || u.registration_status === 'rejected';
+    if (filter === 'unverified') return u.verification_status !== 'approved' && u.verification_status !== 'rejected' && u.registration_status !== 'rejected';
+    
+    return true;
+  });
 
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
@@ -83,6 +93,29 @@ export default function UsersPage() {
           />
           <Search className="w-5 h-5 text-ink-muted absolute left-4 top-4 transition-colors group-focus-within:text-primary" />
         </div>
+      </div>
+
+      <div className="flex space-x-2 mb-4 overflow-x-auto pb-2">
+        <button 
+           onClick={() => setFilter('all')}
+           className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'all' ? 'bg-ink text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+          All Users
+        </button>
+        <button 
+           onClick={() => setFilter('verified')}
+           className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'verified' ? 'bg-status-success text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+          Verified
+        </button>
+        <button 
+           onClick={() => setFilter('unverified')}
+           className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'unverified' ? 'bg-status-warning text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+          Unverified
+        </button>
+        <button 
+           onClick={() => setFilter('rejected')}
+           className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'rejected' ? 'bg-status-error text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+          Rejected
+        </button>
       </div>
 
       <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-sm border border-white/50 overflow-hidden transition-all hover:shadow-lg">
