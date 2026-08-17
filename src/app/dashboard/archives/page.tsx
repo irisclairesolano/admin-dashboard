@@ -67,7 +67,7 @@ export default function ArchivesPage() {
         <div>
           <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">Archives</h1>
 
-          <p className="text-ink-soft font-body mt-2">
+          <p className="text-ink-soft font-body mt-2 text-lg">
             View and restore soft-deleted users and job posts.
           </p>
         </div>

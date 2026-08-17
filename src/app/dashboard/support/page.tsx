@@ -116,7 +116,7 @@ export default function SupportTicketsPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/70 backdrop-blur-xl p-6 rounded-[2rem] border border-white/50 shadow-glass">
         <div>
           <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold mb-1 tracking-tight">Support Tickets</h1>
-          <p className="text-ink-muted font-body">Manage and reply to user inquiries.</p>
+          <p className="text-ink-soft font-body mt-2 text-lg">Manage and reply to user inquiries.</p>
         </div>
         <button 
           onClick={fetchTickets}
@@ -153,11 +153,10 @@ export default function SupportTicketsPage() {
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              setCurrentPage(1);
             }}
-            className="w-full pl-11 pr-4 py-3 bg-white/70 backdrop-blur-md rounded-2xl border border-white/50 shadow-inner focus:bg-white outline-none font-body text-sm transition-all focus:border-primary/30"
+            className="w-full pl-12 pr-4 py-3.5 bg-white/70 backdrop-blur-md rounded-2xl border border-white/50 shadow-sm focus:bg-white focus:border-primary/50 focus:ring-4 focus:ring-primary/10 outline-none font-body transition-all group-hover:shadow-md"
           />
-          <Search className="w-4 h-4 text-ink-muted absolute left-4 top-3.5 transition-colors group-focus-within:text-primary" />
+          <Search className="w-5 h-5 text-ink-muted absolute left-4 top-4 transition-colors group-focus-within:text-primary" />
         </div>
       </div>
 

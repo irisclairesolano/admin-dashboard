@@ -80,10 +80,10 @@ export default function VerificationsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mt-6 md:mt-0">
-          <div className="relative w-full md:w-64 group">
+          <div className="relative w-full md:w-72 group">
             <input
               type="text"
-              placeholder="Search by name..."
+              placeholder="Search pending users..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);

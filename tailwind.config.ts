@@ -66,14 +66,9 @@ const config: Config = {
         'glass-hover': '0 16px 48px rgba(13, 27, 61, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
       },
       borderRadius: {
-        'none': '0px',
-        'sm': '4px',
-        'md': '6px',
-        'lg': '8px',
-        'xl': '12px',
-        '2xl': '12px',
-        '3xl': '12px',
-        'full': '9999px',
+        'xl': '1rem',
+        '2xl': '1.5rem',
+        '3xl': '2rem',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-out forwards',
