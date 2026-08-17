@@ -95,7 +95,7 @@ export const adminApi = {
   },
   
   getVerifications: async () => {
-    return cachedGet('/admin/verifications');
+    return apiClient.get('/admin/verifications');
   },
   
   verifyUser: async (id: number, status: 'approved' | 'rejected', rejection_reason?: string) => {
@@ -142,7 +142,7 @@ export const adminApi = {
   },
 
   getReports: async (status: string = 'open', page: number = 1) => {
-    return cachedGet(`/admin/reports?status=${status}&page=${page}`);
+    return apiClient.get(`/admin/reports?status=${status}&page=${page}`);
   },
   
   resolveReport: async (id: number, status: 'resolved' | 'dismissed') => {
@@ -160,7 +160,7 @@ export const adminApi = {
 
   // Support Tickets
   getSupportTickets: async () => {
-    return cachedGet('/admin/support');
+    return apiClient.get('/admin/support');
   },
   
   replyToTicket: async (id: number, admin_reply: string) => {
@@ -178,6 +178,43 @@ export const adminApi = {
     params.append('page', page.toString());
     if (search) params.append('search', search);
     if (action) params.append('action', action);
-    return cachedGet(`/admin/logs?${params.toString()}`);
+    return apiClient.get(`/admin/logs?${params.toString()}`);
   }
+};
+
+/**
+ * Fires a lightweight GET /health ping to wake the Render free-tier server.
+ * Returns a promise that resolves once the server responds (or silently fails).
+ */
+export const warmUpServer = (): Promise<void> => {
+  return apiClient
+    .get('/health', { timeout: 60_000 })
+    .then(() => {})
+    .catch(() => {}); // silent — warm-up only
+};
+
+/**
+ * Pre-fetches all admin dashboard section data in parallel and populates
+ * the stale-while-revalidate cache. Call this after warmUpServer() resolves
+ * so every section is instant on first navigation.
+ */
+export const prefetchAll = (): Promise<void> => {
+  // Compute a default 1-year analytics window
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const yearAgo = new Date(now);
+  yearAgo.setFullYear(now.getFullYear() - 1);
+
+  return Promise.allSettled([
+    adminApi.getVerifications(),
+    adminApi.getUsers(),
+    adminApi.getUsers(true),           // archived users
+    adminApi.getJobs(),
+    adminApi.getJobs(true),            // archived jobs
+    adminApi.getReports('open', 1),
+    adminApi.getAnalytics(fmt(yearAgo), fmt(now)),
+    adminApi.getSupportTickets(),
+    adminApi.getLogs(1),
+  ]).then(() => {});
 };

@@ -19,20 +19,22 @@ export default function VerificationsPage() {
 
   const itemsPerPage = 5;
 
-  const fetchVerifications = async () => {
+  const fetchVerifications = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await adminApi.getVerifications();
       setUsers(res.data.data || []);
     } catch (err: any) {
-      setError(err.message || 'Failed to load verifications');
+      if (!silent) setError(err.message || 'Failed to load verifications');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchVerifications();
+    const timer = setInterval(() => fetchVerifications(true), 30000);
+    return () => clearInterval(timer);
   }, []);
 
   const handleVerify = async (id: number, status: 'approved' | 'rejected') => {

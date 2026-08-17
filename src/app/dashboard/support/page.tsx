@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '@/lib/api';
 import { RefreshCw, Search, MessageSquare, AlertCircle, CheckCircle2, ArrowLeft, ArrowRight, XCircle } from 'lucide-react';
+import Tooltip from '@/components/Tooltip';
 
 interface SupportTicket {
   id: number;
@@ -37,9 +38,9 @@ export default function SupportTicketsPage() {
 
   const itemsPerPage = 6;
 
-  const fetchTickets = async () => {
+  const fetchTickets = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await adminApi.getSupportTickets();
       if (res?.data?.data) {
         setTickets(res.data.data);
@@ -47,12 +48,14 @@ export default function SupportTicketsPage() {
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchTickets();
+    const timer = setInterval(() => fetchTickets(true), 30000);
+    return () => clearInterval(timer);
   }, []);
 
   const handleStatusChange = async (newStatus: 'open' | 'processing' | 'resolved') => {
@@ -119,7 +122,7 @@ export default function SupportTicketsPage() {
           <p className="text-ink-soft font-body mt-2 text-lg">Manage and reply to user inquiries.</p>
         </div>
         <button 
-          onClick={fetchTickets}
+          onClick={() => fetchTickets(false)}
           disabled={loading}
           className="flex items-center px-4 py-2 bg-paper text-ink font-body font-semibold rounded-xl hover:bg-ink hover:text-white transition-all shadow-sm group"
         >
@@ -279,19 +282,24 @@ export default function SupportTicketsPage() {
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="font-display font-bold text-xl text-ink">{selectedTicket.subject}</h3>
                   <div className="flex bg-paper p-1 rounded-xl border border-ink-faint/30">
-                    {['open', 'processing', 'resolved'].map(s => (
-                      <button
-                        key={s}
-                        disabled={statusLoading}
-                        onClick={() => handleStatusChange(s as any)}
-                        className={`px-3 py-1.5 text-xs font-body font-semibold rounded-lg transition-colors capitalize ${
-                          selectedTicket.status === s 
-                            ? 'bg-white shadow-sm text-ink border border-ink-faint/30' 
-                            : 'text-ink-muted hover:text-ink'
-                        }`}
-                      >
-                        {s}
-                      </button>
+                    {([
+                      { key: 'open',       label: 'Open',       tip: 'Mark as open — awaiting response',    variant: 'warning' },
+                      { key: 'processing', label: 'Processing', tip: 'Mark as in-progress',                  variant: 'default' },
+                      { key: 'resolved',   label: 'Resolved',   tip: 'Mark resolved — closes the ticket',   variant: 'success' },
+                    ] as const).map(({ key, label, tip, variant }) => (
+                      <Tooltip key={key} text={tip} position="top" variant={variant}>
+                        <button
+                          disabled={statusLoading}
+                          onClick={() => handleStatusChange(key)}
+                          className={`px-3 py-1.5 text-xs font-body font-semibold rounded-lg transition-colors capitalize ${
+                            selectedTicket.status === key
+                              ? 'bg-white shadow-sm text-ink border border-ink-faint/30'
+                              : 'text-ink-muted hover:text-ink'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      </Tooltip>
                     ))}
                   </div>
                 </div>
@@ -320,24 +328,28 @@ export default function SupportTicketsPage() {
                     className="w-full h-40 p-4 rounded-2xl border border-ink-faint/30 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-body resize-none bg-white shadow-inner"
                   />
                   <div className="mt-4 flex justify-end gap-3">
-                    <button
-                      onClick={() => { setSelectedTicket(null); setReplyText(''); }}
-                      className="px-6 py-2.5 rounded-xl font-body font-semibold text-ink-soft hover:bg-white transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleReply}
-                      disabled={replying || !replyText.trim()}
-                      className="px-6 py-2.5 bg-primary text-white font-body font-semibold rounded-xl hover:bg-primary-dark transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {replying ? (
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <MessageSquare className="w-4 h-4" />
-                      )}
-                      Send Reply
-                    </button>
+                    <Tooltip text="Discard reply and close" position="top">
+                      <button
+                        onClick={() => { setSelectedTicket(null); setReplyText(''); }}
+                        className="px-6 py-2.5 rounded-xl font-body font-semibold text-ink-soft hover:bg-white transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </Tooltip>
+                    <Tooltip text="Send reply & resolve ticket" position="top" variant="success">
+                      <button
+                        onClick={handleReply}
+                        disabled={replying || !replyText.trim()}
+                        className="px-6 py-2.5 bg-primary text-white font-body font-semibold rounded-xl hover:bg-primary-dark transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
+                      >
+                        {replying ? (
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <MessageSquare className="w-4 h-4" />
+                        )}
+                        Send Reply
+                      </button>
+                    </Tooltip>
                   </div>
                 </div>
               )}

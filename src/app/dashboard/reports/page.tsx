@@ -4,6 +4,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
 import { Flag, CheckCircle, XCircle, Search, ArrowLeft, ArrowRight } from 'lucide-react';
+import Tooltip from '@/components/Tooltip';
 
 export default function ReportsPage() {
   const [reports, setReports] = useState<any[]>([]);
@@ -15,21 +16,27 @@ export default function ReportsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
-  const fetchReports = async () => {
+  const fetchReports = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await adminApi.getReports(statusFilter, currentPage);
       setReports(res.data.data || []);
       setTotalPages(res.data.last_page || 1);
     } catch (err: any) {
-      setError(err.message || 'Failed to load reports');
+      if (!silent) setError(err.message || 'Failed to load reports');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchReports();
+    fetchReports(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, currentPage]);
+
+  useEffect(() => {
+    const timer = setInterval(() => fetchReports(true), 30000);
+    return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, currentPage]);
 
@@ -158,22 +165,24 @@ export default function ReportsPage() {
                   </td>
                   <td className="px-8 py-5 text-right">
                     <div className="flex justify-end space-x-3">
-                      <button
-                        disabled={actionLoading === report.id}
-                        onClick={() => handleResolve(report.id, 'dismissed')}
-                        className="p-2.5 rounded-xl bg-white/80 border border-ink-faint/50 text-ink-soft hover:text-ink hover:border-ink hover:bg-paper transition-all shadow-sm group"
-                        title="Dismiss Report"
-                      >
-                        <XCircle className="w-5 h-5 transition-transform group-hover:scale-110" />
-                      </button>
-                      <button
-                        disabled={actionLoading === report.id}
-                        onClick={() => handleResolve(report.id, 'resolved')}
-                        className="p-2.5 rounded-xl bg-status-success/10 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all shadow-sm group"
-                        title="Mark as Resolved"
-                      >
-                        <CheckCircle className="w-5 h-5 transition-transform group-hover:scale-110" />
-                      </button>
+                      <Tooltip text="Dismiss Report" position="top" variant="default">
+                        <button
+                          disabled={actionLoading === report.id}
+                          onClick={() => handleResolve(report.id, 'dismissed')}
+                          className="p-2.5 rounded-xl bg-white/80 border border-ink-faint/50 text-ink-soft hover:text-ink hover:border-ink hover:bg-paper transition-all shadow-sm group"
+                        >
+                          <XCircle className="w-5 h-5 transition-transform group-hover:scale-110" />
+                        </button>
+                      </Tooltip>
+                      <Tooltip text="Mark as Resolved" position="top" variant="success">
+                        <button
+                          disabled={actionLoading === report.id}
+                          onClick={() => handleResolve(report.id, 'resolved')}
+                          className="p-2.5 rounded-xl bg-status-success/10 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all shadow-sm group"
+                        >
+                          <CheckCircle className="w-5 h-5 transition-transform group-hover:scale-110" />
+                        </button>
+                      </Tooltip>
                     </div>
                   </td>
                 </tr>

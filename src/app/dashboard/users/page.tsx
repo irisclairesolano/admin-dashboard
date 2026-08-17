@@ -4,6 +4,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
 import { UserX, Trash2, Search, ShieldAlert, Eye, CheckCircle2, AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import Tooltip from '@/components/Tooltip';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -245,34 +246,41 @@ export default function UsersPage() {
                       {user.role !== 'admin' && (
                         <div className="flex justify-end space-x-3">
                           {user.document_url && (
-                            <button
-                              onClick={() => setSelectedIdUser(user)}
-                              className="p-2.5 rounded-xl bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white transition-all shadow-sm"
-                              title="View Government ID"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
+                            <Tooltip text="View Government ID" position="top">
+                              <button
+                                onClick={() => setSelectedIdUser(user)}
+                                className="p-2.5 rounded-xl bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white transition-all shadow-sm"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                            </Tooltip>
                           )}
-                          <button
-                            disabled={actionLoading === user.id}
-                            onClick={() => handleSuspend(user.id, user.is_suspended)}
-                            className={`p-2.5 rounded-xl transition-all shadow-sm ${
-                              user.is_suspended 
-                                ? 'bg-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white' 
-                                : 'bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white'
-                            }`}
-                            title={user.is_suspended ? "Unsuspend User" : "Suspend User"}
+                          <Tooltip
+                            text={user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
+                            position="top"
+                            variant={user.is_suspended ? 'warning' : 'default'}
                           >
-                            <UserX className="w-4 h-4" />
-                          </button>
-                          <button
-                            disabled={actionLoading === user.id}
-                            onClick={() => handleDelete(user.id)}
-                            className="p-2.5 rounded-xl bg-status-error/10 border border-status-error/20 text-status-error hover:bg-status-error hover:text-white transition-all shadow-sm"
-                            title="Delete User"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                            <button
+                              disabled={actionLoading === user.id}
+                              onClick={() => handleSuspend(user.id, user.is_suspended)}
+                              className={`p-2.5 rounded-xl transition-all shadow-sm ${
+                                user.is_suspended
+                                  ? 'bg-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
+                                  : 'bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white'
+                              }`}
+                            >
+                              <UserX className="w-4 h-4" />
+                            </button>
+                          </Tooltip>
+                          <Tooltip text="Delete User" position="top" variant="danger">
+                            <button
+                              disabled={actionLoading === user.id}
+                              onClick={() => handleDelete(user.id)}
+                              className="p-2.5 rounded-xl bg-status-error/10 border border-status-error/20 text-status-error hover:bg-status-error hover:text-white transition-all shadow-sm"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </Tooltip>
                         </div>
                       )}
                       {user.role === 'admin' && (

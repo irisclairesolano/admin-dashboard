@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { XCircle } from 'lucide-react';
+import Tooltip from '@/components/Tooltip';
 
 export interface User {
   id: number;
@@ -154,50 +155,58 @@ export default function VerificationModal({
               required
             />
             <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => {
-                  setIsRejecting(false);
-                  setRejectionReason('');
-                }}
-                data-testid="cancel-reject-btn"
-                className="px-4 py-2 text-ink-soft font-body font-medium hover:bg-paper rounded-xl"
-              >
-                Cancel
-              </button>
-              <button
-                disabled={!rejectionReason.trim() || !!actionLoading}
-                onClick={handleRejectConfirm}
-                data-testid="confirm-reject-btn"
-                className="px-6 py-2 bg-status-error text-white font-body font-semibold rounded-xl hover:bg-status-error/90 transition-colors disabled:opacity-50 flex items-center"
-              >
-                {actionLoading === 'rejected' && (
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                )}
-                Confirm Rejection
-              </button>
+              <Tooltip text="Go back without rejecting" position="top">
+                <button
+                  onClick={() => {
+                    setIsRejecting(false);
+                    setRejectionReason('');
+                  }}
+                  data-testid="cancel-reject-btn"
+                  className="px-4 py-2 text-ink-soft font-body font-medium hover:bg-paper rounded-xl"
+                >
+                  Cancel
+                </button>
+              </Tooltip>
+              <Tooltip text="Send rejection & notify user" position="top" variant="danger">
+                <button
+                  disabled={!rejectionReason.trim() || !!actionLoading}
+                  onClick={handleRejectConfirm}
+                  data-testid="confirm-reject-btn"
+                  className="px-6 py-2 bg-status-error text-white font-body font-semibold rounded-xl hover:bg-status-error/90 transition-colors disabled:opacity-50 flex items-center"
+                >
+                  {actionLoading === 'rejected' && (
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                  )}
+                  Confirm Rejection
+                </button>
+              </Tooltip>
             </div>
           </div>
         ) : (
           <div className="p-6 border-t border-ink-faint bg-white flex justify-end space-x-4" data-testid="actions-section">
-            <button
-              disabled={!!actionLoading}
-              onClick={() => setIsRejecting(true)}
-              data-testid="reject-btn"
-              className="px-6 py-3 border border-status-error text-status-error font-body font-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50 flex items-center"
-            >
-              Reject ID
-            </button>
-            <button
-              disabled={!!actionLoading}
-              onClick={handleApprove}
-              data-testid="approve-btn"
-              className="px-6 py-3 bg-status-success text-white font-body font-semibold rounded-xl hover:bg-status-success/90 transition-colors disabled:opacity-50 flex items-center"
-            >
-              {actionLoading === 'approved' && (
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-              )}
-              Approve & Verify
-            </button>
+            <Tooltip text="Reject ID — user will be asked to re-upload" position="top" variant="danger">
+              <button
+                disabled={!!actionLoading}
+                onClick={() => setIsRejecting(true)}
+                data-testid="reject-btn"
+                className="px-6 py-3 border border-status-error text-status-error font-body font-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50 flex items-center"
+              >
+                Reject ID
+              </button>
+            </Tooltip>
+            <Tooltip text="Approve — grants verification badge" position="top" variant="success">
+              <button
+                disabled={!!actionLoading}
+                onClick={handleApprove}
+                data-testid="approve-btn"
+                className="px-6 py-3 bg-status-success text-white font-body font-semibold rounded-xl hover:bg-status-success/90 transition-colors disabled:opacity-50 flex items-center"
+              >
+                {actionLoading === 'approved' && (
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                )}
+                Approve & Verify
+              </button>
+            </Tooltip>
           </div>
         )}
       </div>
