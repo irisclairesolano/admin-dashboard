@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
 import { ArchiveRestore, User, Briefcase, RefreshCw } from 'lucide-react';
@@ -64,14 +65,15 @@ export default function ArchivesPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-display text-ink">Archives</h1>
+          <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">Archives</h1>
+
           <p className="text-ink-soft font-body mt-2">
             View and restore soft-deleted users and job posts.
           </p>
         </div>
         <button 
           onClick={fetchArchives}
-          className="flex items-center px-4 py-2 bg-paper rounded-xl text-ink font-body-semibold hover:bg-ink-faint transition-colors"
+          className="flex items-center px-4 py-2 bg-paper rounded-xl text-ink font-body font-semibold hover:bg-ink-faint transition-colors"
         >
           <RefreshCw className="w-4 h-4 mr-2" />
           Refresh
@@ -94,14 +96,14 @@ export default function ArchivesPage() {
                 {users.map(user => (
                   <li key={user.id} className="p-6 flex items-center justify-between hover:bg-paper/30">
                     <div>
-                      <div className="font-body-bold text-ink">{user.name}</div>
+                      <div className="font-body font-bold text-ink">{user.name}</div>
                       <div className="text-sm text-ink-soft mt-1">{user.email} • {user.role}</div>
                       <div className="text-xs text-status-error mt-1">Deleted at: {new Date(user.deleted_at).toLocaleString()}</div>
                     </div>
                     <button
                       disabled={actionLoading === `user-${user.id}`}
                       onClick={() => handleRestoreUser(user.id)}
-                      className="px-3 py-2 bg-status-success/10 text-status-success rounded-lg hover:bg-status-success hover:text-white transition-colors flex items-center font-body-semibold text-sm"
+                      className="px-3 py-2 bg-status-success/10 text-status-success rounded-lg hover:bg-status-success hover:text-white transition-colors flex items-center font-body font-semibold text-sm"
                     >
                       <ArchiveRestore className="w-4 h-4 mr-2" />
                       Restore
@@ -127,14 +129,14 @@ export default function ArchivesPage() {
                 {jobs.map(job => (
                   <li key={job.id} className="p-6 flex items-center justify-between hover:bg-paper/30">
                     <div>
-                      <div className="font-body-bold text-ink">{job.title}</div>
+                      <div className="font-body font-bold text-ink">{job.title}</div>
                       <div className="text-sm text-ink-soft mt-1">{job.employer?.name || 'Unknown'}</div>
                       <div className="text-xs text-status-error mt-1">Deleted at: {new Date(job.deleted_at).toLocaleString()}</div>
                     </div>
                     <button
                       disabled={actionLoading === `job-${job.id}`}
                       onClick={() => handleRestoreJob(job.id)}
-                      className="px-3 py-2 bg-status-success/10 text-status-success rounded-lg hover:bg-status-success hover:text-white transition-colors flex items-center font-body-semibold text-sm"
+                      className="px-3 py-2 bg-status-success/10 text-status-success rounded-lg hover:bg-status-success hover:text-white transition-colors flex items-center font-body font-semibold text-sm"
                     >
                       <ArchiveRestore className="w-4 h-4 mr-2" />
                       Restore

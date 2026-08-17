@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -58,7 +59,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             alt="SIKAP Logo" 
             className="h-8 object-contain" 
           />
-          <span className="text-xs font-body-semibold text-ink-muted ml-2 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
+          <span className="text-xs font-body font-semibold text-ink-muted ml-2 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
         </div>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-ink hover:bg-paper rounded-full transition-colors">
           {sidebarOpen ? <X /> : <Menu />}
@@ -76,7 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             alt="SIKAP Logo" 
             className="h-10 object-contain" 
           />
-          <span className="text-xs font-body-semibold text-ink-muted ml-2.5 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
+          <span className="text-xs font-body font-semibold text-ink-muted ml-2.5 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
         </div>
 
         <div className="p-5 flex flex-col h-[calc(100vh-5rem)]">
@@ -90,7 +91,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={`
-                    group flex items-center px-4 py-3.5 text-sm font-body-semibold rounded-2xl transition-all duration-300 relative overflow-hidden
+                    group flex items-center px-4 py-3.5 text-sm font-body font-semibold rounded-2xl transition-all duration-300 relative overflow-hidden
                     ${isActive 
                       ? 'bg-ink text-white shadow-md transform scale-[1.02]' 
                       : 'text-ink-soft hover:bg-white/50 hover:text-ink hover:shadow-sm'
@@ -109,17 +110,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="absolute -top-[1px] left-1/2 transform -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-ink-faint to-transparent"></div>
             <div className="flex items-center px-4 py-3 mb-3 bg-white/40 rounded-2xl border border-white/50">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-peach to-accent-peachBright flex items-center justify-center mr-3 shadow-inner">
-                <span className="font-body-bold text-primary-dark text-lg">{adminName.charAt(0)}</span>
+                <span className="font-body font-bold text-primary-dark text-lg">{adminName.charAt(0)}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-body-bold text-ink truncate">{adminName}</p>
+                <p className="text-sm font-body font-bold text-ink truncate">{adminName}</p>
                 <p className="text-xs font-body text-ink-muted truncate">Administrator</p>
               </div>
             </div>
             
             <button
               onClick={handleLogout}
-              className="group flex items-center w-full px-4 py-3.5 text-sm font-body-semibold text-status-error hover:bg-status-error/10 rounded-2xl transition-all duration-300 hover:shadow-sm border border-transparent hover:border-status-error/20"
+              className="group flex items-center w-full px-4 py-3.5 text-sm font-body font-semibold text-status-error hover:bg-status-error/10 rounded-2xl transition-all duration-300 hover:shadow-sm border border-transparent hover:border-status-error/20"
             >
               <LogOut className="w-5 h-5 mr-3 transition-transform duration-300 group-hover:-translate-x-1" />
               Sign Out

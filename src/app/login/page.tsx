@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { adminApi } from '@/lib/api';
@@ -64,7 +65,7 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="bg-status-error/10 backdrop-blur-sm border border-status-error/20 text-status-error px-4 py-3 rounded-xl mb-6 text-sm font-body-semibold animate-fade-in flex items-center">
+          <div className="bg-status-error/10 backdrop-blur-sm border border-status-error/20 text-status-error px-4 py-3 rounded-xl mb-6 text-sm font-body font-semibold animate-fade-in flex items-center">
             <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
             {error}
           </div>
@@ -72,7 +73,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-6 relative">
           <div className="group">
-            <label className="block font-body-semibold text-ink-soft text-sm mb-2 group-focus-within:text-primary transition-colors">Email Address</label>
+            <label className="block font-body font-semibold text-ink-soft text-sm mb-2 group-focus-within:text-primary transition-colors">Email Address</label>
             <input
               type="email"
               value={email}
@@ -84,7 +85,7 @@ export default function LoginPage() {
           </div>
           
           <div className="group">
-            <label className="block font-body-semibold text-ink-soft text-sm mb-2 group-focus-within:text-primary transition-colors">Password</label>
+            <label className="block font-body font-semibold text-ink-soft text-sm mb-2 group-focus-within:text-primary transition-colors">Password</label>
             <input
               type="password"
               value={password}
@@ -98,7 +99,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary hover:bg-primary-dark text-white font-body-bold py-4 rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center text-lg mt-8"
+            className="w-full bg-primary hover:bg-primary-dark text-white font-body font-bold py-4 rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center text-lg mt-8"
           >
             {loading ? (
               <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>

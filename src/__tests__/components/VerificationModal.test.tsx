@@ -81,7 +81,7 @@ describe('VerificationModal Component', () => {
     expect(handleApprove).toHaveBeenCalledWith(101);
   });
 
-  it('triggers the Reject callback with "Generic Rejection" when Reject flow is confirmed', () => {
+  it('triggers the Reject callback with specified reason when Reject flow is confirmed', () => {
     const handleReject = vi.fn();
     const handleClose = vi.fn();
 
@@ -97,12 +97,16 @@ describe('VerificationModal Component', () => {
     const rejectBtn = screen.getByTestId('reject-btn');
     fireEvent.click(rejectBtn);
 
-    // 2. Confirm rejection
+    // 2. Enter rejection reason
+    const reasonInput = screen.getByTestId('rejection-reason-input');
+    fireEvent.change(reasonInput, { target: { value: 'ID photo is blurry' } });
+
+    // 3. Confirm rejection
     const confirmRejectBtn = screen.getByTestId('confirm-reject-btn');
     fireEvent.click(confirmRejectBtn);
 
     expect(handleReject).toHaveBeenCalledTimes(1);
-    expect(handleReject).toHaveBeenCalledWith(101, 'Generic Rejection');
+    expect(handleReject).toHaveBeenCalledWith(101, 'ID photo is blurry');
   });
 
   it('calls onClose when close button is clicked', () => {

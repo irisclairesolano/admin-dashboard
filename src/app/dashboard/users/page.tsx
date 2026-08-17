@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
 import { UserX, Trash2, Search, ShieldAlert, Eye, CheckCircle2, AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -110,22 +111,22 @@ export default function UsersPage() {
         <div className="flex space-x-2 overflow-x-auto pb-1">
           <button 
              onClick={() => { setFilter('all'); setCurrentPage(1); }}
-             className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'all' ? 'bg-ink text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+             className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'all' ? 'bg-ink text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
             All Users
           </button>
           <button 
              onClick={() => { setFilter('verified'); setCurrentPage(1); }}
-             className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'verified' ? 'bg-status-success text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+             className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'verified' ? 'bg-status-success text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
             Verified
           </button>
           <button 
              onClick={() => { setFilter('unverified'); setCurrentPage(1); }}
-             className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'unverified' ? 'bg-status-warning text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+             className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'unverified' ? 'bg-status-warning text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
             Unverified
           </button>
           <button 
              onClick={() => { setFilter('rejected'); setCurrentPage(1); }}
-             className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'rejected' ? 'bg-status-error text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+             className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'rejected' ? 'bg-status-error text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
             Rejected
           </button>
         </div>
@@ -137,7 +138,7 @@ export default function UsersPage() {
               setRoleFilter(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none"
+            className="px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none"
           >
             <option value="all">All Roles</option>
             <option value="worker">Workers</option>
@@ -162,10 +163,10 @@ export default function UsersPage() {
             <table className="w-full text-left font-body">
             <thead className="bg-white/50 border-b border-ink-faint/50">
               <tr>
-                <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">User Details</th>
-                <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Role & Status</th>
-                <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Joined</th>
-                <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider text-right">Actions</th>
+                <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">User Details</th>
+                <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Role & Status</th>
+                <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Joined</th>
+                <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
              <tbody className="divide-y divide-ink-faint/30">
@@ -187,36 +188,36 @@ export default function UsersPage() {
                             className="h-12 w-12 rounded-2xl object-cover shadow-inner"
                           />
                         ) : (
-                          <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-body-bold text-lg shadow-inner ${
+                          <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-body font-bold text-lg shadow-inner ${
                             user.is_suspended ? 'bg-status-error/20 text-status-error' : 'bg-gradient-to-br from-accent-sky to-accent-skyDeep/40 text-primary-dark'
                           }`}>
                             {user.name.charAt(0)}
                           </div>
                         )}
                         <div className="ml-5">
-                          <div className={`font-body-bold ${user.is_suspended ? 'text-status-error' : 'text-ink'}`}>{user.name}</div>
+                          <div className={`font-body font-bold ${user.is_suspended ? 'text-status-error' : 'text-ink'}`}>{user.name}</div>
                           <div className="text-sm text-ink-muted mt-0.5">{user.email}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-8 py-5">
                       <div className="flex flex-col space-y-2 items-start">
-                        <span className={`px-4 py-1.5 rounded-full text-xs font-body-bold tracking-wide uppercase shadow-sm ${
+                        <span className={`px-4 py-1.5 rounded-full text-xs font-body font-bold tracking-wide uppercase shadow-sm ${
                           user.role === 'employer' ? 'bg-accent-peach border border-accent-peachBright/50 text-primary-dark' : 'bg-accent-mint border border-accent-mintDeep/30 text-accent-mintDeep'
                         }`}>
                           {user.role}
                         </span>
                         {user.verification_status === 'approved' ? (
-                          <span className="flex items-center text-xs font-body-semibold text-status-success bg-status-success/10 px-3 py-1 rounded-full border border-status-success/20">
+                          <span className="flex items-center text-xs font-body font-semibold text-status-success bg-status-success/10 px-3 py-1 rounded-full border border-status-success/20">
                             <CheckCircle2 className="w-3 h-3 mr-1.5" /> Verified
                           </span>
                         ) : user.verification_status === 'pending' ? (
-                          <span className="flex items-center text-xs font-body-semibold text-status-gold bg-status-gold/10 px-3 py-1 rounded-full border border-status-gold/20">
+                          <span className="flex items-center text-xs font-body font-semibold text-status-gold bg-status-gold/10 px-3 py-1 rounded-full border border-status-gold/20">
                             <AlertCircle className="w-3 h-3 mr-1.5 text-status-warning" /> Pending Review
                           </span>
                         ) : user.verification_status === 'rejected' || user.registration_status === 'rejected' ? (
                           <div className="flex flex-col gap-1">
-                            <span className="flex items-center text-xs font-body-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
+                            <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
                               <AlertCircle className="w-3 h-3 mr-1.5" /> Rejected
                             </span>
                             {user.rejection_reason && (
@@ -226,18 +227,18 @@ export default function UsersPage() {
                             )}
                           </div>
                         ) : (
-                          <span className="flex items-center text-xs font-body-semibold text-ink-muted bg-paper px-3 py-1 rounded-full border border-ink-faint">
+                          <span className="flex items-center text-xs font-body font-semibold text-ink-muted bg-paper px-3 py-1 rounded-full border border-ink-faint">
                             Unverified
                           </span>
                         )}
                         {user.is_suspended && (
-                          <span className="flex items-center text-xs font-body-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
+                          <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
                             <ShieldAlert className="w-3 h-3 mr-1.5" /> Suspended
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-sm font-body-medium text-ink-soft">
+                    <td className="px-8 py-5 text-sm font-body font-medium text-ink-soft">
                       {new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                     </td>
                     <td className="px-8 py-5 text-right">
@@ -275,7 +276,7 @@ export default function UsersPage() {
                         </div>
                       )}
                       {user.role === 'admin' && (
-                        <span className="text-xs font-body-bold text-ink-muted uppercase tracking-wider bg-ink-faint/50 px-3 py-1.5 rounded-lg border border-ink-faint">Protected Admin</span>
+                        <span className="text-xs font-body font-bold text-ink-muted uppercase tracking-wider bg-ink-faint/50 px-3 py-1.5 rounded-lg border border-ink-faint">Protected Admin</span>
                       )}
                     </td>
                   </tr>
@@ -326,11 +327,11 @@ export default function UsersPage() {
             <div className="p-6 flex-1 overflow-y-auto">
               <div className="flex justify-between mb-6">
                 <div>
-                  <h3 className="font-body-bold text-ink text-lg">{selectedIdUser.name}</h3>
+                  <h3 className="font-body font-bold text-ink text-lg">{selectedIdUser.name}</h3>
                   <p className="text-ink-soft font-body">{selectedIdUser.email}</p>
                 </div>
                 <div className="text-right">
-                  <span className="capitalize font-body-medium text-ink-muted bg-paper px-3 py-1 rounded-lg border border-ink-faint">
+                  <span className="capitalize font-body font-medium text-ink-muted bg-paper px-3 py-1 rounded-lg border border-ink-faint">
                     Role: {selectedIdUser.role}
                   </span>
                 </div>
@@ -338,7 +339,7 @@ export default function UsersPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
-                  <span className="block font-body-semibold text-ink-soft text-sm mb-2">Government ID</span>
+                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID</span>
                   <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[300px] flex items-center justify-center bg-black/5 overflow-hidden">
                     {selectedIdUser.document_url ? (
                       <img 
@@ -347,13 +348,13 @@ export default function UsersPage() {
                         className="max-w-full max-h-full object-contain rounded-lg"
                       />
                     ) : (
-                      <p className="text-ink-muted text-sm font-body-medium">No ID uploaded</p>
+                      <p className="text-ink-muted text-sm font-body font-medium">No ID uploaded</p>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <span className="block font-body-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
+                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
                   <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[300px] flex items-center justify-center bg-black/5 overflow-hidden">
                     {selectedIdUser.selfie_url ? (
                       <img 
@@ -362,7 +363,7 @@ export default function UsersPage() {
                         className="max-w-full max-h-full object-contain rounded-lg"
                       />
                     ) : (
-                      <p className="text-ink-muted text-sm font-body-medium">No selfie uploaded</p>
+                      <p className="text-ink-muted text-sm font-body font-medium">No selfie uploaded</p>
                     )}
                   </div>
                 </div>
@@ -372,7 +373,7 @@ export default function UsersPage() {
             <div className="p-6 border-t border-ink-faint bg-white flex justify-end">
               <button
                 onClick={() => setSelectedIdUser(null)}
-                className="px-6 py-3 bg-ink text-white font-body-semibold rounded-xl hover:bg-ink-soft transition-colors"
+                className="px-6 py-3 bg-ink text-white font-body font-semibold rounded-xl hover:bg-ink-soft transition-colors"
               >
                 Close
               </button>

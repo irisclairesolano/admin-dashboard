@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Metadata } from "next";
 import { Inter, Fraunces, Manrope } from "next/font/google";
 import "./globals.css";

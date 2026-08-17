@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
 import { Flag, CheckCircle, XCircle, Search, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -89,7 +90,7 @@ export default function ReportsPage() {
               setStatusFilter(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="px-4 py-3.5 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none shadow-sm"
+            className="px-4 py-3.5 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none shadow-sm"
           >
             <option value="open">Open Reports</option>
             <option value="resolved">Resolved</option>
@@ -103,11 +104,11 @@ export default function ReportsPage() {
           <table className="w-full text-left font-body">
             <thead className="bg-white/50 border-b border-ink-faint/50">
               <tr>
-                <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Target / Type</th>
-                <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Reported By</th>
-                <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Reason / Description</th>
-                <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Reported At</th>
-                <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider text-right">Actions</th>
+                <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Target / Type</th>
+                <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Reported By</th>
+                <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Reason / Description</th>
+                <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Reported At</th>
+                <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-faint/30">
@@ -126,33 +127,33 @@ export default function ReportsPage() {
               ) : filteredReports.map((report) => (
                 <tr key={report.id} className="hover:bg-white/60 transition-colors duration-200">
                   <td className="px-8 py-5">
-                    <span className="px-4 py-1.5 rounded-full text-xs font-body-bold tracking-wide uppercase bg-gradient-to-r from-ink to-ink-soft text-white shadow-sm">
+                    <span className="px-4 py-1.5 rounded-full text-xs font-body font-bold tracking-wide uppercase bg-gradient-to-r from-ink to-ink-soft text-white shadow-sm">
                       {report.reportable_type}
                     </span>
-                    <div className="mt-2 text-sm font-body-medium text-ink-soft bg-white/50 inline-block px-2.5 py-1 rounded border border-ink-faint">
+                    <div className="mt-2 text-sm font-body font-medium text-ink-soft bg-white/50 inline-block px-2.5 py-1 rounded border border-ink-faint">
                       ID: {report.reportable_id}
                     </div>
                   </td>
                   <td className="px-8 py-5">
                     <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-paper-cream to-ink-faint flex items-center justify-center text-ink font-body-bold text-sm shadow-inner mr-3">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-paper-cream to-ink-faint flex items-center justify-center text-ink font-body font-bold text-sm shadow-inner mr-3">
                         {(report.reporter?.name || 'U').charAt(0)}
                       </div>
                       <div>
-                        <div className="font-body-bold text-ink">{report.reporter?.name || 'Unknown'}</div>
+                        <div className="font-body font-bold text-ink">{report.reporter?.name || 'Unknown'}</div>
                         <div className="text-xs text-ink-soft mt-0.5">{report.reporter?.email}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-8 py-5 max-w-xs">
-                    <div className="font-body-bold text-ink truncate text-base capitalize" title={report.type}>
+                    <div className="font-body font-bold text-ink truncate text-base capitalize" title={report.type}>
                       {report.type.replace('_', ' ')}
                     </div>
                     <div className="text-sm text-ink-muted truncate mt-1" title={report.description}>
                       {report.description}
                     </div>
                   </td>
-                  <td className="px-8 py-5 text-sm font-body-medium text-ink-soft">
+                  <td className="px-8 py-5 text-sm font-body font-medium text-ink-soft">
                     {new Date(report.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </td>
                   <td className="px-8 py-5 text-right">

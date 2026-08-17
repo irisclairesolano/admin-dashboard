@@ -34,6 +34,8 @@ export default function VerificationModal({
   actionLoading = null,
 }: VerificationModalProps) {
   const [isRejecting, setIsRejecting] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+
 
   const handleApprove = () => {
     if (onApprove) {
@@ -45,11 +47,12 @@ export default function VerificationModal({
   };
 
   const handleRejectConfirm = () => {
+    const reason = rejectionReason.trim() || "Generic Rejection";
     if (onReject) {
-      onReject(user.id, "Generic Rejection");
+      onReject(user.id, reason);
     }
     if (onVerify) {
-      onVerify(user.id, 'rejected', "Generic Rejection");
+      onVerify(user.id, 'rejected', reason);
     }
   };
 
@@ -68,11 +71,11 @@ export default function VerificationModal({
         <div className="p-6 flex-1 overflow-y-auto">
           <div className="flex justify-between mb-6">
             <div>
-              <h3 className="font-body-bold text-ink text-lg" data-testid="user-name">{user.name}</h3>
+              <h3 className="font-body font-bold text-ink text-lg" data-testid="user-name">{user.name}</h3>
               <p className="text-ink-soft font-body" data-testid="user-email">{user.email}</p>
             </div>
             <div className="text-right">
-              <span className="capitalize font-body-medium text-ink-muted bg-paper px-3 py-1 rounded-lg border border-ink-faint" data-testid="user-role">
+              <span className="capitalize font-body font-medium text-ink-muted bg-paper px-3 py-1 rounded-lg border border-ink-faint" data-testid="user-role">
                 Role: {user.role}
               </span>
             </div>
@@ -81,7 +84,7 @@ export default function VerificationModal({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* Front ID */}
             <div>
-              <span className="block font-body-semibold text-ink-soft text-sm mb-2">Government ID (Front)</span>
+              <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Front)</span>
               <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                 {user.document_url ? (
                   <img
@@ -91,14 +94,14 @@ export default function VerificationModal({
                     className="max-w-full max-h-full object-contain rounded-lg"
                   />
                 ) : (
-                  <p className="text-ink-muted text-sm font-body-medium" data-testid="no-id-front">No Front ID uploaded</p>
+                  <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-id-front">No Front ID uploaded</p>
                 )}
               </div>
             </div>
 
             {/* Back ID */}
             <div>
-              <span className="block font-body-semibold text-ink-soft text-sm mb-2">Government ID (Back)</span>
+              <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Back)</span>
               <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                 {user.document_back_url ? (
                   <img
@@ -108,14 +111,14 @@ export default function VerificationModal({
                     className="max-w-full max-h-full object-contain rounded-lg"
                   />
                 ) : (
-                  <p className="text-ink-muted text-sm font-body-medium" data-testid="no-id-back">No Back ID uploaded</p>
+                  <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-id-back">No Back ID uploaded</p>
                 )}
               </div>
             </div>
 
             {/* Selfie ID */}
             <div>
-              <span className="block font-body-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
+              <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
               <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                 {user.selfie_url ? (
                   <img
@@ -125,7 +128,7 @@ export default function VerificationModal({
                     className="max-w-full max-h-full object-contain rounded-lg"
                   />
                 ) : (
-                  <p className="text-ink-muted text-sm font-body-medium" data-testid="no-selfie-id">
+                  <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-selfie-id">
                     {user.role === 'employer' ? 'Selfie not required for employers' : 'No selfie uploaded'}
                   </p>
                 )}
@@ -137,25 +140,35 @@ export default function VerificationModal({
         {/* Action Footer */}
         {isRejecting ? (
           <div className="p-6 border-t border-ink-faint bg-white bg-status-error/5" data-testid="rejection-section">
-            <h4 className="font-body-bold text-status-error mb-2">Confirm Rejection</h4>
-            <p className="text-sm text-ink-soft mb-4">
-              Are you sure you want to reject this ID? The user will be notified with a standard generic rejection reason and prompted to re-upload.
+            <h4 className="font-body font-bold text-status-error mb-2">Confirm Rejection</h4>
+            <p className="text-sm text-ink-soft mb-3">
+              Please specify the reason for rejecting this ID. The user will be notified and prompted to re-upload.
             </p>
+            <textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="e.g. Front ID photo is blurry, Name does not match profile, ID is expired..."
+              className="w-full p-3.5 bg-white border border-ink-faint rounded-xl focus:border-status-error/50 outline-none font-body text-sm mb-4 resize-none shadow-sm focus:shadow-md transition-all"
+              rows={3}
+              data-testid="rejection-reason-input"
+              required
+            />
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => {
                   setIsRejecting(false);
+                  setRejectionReason('');
                 }}
                 data-testid="cancel-reject-btn"
-                className="px-4 py-2 text-ink-soft font-body-medium hover:bg-paper rounded-xl"
+                className="px-4 py-2 text-ink-soft font-body font-medium hover:bg-paper rounded-xl"
               >
                 Cancel
               </button>
               <button
-                disabled={!!actionLoading}
+                disabled={!rejectionReason.trim() || !!actionLoading}
                 onClick={handleRejectConfirm}
                 data-testid="confirm-reject-btn"
-                className="px-6 py-2 bg-status-error text-white font-body-semibold rounded-xl hover:bg-status-error/90 transition-colors disabled:opacity-50 flex items-center"
+                className="px-6 py-2 bg-status-error text-white font-body font-semibold rounded-xl hover:bg-status-error/90 transition-colors disabled:opacity-50 flex items-center"
               >
                 {actionLoading === 'rejected' && (
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
@@ -170,7 +183,7 @@ export default function VerificationModal({
               disabled={!!actionLoading}
               onClick={() => setIsRejecting(true)}
               data-testid="reject-btn"
-              className="px-6 py-3 border border-status-error text-status-error font-body-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50 flex items-center"
+              className="px-6 py-3 border border-status-error text-status-error font-body font-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50 flex items-center"
             >
               Reject ID
             </button>
@@ -178,7 +191,7 @@ export default function VerificationModal({
               disabled={!!actionLoading}
               onClick={handleApprove}
               data-testid="approve-btn"
-              className="px-6 py-3 bg-status-success text-white font-body-semibold rounded-xl hover:bg-status-success/90 transition-colors disabled:opacity-50 flex items-center"
+              className="px-6 py-3 bg-status-success text-white font-body font-semibold rounded-xl hover:bg-status-success/90 transition-colors disabled:opacity-50 flex items-center"
             >
               {actionLoading === 'approved' && (
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>

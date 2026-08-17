@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
 import { ShieldCheck, Search, Calendar, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -92,7 +93,7 @@ export default function LogsPage() {
             setActionFilter(e.target.value);
             setCurrentPage(1);
           }}
-          className="px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none"
+          className="px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none"
         >
           <option value="">All Actions</option>
           <option value="approve_user">Approve User</option>
@@ -124,10 +125,10 @@ export default function LogsPage() {
             <table className="w-full text-left font-body">
               <thead className="bg-white/50 border-b border-ink-faint/50">
                 <tr>
-                  <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Timestamp</th>
-                  <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Administrator</th>
-                  <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Action</th>
-                  <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Description</th>
+                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Timestamp</th>
+                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Administrator</th>
+                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Action</th>
+                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Description</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-faint/30">
@@ -154,7 +155,7 @@ export default function LogsPage() {
                       </td>
                       <td className="px-8 py-5">
                         <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-paper-cream to-ink-faint flex items-center justify-center text-ink font-body-bold text-sm shadow-inner mr-3 overflow-hidden">
+                          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-paper-cream to-ink-faint flex items-center justify-center text-ink font-body font-bold text-sm shadow-inner mr-3 overflow-hidden">
                             {log.admin?.avatar_url ? (
                               <img src={log.admin.avatar_url} alt={log.admin.name} className="h-full w-full object-cover" />
                             ) : (
@@ -162,17 +163,17 @@ export default function LogsPage() {
                             )}
                           </div>
                           <div>
-                            <div className="font-body-bold text-ink">{log.admin?.name || 'System Admin'}</div>
+                            <div className="font-body font-bold text-ink">{log.admin?.name || 'System Admin'}</div>
                             <div className="text-xs text-ink-soft mt-0.5">{log.admin?.email}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-8 py-5 whitespace-nowrap">
-                        <span className={`px-3 py-1 rounded-lg text-xs font-body-semibold border ${getActionBadgeColor(log.action)}`}>
+                        <span className={`px-3 py-1 rounded-lg text-xs font-body font-semibold border ${getActionBadgeColor(log.action)}`}>
                           {formatActionName(log.action)}
                         </span>
                       </td>
-                      <td className="px-8 py-5 text-ink font-body-medium max-w-md">
+                      <td className="px-8 py-5 text-ink font-body font-medium max-w-md">
                         {log.description}
                       </td>
                     </tr>

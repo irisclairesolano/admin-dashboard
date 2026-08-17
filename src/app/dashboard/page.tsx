@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -157,25 +158,25 @@ export default function AnalyticsDashboard() {
           <div className="flex bg-white/70 backdrop-blur-md p-1 rounded-2xl border border-white/50 shadow-sm">
             <button
               onClick={() => setPresetFilter('30days')}
-              className={`px-4 py-1.5 rounded-xl text-sm font-body-semibold transition-all ${presetFilter === '30days' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'}`}
+              className={`px-4 py-1.5 rounded-xl text-sm font-body font-semibold transition-all ${presetFilter === '30days' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'}`}
             >
               30 Days
             </button>
             <button
               onClick={() => setPresetFilter('6months')}
-              className={`px-4 py-1.5 rounded-xl text-sm font-body-semibold transition-all ${presetFilter === '6months' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'}`}
+              className={`px-4 py-1.5 rounded-xl text-sm font-body font-semibold transition-all ${presetFilter === '6months' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'}`}
             >
               6 Months
             </button>
             <button
               onClick={() => setPresetFilter('1year')}
-              className={`px-4 py-1.5 rounded-xl text-sm font-body-semibold transition-all ${presetFilter === '1year' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'}`}
+              className={`px-4 py-1.5 rounded-xl text-sm font-body font-semibold transition-all ${presetFilter === '1year' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'}`}
             >
               1 Year
             </button>
             <button
               onClick={() => setPresetFilter('custom')}
-              className={`px-4 py-1.5 rounded-xl text-sm font-body-semibold transition-all ${presetFilter === 'custom' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'}`}
+              className={`px-4 py-1.5 rounded-xl text-sm font-body font-semibold transition-all ${presetFilter === 'custom' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'}`}
             >
               Custom
             </button>
@@ -189,7 +190,7 @@ export default function AnalyticsDashboard() {
                 onChange={(e) => setStartDate(e.target.value)}
                 className="bg-transparent border-none outline-none font-body text-sm text-ink-soft focus:text-ink"
               />
-              <span className="text-ink-muted text-sm font-body-semibold">to</span>
+              <span className="text-ink-muted text-sm font-body font-semibold">to</span>
               <input
                 type="date"
                 value={endDate}
@@ -210,8 +211,8 @@ export default function AnalyticsDashboard() {
                 <stat.icon className={`w-8 h-8 ${stat.color}`} />
               </div>
               <div>
-                <p className="text-sm font-body-semibold text-ink-soft uppercase tracking-wider">{stat.label}</p>
-                <h3 className="text-3xl font-numeric-bold text-ink mt-1">{stat.value}</h3>
+                <p className="text-sm font-body font-semibold text-ink-soft uppercase tracking-wider">{stat.label}</p>
+                <h3 className="text-3xl font-numeric font-bold text-ink mt-1">{stat.value}</h3>
               </div>
             </div>
           </div>
@@ -222,7 +223,7 @@ export default function AnalyticsDashboard() {
         <div className="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg">
           <h3 className="font-display text-2xl text-ink mb-6 flex items-center">
             User Growth Trends
-            <span className="ml-3 text-xs bg-primary-soft text-primary-dark px-3 py-1 rounded-full font-body-semibold">Last 6 Months</span>
+            <span className="ml-3 text-xs bg-primary-soft text-primary-dark px-3 py-1 rounded-full font-body font-semibold">Last 6 Months</span>
           </h3>
           <div className="h-80 w-full font-numeric">
             <ResponsiveContainer width="100%" height="100%">
@@ -254,7 +255,7 @@ export default function AnalyticsDashboard() {
         <div className="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg">
           <h3 className="font-display text-2xl text-ink mb-6 flex items-center">
             Skill Demand
-            <span className="ml-3 text-xs bg-accent-sky text-accent-skyDeep px-3 py-1 rounded-full font-body-semibold">All Time</span>
+            <span className="ml-3 text-xs bg-accent-sky text-accent-skyDeep px-3 py-1 rounded-full font-body font-semibold">All Time</span>
           </h3>
           <div className="h-80 w-full font-numeric">
             <ResponsiveContainer width="100%" height="100%">
@@ -276,7 +277,7 @@ export default function AnalyticsDashboard() {
         <div className="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg">
           <h3 className="font-display text-2xl text-ink mb-6 flex items-center">
             Skill Distribution
-            <span className="ml-3 text-xs bg-accent-peach text-primary-dark px-3 py-1 rounded-full font-body-semibold">Top 10 Verified Workers</span>
+            <span className="ml-3 text-xs bg-accent-peach text-primary-dark px-3 py-1 rounded-full font-body font-semibold">Top 10 Verified Workers</span>
           </h3>
           <div className="h-80 w-full font-numeric">
             <ResponsiveContainer width="100%" height="100%">
@@ -306,7 +307,7 @@ export default function AnalyticsDashboard() {
         <div className="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg">
           <h3 className="font-display text-2xl text-ink mb-6 flex items-center">
             Geographic Activity
-            <span className="ml-3 text-xs bg-accent-mint text-accent-mintDeep px-3 py-1 rounded-full font-body-semibold">Top 10 Municipalities</span>
+            <span className="ml-3 text-xs bg-accent-mint text-accent-mintDeep px-3 py-1 rounded-full font-body font-semibold">Top 10 Municipalities</span>
           </h3>
           <div className="h-80 w-full font-numeric">
             <ResponsiveContainer width="100%" height="100%">
@@ -331,7 +332,7 @@ export default function AnalyticsDashboard() {
         <div className="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg">
           <h3 className="font-display text-2xl text-ink mb-6 flex items-center">
             Application Volume
-            <span className="ml-3 text-xs bg-accent-peach text-primary-dark px-3 py-1 rounded-full font-body-semibold">Last 6 Months</span>
+            <span className="ml-3 text-xs bg-accent-peach text-primary-dark px-3 py-1 rounded-full font-body font-semibold">Last 6 Months</span>
           </h3>
           <div className="h-80 w-full font-numeric">
             <ResponsiveContainer width="100%" height="100%">

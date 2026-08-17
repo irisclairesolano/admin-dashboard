@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
 import { CheckCircle2, XCircle, Search, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -99,7 +100,7 @@ export default function VerificationsPage() {
               setSortOrder(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="px-4 py-3.5 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none shadow-sm"
+            className="px-4 py-3.5 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none shadow-sm"
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
@@ -131,10 +132,10 @@ export default function VerificationsPage() {
             <table className="w-full text-left font-body">
               <thead className="bg-white/50 border-b border-ink-faint/50">
                 <tr>
-                  <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">User</th>
-                  <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Role</th>
-                  <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider">Submitted At</th>
-                  <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider text-right">Action</th>
+                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">User</th>
+                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Role</th>
+                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Submitted At</th>
+                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-faint/30">
@@ -149,30 +150,30 @@ export default function VerificationsPage() {
                             className="h-12 w-12 rounded-2xl object-cover shadow-inner"
                           />
                         ) : (
-                          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-accent-sky to-accent-skyDeep/40 flex items-center justify-center text-primary-dark font-body-bold text-lg shadow-inner">
+                          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-accent-sky to-accent-skyDeep/40 flex items-center justify-center text-primary-dark font-body font-bold text-lg shadow-inner">
                             {user.name.charAt(0)}
                           </div>
                         )}
                         <div className="ml-5">
-                          <div className="font-body-bold text-ink">{user.name}</div>
+                          <div className="font-body font-bold text-ink">{user.name}</div>
                           <div className="text-sm text-ink-muted mt-0.5">{user.email}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-8 py-5">
-                      <span className={`px-4 py-1.5 rounded-full text-xs font-body-bold tracking-wide uppercase shadow-sm ${
+                      <span className={`px-4 py-1.5 rounded-full text-xs font-body font-bold tracking-wide uppercase shadow-sm ${
                         user.role === 'employer' ? 'bg-accent-peach border border-accent-peachBright/50 text-primary-dark' : 'bg-accent-mint border border-accent-mintDeep/30 text-accent-mintDeep'
                       }`}>
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-8 py-5 text-sm font-body-medium text-ink-soft">
+                    <td className="px-8 py-5 text-sm font-body font-medium text-ink-soft">
                       {new Date(user.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                     </td>
                     <td className="px-8 py-5 text-right">
                       <button
                         onClick={() => setSelectedUser(user)}
-                        className="bg-ink text-white px-4 py-2 rounded-lg text-sm font-body-medium hover:bg-ink-soft transition-colors"
+                        className="bg-ink text-white px-4 py-2 rounded-lg text-sm font-body font-medium hover:bg-ink-soft transition-colors"
                       >
                         Review ID
                       </button>
@@ -224,11 +225,11 @@ export default function VerificationsPage() {
             <div className="p-6 flex-1 overflow-y-auto">
               <div className="flex justify-between mb-6">
                 <div>
-                  <h3 className="font-body-bold text-ink text-lg">{selectedUser.name}</h3>
+                  <h3 className="font-body font-bold text-ink text-lg">{selectedUser.name}</h3>
                   <p className="text-ink-soft font-body">{selectedUser.email}</p>
                 </div>
                 <div className="text-right">
-                  <span className="capitalize font-body-medium text-ink-muted bg-paper px-3 py-1 rounded-lg border border-ink-faint">
+                  <span className="capitalize font-body font-medium text-ink-muted bg-paper px-3 py-1 rounded-lg border border-ink-faint">
                     Role: {selectedUser.role}
                   </span>
                 </div>
@@ -236,7 +237,7 @@ export default function VerificationsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div>
-                  <span className="block font-body-semibold text-ink-soft text-sm mb-2">Government ID (Front)</span>
+                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Front)</span>
                   <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                     {selectedUser.document_url ? (
                       <img 
@@ -245,13 +246,13 @@ export default function VerificationsPage() {
                         className="max-w-full max-h-full object-contain rounded-lg"
                       />
                     ) : (
-                      <p className="text-ink-muted text-sm font-body-medium">No Front ID uploaded</p>
+                      <p className="text-ink-muted text-sm font-body font-medium">No Front ID uploaded</p>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <span className="block font-body-semibold text-ink-soft text-sm mb-2">Government ID (Back)</span>
+                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Back)</span>
                   <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                     {selectedUser.document_back_url ? (
                       <img 
@@ -260,13 +261,13 @@ export default function VerificationsPage() {
                         className="max-w-full max-h-full object-contain rounded-lg"
                       />
                     ) : (
-                      <p className="text-ink-muted text-sm font-body-medium">No Back ID uploaded</p>
+                      <p className="text-ink-muted text-sm font-body font-medium">No Back ID uploaded</p>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <span className="block font-body-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
+                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
                   <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                     {selectedUser.selfie_url ? (
                       <img 
@@ -275,7 +276,7 @@ export default function VerificationsPage() {
                         className="max-w-full max-h-full object-contain rounded-lg"
                       />
                     ) : (
-                      <p className="text-ink-muted text-sm font-body-medium">
+                      <p className="text-ink-muted text-sm font-body font-medium">
                         {selectedUser.role === 'employer' ? 'Selfie not required for employers' : 'No selfie uploaded'}
                       </p>
                     )}
@@ -285,7 +286,7 @@ export default function VerificationsPage() {
 
               {selectedUser.role === 'employer' && selectedUser.business_documents && selectedUser.business_documents.length > 0 && (
                 <div className="mt-6 border-t border-ink-faint pt-6">
-                  <span className="block font-body-semibold text-ink-soft text-sm mb-3">Uploaded Business Documents</span>
+                  <span className="block font-body font-semibold text-ink-soft text-sm mb-3">Uploaded Business Documents</span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {selectedUser.business_documents.map((doc: string, idx: number) => {
                       const isPdf = doc.toLowerCase().includes('.pdf') || doc.includes('token=') && doc.toLowerCase().includes('%2fpdf') || doc.toLowerCase().includes('pdf');
@@ -294,7 +295,7 @@ export default function VerificationsPage() {
                           {isPdf ? (
                             <div className="flex flex-col items-center justify-center">
                               <svg className="w-12 h-12 text-status-error mb-2" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/><path d="M9 9a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1z"/></svg>
-                              <span className="text-xs text-ink-soft font-body-semibold">Business Doc {idx + 1}</span>
+                              <span className="text-xs text-ink-soft font-body font-semibold">Business Doc {idx + 1}</span>
                               <a href={doc} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline mt-2">Open PDF</a>
                             </div>
                           ) : (
@@ -304,7 +305,7 @@ export default function VerificationsPage() {
                                 alt={`Business Doc ${idx + 1}`} 
                                 className="max-w-full max-h-full object-contain rounded-lg"
                               />
-                              <a href={doc} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-body-bold rounded-lg">
+                              <a href={doc} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-body font-bold rounded-lg">
                                 View Full Image
                               </a>
                             </>
@@ -319,25 +320,34 @@ export default function VerificationsPage() {
 
             {isRejecting ? (
               <div className="p-6 border-t border-ink-faint bg-white bg-status-error/5">
-                <h4 className="font-body-bold text-status-error mb-2">Confirm Rejection</h4>
-                <p className="text-sm text-ink-soft mb-4">
-                  Are you sure you want to reject this ID submission? The user will receive a notification and be prompted to re-submit clear photos of their government ID.
+                <h4 className="font-body font-bold text-status-error mb-2">Confirm Rejection</h4>
+                <p className="text-sm text-ink-soft mb-3">
+                  Please specify the reason for rejecting this ID submission. The user will receive a notification and be prompted to re-submit.
                 </p>
+                <textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="e.g. Front ID photo is blurry, Name does not match profile, ID is expired..."
+                  className="w-full p-3.5 bg-white border border-ink-faint rounded-xl focus:border-status-error/50 outline-none font-body text-sm mb-4 resize-none shadow-sm focus:shadow-md transition-all"
+                  rows={3}
+                  required
+                />
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => {
                       setIsRejecting(false);
                       setRejectionReason('');
                     }}
-                    className="px-4 py-2 text-ink-soft font-body-medium hover:bg-paper rounded-xl"
+                    className="px-4 py-2 text-ink-soft font-body font-medium hover:bg-paper rounded-xl"
                   >
                     Cancel
                   </button>
                   <button
-                    disabled={!!actionLoading}
+                    disabled={!rejectionReason.trim() || !!actionLoading}
                     onClick={() => handleVerify(selectedUser.id, 'rejected')}
-                    className="px-6 py-2 bg-status-error text-white font-body-semibold rounded-xl hover:bg-status-error/90 transition-colors disabled:opacity-50 flex items-center"
+                    className="px-6 py-2 bg-status-error text-white font-body font-semibold rounded-xl hover:bg-status-error/90 transition-colors disabled:opacity-50 flex items-center"
                   >
+
                     {actionLoading === 'rejected' && (
                       <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
                     )}
@@ -350,14 +360,14 @@ export default function VerificationsPage() {
                 <button
                   disabled={!!actionLoading}
                   onClick={() => setIsRejecting(true)}
-                  className="px-6 py-3 border border-status-error text-status-error font-body-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50 flex items-center"
+                  className="px-6 py-3 border border-status-error text-status-error font-body font-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50 flex items-center"
                 >
                   Reject ID
                 </button>
                 <button
                   disabled={!!actionLoading}
                   onClick={() => handleVerify(selectedUser.id, 'approved')}
-                  className="px-6 py-3 bg-status-success text-white font-body-semibold rounded-xl hover:bg-status-success/90 transition-colors disabled:opacity-50 flex items-center"
+                  className="px-6 py-3 bg-status-success text-white font-body font-semibold rounded-xl hover:bg-status-success/90 transition-colors disabled:opacity-50 flex items-center"
                 >
                   {actionLoading === 'approved' && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>}
                   Approve & Verify
