@@ -11,12 +11,47 @@ import { adminApi } from '@/lib/api';
 export default function AnalyticsDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [presetFilter, setPresetFilter] = useState<'30days' | '6months' | '1year' | 'custom'>('1year');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const res = await adminApi.getAnalytics();
-        setData(res.data);
+        setLoading(true);
+        let from = '';
+        let to = '';
+        
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
+
+        if (presetFilter === '30days') {
+          const past = new Date();
+          past.setDate(now.getDate() - 30);
+          from = `${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, '0')}-${String(past.getDate()).padStart(2, '0')}`;
+          to = todayStr;
+        } else if (presetFilter === '6months') {
+          const past = new Date();
+          past.setMonth(now.getMonth() - 6);
+          from = `${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, '0')}-${String(past.getDate()).padStart(2, '0')}`;
+          to = todayStr;
+        } else if (presetFilter === '1year') {
+          const past = new Date();
+          past.setFullYear(now.getFullYear() - 1);
+          from = `${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, '0')}-${String(past.getDate()).padStart(2, '0')}`;
+          to = todayStr;
+        } else if (presetFilter === 'custom') {
+          from = startDate;
+          to = endDate;
+        }
+
+        if (presetFilter !== 'custom' || (startDate && endDate)) {
+          const res = await adminApi.getAnalytics(from, to);
+          setData(res.data);
+        }
       } catch (err) {
         console.error('Failed to load analytics', err);
       } finally {
@@ -24,7 +59,7 @@ export default function AnalyticsDashboard() {
       }
     };
     fetchAnalytics();
-  }, []);
+  }, [presetFilter, startDate, endDate]);
 
   const stats = [
     { label: 'Total Users', value: data?.kpis?.total_users || 0, icon: Users, color: 'text-primary-dark', bg: 'bg-primary-soft' },
@@ -111,9 +146,59 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="animate-fade-in">
-      <div className="mb-8">
-        <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">Dashboard Overview</h1>
-        <p className="text-ink-soft font-body mt-2 text-lg">Platform analytics and key performance metrics.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">Dashboard Overview</h1>
+          <p className="text-ink-soft font-body mt-2 text-lg">Platform analytics and key performance metrics.</p>
+        </div>
+        
+        {/* Date Filter Component */}
+        <div className="mt-6 md:mt-0 flex flex-wrap items-center gap-3">
+          <div className="flex bg-white/70 backdrop-blur-md p-1 rounded-2xl border border-white/50 shadow-sm">
+            <button
+              onClick={() => setPresetFilter('30days')}
+              className={`px-4 py-1.5 rounded-xl text-sm font-body-semibold transition-all ${presetFilter === '30days' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'}`}
+            >
+              30 Days
+            </button>
+            <button
+              onClick={() => setPresetFilter('6months')}
+              className={`px-4 py-1.5 rounded-xl text-sm font-body-semibold transition-all ${presetFilter === '6months' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'}`}
+            >
+              6 Months
+            </button>
+            <button
+              onClick={() => setPresetFilter('1year')}
+              className={`px-4 py-1.5 rounded-xl text-sm font-body-semibold transition-all ${presetFilter === '1year' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'}`}
+            >
+              1 Year
+            </button>
+            <button
+              onClick={() => setPresetFilter('custom')}
+              className={`px-4 py-1.5 rounded-xl text-sm font-body-semibold transition-all ${presetFilter === 'custom' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'}`}
+            >
+              Custom
+            </button>
+          </div>
+
+          {presetFilter === 'custom' && (
+            <div className="flex items-center gap-2 bg-white/70 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 shadow-sm">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-transparent border-none outline-none font-body text-sm text-ink-soft focus:text-ink"
+              />
+              <span className="text-ink-muted text-sm font-body-semibold">to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-transparent border-none outline-none font-body text-sm text-ink-soft focus:text-ink"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

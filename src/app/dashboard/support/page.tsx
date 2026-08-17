@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '@/lib/api';
-import { RefreshCw, Search, MessageSquare, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { RefreshCw, Search, MessageSquare, AlertCircle, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface SupportTicket {
   id: number;
@@ -33,6 +33,9 @@ export default function SupportTicketsPage() {
   const [replyText, setReplyText] = useState('');
   const [replying, setReplying] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 6;
 
   const fetchTickets = async () => {
     try {
@@ -104,6 +107,9 @@ export default function SupportTicketsPage() {
     return matchesSearch && matchesFilter;
   });
 
+  const totalPages = Math.ceil(filteredTickets.length / itemsPerPage) || 1;
+  const paginatedTickets = filteredTickets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -128,40 +134,50 @@ export default function SupportTicketsPage() {
           {['all', 'open', 'processing', 'resolved'].map(status => (
             <button
               key={status}
-              onClick={() => setStatusFilter(status as any)}
-              className={`px-4 py-2 rounded-xl text-sm font-body-semibold transition-all ${
+              onClick={() => { setStatusFilter(status as any); setCurrentPage(1); }}
+              className={`px-4 py-2 text-sm font-body-semibold rounded-xl capitalize transition-all ${
                 statusFilter === status 
                   ? 'bg-ink text-white shadow-md' 
-                  : 'bg-paper text-ink-muted hover:bg-paper-dark'
+                  : 'text-ink-soft hover:text-ink bg-white/40 border border-ink-faint/30'
               }`}
             >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
+              {status}
             </button>
           ))}
         </div>
-        <div className="relative w-full md:w-64">
-          <input 
-            type="text" 
-            placeholder="Search by name, email, subject..."
+        
+        <div className="relative w-full md:w-72 group">
+          <input
+            type="text"
+            placeholder="Search tickets..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-ink-faint/30 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-body text-sm bg-white/50 backdrop-blur-sm"
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-11 pr-4 py-3 bg-white/70 backdrop-blur-md rounded-2xl border border-white/50 shadow-inner focus:bg-white outline-none font-body text-sm transition-all focus:border-primary/30"
           />
-          <Search className="w-4 h-4 text-ink-muted absolute left-3.5 top-3.5" />
+          <Search className="w-4 h-4 text-ink-muted absolute left-4 top-3.5 transition-colors group-focus-within:text-primary" />
         </div>
       </div>
 
-      {/* Tickets List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      {/* Tickets Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          <div className="col-span-full py-12 flex justify-center text-ink-muted">Loading tickets...</div>
+          [1, 2, 3].map(i => (
+            <div key={i} className="bg-white/40 p-6 rounded-[2rem] border border-white/30 h-64 animate-pulse flex flex-col gap-4">
+              <div className="w-1/4 h-6 bg-ink-faint/50 rounded-lg"></div>
+              <div className="w-3/4 h-8 bg-ink-faint/50 rounded-xl"></div>
+              <div className="w-full h-12 bg-ink-faint/50 rounded-xl mt-2"></div>
+            </div>
+          ))
         ) : filteredTickets.length === 0 ? (
-          <div className="col-span-full py-12 flex flex-col items-center justify-center text-ink-muted bg-white/40 rounded-3xl border border-white/50 border-dashed">
+          <div className="col-span-full bg-white/50 backdrop-blur-md p-16 rounded-[2.5rem] border border-white/50 shadow-inner flex flex-col items-center justify-center text-ink-soft">
             <MessageSquare className="w-12 h-12 mb-4 text-ink-faint" />
             <p className="font-body-semibold text-lg">No tickets found</p>
           </div>
         ) : (
-          filteredTickets.map(ticket => (
+          paginatedTickets.map(ticket => (
             <div 
               key={ticket.id} 
               onClick={() => setSelectedTicket(ticket)}
@@ -202,6 +218,31 @@ export default function SupportTicketsPage() {
           ))
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6 px-4">
+          <p className="text-sm font-body text-ink-soft">
+            Page <span className="font-semibold text-ink">{currentPage}</span> of{' '}
+            <span className="font-semibold text-ink">{totalPages}</span>
+          </p>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Reply Modal */}
       {selectedTicket && (

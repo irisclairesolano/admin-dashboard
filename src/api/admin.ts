@@ -141,8 +141,8 @@ export const adminApi = {
     return apiClient.patch(`/admin/jobs/${id}/restore`);
   },
 
-  getReports: async () => {
-    return cachedGet('/admin/reports');
+  getReports: async (status: string = 'open', page: number = 1) => {
+    return cachedGet(`/admin/reports?status=${status}&page=${page}`);
   },
   
   resolveReport: async (id: number, status: 'resolved' | 'dismissed') => {
@@ -171,5 +171,13 @@ export const adminApi = {
   updateSupportTicketStatus: async (id: number, status: 'open' | 'processing' | 'resolved') => {
     clearApiCache();
     return apiClient.patch(`/admin/support/${id}/status`, { status });
+  },
+
+  getLogs: async (page: number = 1, search?: string, action?: string) => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    if (search) params.append('search', search);
+    if (action) params.append('action', action);
+    return cachedGet(`/admin/logs?${params.toString()}`);
   }
 };

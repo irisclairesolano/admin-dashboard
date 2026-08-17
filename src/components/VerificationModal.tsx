@@ -34,7 +34,6 @@ export default function VerificationModal({
   actionLoading = null,
 }: VerificationModalProps) {
   const [isRejecting, setIsRejecting] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
 
   const handleApprove = () => {
     if (onApprove) {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, Search, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function VerificationsPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -12,6 +12,11 @@ export default function VerificationsPage() {
   const [actionLoading, setActionLoading] = useState<'approved' | 'rejected' | null>(null);
   const [isRejecting, setIsRejecting] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 5;
 
   const fetchVerifications = async () => {
     try {
@@ -50,15 +55,56 @@ export default function VerificationsPage() {
 
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
-  const pendingUsers = users.filter(u => u.registration_status === 'pending_review');
+  const pendingUsers = users.filter(u => {
+    const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          u.email.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch && (u.registration_status === 'pending_review' || (u.verification_status === 'pending' && u.document_url));
+  }).sort((a, b) => {
+    const dateA = new Date(a.updated_at).getTime();
+    const dateB = new Date(b.updated_at).getTime();
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
+
+  const totalPages = Math.ceil(pendingUsers.length / itemsPerPage) || 1;
+  const paginatedUsers = pendingUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="animate-fade-in">
-      <div className="mb-8">
-        <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">ID Verifications</h1>
-        <p className="text-ink-soft font-body mt-2 text-lg">
-          Review and approve user-submitted government IDs to grant platform access.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">ID Verifications</h1>
+          <p className="text-ink-soft font-body mt-2 text-lg">
+            Review and approve user-submitted government IDs to grant platform access.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 mt-6 md:mt-0">
+          <div className="relative w-full md:w-64 group">
+            <input
+              type="text"
+              placeholder="Search by name..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-12 pr-4 py-3.5 bg-white/70 backdrop-blur-md rounded-2xl border border-white/50 shadow-sm focus:bg-white focus:border-primary/50 focus:ring-4 focus:ring-primary/10 outline-none font-body transition-all group-hover:shadow-md"
+            />
+            <Search className="w-5 h-5 text-ink-muted absolute left-4 top-4 transition-colors group-focus-within:text-primary" />
+          </div>
+
+          <select
+            value={sortOrder}
+            onChange={(e) => {
+              setSortOrder(e.target.value as any);
+              setCurrentPage(1);
+            }}
+            className="px-4 py-3.5 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none shadow-sm"
+          >
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+          </select>
+        </div>
       </div>
 
       <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-sm border border-white/50 overflow-hidden transition-all hover:shadow-lg">
@@ -92,7 +138,7 @@ export default function VerificationsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-faint/30">
-                {pendingUsers.map((user) => (
+                {paginatedUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-white/60 transition-colors duration-200">
                     <td className="px-8 py-5">
                       <div className="flex items-center">
@@ -138,6 +184,31 @@ export default function VerificationsPage() {
           </div>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6 px-4">
+          <p className="text-sm font-body text-ink-soft">
+            Page <span className="font-semibold text-ink">{currentPage}</span> of{' '}
+            <span className="font-semibold text-ink">{totalPages}</span>
+          </p>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Review Modal */}
       {selectedUser && (

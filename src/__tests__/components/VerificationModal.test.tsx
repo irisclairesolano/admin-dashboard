@@ -81,7 +81,7 @@ describe('VerificationModal Component', () => {
     expect(handleApprove).toHaveBeenCalledWith(101);
   });
 
-  it('triggers the Reject callback with selected reason when Reject flow is confirmed', () => {
+  it('triggers the Reject callback with "Generic Rejection" when Reject flow is confirmed', () => {
     const handleReject = vi.fn();
     const handleClose = vi.fn();
 
@@ -97,39 +97,12 @@ describe('VerificationModal Component', () => {
     const rejectBtn = screen.getByTestId('reject-btn');
     fireEvent.click(rejectBtn);
 
-    // 2. Select preset reason "Blurry photo"
-    const presetBtn = screen.getByTestId('preset-reason-blurry-photo');
-    fireEvent.click(presetBtn);
-
-    // 3. Confirm rejection
+    // 2. Confirm rejection
     const confirmRejectBtn = screen.getByTestId('confirm-reject-btn');
     fireEvent.click(confirmRejectBtn);
 
     expect(handleReject).toHaveBeenCalledTimes(1);
-    expect(handleReject).toHaveBeenCalledWith(101, 'Blurry photo');
-  });
-
-  it('allows custom text for rejection reason', () => {
-    const handleReject = vi.fn();
-    render(
-      <VerificationModal
-        user={mockUser}
-        onClose={vi.fn()}
-        onReject={handleReject}
-      />
-    );
-
-    // Open rejection view
-    fireEvent.click(screen.getByTestId('reject-btn'));
-
-    // Type custom reason
-    const input = screen.getByTestId('rejection-reason-input');
-    fireEvent.change(input, { target: { value: 'ID expired in 2020' } });
-
-    // Confirm rejection
-    fireEvent.click(screen.getByTestId('confirm-reject-btn'));
-
-    expect(handleReject).toHaveBeenCalledWith(101, 'ID expired in 2020');
+    expect(handleReject).toHaveBeenCalledWith(101, 'Generic Rejection');
   });
 
   it('calls onClose when close button is clicked', () => {

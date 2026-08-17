@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
-import { UserX, Trash2, Search, ShieldAlert, Eye, CheckCircle2, AlertCircle } from 'lucide-react';
+import { UserX, Trash2, Search, ShieldAlert, Eye, CheckCircle2, AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -10,8 +10,12 @@ export default function UsersPage() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'verified' | 'unverified' | 'rejected'>('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'worker' | 'employer'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [selectedIdUser, setSelectedIdUser] = useState<any | null>(null);
+
+  const itemsPerPage = 10;
 
   const fetchUsers = async () => {
     try {
@@ -62,6 +66,7 @@ export default function UsersPage() {
                           u.email.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (!matchesSearch) return false;
+    if (roleFilter !== 'all' && u.role !== roleFilter) return false;
 
     if (filter === 'all') return true;
     if (filter === 'verified') return u.verification_status === 'approved';
@@ -70,6 +75,9 @@ export default function UsersPage() {
     
     return true;
   });
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage) || 1;
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
@@ -88,34 +96,54 @@ export default function UsersPage() {
             type="text"
             placeholder="Search users by name or email..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-full pl-12 pr-4 py-3.5 bg-white/70 backdrop-blur-md rounded-2xl border border-white/50 shadow-sm focus:bg-white focus:border-primary/50 focus:ring-4 focus:ring-primary/10 outline-none font-body transition-all group-hover:shadow-md"
           />
           <Search className="w-5 h-5 text-ink-muted absolute left-4 top-4 transition-colors group-focus-within:text-primary" />
         </div>
       </div>
 
-      <div className="flex space-x-2 mb-4 overflow-x-auto pb-2">
-        <button 
-           onClick={() => setFilter('all')}
-           className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'all' ? 'bg-ink text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
-          All Users
-        </button>
-        <button 
-           onClick={() => setFilter('verified')}
-           className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'verified' ? 'bg-status-success text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
-          Verified
-        </button>
-        <button 
-           onClick={() => setFilter('unverified')}
-           className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'unverified' ? 'bg-status-warning text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
-          Unverified
-        </button>
-        <button 
-           onClick={() => setFilter('rejected')}
-           className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'rejected' ? 'bg-status-error text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
-          Rejected
-        </button>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex space-x-2 overflow-x-auto pb-1">
+          <button 
+             onClick={() => { setFilter('all'); setCurrentPage(1); }}
+             className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'all' ? 'bg-ink text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+            All Users
+          </button>
+          <button 
+             onClick={() => { setFilter('verified'); setCurrentPage(1); }}
+             className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'verified' ? 'bg-status-success text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+            Verified
+          </button>
+          <button 
+             onClick={() => { setFilter('unverified'); setCurrentPage(1); }}
+             className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'unverified' ? 'bg-status-warning text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+            Unverified
+          </button>
+          <button 
+             onClick={() => { setFilter('rejected'); setCurrentPage(1); }}
+             className={`px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap ${filter === 'rejected' ? 'bg-status-error text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+            Rejected
+          </button>
+        </div>
+
+        <div>
+          <select
+            value={roleFilter}
+            onChange={(e) => {
+              setRoleFilter(e.target.value as any);
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2 rounded-xl font-body-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none"
+          >
+            <option value="all">All Roles</option>
+            <option value="worker">Workers</option>
+            <option value="employer">Employers</option>
+          </select>
+        </div>
       </div>
 
       <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-sm border border-white/50 overflow-hidden transition-all hover:shadow-lg">
@@ -140,7 +168,7 @@ export default function UsersPage() {
                 <th className="px-8 py-5 font-body-semibold text-ink-soft text-sm uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink-faint/30">
+             <tbody className="divide-y divide-ink-faint/30">
               {filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-8 py-16 text-center text-ink-soft">
@@ -148,7 +176,7 @@ export default function UsersPage() {
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user) => (
+                paginatedUsers.map((user) => (
                   <tr key={user.id} className={`transition-colors duration-200 ${user.is_suspended ? 'bg-status-error/5 hover:bg-status-error/10' : 'hover:bg-white/60'}`}>
                     <td className="px-8 py-5">
                       <div className="flex items-center">
@@ -258,6 +286,31 @@ export default function UsersPage() {
         </div>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6 px-4">
+          <p className="text-sm font-body text-ink-soft">
+            Page <span className="font-semibold text-ink">{currentPage}</span> of{' '}
+            <span className="font-semibold text-ink">{totalPages}</span>
+          </p>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* View ID Modal */}
       {selectedIdUser && (
