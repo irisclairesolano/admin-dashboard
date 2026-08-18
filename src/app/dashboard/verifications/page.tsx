@@ -4,6 +4,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
 import { CheckCircle2, XCircle, Search, ArrowLeft, ArrowRight } from 'lucide-react';
+import Avatar from '@/components/Avatar';
 
 export default function VerificationsPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -145,17 +146,7 @@ export default function VerificationsPage() {
                   <tr key={user.id} className="hover:bg-white/60 transition-colors duration-200">
                     <td className="px-8 py-5">
                       <div className="flex items-center">
-                        {user.avatar_url ? (
-                          <img 
-                            src={user.avatar_url} 
-                            alt={user.name} 
-                            className="h-12 w-12 rounded-2xl object-cover shadow-inner"
-                          />
-                        ) : (
-                          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-accent-sky to-accent-skyDeep/40 flex items-center justify-center text-primary-dark font-body font-bold text-lg shadow-inner">
-                            {user.name.charAt(0)}
-                          </div>
-                        )}
+                        <Avatar name={user.name} url={user.avatar_url} />
                         <div className="ml-5">
                           <div className="font-body font-bold text-ink">{user.name}</div>
                           <div className="text-sm text-ink-muted mt-0.5">{user.email}</div>

@@ -4,6 +4,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
 import { ShieldCheck, Search, Calendar, ArrowLeft, ArrowRight } from 'lucide-react';
+import Avatar from '@/components/Avatar';
 
 export default function LogsPage() {
   const [logs, setLogs] = useState<any[]>([]);
@@ -155,13 +156,7 @@ export default function LogsPage() {
                       </td>
                       <td className="px-8 py-5">
                         <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-paper-cream to-ink-faint flex items-center justify-center text-ink font-body font-bold text-sm shadow-inner mr-3 overflow-hidden">
-                            {log.admin?.avatar_url ? (
-                              <img src={log.admin.avatar_url} alt={log.admin.name} className="h-full w-full object-cover" />
-                            ) : (
-                              (log.admin?.name || 'A').charAt(0)
-                            )}
-                          </div>
+                          <Avatar name={log.admin?.name || 'System Admin'} url={log.admin?.avatar_url} size="sm" className="mr-3" />
                           <div>
                             <div className="font-body font-bold text-ink">{log.admin?.name || 'System Admin'}</div>
                             <div className="text-xs text-ink-soft mt-0.5">{log.admin?.email}</div>

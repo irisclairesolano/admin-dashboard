@@ -106,6 +106,37 @@ export const adminApi = {
   getUsers: async (trashed: boolean = false) => {
     return cachedGet(`/admin/users${trashed ? '?trashed=1' : ''}`);
   },
+
+  getUserDetails: async (id: number) => {
+    return apiClient.get(`/admin/users/${id}`);
+  },
+
+  getUserPosts: async (id: number, page: number = 1, search: string = '', status: string = 'all') => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    if (search) params.append('search', search);
+    if (status) params.append('status', status);
+    return apiClient.get(`/admin/users/${id}/posts?${params.toString()}`);
+  },
+
+  getUserApplications: async (id: number, page: number = 1, search: string = '', status: string = 'all') => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    if (search) params.append('search', search);
+    if (status) params.append('status', status);
+    return apiClient.get(`/admin/users/${id}/applications?${params.toString()}`);
+  },
+
+  getUserHired: async (id: number, page: number = 1, search: string = '') => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    if (search) params.append('search', search);
+    return apiClient.get(`/admin/users/${id}/hired?${params.toString()}`);
+  },
+
+  getUserReviews: async (id: number, page: number = 1) => {
+    return apiClient.get(`/admin/users/${id}/reviews?page=${page}`);
+  },
   
   suspendUser: async (id: number, is_suspended: boolean) => {
     clearApiCache();

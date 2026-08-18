@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { adminApi } from '@/lib/api';
 import { RefreshCw, Search, MessageSquare, AlertCircle, CheckCircle2, ArrowLeft, ArrowRight, XCircle } from 'lucide-react';
 import Tooltip from '@/components/Tooltip';
+import Avatar from '@/components/Avatar';
 
 interface SupportTicket {
   id: number;
@@ -204,13 +205,7 @@ export default function SupportTicketsPage() {
               <p className="text-sm text-ink-soft font-body mb-4 line-clamp-2 flex-1">{ticket.message}</p>
               
               <div className="flex items-center gap-3 pt-4 border-t border-ink-faint/20 mt-auto">
-                {ticket.user.avatar_url ? (
-                  <img src={ticket.user.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-primary/20 text-primary-dark flex items-center justify-center font-body font-bold text-xs">
-                    {ticket.user.name.charAt(0)}
-                  </div>
-                )}
+                <Avatar name={ticket.user.name} url={ticket.user.avatar_url} size="sm" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-body font-bold text-ink truncate">{ticket.user.name}</p>
                   <p className="text-xs font-body text-ink-muted truncate">{ticket.user.email}</p>
@@ -264,13 +259,7 @@ export default function SupportTicketsPage() {
             <div className="p-8 overflow-y-auto flex-1">
               {/* User Info */}
               <div className="flex items-center gap-4 mb-6 pb-6 border-b border-ink-faint/20">
-                {selectedTicket.user.avatar_url ? (
-                  <img src={selectedTicket.user.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover" />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-primary-soft text-primary-dark flex items-center justify-center font-body font-bold text-lg">
-                    {selectedTicket.user.name.charAt(0)}
-                  </div>
-                )}
+                <Avatar name={selectedTicket.user.name} url={selectedTicket.user.avatar_url} size="md" />
                 <div>
                   <p className="font-body font-bold text-lg text-ink">{selectedTicket.user.name}</p>
                   <p className="text-sm text-ink-muted font-body">{selectedTicket.user.email} • {selectedTicket.user.role}</p>
