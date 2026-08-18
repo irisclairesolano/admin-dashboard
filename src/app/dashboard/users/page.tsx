@@ -6,6 +6,7 @@ import { adminApi } from '@/lib/api';
 import { UserX, Trash2, Search, ShieldAlert, Eye, CheckCircle2, AlertCircle, ArrowLeft, ArrowRight, Calendar, MapPin, Briefcase, Star, Mail, Phone, X, Undo, RefreshCw, FileText } from 'lucide-react';
 import Tooltip from '@/components/Tooltip';
 import Avatar from '@/components/Avatar';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -32,6 +33,7 @@ export default function UsersPage() {
   const [activitySearch, setActivitySearch] = useState('');
   const [activityStatus, setActivityStatus] = useState('all');
   const [employerSubTab, setEmployerSubTab] = useState<'posts' | 'hired'>('posts');
+  const debouncedActivitySearch = useDebounce(activitySearch, 300);
 
   // Tab 3: Reviews states
   const [reviewsLoading, setReviewsLoading] = useState(false);
@@ -132,15 +134,15 @@ export default function UsersPage() {
     if (selectedDetailUser && activeTab === 'activity') {
       if (selectedDetailUser.role === 'employer') {
         if (employerSubTab === 'posts') {
-          fetchUserActivity(selectedDetailUser.id, activityPage, activitySearch, activityStatus, 'employer');
+          fetchUserActivity(selectedDetailUser.id, activityPage, debouncedActivitySearch, activityStatus, 'employer');
         } else {
-          fetchUserHired(selectedDetailUser.id, activityPage, activitySearch);
+          fetchUserHired(selectedDetailUser.id, activityPage, debouncedActivitySearch);
         }
       } else {
-        fetchUserActivity(selectedDetailUser.id, activityPage, activitySearch, activityStatus, 'worker');
+        fetchUserActivity(selectedDetailUser.id, activityPage, debouncedActivitySearch, activityStatus, 'worker');
       }
     }
-  }, [selectedDetailUser, activeTab, activityPage, activitySearch, activityStatus, employerSubTab]);
+  }, [selectedDetailUser, activeTab, activityPage, debouncedActivitySearch, activityStatus, employerSubTab]);
 
   useEffect(() => {
     if (selectedDetailUser && activeTab === 'reviews') {

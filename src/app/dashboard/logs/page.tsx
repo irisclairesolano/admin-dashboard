@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { adminApi } from '@/lib/api';
 import { ShieldCheck, Search, Calendar, ArrowLeft, ArrowRight } from 'lucide-react';
 import Avatar from '@/components/Avatar';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function LogsPage() {
   const [logs, setLogs] = useState<any[]>([]);
@@ -15,10 +16,12 @@ export default function LogsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      const res = await adminApi.getLogs(currentPage, searchTerm, actionFilter);
+      const res = await adminApi.getLogs(currentPage, debouncedSearchTerm, actionFilter);
       setLogs(res.data.data || []);
       setTotalPages(res.data.last_page || 1);
     } catch (err: any) {
@@ -31,12 +34,11 @@ export default function LogsPage() {
   useEffect(() => {
     fetchLogs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, actionFilter]);
+  }, [currentPage, actionFilter, debouncedSearchTerm]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
-    fetchLogs();
   };
 
   const getActionBadgeColor = (action: string) => {
@@ -78,9 +80,12 @@ export default function LogsPage() {
         <form onSubmit={handleSearchSubmit} className="mt-6 md:mt-0 relative w-full md:w-80 group">
           <input
             type="text"
-            placeholder="Search description and press Enter..."
+            placeholder="Search description..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-full pl-12 pr-4 py-3.5 bg-white/70 backdrop-blur-md rounded-2xl border border-white/50 shadow-sm focus:bg-white focus:border-primary/50 focus:ring-4 focus:ring-primary/10 outline-none font-body transition-all group-hover:shadow-md"
           />
           <Search className="w-5 h-5 text-ink-muted absolute left-4 top-4 transition-colors group-focus-within:text-primary" />
