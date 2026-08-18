@@ -24,7 +24,7 @@ export default function UsersPage() {
   const [selectedDetailUser, setSelectedDetailUser] = useState<any | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [userDetailData, setUserDetailData] = useState<any | null>(null);
-  const [activeTab, setActiveTab] = useState<'profile' | 'activity' | 'reviews'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'activity' | 'reviews' | 'reports' | 'logs'>('profile');
 
   // Tab 2: Activity states
   const [activityLoading, setActivityLoading] = useState(false);
@@ -39,6 +39,20 @@ export default function UsersPage() {
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewsData, setReviewsData] = useState<any | null>(null);
   const [reviewsPage, setReviewsPage] = useState(1);
+
+  // Tab 4: Reports states
+  const [reportsLoading, setReportsLoading] = useState(false);
+  const [reportsData, setReportsData] = useState<any | null>(null);
+  const [reportsPage, setReportsPage] = useState(1);
+
+  // Tab 5: Logs states
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsData, setLogsData] = useState<any | null>(null);
+  const [logsPage, setLogsPage] = useState(1);
+
+  // Verification modal states
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   // Job Preview state
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
@@ -114,6 +128,30 @@ export default function UsersPage() {
     }
   };
 
+  const fetchUserReports = async (id: number, page: number) => {
+    try {
+      setReportsLoading(true);
+      const res = await adminApi.getUserReports(id, page);
+      setReportsData(res.data);
+    } catch (err: any) {
+      alert('Failed to load reports: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setReportsLoading(false);
+    }
+  };
+
+  const fetchUserLogs = async (id: number, page: number) => {
+    try {
+      setLogsLoading(true);
+      const res = await adminApi.getUserLogs(id, page);
+      setLogsData(res.data);
+    } catch (err: any) {
+      alert('Failed to load activity logs: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (selectedDetailUser) {
       fetchUserDetails(selectedDetailUser.id);
@@ -125,6 +163,10 @@ export default function UsersPage() {
       setReviewsPage(1);
       setReviewsData(null);
       setEmployerSubTab('posts');
+      setReportsPage(1);
+      setReportsData(null);
+      setLogsPage(1);
+      setLogsData(null);
     } else {
       setUserDetailData(null);
     }
@@ -149,6 +191,18 @@ export default function UsersPage() {
       fetchUserReviews(selectedDetailUser.id, reviewsPage);
     }
   }, [selectedDetailUser, activeTab, reviewsPage]);
+
+  useEffect(() => {
+    if (selectedDetailUser && activeTab === 'reports') {
+      fetchUserReports(selectedDetailUser.id, reportsPage);
+    }
+  }, [selectedDetailUser, activeTab, reportsPage]);
+
+  useEffect(() => {
+    if (selectedDetailUser && activeTab === 'logs') {
+      fetchUserLogs(selectedDetailUser.id, logsPage);
+    }
+  }, [selectedDetailUser, activeTab, logsPage]);
 
   const handleSuspend = async (id: number, currentStatus: boolean) => {
     if (!confirm(`Are you sure you want to ${currentStatus ? 'unsuspend' : 'suspend'} this user?`)) return;
@@ -201,21 +255,35 @@ export default function UsersPage() {
     }
   };
 
-  const handleVerify = async (id: number) => {
-    if (!confirm('Are you sure you want to manually verify this user? This will bypass ID document checks.')) return;
-    
+  const handleManualVerify = async (id: number, status: 'approved' | 'rejected') => {
+    if (status === 'rejected' && !rejectionReason.trim()) {
+      alert('Please provide a rejection reason.');
+      return;
+    }
+    if (!confirm(`Are you sure you want to ${status === 'approved' ? 'approve' : 'reject'} this user's verification?`)) return;
+
     try {
       setActionLoading(id);
-      await adminApi.verifyUser(id, 'approved');
+      await adminApi.verifyUser(id, status, status === 'rejected' ? rejectionReason : undefined);
       await fetchUsers(); // Refresh list
       if (selectedDetailUser && selectedDetailUser.id === id) {
         fetchUserDetails(id); // Refresh drawer
       }
+      setSelectedIdUser(null);
+      setIsRejecting(false);
+      setRejectionReason('');
     } catch (err: any) {
-      alert('Failed to verify user: ' + (err.response?.data?.message || err.message));
+      alert('Verification action failed: ' + (err.response?.data?.message || err.message));
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const handleVerify = async (id: number) => {
+    const userToVerify = userDetailData?.user || selectedDetailUser;
+    setSelectedIdUser(userToVerify);
+    setIsRejecting(false);
+    setRejectionReason('');
   };
 
   const filteredUsers = users.filter(u => {
@@ -552,13 +620,76 @@ export default function UsersPage() {
               </div>
             </div>
 
-            <div className="p-6 border-t border-ink-faint bg-white flex justify-end">
-              <button
-                onClick={() => setSelectedIdUser(null)}
-                className="px-6 py-3 bg-ink text-white font-body font-semibold rounded-xl hover:bg-ink-soft transition-colors"
-              >
-                Close
-              </button>
+            <div className="p-6 border-t border-ink-faint bg-white flex flex-col gap-4">
+              {selectedIdUser.verification_status !== 'approved' && selectedIdUser.registration_status !== 'approved' && (
+                <>
+                  {isRejecting ? (
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-ink-soft uppercase tracking-wide">Rejection Reason</label>
+                      <textarea
+                        value={rejectionReason}
+                        onChange={(e) => setRejectionReason(e.target.value)}
+                        placeholder="Enter the reason why verification was rejected..."
+                        className="w-full p-3 border border-ink-faint rounded-xl text-sm focus:border-status-error outline-none font-body"
+                        rows={3}
+                      />
+                    </div>
+                  ) : null}
+                </>
+              )}
+              
+              <div className="flex justify-end gap-3">
+                {selectedIdUser.verification_status !== 'approved' && selectedIdUser.registration_status !== 'approved' ? (
+                  <>
+                    {isRejecting ? (
+                      <>
+                        <button
+                          onClick={() => { setIsRejecting(false); setRejectionReason(''); }}
+                          className="px-5 py-2.5 bg-paper border border-ink-faint text-ink font-body font-semibold rounded-xl hover:bg-paper-dark transition-colors"
+                        >
+                          Back
+                        </button>
+                        <button
+                          disabled={actionLoading === selectedIdUser.id}
+                          onClick={() => handleManualVerify(selectedIdUser.id, 'rejected')}
+                          className="px-5 py-2.5 bg-status-error text-white font-body font-semibold rounded-xl hover:bg-status-error/90 transition-colors"
+                        >
+                          Submit Rejection
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => { setSelectedIdUser(null); setIsRejecting(false); setRejectionReason(''); }}
+                          className="px-5 py-2.5 bg-paper border border-ink-faint text-ink font-body font-semibold rounded-xl hover:bg-paper-dark transition-colors"
+                        >
+                          Close
+                        </button>
+                        <button
+                          onClick={() => setIsRejecting(true)}
+                          className="px-5 py-2.5 bg-status-error/10 border border-status-error/20 text-status-error font-body font-semibold rounded-xl hover:bg-status-error hover:text-white transition-colors"
+                        >
+                          Reject
+                        </button>
+                        <button
+                          disabled={actionLoading === selectedIdUser.id}
+                          onClick={() => handleManualVerify(selectedIdUser.id, 'approved')}
+                          className="px-5 py-2.5 bg-status-success text-white font-body font-semibold rounded-xl hover:bg-status-success/90 transition-colors"
+                        >
+                          Approve
+                        </button>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <button
+                    onClick={() => { setSelectedIdUser(null); setIsRejecting(false); setRejectionReason(''); }}
+                    className="px-6 py-3 bg-ink text-white font-body font-semibold rounded-xl hover:bg-ink-soft transition-colors"
+                  >
+                    Close
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -686,24 +817,36 @@ export default function UsersPage() {
             )}
 
             {/* Tab Controls */}
-            <div className="flex border-b border-ink-faint px-6 mt-4 shrink-0">
+            <div className="flex border-b border-ink-faint px-6 mt-4 shrink-0 overflow-x-auto pb-1 gap-2">
               <button 
                 onClick={() => setActiveTab('profile')}
-                className={`py-3.5 px-4 font-body font-bold text-sm border-b-2 transition-all ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'}`}
+                className={`py-3 px-4 font-body font-bold text-sm border-b-2 transition-all whitespace-nowrap ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'}`}
               >
                 Profile Details
               </button>
               <button 
                 onClick={() => setActiveTab('activity')}
-                className={`py-3.5 px-4 font-body font-bold text-sm border-b-2 transition-all ${activeTab === 'activity' ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'}`}
+                className={`py-3 px-4 font-body font-bold text-sm border-b-2 transition-all whitespace-nowrap ${activeTab === 'activity' ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'}`}
               >
-                {selectedDetailUser.role === 'employer' ? 'Jobs & Hiring' : 'Job Applications'}
+                Work History
               </button>
               <button 
                 onClick={() => setActiveTab('reviews')}
-                className={`py-3.5 px-4 font-body font-bold text-sm border-b-2 transition-all ${activeTab === 'reviews' ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'}`}
+                className={`py-3 px-4 font-body font-bold text-sm border-b-2 transition-all whitespace-nowrap ${activeTab === 'reviews' ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'}`}
               >
-                Reviews Received
+                Reviews
+              </button>
+              <button 
+                onClick={() => setActiveTab('reports')}
+                className={`py-3 px-4 font-body font-bold text-sm border-b-2 transition-all whitespace-nowrap ${activeTab === 'reports' ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'}`}
+              >
+                Reports
+              </button>
+              <button 
+                onClick={() => setActiveTab('logs')}
+                className={`py-3 px-4 font-body font-bold text-sm border-b-2 transition-all whitespace-nowrap ${activeTab === 'logs' ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'}`}
+              >
+                Activity Logs
               </button>
             </div>
 
@@ -1056,6 +1199,128 @@ export default function UsersPage() {
                         </div>
                       ) : (
                         <div className="text-center py-10 text-sm text-ink-muted">No reviews received yet.</div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* TAB 4: REPORTS */}
+                  {activeTab === 'reports' && (
+                    <div className="space-y-4">
+                      {reportsLoading ? (
+                        <div className="flex justify-center py-10">
+                          <RefreshCw className="w-6 h-6 animate-spin text-primary" />
+                        </div>
+                      ) : reportsData && reportsData.data && reportsData.data.length > 0 ? (
+                        <div className="space-y-3">
+                          {reportsData.data.map((r: any) => {
+                            const isSubmittedByThisUser = r.reporter_id === selectedDetailUser.id;
+                            return (
+                              <div key={r.id} className="p-4 bg-paper rounded-2xl border border-ink-faint space-y-2">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                                      isSubmittedByThisUser ? 'bg-primary/10 text-primary' : 'bg-status-error/10 text-status-error'
+                                    }`}>
+                                      {isSubmittedByThisUser ? 'Submitted by User' : 'Report against User'}
+                                    </span>
+                                    <div className="text-xs text-ink-muted mt-1">Type: <span className="font-semibold text-ink capitalize">{r.type}</span></div>
+                                  </div>
+                                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                                    r.status === 'open' ? 'bg-status-warning/15 text-status-warning' : 'bg-status-success/15 text-status-success'
+                                  }`}>
+                                    {r.status}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-ink-soft leading-relaxed italic bg-white/50 p-3 rounded-xl border border-white/60">
+                                  "{r.description || 'No description provided.'}"
+                                </p>
+                                <div className="text-[10px] text-ink-muted text-right">
+                                  {new Date(r.created_at).toLocaleDateString()}
+                                </div>
+                              </div>
+                            );
+                          })}
+
+                          {/* Pagination controls for reports */}
+                          {reportsData.last_page > 1 && (
+                            <div className="flex justify-between items-center pt-2">
+                              <button 
+                                disabled={reportsPage === 1}
+                                onClick={() => setReportsPage(p => Math.max(1, p - 1))}
+                                className="px-3 py-1 bg-paper border border-ink-faint rounded-lg text-xs font-semibold disabled:opacity-40"
+                              >
+                                Previous
+                              </button>
+                              <span className="text-xs text-ink-muted">Page {reportsPage} of {reportsData.last_page}</span>
+                              <button 
+                                disabled={reportsPage === reportsData.last_page}
+                                onClick={() => setReportsPage(p => Math.min(reportsData.last_page, p + 1))}
+                                className="px-3 py-1 bg-paper border border-ink-faint rounded-lg text-xs font-semibold disabled:opacity-40"
+                              >
+                                Next
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-10 text-sm text-ink-muted">No reports found.</div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* TAB 5: ACTIVITY LOGS */}
+                  {activeTab === 'logs' && (
+                    <div className="space-y-4">
+                      {logsLoading ? (
+                        <div className="flex justify-center py-10">
+                          <RefreshCw className="w-6 h-6 animate-spin text-primary" />
+                        </div>
+                      ) : logsData && logsData.data && logsData.data.length > 0 ? (
+                        <div className="space-y-3">
+                          {logsData.data.map((log: any) => (
+                            <div key={log.id} className="p-4 bg-paper rounded-2xl border border-ink-faint flex flex-col gap-1.5">
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs font-mono font-bold text-primary uppercase bg-primary/10 px-2 py-0.5 rounded">
+                                  {log.action.replace('_', ' ')}
+                                </span>
+                                <span className="text-[10px] text-ink-muted">
+                                  {new Date(log.created_at).toLocaleString()}
+                                </span>
+                              </div>
+                              <p className="text-sm text-ink">{log.description}</p>
+                              {log.admin && log.admin.id !== selectedDetailUser.id && (
+                                <div className="text-[10px] text-ink-muted mt-1 flex items-center gap-1.5">
+                                  <span>Performed by:</span>
+                                  <Avatar name={log.admin.name} url={log.admin.avatar_url} size="sm" className="h-5 w-5 rounded-md" />
+                                  <span className="font-semibold">{log.admin.name} (Admin)</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+
+                          {/* Pagination controls for logs */}
+                          {logsData.last_page > 1 && (
+                            <div className="flex justify-between items-center pt-2">
+                              <button 
+                                disabled={logsPage === 1}
+                                onClick={() => setLogsPage(p => Math.max(1, p - 1))}
+                                className="px-3 py-1 bg-paper border border-ink-faint rounded-lg text-xs font-semibold disabled:opacity-40"
+                              >
+                                Previous
+                              </button>
+                              <span className="text-xs text-ink-muted">Page {logsPage} of {logsData.last_page}</span>
+                              <button 
+                                disabled={logsPage === logsData.last_page}
+                                onClick={() => setLogsPage(p => Math.min(logsData.last_page, p + 1))}
+                                className="px-3 py-1 bg-paper border border-ink-faint rounded-lg text-xs font-semibold disabled:opacity-40"
+                              >
+                                Next
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-10 text-sm text-ink-muted">No activity logs found.</div>
                       )}
                     </div>
                   )}

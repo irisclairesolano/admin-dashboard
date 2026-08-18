@@ -62,7 +62,7 @@ export default function VerificationsPage() {
   const pendingUsers = users.filter(u => {
     const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           u.email.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch && (u.registration_status === 'pending_review' || (u.verification_status === 'pending' && u.document_url));
+    return matchesSearch && (u.verification_status === 'pending' || u.registration_status === 'pending_review');
   }).sort((a, b) => {
     const dateA = new Date(a.updated_at).getTime();
     const dateB = new Date(b.updated_at).getTime();

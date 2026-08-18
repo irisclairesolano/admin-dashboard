@@ -137,6 +137,14 @@ export const adminApi = {
   getUserReviews: async (id: number, page: number = 1) => {
     return apiClient.get(`/admin/users/${id}/reviews?page=${page}`);
   },
+
+  getUserReports: async (id: number, page: number = 1) => {
+    return apiClient.get(`/admin/users/${id}/reports?page=${page}`);
+  },
+
+  getUserLogs: async (id: number, page: number = 1) => {
+    return apiClient.get(`/admin/users/${id}/logs?page=${page}`);
+  },
   
   suspendUser: async (id: number, is_suspended: boolean) => {
     clearApiCache();
