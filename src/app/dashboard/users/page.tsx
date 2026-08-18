@@ -587,25 +587,40 @@ export default function UsersPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div>
-                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID</span>
-                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[300px] flex items-center justify-center bg-black/5 overflow-hidden">
+                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Front)</span>
+                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                     {selectedIdUser.document_url ? (
                       <img 
                         src={selectedIdUser.document_url} 
-                        alt="Government ID" 
+                        alt="ID Front" 
                         className="max-w-full max-h-full object-contain rounded-lg"
                       />
                     ) : (
-                      <p className="text-ink-muted text-sm font-body font-medium">No ID uploaded</p>
+                      <p className="text-ink-muted text-sm font-body font-medium">No Front ID uploaded</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Back)</span>
+                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
+                    {selectedIdUser.document_back_url ? (
+                      <img 
+                        src={selectedIdUser.document_back_url} 
+                        alt="ID Back" 
+                        className="max-w-full max-h-full object-contain rounded-lg"
+                      />
+                    ) : (
+                      <p className="text-ink-muted text-sm font-body font-medium">No Back ID uploaded</p>
                     )}
                   </div>
                 </div>
 
                 <div>
                   <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
-                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[300px] flex items-center justify-center bg-black/5 overflow-hidden">
+                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                     {selectedIdUser.selfie_url ? (
                       <img 
                         src={selectedIdUser.selfie_url} 
@@ -613,11 +628,46 @@ export default function UsersPage() {
                         className="max-w-full max-h-full object-contain rounded-lg"
                       />
                     ) : (
-                      <p className="text-ink-muted text-sm font-body font-medium">No selfie uploaded</p>
+                      <p className="text-ink-muted text-sm font-body font-medium">
+                        {selectedIdUser.role === 'employer' ? 'Selfie not required for employers' : 'No selfie uploaded'}
+                      </p>
                     )}
                   </div>
                 </div>
               </div>
+
+              {selectedIdUser.role === 'employer' && selectedIdUser.business_documents && selectedIdUser.business_documents.length > 0 && (
+                <div className="mt-6 border-t border-ink-faint pt-6">
+                  <span className="block font-body font-semibold text-ink-soft text-sm mb-3">Uploaded Business Documents</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {selectedIdUser.business_documents.map((doc: string, idx: number) => {
+                      const isPdf = doc.toLowerCase().includes('.pdf') || doc.includes('token=') && doc.toLowerCase().includes('%2fpdf') || doc.toLowerCase().includes('pdf');
+                      return (
+                        <div key={idx} className="bg-paper rounded-xl border border-ink-faint p-2 h-[180px] flex flex-col items-center justify-center bg-black/5 overflow-hidden relative group">
+                          {isPdf ? (
+                            <div className="flex flex-col items-center justify-center">
+                              <svg className="w-12 h-12 text-status-error mb-2" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/><path d="M9 9a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1z"/></svg>
+                              <span className="text-xs text-ink-soft font-body font-semibold">Business Doc {idx + 1}</span>
+                              <a href={doc} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline mt-2">Open PDF</a>
+                            </div>
+                          ) : (
+                            <>
+                              <img 
+                                src={doc} 
+                                alt={`Business Doc ${idx + 1}`} 
+                                className="max-w-full max-h-full object-contain rounded-lg"
+                              />
+                              <a href={doc} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-body font-bold rounded-lg">
+                                View Full Image
+                              </a>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="p-6 border-t border-ink-faint bg-white flex flex-col gap-4">
