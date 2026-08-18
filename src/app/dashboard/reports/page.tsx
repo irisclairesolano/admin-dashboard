@@ -170,6 +170,7 @@ export default function ReportsPage() {
                           disabled={actionLoading === report.id}
                           onClick={() => handleResolve(report.id, 'dismissed')}
                           className="p-2.5 rounded-xl bg-white/80 border border-ink-faint/50 text-ink-soft hover:text-ink hover:border-ink hover:bg-paper transition-all shadow-sm group"
+                          title="Dismiss Report"
                         >
                           <XCircle className="w-5 h-5 transition-transform group-hover:scale-110" />
                         </button>
@@ -179,6 +180,7 @@ export default function ReportsPage() {
                           disabled={actionLoading === report.id}
                           onClick={() => handleResolve(report.id, 'resolved')}
                           className="p-2.5 rounded-xl bg-status-success/10 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all shadow-sm group"
+                          title="Mark as Resolved"
                         >
                           <CheckCircle className="w-5 h-5 transition-transform group-hover:scale-110" />
                         </button>

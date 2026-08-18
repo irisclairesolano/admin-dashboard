@@ -63,6 +63,20 @@ export default function UsersPage() {
     }
   };
 
+  const handleVerify = async (id: number) => {
+    if (!confirm('Are you sure you want to manually verify this user? This will bypass ID document checks.')) return;
+    
+    try {
+      setActionLoading(id);
+      await adminApi.verifyUser(id, 'approved');
+      await fetchUsers(); // Refresh
+    } catch (err: any) {
+      alert('Failed to verify user: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const filteredUsers = users.filter(u => {
     const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           u.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -250,8 +264,21 @@ export default function UsersPage() {
                               <button
                                 onClick={() => setSelectedIdUser(user)}
                                 className="p-2.5 rounded-xl bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white transition-all shadow-sm"
+                                title="View Government ID"
                               >
                                 <Eye className="w-4 h-4" />
+                              </button>
+                            </Tooltip>
+                          )}
+                          {user.role === 'worker' && user.verification_status !== 'approved' && (
+                            <Tooltip text="Manually Verify User" position="top">
+                              <button
+                                disabled={actionLoading === user.id}
+                                onClick={() => handleVerify(user.id)}
+                                className="p-2.5 rounded-xl bg-status-success/10 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all shadow-sm"
+                                title="Verify User"
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
                               </button>
                             </Tooltip>
                           )}
@@ -268,6 +295,7 @@ export default function UsersPage() {
                                   ? 'bg-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
                                   : 'bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white'
                               }`}
+                              title={user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
                             >
                               <UserX className="w-4 h-4" />
                             </button>
@@ -277,6 +305,7 @@ export default function UsersPage() {
                               disabled={actionLoading === user.id}
                               onClick={() => handleDelete(user.id)}
                               className="p-2.5 rounded-xl bg-status-error/10 border border-status-error/20 text-status-error hover:bg-status-error hover:text-white transition-all shadow-sm"
+                              title="Delete User"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
