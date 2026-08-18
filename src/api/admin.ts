@@ -38,7 +38,7 @@ apiClient.interceptors.response.use(
 
 // Stale-While-Revalidate Cache for Admin Dashboard
 const apiCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes TTL
+const CACHE_TTL = 10 * 1000; // 10 seconds TTL (short for real-time dashboard updates)
 
 export const clearApiCache = () => {
   apiCache.clear();
