@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from "next";
-import { Inter, Fraunces, Manrope } from "next/font/google";
+import { Inter, Raleway, Manrope } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ 
@@ -8,9 +8,9 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const fraunces = Fraunces({
+const raleway = Raleway({
   subsets: ["latin"],
-  variable: "--font-fraunces",
+  variable: "--font-raleway",
 });
 
 const manrope = Manrope({
@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${fraunces.variable} ${manrope.variable} antialiased`}
+        className={`${inter.variable} ${raleway.variable} ${manrope.variable} antialiased`}
       >
         {children}
       </body>

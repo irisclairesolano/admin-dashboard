@@ -1,10 +1,9 @@
 'use client';
 
-import React from 'react';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import { LogIn } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -21,16 +20,16 @@ export default function LoginPage() {
     try {
       const res = await adminApi.login(email, password);
       const user = res.data.user;
-      
+
       if (user.role !== 'admin') {
         setError('Access denied. Admin privileges required.');
         setLoading(false);
         return;
       }
-      
+
       localStorage.setItem('admin_token', res.data.token);
       localStorage.setItem('admin_user', JSON.stringify(user));
-      
+
       router.push('/dashboard/verifications');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid credentials');
@@ -53,10 +52,10 @@ export default function LoginPage() {
               <LogIn className="w-8 h-8 text-primary-dark" />
             </div>
           </div>
-          <img 
-            src="/logo/04_Wordmark.png" 
-            alt="SIKAP Logo" 
-            className="h-12 object-contain mt-12 mb-2" 
+          <img
+            src="/logo/04_Wordmark.png"
+            alt="SIKAP Logo"
+            className="h-12 object-contain mt-12 mb-2"
           />
           <h2 className="font-display text-xl text-ink-soft font-semibold">Admin Portal</h2>
           <p className="font-body text-ink-muted mt-2 text-center text-sm">
@@ -83,7 +82,7 @@ export default function LoginPage() {
               required
             />
           </div>
-          
+
           <div className="group">
             <label className="block font-body font-semibold text-ink-soft text-sm mb-2 group-focus-within:text-primary transition-colors">Password</label>
             <input
@@ -104,7 +103,7 @@ export default function LoginPage() {
             {loading ? (
               <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
             ) : (
-              'Secure Sign In'
+              'Sign In'
             )}
           </button>
         </form>

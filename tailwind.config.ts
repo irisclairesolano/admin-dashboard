@@ -45,7 +45,7 @@ const config: Config = {
         }
       },
       fontFamily: {
-        display: ['var(--font-fraunces)', 'serif'],
+        display: ['var(--font-raleway)', 'sans-serif'],
         body: ['var(--font-inter)', 'sans-serif'],
         numeric: ['var(--font-manrope)', 'sans-serif'],
       },
