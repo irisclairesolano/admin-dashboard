@@ -32,36 +32,36 @@ export default function Tooltip({
   };
 
   const variantBg: Record<string, string> = {
-    default: 'bg-[#1A3C5E] border-[#1A3C5E]',
-    danger:  'bg-red-600 border-red-600',
-    success: 'bg-emerald-600 border-emerald-600',
-    warning: 'bg-amber-500 border-amber-500',
+    default: 'bg-white/90 border-white/50 text-ink',
+    danger:  'bg-status-error/90 border-status-error/30 text-white',
+    success: 'bg-status-success/90 border-status-success/30 text-white',
+    warning: 'bg-status-warning/90 border-status-warning/30 text-white',
   };
 
   const arrowColor: Record<string, string> = {
-    top:    {
-      default: 'border-t-[#1A3C5E]',
-      danger:  'border-t-red-600',
-      success: 'border-t-emerald-600',
-      warning: 'border-t-amber-500',
+    top: {
+      default: 'border-t-white/90',
+      danger:  'border-t-status-error/90',
+      success: 'border-t-status-success/90',
+      warning: 'border-t-status-warning/90',
     }[variant],
     bottom: {
-      default: 'border-b-[#1A3C5E]',
-      danger:  'border-b-red-600',
-      success: 'border-b-emerald-600',
-      warning: 'border-b-amber-500',
+      default: 'border-b-white/90',
+      danger:  'border-b-status-error/90',
+      success: 'border-b-status-success/90',
+      warning: 'border-b-status-warning/90',
     }[variant],
     left: {
-      default: 'border-l-[#1A3C5E]',
-      danger:  'border-l-red-600',
-      success: 'border-l-emerald-600',
-      warning: 'border-l-amber-500',
+      default: 'border-l-white/90',
+      danger:  'border-l-status-error/90',
+      success: 'border-l-status-success/90',
+      warning: 'border-l-status-warning/90',
     }[variant],
     right: {
-      default: 'border-r-[#1A3C5E]',
-      danger:  'border-r-red-600',
-      success: 'border-r-emerald-600',
-      warning: 'border-r-amber-500',
+      default: 'border-r-white/90',
+      danger:  'border-r-status-error/90',
+      success: 'border-r-status-success/90',
+      warning: 'border-r-status-warning/90',
     }[variant],
   };
 
@@ -87,8 +87,8 @@ export default function Tooltip({
       >
         <div
           className={`
-            relative px-3 py-1.5 rounded-lg text-white text-xs font-semibold
-            shadow-lg backdrop-blur-sm border
+            relative px-3 py-1.5 rounded-lg text-xs font-semibold
+            shadow-lg backdrop-blur-md border
             ${variantBg[variant]}
           `}
         >

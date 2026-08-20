@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
-import { CheckCircle2, XCircle, Search, ArrowLeft, ArrowRight } from 'lucide-react';
 import Avatar from '@/components/Avatar';
 
-export default function VerificationsPage() {
+function VerificationsPageContent() {
+  const searchParams = useSearchParams();
+  const urlSearch = searchParams.get('search') || '';
+
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -14,11 +16,17 @@ export default function VerificationsPage() {
   const [actionLoading, setActionLoading] = useState<'approved' | 'rejected' | null>(null);
   const [isRejecting, setIsRejecting] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 5;
+
+  // Sync search query from URL query parameter
+  useEffect(() => {
+    setSearchTerm(urlSearch);
+    setCurrentPage(1);
+  }, [urlSearch]);
 
   const fetchVerifications = async (silent = false) => {
     try {
@@ -83,7 +91,7 @@ export default function VerificationsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mt-6 md:mt-0">
-          <div className="relative w-full md:w-72 group">
+          <div className="relative w-full md:w-64 group">
             <input
               type="text"
               placeholder="Search pending users..."
@@ -92,22 +100,25 @@ export default function VerificationsPage() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-12 pr-4 py-3.5 bg-white/70 backdrop-blur-md rounded-2xl border border-white/50 shadow-sm focus:bg-white focus:border-primary/50 focus:ring-4 focus:ring-primary/10 outline-none font-body transition-all group-hover:shadow-md"
+              className="w-full pl-10 pr-4 py-2 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary transition text-sm font-body"
             />
-            <Search className="w-5 h-5 text-ink-muted absolute left-4 top-4 transition-colors group-focus-within:text-primary" />
+            <i className="lni lni-search text-ink-muted absolute left-3.5 top-1/2 transform -translate-y-1/2" />
           </div>
 
-          <select
-            value={sortOrder}
-            onChange={(e) => {
-              setSortOrder(e.target.value as any);
-              setCurrentPage(1);
-            }}
-            className="px-4 py-3.5 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none shadow-sm"
-          >
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-          </select>
+          <div className="relative">
+            <select
+              value={sortOrder}
+              onChange={(e) => {
+                setSortOrder(e.target.value as any);
+                setCurrentPage(1);
+              }}
+              className="appearance-none pl-4 pr-10 py-2.5 rounded-xl font-body font-semibold text-sm transition-colors bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none shadow-sm cursor-pointer"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
+            <i className="lni lni-chevron-down absolute right-3.5 top-1/2 transform -translate-y-1/2 text-ink-muted pointer-events-none" />
+          </div>
         </div>
       </div>
 
@@ -125,31 +136,35 @@ export default function VerificationsPage() {
         ) : pendingUsers.length === 0 ? (
           <div className="p-16 flex flex-col items-center justify-center text-center">
             <div className="w-24 h-24 bg-status-success/10 rounded-full flex items-center justify-center mb-6 shadow-inner animate-pulse-slow">
-              <CheckCircle2 className="w-12 h-12 text-status-success" />
+              <i className="lni lni-checkmark-circle text-5xl text-status-success" />
             </div>
             <h3 className="font-display text-2xl text-ink">All caught up!</h3>
             <p className="font-body text-ink-soft mt-3 text-lg">There are no pending ID verifications at the moment.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left font-body">
+            <table className="w-full text-left font-body table-fixed border-collapse">
               <thead className="bg-white/50 border-b border-ink-faint/50">
                 <tr>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">User</th>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Role</th>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Submitted At</th>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider text-right">Action</th>
+                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[12%]">User ID</th>
+                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[40%]">User Details</th>
+                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[18%]">Role</th>
+                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[18%]">Submitted At</th>
+                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[12%] text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-faint/30">
                 {paginatedUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-white/60 transition-colors duration-200">
+                    <td className="px-8 py-5 text-sm font-numeric font-bold text-ink-muted">
+                      #{user.id}
+                    </td>
                     <td className="px-8 py-5">
                       <div className="flex items-center">
                         <Avatar name={user.name} url={user.avatar_url} />
-                        <div className="ml-5">
-                          <div className="font-body font-bold text-ink">{user.name}</div>
-                          <div className="text-sm text-ink-muted mt-0.5">{user.email}</div>
+                        <div className="ml-5 truncate">
+                          <div className="font-body font-bold text-ink text-sm truncate">{user.name}</div>
+                          <div className="text-xs text-ink-muted mt-0.5 truncate">{user.email}</div>
                         </div>
                       </div>
                     </td>
@@ -168,7 +183,7 @@ export default function VerificationsPage() {
                         onClick={() => setSelectedUser(user)}
                         className="bg-ink text-white px-4 py-2 rounded-lg text-sm font-body font-medium hover:bg-ink-soft transition-colors"
                       >
-                        Review ID
+                        Review
                       </button>
                     </td>
                   </tr>
@@ -191,14 +206,14 @@ export default function VerificationsPage() {
               disabled={currentPage === 1}
               className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <i className="lni lni-arrow-left text-sm" />
             </button>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              <ArrowRight className="w-5 h-5" />
+              <i className="lni lni-arrow-right text-sm" />
             </button>
           </div>
         </div>
@@ -211,7 +226,7 @@ export default function VerificationsPage() {
             <div className="p-6 border-b border-ink-faint flex justify-between items-center bg-paper-cream">
               <h2 className="font-display text-2xl text-ink">Review ID Document</h2>
               <button onClick={() => !actionLoading && setSelectedUser(null)} className="text-ink-muted hover:text-ink">
-                <XCircle className="w-6 h-6" />
+                <i className="lni lni-close text-lg" />
               </button>
             </div>
             
@@ -371,5 +386,13 @@ export default function VerificationsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function VerificationsPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-20 font-body text-ink-muted">Loading verifications...</div>}>
+      <VerificationsPageContent />
+    </Suspense>
   );
 }

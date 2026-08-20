@@ -1,23 +1,34 @@
 'use client';
 
-import React from 'react';
-import { useState, useEffect } from 'react';
-import { adminApi } from '@/lib/api';
-import { UserX, Trash2, Search, ShieldAlert, Eye, CheckCircle2, AlertCircle, ArrowLeft, ArrowRight, Calendar, MapPin, Briefcase, Star, Mail, Phone, X, Undo, RefreshCw, FileText } from 'lucide-react';
-import Tooltip from '@/components/Tooltip';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Avatar from '@/components/Avatar';
+import Tooltip from '@/components/Tooltip';
+import { AlertDialog } from '@/components/AlertDialog';
 import { useDebounce } from '@/hooks/useDebounce';
+import { adminApi } from '@/lib/api';
+import StatCard from '@/components/StatCard';
+import { ArrowLeft, ArrowRight, X, ShieldAlert, CheckCircle2, AlertCircle, MapPin, Star, RefreshCw, Mail, Phone, Calendar, UserX, Undo, Trash2, Search } from 'lucide-react';
 
-export default function UsersPage() {
+function UsersContent() {
+  const searchParams = useSearchParams();
+  const urlSearch = searchParams.get('search') || '';
+
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [filter, setFilter] = useState<'all' | 'verified' | 'unverified' | 'rejected'>('all');
   const [roleFilter, setRoleFilter] = useState<'all' | 'worker' | 'employer'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [selectedIdUser, setSelectedIdUser] = useState<any | null>(null);
+
+  // Sync search from URL query param
+  useEffect(() => {
+    setSearchTerm(urlSearch);
+    setCurrentPage(1);
+  }, [urlSearch]);
 
   // New Drawer & Lazy-Loading States
   const [showArchived, setShowArchived] = useState(false);
@@ -56,6 +67,20 @@ export default function UsersPage() {
 
   // Job Preview state
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
+
+  const [alertConfig, setAlertConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
 
   const itemsPerPage = 10;
 
@@ -204,79 +229,116 @@ export default function UsersPage() {
     }
   }, [selectedDetailUser, activeTab, logsPage]);
 
-  const handleSuspend = async (id: number, currentStatus: boolean) => {
-    if (!confirm(`Are you sure you want to ${currentStatus ? 'unsuspend' : 'suspend'} this user?`)) return;
-    
-    try {
-      setActionLoading(id);
-      await adminApi.suspendUser(id, !currentStatus);
-      await fetchUsers(); // Refresh list
-      if (selectedDetailUser && selectedDetailUser.id === id) {
-        fetchUserDetails(id); // Refresh drawer
-      }
-    } catch (err: any) {
-      alert('Failed to update suspension status: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setActionLoading(null);
-    }
+  const confirmAction = (title: string, message: string, onConfirm: () => void) => {
+    setAlertConfig({
+      isOpen: true,
+      title,
+      message,
+      confirmText: 'Confirm',
+      cancelText: 'Cancel',
+      onConfirm,
+    });
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this user? This action can be undone later by a database administrator (soft delete).')) return;
-    
-    try {
-      setActionLoading(id);
-      await adminApi.deleteUser(id);
-      await fetchUsers(); // Refresh list
-      if (selectedDetailUser && selectedDetailUser.id === id) {
-        fetchUserDetails(id); // Refresh drawer
-      }
-    } catch (err: any) {
-      alert('Failed to delete user: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setActionLoading(null);
-    }
+  const showAlert = (title: string, message: string) => {
+    setAlertConfig({
+      isOpen: true,
+      title,
+      message,
+      confirmText: 'OK',
+      onConfirm: () => {},
+    });
   };
 
-  const handleRestore = async (id: number) => {
-    if (!confirm('Are you sure you want to restore this user?')) return;
-    
-    try {
-      setActionLoading(id);
-      await adminApi.restoreUser(id);
-      await fetchUsers(); // Refresh list
-      if (selectedDetailUser && selectedDetailUser.id === id) {
-        fetchUserDetails(id); // Refresh drawer
+  const handleSuspend = (id: number, currentStatus: boolean) => {
+    confirmAction(
+      'Update Suspension Status',
+      `Are you sure you want to ${currentStatus ? 'unsuspend' : 'suspend'} this user?`,
+      async () => {
+        try {
+          setActionLoading(id);
+          await adminApi.suspendUser(id, !currentStatus);
+          await fetchUsers(); // Refresh list
+          if (selectedDetailUser && selectedDetailUser.id === id) {
+            fetchUserDetails(id); // Refresh drawer
+          }
+        } catch (err: any) {
+          showAlert('Error', 'Failed to update suspension status: ' + (err.response?.data?.message || err.message));
+        } finally {
+          setActionLoading(null);
+        }
       }
-    } catch (err: any) {
-      alert('Failed to restore user: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setActionLoading(null);
-    }
+    );
   };
 
-  const handleManualVerify = async (id: number, status: 'approved' | 'rejected') => {
+  const handleDelete = (id: number) => {
+    confirmAction(
+      'Delete User',
+      'Are you sure you want to delete this user? This action can be undone later by a database administrator (soft delete).',
+      async () => {
+        try {
+          setActionLoading(id);
+          await adminApi.deleteUser(id);
+          await fetchUsers(); // Refresh list
+          if (selectedDetailUser && selectedDetailUser.id === id) {
+            fetchUserDetails(id); // Refresh drawer
+          }
+        } catch (err: any) {
+          showAlert('Error', 'Failed to delete user: ' + (err.response?.data?.message || err.message));
+        } finally {
+          setActionLoading(null);
+        }
+      }
+    );
+  };
+
+  const handleRestore = (id: number) => {
+    confirmAction(
+      'Restore User',
+      'Are you sure you want to restore this user?',
+      async () => {
+        try {
+          setActionLoading(id);
+          await adminApi.restoreUser(id);
+          await fetchUsers(); // Refresh list
+          if (selectedDetailUser && selectedDetailUser.id === id) {
+            fetchUserDetails(id); // Refresh drawer
+          }
+        } catch (err: any) {
+          showAlert('Error', 'Failed to restore user: ' + (err.response?.data?.message || err.message));
+        } finally {
+          setActionLoading(null);
+        }
+      }
+    );
+  };
+
+  const handleManualVerify = (id: number, status: 'approved' | 'rejected') => {
     if (status === 'rejected' && !rejectionReason.trim()) {
-      alert('Please provide a rejection reason.');
+      showAlert('Required', 'Please provide a rejection reason.');
       return;
     }
-    if (!confirm(`Are you sure you want to ${status === 'approved' ? 'approve' : 'reject'} this user's verification?`)) return;
-
-    try {
-      setActionLoading(id);
-      await adminApi.verifyUser(id, status, status === 'rejected' ? rejectionReason : undefined);
-      await fetchUsers(); // Refresh list
-      if (selectedDetailUser && selectedDetailUser.id === id) {
-        fetchUserDetails(id); // Refresh drawer
+    confirmAction(
+      'Verify User ID Documents',
+      `Are you sure you want to ${status === 'approved' ? 'approve' : 'reject'} this user's verification?`,
+      async () => {
+        try {
+          setActionLoading(id);
+          await adminApi.verifyUser(id, status, status === 'rejected' ? rejectionReason : undefined);
+          await fetchUsers(); // Refresh list
+          if (selectedDetailUser && selectedDetailUser.id === id) {
+            fetchUserDetails(id); // Refresh drawer
+          }
+          setSelectedIdUser(null);
+          setIsRejecting(false);
+          setRejectionReason('');
+        } catch (err: any) {
+          showAlert('Error', 'Verification action failed: ' + (err.response?.data?.message || err.message));
+        } finally {
+          setActionLoading(null);
+        }
       }
-      setSelectedIdUser(null);
-      setIsRejecting(false);
-      setRejectionReason('');
-    } catch (err: any) {
-      alert('Verification action failed: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setActionLoading(null);
-    }
+    );
   };
 
   const handleVerify = async (id: number) => {
@@ -287,9 +349,9 @@ export default function UsersPage() {
   };
 
   const filteredUsers = users.filter(u => {
-    const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          u.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchTerm.toLowerCase());
+
     if (!matchesSearch) return false;
     if (roleFilter !== 'all' && u.role !== roleFilter) return false;
 
@@ -297,7 +359,7 @@ export default function UsersPage() {
     if (filter === 'verified') return u.verification_status === 'approved';
     if (filter === 'rejected') return u.verification_status === 'rejected' || u.registration_status === 'rejected';
     if (filter === 'unverified') return u.verification_status !== 'approved' && u.verification_status !== 'rejected' && u.registration_status !== 'rejected';
-    
+
     return true;
   });
 
@@ -315,7 +377,7 @@ export default function UsersPage() {
             Monitor, suspend, or remove users from the platform.
           </p>
         </div>
-        
+
         <div className="mt-6 md:mt-0 relative w-full md:w-80 group">
           <input
             type="text"
@@ -325,32 +387,40 @@ export default function UsersPage() {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-12 pr-4 py-3.5 bg-white/70 backdrop-blur-md rounded-2xl border border-white/50 shadow-sm focus:bg-white focus:border-primary/50 focus:ring-4 focus:ring-primary/10 outline-none font-body transition-all group-hover:shadow-md"
+            className="w-full pl-10 pr-4 py-2 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm focus:bg-white focus:border-primary/50 focus:ring-4 focus:ring-primary/10 outline-none font-body transition-all group-hover:shadow-md text-sm"
           />
-          <Search className="w-5 h-5 text-ink-muted absolute left-4 top-4 transition-colors group-focus-within:text-primary" />
+          <i className="lni lni-search text-ink-muted absolute left-3.5 top-1/2 transform -translate-y-1/2" />
         </div>
+      </div>
+
+      {/* 4 Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatCard title="Total Users" value={users.length} iconClass="lni lni-users" />
+        <StatCard title="Workers" value={users.filter(u => u.role === 'worker').length} iconClass="lni lni-user" />
+        <StatCard title="Employers" value={users.filter(u => u.role === 'employer').length} iconClass="lni lni-briefcase" />
+        <StatCard title="Pending Review" value={users.filter(u => u.registration_status === 'pending_review' || (u.verification_status === 'pending' && u.document_url)).length} iconClass="lni lni-warning" />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div className="flex space-x-2 overflow-x-auto pb-1">
-          <button 
-             onClick={() => { setFilter('all'); setCurrentPage(1); }}
-             className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'all' ? 'bg-ink text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+          <button
+            onClick={() => { setFilter('all'); setCurrentPage(1); }}
+            className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'all' ? 'bg-ink text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
             All Users
           </button>
-          <button 
-             onClick={() => { setFilter('verified'); setCurrentPage(1); }}
-             className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'verified' ? 'bg-status-success text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+          <button
+            onClick={() => { setFilter('verified'); setCurrentPage(1); }}
+            className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'verified' ? 'bg-status-success text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
             Verified
           </button>
-          <button 
-             onClick={() => { setFilter('unverified'); setCurrentPage(1); }}
-             className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'unverified' ? 'bg-status-warning text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+          <button
+            onClick={() => { setFilter('unverified'); setCurrentPage(1); }}
+            className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'unverified' ? 'bg-status-warning text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
             Unverified
           </button>
-          <button 
-             onClick={() => { setFilter('rejected'); setCurrentPage(1); }}
-             className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'rejected' ? 'bg-status-error text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+          <button
+            onClick={() => { setFilter('rejected'); setCurrentPage(1); }}
+            className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'rejected' ? 'bg-status-error text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
             Rejected
           </button>
         </div>
@@ -397,144 +467,173 @@ export default function UsersPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left font-body">
-            <thead className="bg-white/50 border-b border-ink-faint/50">
-              <tr>
-                <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">User Details</th>
-                <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Role & Status</th>
-                <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider">Joined</th>
-                <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider text-right">Actions</th>
-              </tr>
-            </thead>
-             <tbody className="divide-y divide-ink-faint/30">
-              {filteredUsers.length === 0 ? (
+            <table className="w-full text-left font-body table-fixed border-collapse">
+              <thead className="bg-white/50 border-b border-ink-faint/50">
                 <tr>
-                  <td colSpan={4} className="px-8 py-16 text-center text-ink-soft">
-                    No users found matching "{searchTerm}"
-                  </td>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[10%]">User ID</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[32%]">User Details</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[23%]">Role & Status</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[13%]">Joined</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[12%]">Last Active</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[10%] text-right">Actions</th>
                 </tr>
-              ) : (
-                paginatedUsers.map((user) => (
-                  <tr key={user.id} className={`transition-colors duration-200 ${user.is_suspended ? 'bg-status-error/5 hover:bg-status-error/10' : 'hover:bg-white/60'}`}>
-                    <td className="px-8 py-5">
-                      <div 
-                        className="flex items-center cursor-pointer group/user select-none"
-                        onClick={() => setSelectedDetailUser(user)}
-                      >
-                        <Avatar name={user.name} url={user.avatar_url} isSuspended={user.is_suspended} />
-                        <div className="ml-5">
-                          <div className={`font-body font-bold transition-colors group-hover/user:text-primary ${user.is_suspended ? 'text-status-error' : 'text-ink'}`}>{user.name}</div>
-                          <div className="text-sm text-ink-muted mt-0.5 group-hover/user:text-ink-soft">{user.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5">
-                      <div className="flex flex-col space-y-2 items-start">
-                        <span className={`px-4 py-1.5 rounded-full text-xs font-body font-bold tracking-wide uppercase shadow-sm ${
-                          user.role === 'employer' ? 'bg-accent-peach border border-accent-peachBright/50 text-primary-dark' : 'bg-accent-mint border border-accent-mintDeep/30 text-accent-mintDeep'
-                        }`}>
-                          {user.role}
-                        </span>
-                        {user.verification_status === 'approved' ? (
-                          <span className="flex items-center text-xs font-body font-semibold text-status-success bg-status-success/10 px-3 py-1 rounded-full border border-status-success/20">
-                            <CheckCircle2 className="w-3 h-3 mr-1.5" /> Verified
-                          </span>
-                        ) : user.verification_status === 'pending' ? (
-                          <span className="flex items-center text-xs font-body font-semibold text-status-gold bg-status-gold/10 px-3 py-1 rounded-full border border-status-gold/20">
-                            <AlertCircle className="w-3 h-3 mr-1.5 text-status-warning" /> Pending Review
-                          </span>
-                        ) : user.verification_status === 'rejected' || user.registration_status === 'rejected' ? (
-                          <div className="flex flex-col gap-1">
-                            <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
-                              <AlertCircle className="w-3 h-3 mr-1.5" /> Rejected
-                            </span>
-                            {user.rejection_reason && (
-                              <span className="text-xs text-status-error mt-1 max-w-[200px]">
-                                Reason: {user.rejection_reason}
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="flex items-center text-xs font-body font-semibold text-ink-muted bg-paper px-3 py-1 rounded-full border border-ink-faint">
-                            Unverified
-                          </span>
-                        )}
-                        {user.is_suspended && (
-                          <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
-                            <ShieldAlert className="w-3 h-3 mr-1.5" /> Suspended
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-8 py-5 text-sm font-body font-medium text-ink-soft">
-                      {new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                    </td>
-                    <td className="px-8 py-5 text-right">
-                      {user.role !== 'admin' && (
-                        <div className="flex justify-end space-x-3">
-                          {user.document_url && (
-                            <Tooltip text="View Government ID" position="top">
-                              <button
-                                onClick={() => setSelectedIdUser(user)}
-                                className="p-2.5 rounded-xl bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white transition-all shadow-sm"
-                                title="View Government ID"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                            </Tooltip>
-                          )}
-                          {user.role === 'worker' && user.verification_status !== 'approved' && (
-                            <Tooltip text="Manually Verify User" position="top">
-                              <button
-                                disabled={actionLoading === user.id}
-                                onClick={() => handleVerify(user.id)}
-                                className="p-2.5 rounded-xl bg-status-success/10 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all shadow-sm"
-                                title="Verify User"
-                              >
-                                <CheckCircle2 className="w-4 h-4" />
-                              </button>
-                            </Tooltip>
-                          )}
-                          <Tooltip
-                            text={user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
-                            position="top"
-                            variant={user.is_suspended ? 'warning' : 'default'}
-                          >
-                            <button
-                              disabled={actionLoading === user.id}
-                              onClick={() => handleSuspend(user.id, user.is_suspended)}
-                              className={`p-2.5 rounded-xl transition-all shadow-sm ${
-                                user.is_suspended
-                                  ? 'bg-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
-                                  : 'bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white'
-                              }`}
-                              title={user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
-                            >
-                              <UserX className="w-4 h-4" />
-                            </button>
-                          </Tooltip>
-                          <Tooltip text="Delete User" position="top" variant="danger">
-                            <button
-                              disabled={actionLoading === user.id}
-                              onClick={() => handleDelete(user.id)}
-                              className="p-2.5 rounded-xl bg-status-error/10 border border-status-error/20 text-status-error hover:bg-status-error hover:text-white transition-all shadow-sm"
-                              title="Delete User"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </Tooltip>
-                        </div>
-                      )}
-                      {user.role === 'admin' && (
-                        <span className="text-xs font-body font-bold text-ink-muted uppercase tracking-wider bg-ink-faint/50 px-3 py-1.5 rounded-lg border border-ink-faint">Protected Admin</span>
-                      )}
+              </thead>
+              <tbody className="divide-y divide-ink-faint/30">
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-8 py-16 text-center text-ink-soft">
+                      No users found
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  paginatedUsers.map((user) => (
+                    <tr key={user.id} className={`transition-colors duration-200 ${user.is_suspended ? 'bg-status-error/5 hover:bg-status-error/10' : 'hover:bg-white/60'}`}>
+                      <td className="px-8 py-5 font-numeric text-sm font-semibold text-ink-muted">
+                        #{user.id}
+                      </td>
+                      <td className="px-8 py-5">
+                        <div
+                          className="flex items-center cursor-pointer group/user select-none"
+                          onClick={() => setSelectedDetailUser(user)}
+                        >
+                          <Avatar name={user.name} url={user.avatar_url} isSuspended={user.is_suspended} />
+                          <div className="ml-5">
+                            <div className="flex items-center flex-wrap gap-1.5">
+                              <span className={`font-body font-bold transition-colors group-hover/user:text-primary ${user.is_suspended ? 'text-status-error' : 'text-ink'}`}>
+                                {user.name}
+                              </span>
+                              {user.reports_count > 0 && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-status-error/10 text-status-error border border-status-error/20 animate-pulse">
+                                  ⚠️ {user.reports_count} {user.reports_count === 1 ? 'report' : 'reports'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-sm text-ink-muted mt-0.5 group-hover/user:text-ink-soft">{user.email}</div>
+                            {user.role === 'worker' ? (
+                              <div className="text-[11px] text-ink-muted mt-1 font-body font-semibold flex items-center gap-1">
+                                <i className="lni lni-briefcase text-[10px] text-primary" />
+                                <span>{user.applications_count ?? 0} {user.applications_count === 1 ? 'application' : 'applications'}</span>
+                              </div>
+                            ) : user.role === 'employer' ? (
+                              <div className="text-[11px] text-ink-muted mt-1 font-body font-semibold flex items-center gap-1">
+                                <i className="lni lni-gallery text-[10px] text-primary" />
+                                <span>{user.posts_count ?? 0} {user.posts_count === 1 ? 'post' : 'posts'}</span>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-5">
+                        <div className="flex flex-col space-y-2 items-start">
+                          <span className={`px-4 py-1.5 rounded-full text-xs font-body font-bold tracking-wide uppercase shadow-sm ${user.role === 'employer' ? 'bg-accent-peach border border-accent-peachBright/50 text-primary-dark' : 'bg-accent-mint border border-accent-mintDeep/30 text-accent-mintDeep'
+                            }`}>
+                            {user.role}
+                          </span>
+                          {user.verification_status === 'approved' ? (
+                            <span className="flex items-center text-xs font-body font-semibold text-status-success bg-status-success/10 px-3 py-1 rounded-full border border-status-success/20">
+                              <i className="lni lni-checkmark-circle mr-1.5 text-xs" /> Verified
+                            </span>
+                          ) : user.verification_status === 'pending' ? (
+                            <span className="flex items-center text-xs font-body font-semibold text-status-gold bg-status-gold/10 px-3 py-1 rounded-full border border-status-gold/20">
+                              <i className="lni lni-warning mr-1.5 text-xs text-status-warning" /> Pending Review
+                            </span>
+                          ) : user.verification_status === 'rejected' || user.registration_status === 'rejected' ? (
+                            <div className="flex flex-col gap-1">
+                              <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
+                                <i className="lni lni-close mr-1.5 text-xs" /> Rejected
+                              </span>
+                              {user.rejection_reason && (
+                                <span className="text-xs text-status-error mt-1 max-w-[200px]">
+                                  Reason: {user.rejection_reason}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="flex items-center text-xs font-body font-semibold text-ink-muted bg-paper px-3 py-1 rounded-full border border-ink-faint">
+                              Unverified
+                            </span>
+                          )}
+                          {user.is_suspended && (
+                            <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
+                              <i className="lni lni-shield mr-1.5 text-xs" /> Suspended
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 text-sm font-body font-medium text-ink-soft">
+                        {new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </td>
+                      <td className="px-8 py-5 text-sm text-ink-soft whitespace-nowrap">
+                        <div className="flex items-center text-ink-muted font-body font-semibold">
+                          <i className="lni lni-timer mr-2 text-primary" />
+                          {user.last_login_at ? new Date(user.last_login_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'Never'}
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 text-right">
+                        {user.role !== 'admin' && (
+                          <div className="flex justify-end space-x-3">
+                            {user.document_url && (
+                              <Tooltip text="View Government ID" position="top">
+                                <button
+                                  onClick={() => setSelectedIdUser(user)}
+                                  className="p-2.5 rounded-xl bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white transition-all shadow-sm"
+                                  title="View Government ID"
+                                >
+                                  <i className="lni lni-eye text-xs" />
+                                </button>
+                              </Tooltip>
+                            )}
+                            {user.role === 'worker' && user.verification_status !== 'approved' && (
+                              <Tooltip text="Manually Verify User" position="top">
+                                <button
+                                  disabled={actionLoading === user.id}
+                                  onClick={() => handleVerify(user.id)}
+                                  className="p-2.5 rounded-xl bg-status-success/10 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all shadow-sm"
+                                  title="Verify User"
+                                >
+                                  <i className="lni lni-checkmark-circle text-xs" />
+                                </button>
+                              </Tooltip>
+                            )}
+                            <Tooltip
+                              text={user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
+                              position="top"
+                              variant={user.is_suspended ? 'warning' : 'default'}
+                            >
+                              <button
+                                disabled={actionLoading === user.id}
+                                onClick={() => handleSuspend(user.id, user.is_suspended)}
+                                className={`p-2.5 rounded-xl transition-all shadow-sm ${user.is_suspended
+                                    ? 'bg-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
+                                    : 'bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white'
+                                  }`}
+                                title={user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
+                              >
+                                <i className="lni lni-user text-xs" />
+                              </button>
+                            </Tooltip>
+                            <Tooltip text="Delete User" position="top" variant="danger">
+                              <button
+                                disabled={actionLoading === user.id}
+                                onClick={() => handleDelete(user.id)}
+                                className="p-2.5 rounded-xl bg-status-error/10 border border-status-error/20 text-status-error hover:bg-status-error hover:text-white transition-all shadow-sm"
+                                title="Delete User"
+                              >
+                                <i className="lni lni-trash-can text-xs" />
+                              </button>
+                            </Tooltip>
+                          </div>
+                        )}
+                        {user.role === 'admin' && (
+                          <span className="text-xs font-body font-bold text-ink-muted uppercase tracking-wider bg-ink-faint/50 px-3 py-1.5 rounded-lg border border-ink-faint">Protected Admin</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -573,7 +672,7 @@ export default function UsersPage() {
                 <span className="text-2xl font-bold">&times;</span>
               </button>
             </div>
-            
+
             <div className="p-6 flex-1 overflow-y-auto">
               <div className="flex justify-between mb-6">
                 <div>
@@ -592,9 +691,9 @@ export default function UsersPage() {
                   <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Front)</span>
                   <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                     {selectedIdUser.document_url ? (
-                      <img 
-                        src={selectedIdUser.document_url} 
-                        alt="ID Front" 
+                      <img
+                        src={selectedIdUser.document_url}
+                        alt="ID Front"
                         className="max-w-full max-h-full object-contain rounded-lg"
                       />
                     ) : (
@@ -607,9 +706,9 @@ export default function UsersPage() {
                   <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Back)</span>
                   <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                     {selectedIdUser.document_back_url ? (
-                      <img 
-                        src={selectedIdUser.document_back_url} 
-                        alt="ID Back" 
+                      <img
+                        src={selectedIdUser.document_back_url}
+                        alt="ID Back"
                         className="max-w-full max-h-full object-contain rounded-lg"
                       />
                     ) : (
@@ -622,9 +721,9 @@ export default function UsersPage() {
                   <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
                   <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                     {selectedIdUser.selfie_url ? (
-                      <img 
-                        src={selectedIdUser.selfie_url} 
-                        alt="Selfie holding ID" 
+                      <img
+                        src={selectedIdUser.selfie_url}
+                        alt="Selfie holding ID"
                         className="max-w-full max-h-full object-contain rounded-lg"
                       />
                     ) : (
@@ -646,15 +745,15 @@ export default function UsersPage() {
                         <div key={idx} className="bg-paper rounded-xl border border-ink-faint p-2 h-[180px] flex flex-col items-center justify-center bg-black/5 overflow-hidden relative group">
                           {isPdf ? (
                             <div className="flex flex-col items-center justify-center">
-                              <svg className="w-12 h-12 text-status-error mb-2" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/><path d="M9 9a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1z"/></svg>
+                              <svg className="w-12 h-12 text-status-error mb-2" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" /><path d="M9 9a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1z" /></svg>
                               <span className="text-xs text-ink-soft font-body font-semibold">Business Doc {idx + 1}</span>
                               <a href={doc} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline mt-2">Open PDF</a>
                             </div>
                           ) : (
                             <>
-                              <img 
-                                src={doc} 
-                                alt={`Business Doc ${idx + 1}`} 
+                              <img
+                                src={doc}
+                                alt={`Business Doc ${idx + 1}`}
                                 className="max-w-full max-h-full object-contain rounded-lg"
                               />
                               <a href={doc} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-body font-bold rounded-lg">
@@ -687,7 +786,7 @@ export default function UsersPage() {
                   ) : null}
                 </>
               )}
-              
+
               <div className="flex justify-end gap-3">
                 {selectedIdUser.verification_status !== 'approved' && selectedIdUser.registration_status !== 'approved' ? (
                   <>
@@ -757,9 +856,9 @@ export default function UsersPage() {
               animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             }
           `}</style>
-          
+
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-ink/40 backdrop-blur-sm transition-opacity duration-300"
             onClick={() => setSelectedDetailUser(null)}
           />
@@ -768,7 +867,7 @@ export default function UsersPage() {
           <div className="relative w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col z-50 animate-slide-in overflow-hidden">
             {/* Header / Top Summary */}
             <div className="p-6 bg-paper-cream border-b border-ink-faint flex flex-col gap-4 relative">
-              <button 
+              <button
                 onClick={() => setSelectedDetailUser(null)}
                 className="absolute top-6 right-6 p-2 rounded-full hover:bg-ink-faint/50 text-ink-muted hover:text-ink transition-colors"
                 aria-label="Close details"
@@ -792,9 +891,8 @@ export default function UsersPage() {
                   <p className="text-sm font-body text-ink-muted truncate mt-0.5">{selectedDetailUser.email}</p>
 
                   <div className="flex flex-wrap gap-2 mt-3">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm ${
-                      selectedDetailUser.role === 'employer' ? 'bg-accent-peach text-primary-dark border border-accent-peachBright/50' : 'bg-accent-mint text-accent-mintDeep border border-accent-mintDeep/30'
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm ${selectedDetailUser.role === 'employer' ? 'bg-accent-peach text-primary-dark border border-accent-peachBright/50' : 'bg-accent-mint text-accent-mintDeep border border-accent-mintDeep/30'
+                      }`}>
                       {selectedDetailUser.role}
                     </span>
 
@@ -868,31 +966,31 @@ export default function UsersPage() {
 
             {/* Tab Controls */}
             <div className="flex border-b border-ink-faint px-6 mt-4 shrink-0 overflow-x-auto pb-1 gap-2">
-              <button 
+              <button
                 onClick={() => setActiveTab('profile')}
                 className={`py-3 px-4 font-body font-bold text-sm border-b-2 transition-all whitespace-nowrap ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'}`}
               >
                 Profile Details
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab('activity')}
                 className={`py-3 px-4 font-body font-bold text-sm border-b-2 transition-all whitespace-nowrap ${activeTab === 'activity' ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'}`}
               >
                 Work History
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab('reviews')}
                 className={`py-3 px-4 font-body font-bold text-sm border-b-2 transition-all whitespace-nowrap ${activeTab === 'reviews' ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'}`}
               >
                 Reviews
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab('reports')}
                 className={`py-3 px-4 font-body font-bold text-sm border-b-2 transition-all whitespace-nowrap ${activeTab === 'reports' ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'}`}
               >
                 Reports
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab('logs')}
                 className={`py-3 px-4 font-body font-bold text-sm border-b-2 transition-all whitespace-nowrap ${activeTab === 'logs' ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'}`}
               >
@@ -915,8 +1013,8 @@ export default function UsersPage() {
                       <div>
                         <h4 className="text-xs font-bold text-ink-soft uppercase tracking-wider mb-2">Biography / Description</h4>
                         <p className="text-sm text-ink leading-relaxed bg-paper p-4 rounded-2xl border border-ink-faint whitespace-pre-line">
-                          {selectedDetailUser.role === 'worker' 
-                            ? (userDetailData.user.worker_profile?.bio || 'No worker bio provided yet.') 
+                          {selectedDetailUser.role === 'worker'
+                            ? (userDetailData.user.worker_profile?.bio || 'No worker bio provided yet.')
                             : (userDetailData.user.employer_profile?.description || 'No business description provided yet.')}
                         </p>
                       </div>
@@ -951,8 +1049,8 @@ export default function UsersPage() {
                           <div className="flex items-center gap-2 text-sm text-ink font-semibold">
                             <Calendar className="w-4 h-4 text-ink-muted" />
                             <span>
-                              {userDetailData.user.date_of_birth 
-                                ? new Date(userDetailData.user.date_of_birth).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) 
+                              {userDetailData.user.date_of_birth
+                                ? new Date(userDetailData.user.date_of_birth).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
                                 : 'Not set'}
                             </span>
                           </div>
@@ -996,11 +1094,10 @@ export default function UsersPage() {
                           <button
                             disabled={actionLoading === selectedDetailUser.id}
                             onClick={() => handleSuspend(selectedDetailUser.id, selectedDetailUser.is_suspended)}
-                            className={`px-5 py-3 text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-sm border ${
-                              selectedDetailUser.is_suspended 
-                                ? 'bg-status-warning/10 border-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white' 
+                            className={`px-5 py-3 text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-sm border ${selectedDetailUser.is_suspended
+                                ? 'bg-status-warning/10 border-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
                                 : 'bg-white border-ink-faint text-ink hover:bg-ink hover:text-white'
-                            }`}
+                              }`}
                             title={selectedDetailUser.is_suspended ? 'Unsuspend User' : 'Suspend User'}
                           >
                             <UserX className="w-4 h-4" />
@@ -1039,13 +1136,13 @@ export default function UsersPage() {
                       {/* Employer Activity Search/Filter Header */}
                       {selectedDetailUser.role === 'employer' && (
                         <div className="flex space-x-2 border-b border-ink-faint pb-3">
-                          <button 
+                          <button
                             onClick={() => { setEmployerSubTab('posts'); setActivityPage(1); setActivityData(null); }}
                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${employerSubTab === 'posts' ? 'bg-ink text-white' : 'bg-paper text-ink-soft hover:bg-paper-dark'}`}
                           >
                             Job Postings
                           </button>
-                          <button 
+                          <button
                             onClick={() => { setEmployerSubTab('hired'); setActivityPage(1); setActivityData(null); }}
                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${employerSubTab === 'hired' ? 'bg-ink text-white' : 'bg-paper text-ink-soft hover:bg-paper-dark'}`}
                           >
@@ -1103,8 +1200,8 @@ export default function UsersPage() {
                           {activityData.data.map((item: any) => {
                             if (selectedDetailUser.role === 'employer' && employerSubTab === 'posts') {
                               return (
-                                <div 
-                                  key={item.id} 
+                                <div
+                                  key={item.id}
                                   onClick={() => setSelectedJob(item)}
                                   className="p-4 bg-paper rounded-2xl border border-ink-faint hover:border-primary/40 cursor-pointer transition-all flex justify-between items-center group/post"
                                 >
@@ -1115,9 +1212,8 @@ export default function UsersPage() {
                                     </div>
                                   </div>
                                   <div className="text-right">
-                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                                      item.status === 'open' ? 'bg-status-success/15 text-status-success' : 'bg-ink-faint text-ink-soft'
-                                    }`}>
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${item.status === 'open' ? 'bg-status-success/15 text-status-success' : 'bg-ink-faint text-ink-soft'
+                                      }`}>
                                       {item.status}
                                     </span>
                                     <div className="text-[10px] text-ink-muted mt-1">{new Date(item.created_at).toLocaleDateString()}</div>
@@ -1145,8 +1241,8 @@ export default function UsersPage() {
                             } else {
                               // Worker applications
                               return (
-                                <div 
-                                  key={item.id} 
+                                <div
+                                  key={item.id}
                                   onClick={() => setSelectedJob(item.job)}
                                   className="p-4 bg-paper rounded-2xl border border-ink-faint hover:border-primary/40 cursor-pointer transition-all flex justify-between items-center group/post"
                                 >
@@ -1157,9 +1253,8 @@ export default function UsersPage() {
                                     </div>
                                   </div>
                                   <div className="text-right">
-                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                                      item.status === 'accepted' || item.status === 'completed' ? 'bg-status-success/15 text-status-success' : 'bg-ink-faint text-ink-soft'
-                                    }`}>
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${item.status === 'accepted' || item.status === 'completed' ? 'bg-status-success/15 text-status-success' : 'bg-ink-faint text-ink-soft'
+                                      }`}>
                                       {item.status}
                                     </span>
                                     <div className="text-[10px] text-ink-muted mt-1">{new Date(item.created_at).toLocaleDateString()}</div>
@@ -1172,7 +1267,7 @@ export default function UsersPage() {
                           {/* Pagination controls for activity */}
                           {activityData.last_page > 1 && (
                             <div className="flex justify-between items-center pt-2">
-                              <button 
+                              <button
                                 disabled={activityPage === 1}
                                 onClick={() => setActivityPage(p => Math.max(1, p - 1))}
                                 className="px-3 py-1 bg-paper border border-ink-faint rounded-lg text-xs font-semibold disabled:opacity-40"
@@ -1180,7 +1275,7 @@ export default function UsersPage() {
                                 Previous
                               </button>
                               <span className="text-xs text-ink-muted">Page {activityPage} of {activityData.last_page}</span>
-                              <button 
+                              <button
                                 disabled={activityPage === activityData.last_page}
                                 onClick={() => setActivityPage(p => Math.min(activityData.last_page, p + 1))}
                                 className="px-3 py-1 bg-paper border border-ink-faint rounded-lg text-xs font-semibold disabled:opacity-40"
@@ -1229,7 +1324,7 @@ export default function UsersPage() {
                           {/* Pagination controls for reviews */}
                           {reviewsData.last_page > 1 && (
                             <div className="flex justify-between items-center pt-2">
-                              <button 
+                              <button
                                 disabled={reviewsPage === 1}
                                 onClick={() => setReviewsPage(p => Math.max(1, p - 1))}
                                 className="px-3 py-1 bg-paper border border-ink-faint rounded-lg text-xs font-semibold disabled:opacity-40"
@@ -1237,7 +1332,7 @@ export default function UsersPage() {
                                 Previous
                               </button>
                               <span className="text-xs text-ink-muted">Page {reviewsPage} of {reviewsData.last_page}</span>
-                              <button 
+                              <button
                                 disabled={reviewsPage === reviewsData.last_page}
                                 onClick={() => setReviewsPage(p => Math.min(reviewsData.last_page, p + 1))}
                                 className="px-3 py-1 bg-paper border border-ink-faint rounded-lg text-xs font-semibold disabled:opacity-40"
@@ -1268,16 +1363,14 @@ export default function UsersPage() {
                               <div key={r.id} className="p-4 bg-paper rounded-2xl border border-ink-faint space-y-2">
                                 <div className="flex justify-between items-start">
                                   <div>
-                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                                      isSubmittedByThisUser ? 'bg-primary/10 text-primary' : 'bg-status-error/10 text-status-error'
-                                    }`}>
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${isSubmittedByThisUser ? 'bg-primary/10 text-primary' : 'bg-status-error/10 text-status-error'
+                                      }`}>
                                       {isSubmittedByThisUser ? 'Submitted by User' : 'Report against User'}
                                     </span>
                                     <div className="text-xs text-ink-muted mt-1">Type: <span className="font-semibold text-ink capitalize">{r.type}</span></div>
                                   </div>
-                                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                                    r.status === 'open' ? 'bg-status-warning/15 text-status-warning' : 'bg-status-success/15 text-status-success'
-                                  }`}>
+                                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${r.status === 'open' ? 'bg-status-warning/15 text-status-warning' : 'bg-status-success/15 text-status-success'
+                                    }`}>
                                     {r.status}
                                   </span>
                                 </div>
@@ -1294,7 +1387,7 @@ export default function UsersPage() {
                           {/* Pagination controls for reports */}
                           {reportsData.last_page > 1 && (
                             <div className="flex justify-between items-center pt-2">
-                              <button 
+                              <button
                                 disabled={reportsPage === 1}
                                 onClick={() => setReportsPage(p => Math.max(1, p - 1))}
                                 className="px-3 py-1 bg-paper border border-ink-faint rounded-lg text-xs font-semibold disabled:opacity-40"
@@ -1302,7 +1395,7 @@ export default function UsersPage() {
                                 Previous
                               </button>
                               <span className="text-xs text-ink-muted">Page {reportsPage} of {reportsData.last_page}</span>
-                              <button 
+                              <button
                                 disabled={reportsPage === reportsData.last_page}
                                 onClick={() => setReportsPage(p => Math.min(reportsData.last_page, p + 1))}
                                 className="px-3 py-1 bg-paper border border-ink-faint rounded-lg text-xs font-semibold disabled:opacity-40"
@@ -1351,7 +1444,7 @@ export default function UsersPage() {
                           {/* Pagination controls for logs */}
                           {logsData.last_page > 1 && (
                             <div className="flex justify-between items-center pt-2">
-                              <button 
+                              <button
                                 disabled={logsPage === 1}
                                 onClick={() => setLogsPage(p => Math.max(1, p - 1))}
                                 className="px-3 py-1 bg-paper border border-ink-faint rounded-lg text-xs font-semibold disabled:opacity-40"
@@ -1359,7 +1452,7 @@ export default function UsersPage() {
                                 Previous
                               </button>
                               <span className="text-xs text-ink-muted">Page {logsPage} of {logsData.last_page}</span>
-                              <button 
+                              <button
                                 disabled={logsPage === logsData.last_page}
                                 onClick={() => setLogsPage(p => Math.min(logsData.last_page, p + 1))}
                                 className="px-3 py-1 bg-paper border border-ink-faint rounded-lg text-xs font-semibold disabled:opacity-40"
@@ -1392,14 +1485,14 @@ export default function UsersPage() {
                 </span>
                 <h2 className="font-display text-2xl text-ink mt-2">{selectedJob.title}</h2>
               </div>
-              <button 
-                onClick={() => setSelectedJob(null)} 
+              <button
+                onClick={() => setSelectedJob(null)}
                 className="p-2 hover:bg-paper rounded-full text-ink-muted hover:text-ink transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="p-6 flex-1 overflow-y-auto font-body space-y-4">
               <div>
                 <span className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">Category</span>
@@ -1467,6 +1560,26 @@ export default function UsersPage() {
           </div>
         </div>
       )}
+      <AlertDialog
+        isOpen={alertConfig.isOpen}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        confirmText={alertConfig.confirmText}
+        cancelText={alertConfig.cancelText}
+        onConfirm={() => {
+          setAlertConfig((prev) => ({ ...prev, isOpen: false }));
+          alertConfig.onConfirm();
+        }}
+        onCancel={() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
+  );
+}
+
+export default function UsersPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-20 font-body text-ink-muted">Loading users...</div>}>
+      <UsersContent />
+    </Suspense>
   );
 }

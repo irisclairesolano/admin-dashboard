@@ -30,6 +30,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link href="https://cdn.lineicons.com/4.0/lineicons.css" rel="stylesheet" />
+      </head>
       <body
         className={`${inter.variable} ${raleway.variable} ${manrope.variable} antialiased`}
       >

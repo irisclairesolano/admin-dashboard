@@ -6,13 +6,13 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, PieChart, Pie, Cell, Legend, AreaChart, Area
 } from 'recharts';
-import { Users, Briefcase, FileCheck, AlertTriangle } from 'lucide-react';
 import { adminApi } from '@/lib/api';
 
 export default function AnalyticsDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [presetFilter, setPresetFilter] = useState<'30days' | '6months' | '1year' | 'custom'>('1year');
+  const [intervalFilter, setIntervalFilter] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -50,7 +50,7 @@ export default function AnalyticsDashboard() {
         }
 
         if (presetFilter !== 'custom' || (startDate && endDate)) {
-          const res = await adminApi.getAnalytics(from, to);
+          const res = await adminApi.getAnalytics(from, to, intervalFilter);
           setData(res.data);
         }
       } catch (err) {
@@ -60,33 +60,33 @@ export default function AnalyticsDashboard() {
       }
     };
     fetchAnalytics();
-  }, [presetFilter, startDate, endDate]);
+  }, [presetFilter, startDate, endDate, intervalFilter]);
 
   const stats = [
-    { label: 'Total Users', value: data?.kpis?.total_users || 0, icon: Users, color: 'text-primary-dark', bg: 'bg-primary-soft' },
-    { label: 'Active Jobs', value: data?.kpis?.active_jobs || 0, icon: Briefcase, color: 'text-accent-skyDeep', bg: 'bg-accent-sky' },
-    { label: 'Pending Verifications', value: data?.kpis?.pending_verifications || 0, icon: FileCheck, color: 'text-accent-mintDeep', bg: 'bg-accent-mint' },
-    { label: 'Unresolved Reports', value: data?.kpis?.unresolved_reports || 0, icon: AlertTriangle, color: 'text-status-error', bg: 'bg-status-error/10' },
+    { label: 'Total Users', value: data?.kpis?.total_users || 0, iconClass: 'lni lni-users', color: 'text-primary-dark', bg: 'bg-primary-soft' },
+    { label: 'Active Jobs', value: data?.kpis?.active_jobs || 0, iconClass: 'lni lni-briefcase', color: 'text-accent-skyDeep', bg: 'bg-accent-sky' },
+    { label: 'Pending Verifications', value: data?.kpis?.pending_verifications || 0, iconClass: 'lni lni-user', color: 'text-accent-mintDeep', bg: 'bg-accent-mint' },
+    { label: 'Unresolved Reports', value: data?.kpis?.unresolved_reports || 0, iconClass: 'lni lni-warning', color: 'text-status-error', bg: 'bg-status-error/10' },
   ];
 
   // Transform registration_trends into Recharts format
-  // Source: [{ month: '2024-01', role: 'worker', registrations: 10 }, ...]
   const transformedUserGrowth = (() => {
     if (!data?.registration_trends) return [];
     const grouped: Record<string, { name: string; workers: number; employers: number }> = {};
     
     data.registration_trends.forEach((item: any) => {
-      if (!grouped[item.month]) {
-        grouped[item.month] = { name: item.month, workers: 0, employers: 0 };
+      const periodKey = item.period || item.month || 'Unknown';
+      if (!grouped[periodKey]) {
+        grouped[periodKey] = { name: periodKey, workers: 0, employers: 0 };
       }
       if (item.role === 'worker') {
-        grouped[item.month].workers += parseInt(item.registrations);
+        grouped[periodKey].workers += parseInt(item.registrations);
       } else if (item.role === 'employer') {
-        grouped[item.month].employers += parseInt(item.registrations);
+        grouped[periodKey].employers += parseInt(item.registrations);
       }
     });
     
-    return Object.values(grouped).slice(-6); // Last 6 months
+    return Object.values(grouped);
   })();
 
   const transformedJobsData = (() => {
@@ -153,8 +153,22 @@ export default function AnalyticsDashboard() {
           <p className="text-ink-soft font-body mt-2 text-lg">Platform analytics and key performance metrics.</p>
         </div>
         
-        {/* Date Filter Component */}
+        {/* Date Filter & Aggregation Components */}
         <div className="mt-6 md:mt-0 flex flex-wrap items-center gap-3">
+          <div className="flex bg-white/70 backdrop-blur-md p-1 rounded-2xl border border-white/50 shadow-sm items-center gap-1">
+            <span className="text-xs font-body font-bold text-ink-muted px-2.5 uppercase tracking-wider">Aggregation:</span>
+            <select
+              value={intervalFilter}
+              onChange={(e: any) => setIntervalFilter(e.target.value)}
+              className="bg-transparent border-none outline-none font-body text-sm font-semibold text-ink-soft focus:text-ink pr-3 py-1.5 cursor-pointer outline-none ring-0 focus:ring-0"
+            >
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+
           <div className="flex bg-white/70 backdrop-blur-md p-1 rounded-2xl border border-white/50 shadow-sm">
             <button
               onClick={() => setPresetFilter('30days')}
@@ -208,7 +222,7 @@ export default function AnalyticsDashboard() {
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative flex items-center">
               <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mr-5 shadow-inner transition-transform group-hover:scale-110 duration-300 ${stat.bg}`}>
-                <stat.icon className={`w-8 h-8 ${stat.color}`} />
+                <i className={`${stat.iconClass} text-2xl ${stat.color}`} />
               </div>
               <div>
                 <p className="text-sm font-body font-semibold text-ink-soft uppercase tracking-wider">{stat.label}</p>
@@ -223,7 +237,7 @@ export default function AnalyticsDashboard() {
         <div className="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg">
           <h3 className="font-display text-2xl text-ink mb-6 flex items-center">
             User Growth Trends
-            <span className="ml-3 text-xs bg-primary-soft text-primary-dark px-3 py-1 rounded-full font-body font-semibold">Last 6 Months</span>
+            <span className="ml-3 text-xs bg-primary-soft text-primary-dark px-3 py-1 rounded-full font-body font-semibold capitalize">{intervalFilter} Aggregation</span>
           </h3>
           <div className="h-80 w-full font-numeric">
             <ResponsiveContainer width="100%" height="100%">

@@ -162,7 +162,7 @@ export const adminApi = {
   },
 
   getJobs: async (trashed: boolean = false) => {
-    return cachedGet(`/admin/jobs${trashed ? '?trashed=1' : ''}`);
+    return apiClient.get(`/admin/jobs${trashed ? '?trashed=1' : ''}`);
   },
 
   deleteJob: async (id: number) => {
@@ -189,10 +189,11 @@ export const adminApi = {
     return apiClient.patch(`/admin/reports/${id}`, { status });
   },
 
-  getAnalytics: async (from?: string, to?: string) => {
+  getAnalytics: async (from?: string, to?: string, interval?: string) => {
     const params = new URLSearchParams();
     if (from) params.append('from', from);
     if (to) params.append('to', to);
+    if (interval) params.append('interval', interval);
     const queryString = params.toString();
     return cachedGet(`/admin/analytics${queryString ? `?${queryString}` : ''}`);
   },
@@ -212,12 +213,35 @@ export const adminApi = {
     return apiClient.patch(`/admin/support/${id}/status`, { status });
   },
 
-  getLogs: async (page: number = 1, search?: string, action?: string) => {
+  getLogs: async (page: number = 1, search?: string, action?: string, dateFrom?: string, dateTo?: string) => {
     const params = new URLSearchParams();
     params.append('page', page.toString());
     if (search) params.append('search', search);
     if (action) params.append('action', action);
+    if (dateFrom) params.append('date_from', dateFrom);
+    if (dateTo) params.append('date_to', dateTo);
     return apiClient.get(`/admin/logs?${params.toString()}`);
+  },
+
+  getProfanityWords: async () => {
+    return apiClient.get('/admin/profanity-words');
+  },
+  addProfanityWord: async (word: string) => {
+    clearApiCache();
+    return apiClient.post('/admin/profanity-words', { word });
+  },
+  deleteProfanityWord: async (id: number) => {
+    clearApiCache();
+    return apiClient.delete(`/admin/profanity-words/${id}`);
+  },
+
+  permanentDeleteUser: async (id: number) => {
+    clearApiCache();
+    return apiClient.delete(`/admin/users/${id}/force`);
+  },
+  permanentDeleteJob: async (id: number) => {
+    clearApiCache();
+    return apiClient.delete(`/admin/jobs/${id}/force`);
   }
 };
 
@@ -255,5 +279,6 @@ export const prefetchAll = (): Promise<void> => {
     adminApi.getAnalytics(fmt(yearAgo), fmt(now)),
     adminApi.getSupportTickets(),
     adminApi.getLogs(1),
+    adminApi.getProfanityWords(),
   ]).then(() => {});
 };
