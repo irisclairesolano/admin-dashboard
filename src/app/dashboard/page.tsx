@@ -203,10 +203,25 @@ export default function AnalyticsDashboard() {
   // Skill Demand - horizontal bar chart category comparator
   const transformedJobsData = (() => {
     if (!data?.skill_demand) return [];
-    return data.skill_demand.map((item: any) => ({
+    const list = data.skill_demand.map((item: any) => ({
       name: item.category,
       jobs: parseInt(item.total_postings),
-    }));
+    })).sort((a: any, b: any) => b.jobs - a.jobs);
+
+    if (list.length <= 8) {
+      return list;
+    } else {
+      const top = list.slice(0, 7);
+      const rest = list.slice(7);
+      const others = rest.reduce(
+        (acc: any, val: any) => {
+          acc.jobs += val.jobs;
+          return acc;
+        },
+        { name: 'Others', jobs: 0 }
+      );
+      return [...top, others];
+    }
   })();
 
   // Skill demand stats
@@ -220,6 +235,41 @@ export default function AnalyticsDashboard() {
       avg: Math.round(total / counts.length),
       total
     };
+  })();
+
+  const transformedGeographicActivity = (() => {
+    if (!data?.geographic_activity) return [];
+    // Group and aggregate by municipality to prevent duplicate chaotic barangay bars
+    const grouped: { [key: string]: { name: string; jobs: number; applications: number } } = {};
+    data.geographic_activity.forEach((item: any) => {
+      const muni = item.municipality || 'Unknown';
+      if (!grouped[muni]) {
+        grouped[muni] = {
+          name: muni,
+          jobs: 0,
+          applications: 0
+        };
+      }
+      grouped[muni].jobs += parseInt(item.job_postings || 0);
+      grouped[muni].applications += parseInt(item.total_applications || 0);
+    });
+
+    const sorted = Object.values(grouped).sort((a, b) => b.jobs - a.jobs);
+    if (sorted.length <= 8) {
+      return sorted;
+    } else {
+      const top = sorted.slice(0, 7);
+      const rest = sorted.slice(7);
+      const others = rest.reduce(
+        (acc, val) => {
+          acc.jobs += val.jobs;
+          acc.applications += val.applications;
+          return acc;
+        },
+        { name: 'Others', jobs: 0, applications: 0 }
+      );
+      return [...top, others];
+    }
   })();
 
   // Application Volume respects global date & aggregation parameters
@@ -237,15 +287,6 @@ export default function AnalyticsDashboard() {
     return data.skill_distribution.map((item: any) => ({
       name: item.skill_name,
       value: parseInt(item.worker_count),
-    })).slice(0, 10);
-  })();
-
-  const transformedGeographicActivity = (() => {
-    if (!data?.geographic_activity) return [];
-    return data.geographic_activity.map((item: any) => ({
-      name: item.municipality || 'Unknown',
-      jobs: parseInt(item.job_postings),
-      applications: parseInt(item.total_applications),
     })).slice(0, 10);
   })();
 
@@ -672,9 +713,13 @@ export default function AnalyticsDashboard() {
                   <span className="font-bold text-ink">{step.value} <span className="text-xs font-normal text-ink-muted">({step.rate})</span></span>
                 </div>
                 <div className="h-6 w-full bg-gray-100 rounded-full overflow-hidden border border-gray-200/50">
-                  <div className="h-full bg-primary-dark border-r border-white/50 flex items-center justify-end px-3 transition-all duration-1000" style={{ width: step.rate, backgroundColor: idx === 0 ? '#3E7648' : idx === 1 ? '#87CEEB' : '#90EE90' }}>
-                    <span className="text-[10px] font-bold font-numeric text-white">{step.rate}</span>
-                  </div>
+                  {parseFloat(step.rate) > 0 ? (
+                    <div className="h-full bg-primary-dark border-r border-white/50 flex items-center justify-end px-3 transition-all duration-1000" style={{ width: step.rate, backgroundColor: idx === 0 ? '#3E7648' : idx === 1 ? '#87CEEB' : '#90EE90' }}>
+                      <span className="text-[10px] font-bold font-numeric text-white">{step.rate}</span>
+                    </div>
+                  ) : (
+                    <div className="h-full w-0 transition-all duration-1000" />
+                  )}
                 </div>
               </div>
             ))}
