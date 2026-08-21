@@ -485,12 +485,12 @@ function UsersContent() {
             <table className="w-full text-left font-body table-fixed border-collapse">
               <thead className="bg-white/50 border-b border-ink-faint/50">
                 <tr>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[10%]">User ID</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[32%]">User Details</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[23%]">Role & Status</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[13%]">Joined</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[12%]">Last Active</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[10%] text-right">Actions</th>
+                  <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[8%]">User ID</th>
+                  <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[32%]">User Details</th>
+                  <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[18%]">Role & Status</th>
+                  <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[11%]">Joined</th>
+                  <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[15%]">Last Active</th>
+                  <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[16%] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-faint/30">
@@ -503,16 +503,16 @@ function UsersContent() {
                 ) : (
                   paginatedUsers.map((user) => (
                     <tr key={user.id} className={`transition-colors duration-200 ${user.is_suspended ? 'bg-status-error/5 hover:bg-status-error/10' : 'hover:bg-white/60'}`}>
-                      <td className="px-8 py-5 font-numeric text-sm font-semibold text-ink-muted">
+                      <td className="px-4 py-3.5 font-numeric text-xs font-semibold text-ink-muted">
                         #{user.id}
                       </td>
-                      <td className="px-8 py-5">
+                      <td className="px-4 py-3.5">
                         <div
                           className="flex items-center cursor-pointer group/user select-none"
                           onClick={() => setSelectedDetailUser(user)}
                         >
                           <Avatar name={user.name} url={user.avatar_url} isSuspended={user.is_suspended} />
-                          <div className="ml-5">
+                          <div className="ml-3">
                             <div className="flex items-center flex-wrap gap-1.5">
                               <span className={`font-body font-bold transition-colors group-hover/user:text-primary ${user.is_suspended ? 'text-status-error' : 'text-ink'}`}>
                                 {user.name}
@@ -538,7 +538,7 @@ function UsersContent() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-8 py-5">
+                      <td className="px-4 py-3.5">
                         <div className="flex flex-col space-y-2 items-start">
                           <span className={`px-4 py-1.5 rounded-full text-xs font-body font-bold tracking-wide uppercase shadow-sm ${user.role === 'employer' ? 'bg-accent-peach border border-accent-peachBright/50 text-primary-dark' : 'bg-accent-mint border border-accent-mintDeep/30 text-accent-mintDeep'
                             }`}>
@@ -575,72 +575,53 @@ function UsersContent() {
                           )}
                         </div>
                       </td>
-                      <td className="px-8 py-5 text-sm font-body font-medium text-ink-soft">
+                      <td className="px-4 py-3.5 text-xs font-body font-medium text-ink-soft">
                         {new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                       </td>
-                      <td className="px-8 py-5 text-sm text-ink-soft whitespace-nowrap">
+                      <td className="px-4 py-3.5 text-xs text-ink-soft whitespace-nowrap">
                         <div className="flex items-center text-ink-muted font-body font-semibold">
-                          <i className="lni lni-timer mr-2 text-primary" />
-                          {user.last_login_at ? new Date(user.last_login_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'Never'}
+                          <i className="lni lni-timer mr-1.5 text-primary text-xs" />
+                          {user.last_login_at 
+                            ? new Date(user.last_login_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) 
+                            : (user.updated_at 
+                               ? new Date(user.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) 
+                               : 'Never')}
                         </div>
                       </td>
-                      <td className="px-8 py-5 text-right">
+                      <td className="px-4 py-3.5 text-right">
                         {user.role !== 'admin' && (
-                          <div className="flex justify-end space-x-3">
-                            {user.document_url && (
-                              <Tooltip text="View Government ID" position="top">
-                                <button
-                                  onClick={() => setSelectedIdUser(user)}
-                                  className="p-2.5 rounded-xl bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white transition-all shadow-sm"
-                                  title="View Government ID"
-                                >
-                                  <i className="lni lni-eye text-xs" />
-                                </button>
-                              </Tooltip>
-                            )}
+                          <div className="flex flex-col gap-1.5 items-end justify-center">
                             {user.role === 'worker' && user.verification_status !== 'approved' && (
-                              <Tooltip text="Manually Verify User" position="top">
-                                <button
-                                  disabled={actionLoading === user.id}
-                                  onClick={() => handleVerify(user.id)}
-                                  className="p-2.5 rounded-xl bg-status-success/10 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all shadow-sm"
-                                  title="Verify User"
-                                >
-                                  <i className="lni lni-checkmark-circle text-xs" />
-                                </button>
-                              </Tooltip>
+                              <button
+                                disabled={actionLoading === user.id}
+                                onClick={() => handleVerify(user.id)}
+                                className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-status-success/15 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all text-center"
+                              >
+                                Verify
+                              </button>
                             )}
-                            <Tooltip
-                              text={user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
-                              position="top"
-                              variant={user.is_suspended ? 'warning' : 'default'}
+                            <button
+                              disabled={actionLoading === user.id}
+                              onClick={() => handleSuspend(user.id, user.is_suspended)}
+                              className={`w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg border transition-all text-center ${
+                                user.is_suspended
+                                  ? 'bg-status-warning/15 border-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
+                                  : 'bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white'
+                              }`}
                             >
-                              <button
-                                disabled={actionLoading === user.id}
-                                onClick={() => handleSuspend(user.id, user.is_suspended)}
-                                className={`p-2.5 rounded-xl transition-all shadow-sm ${user.is_suspended
-                                    ? 'bg-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
-                                    : 'bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white'
-                                  }`}
-                                title={user.is_suspended ? 'Unsuspend User' : 'Suspend User'}
-                              >
-                                <i className="lni lni-user text-xs" />
-                              </button>
-                            </Tooltip>
-                            <Tooltip text="Delete User" position="top" variant="danger">
-                              <button
-                                disabled={actionLoading === user.id}
-                                onClick={() => handleDelete(user.id)}
-                                className="p-2.5 rounded-xl bg-status-error/10 border border-status-error/20 text-status-error hover:bg-status-error hover:text-white transition-all shadow-sm"
-                                title="Delete User"
-                              >
-                                <i className="lni lni-trash-can text-xs" />
-                              </button>
-                            </Tooltip>
+                              {user.is_suspended ? 'Unsuspend' : 'Suspend'}
+                            </button>
+                            <button
+                              disabled={actionLoading === user.id}
+                              onClick={() => handleDelete(user.id)}
+                              className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-status-error/15 border border-status-error/20 text-status-error hover:bg-status-error hover:text-white transition-all text-center"
+                            >
+                              Delete
+                            </button>
                           </div>
                         )}
                         {user.role === 'admin' && (
-                          <span className="text-xs font-body font-bold text-ink-muted uppercase tracking-wider bg-ink-faint/50 px-3 py-1.5 rounded-lg border border-ink-faint">Protected Admin</span>
+                          <span className="text-[10px] font-body font-bold text-ink-muted uppercase tracking-wider bg-ink-faint/50 px-2.5 py-1 rounded-lg border border-ink-faint inline-block">Protected Admin</span>
                         )}
                       </td>
                     </tr>

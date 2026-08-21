@@ -103,7 +103,7 @@ describe('UsersPage Component', () => {
     });
 
     // Click suspend button for Nena Cruz (index 0)
-    const suspendButtons = screen.getAllByTitle(/suspend/i);
+    const suspendButtons = screen.getAllByRole('button', { name: /suspend/i });
     fireEvent.click(suspendButtons[0]);
 
     // Click Confirm in custom AlertDialog
@@ -124,7 +124,7 @@ describe('UsersPage Component', () => {
       expect(screen.getByText('Nena Cruz')).toBeInTheDocument();
     });
 
-    const deleteButtons = screen.getAllByTitle(/delete/i);
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
     fireEvent.click(deleteButtons[0]);
 
     // Click Confirm in custom AlertDialog
