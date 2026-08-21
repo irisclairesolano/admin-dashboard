@@ -92,7 +92,6 @@ describe('UsersPage Component', () => {
   });
 
   it('handles suspending and unsuspending a user', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     vi.mocked(adminApi.suspendUser).mockResolvedValue({
       data: { success: true, message: 'Status updated' },
     } as any);
@@ -107,12 +106,14 @@ describe('UsersPage Component', () => {
     const suspendButtons = screen.getAllByTitle(/suspend/i);
     fireEvent.click(suspendButtons[0]);
 
-    expect(window.confirm).toHaveBeenCalled();
+    // Click Confirm in custom AlertDialog
+    const confirmBtn = screen.getByRole('button', { name: /Confirm/i });
+    fireEvent.click(confirmBtn);
+
     expect(adminApi.suspendUser).toHaveBeenCalledWith(1, true);
   });
 
   it('handles soft deleting a user', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     vi.mocked(adminApi.deleteUser).mockResolvedValue({
       data: { success: true, message: 'User deleted' },
     } as any);
@@ -126,7 +127,10 @@ describe('UsersPage Component', () => {
     const deleteButtons = screen.getAllByTitle(/delete/i);
     fireEvent.click(deleteButtons[0]);
 
-    expect(window.confirm).toHaveBeenCalled();
+    // Click Confirm in custom AlertDialog
+    const confirmBtn = screen.getByRole('button', { name: /Confirm/i });
+    fireEvent.click(confirmBtn);
+
     expect(adminApi.deleteUser).toHaveBeenCalledWith(1);
   });
 });

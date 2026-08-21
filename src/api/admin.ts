@@ -198,6 +198,10 @@ export const adminApi = {
     return cachedGet(`/admin/analytics${queryString ? `?${queryString}` : ''}`);
   },
 
+  generateAIInsights: async (from?: string, to?: string, interval?: string) => {
+    return apiClient.post('/admin/analytics/insights', { from, to, interval });
+  },
+
   // Support Tickets
   getSupportTickets: async () => {
     return apiClient.get('/admin/support');

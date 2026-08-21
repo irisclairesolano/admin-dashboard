@@ -255,6 +255,11 @@ function UsersContent() {
       'Update Suspension Status',
       `Are you sure you want to ${currentStatus ? 'unsuspend' : 'suspend'} this user?`,
       async () => {
+        const previousUsers = [...users];
+        setUsers((prev: any[]) => prev.map(u => u.id === id ? { ...u, is_suspended: !currentStatus } : u));
+        if (selectedDetailUser && selectedDetailUser.id === id) {
+          setSelectedDetailUser((prev: any) => prev ? { ...prev, is_suspended: !currentStatus } : null);
+        }
         try {
           setActionLoading(id);
           await adminApi.suspendUser(id, !currentStatus);
@@ -263,6 +268,10 @@ function UsersContent() {
             fetchUserDetails(id); // Refresh drawer
           }
         } catch (err: any) {
+          setUsers(previousUsers);
+          if (selectedDetailUser && selectedDetailUser.id === id) {
+            setSelectedDetailUser((prev: any) => prev ? { ...prev, is_suspended: currentStatus } : null);
+          }
           showAlert('Error', 'Failed to update suspension status: ' + (err.response?.data?.message || err.message));
         } finally {
           setActionLoading(null);
@@ -276,14 +285,17 @@ function UsersContent() {
       'Delete User',
       'Are you sure you want to delete this user? This action can be undone later by a database administrator (soft delete).',
       async () => {
+        const previousUsers = [...users];
+        setUsers(prev => prev.filter(u => u.id !== id));
+        if (selectedDetailUser && selectedDetailUser.id === id) {
+          setSelectedDetailUser(null);
+        }
         try {
           setActionLoading(id);
           await adminApi.deleteUser(id);
           await fetchUsers(); // Refresh list
-          if (selectedDetailUser && selectedDetailUser.id === id) {
-            fetchUserDetails(id); // Refresh drawer
-          }
         } catch (err: any) {
+          setUsers(previousUsers);
           showAlert('Error', 'Failed to delete user: ' + (err.response?.data?.message || err.message));
         } finally {
           setActionLoading(null);
@@ -297,14 +309,17 @@ function UsersContent() {
       'Restore User',
       'Are you sure you want to restore this user?',
       async () => {
+        const previousUsers = [...users];
+        setUsers(prev => prev.filter(u => u.id !== id));
+        if (selectedDetailUser && selectedDetailUser.id === id) {
+          setSelectedDetailUser(null);
+        }
         try {
           setActionLoading(id);
           await adminApi.restoreUser(id);
           await fetchUsers(); // Refresh list
-          if (selectedDetailUser && selectedDetailUser.id === id) {
-            fetchUserDetails(id); // Refresh drawer
-          }
         } catch (err: any) {
+          setUsers(previousUsers);
           showAlert('Error', 'Failed to restore user: ' + (err.response?.data?.message || err.message));
         } finally {
           setActionLoading(null);

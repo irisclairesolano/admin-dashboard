@@ -42,15 +42,18 @@ function JobsPageContent() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to soft delete this job post? It will be removed from public view.')) return;
+    const previousJobs = [...jobs];
+    setJobs(prev => prev.filter(j => j.id !== id));
+    if (selectedDetailJob?.id === id) {
+      setSelectedDetailJob(null);
+    }
     
     try {
       setActionLoading(id);
       await adminApi.deleteJob(id);
       await fetchJobs();
-      if (selectedDetailJob?.id === id) {
-        setSelectedDetailJob(null);
-      }
     } catch (err: any) {
+      setJobs(previousJobs);
       alert('Failed to delete job: ' + (err.response?.data?.message || err.message));
     } finally {
       setActionLoading(null);
@@ -64,14 +67,21 @@ function JobsPageContent() {
 
     if (!confirm(`Are you sure you want to ${actionText} this job post?`)) return;
 
+    const previousJobs = [...jobs];
+    setJobs(prev => prev.map(j => j.id === id ? { ...j, status: newStatus } : j));
+    if (selectedDetailJob?.id === id) {
+      setSelectedDetailJob((prev: any) => prev ? { ...prev, status: newStatus } : null);
+    }
+
     try {
       setActionLoading(id);
       await adminApi.updateJobStatus(id, newStatus);
       await fetchJobs();
-      if (selectedDetailJob?.id === id) {
-        setSelectedDetailJob((prev: any) => prev ? { ...prev, status: newStatus } : null);
-      }
     } catch (err: any) {
+      setJobs(previousJobs);
+      if (selectedDetailJob?.id === id) {
+        setSelectedDetailJob((prev: any) => prev ? { ...prev, status: currentStatus } : null);
+      }
       alert(`Failed to ${actionText} job: ` + (err.response?.data?.message || err.message));
     } finally {
       setActionLoading(null);
@@ -150,19 +160,18 @@ function JobsPageContent() {
             <table className="w-full text-left font-body table-fixed border-collapse">
               <thead className="bg-white/50 border-b border-ink-faint/50">
                 <tr>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[28%]">Job Details</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[36%]">Job Details</th>
                   <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[22%]">Employer</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[16%]">Compensation</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[10%] text-center">Applicants</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[12%] text-center">Posted Date</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[8%] text-center">Status</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[4%] text-right"></th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[12%] text-center">Applicants</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[14%] text-center">Posted Date</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[10%] text-center">Status</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[6%] text-right"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-faint/30">
                 {paginatedJobs.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-16 text-center text-ink-soft">
+                    <td colSpan={6} className="px-6 py-16 text-center text-ink-soft">
                       <div className="flex flex-col items-center justify-center">
                         <div className="w-16 h-16 bg-ink-faint/30 rounded-full flex items-center justify-center mb-4">
                           <i className="lni lni-briefcase text-2xl text-ink-muted" />
@@ -187,11 +196,17 @@ function JobsPageContent() {
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center text-[11px] text-ink-muted mt-1.5">
-                          <span className="px-2 py-0.5 rounded bg-accent-sky text-primary-dark font-body font-semibold border border-white/50 mr-2">{job.category}</span>
+                        <div className="flex items-center text-[11px] text-ink-muted mt-1.5 flex-wrap gap-2">
+                          <span className="px-2 py-0.5 rounded bg-accent-sky text-primary-dark font-body font-semibold border border-white/50">{job.category}</span>
                           <span className="flex items-center bg-white/50 px-2 py-0.5 rounded border border-white/50">
                             <i className="lni lni-map-marker mr-1 text-primary" /> {job.barangay}, {job.municipality}
                           </span>
+                        </div>
+                        <div className="flex items-center text-[11px] text-ink-soft mt-1.5 gap-2 flex-wrap">
+                          <span className="font-numeric font-bold text-ink bg-primary-soft/40 px-2 py-0.5 rounded border border-primary/10">
+                            ₱{parseFloat(job.compensation).toFixed(2)} <span className="text-[10px] text-ink-muted font-normal">/ {job.duration_type}</span>
+                          </span>
+                          <span className="text-[10px] text-ink-soft font-body font-semibold bg-white/40 px-2 py-0.5 rounded border border-ink-faint/30">Slots: {job.slots}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -205,13 +220,7 @@ function JobsPageContent() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-xs font-numeric font-bold text-ink flex items-center">
-                          <span className="text-primary mr-0.5">₱</span>{parseFloat(job.compensation).toFixed(2)}
-                          <span className="text-ink-muted font-body ml-1 text-[10px] font-normal">/ {job.duration_type}</span>
-                        </div>
-                        <div className="text-[10px] text-ink-soft mt-1 font-body font-semibold bg-paper px-2 py-0.5 rounded border border-ink-faint/50 inline-block">Slots: {job.slots}</div>
-                      </td>
+
                       <td className="px-6 py-4 text-center text-xs font-bold text-ink">
                         {job.applications_count ?? 0}
                       </td>

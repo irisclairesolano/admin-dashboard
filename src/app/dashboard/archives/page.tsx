@@ -52,11 +52,14 @@ function ArchivesPageContent() {
 
   const handleRestoreUser = async (id: number) => {
     if (!confirm('Are you sure you want to restore this user? They will regain access to the platform.')) return;
+    const previousUsers = [...users];
+    setUsers((prev) => prev.filter((u) => u.id !== id));
     try {
       setActionLoading(`user-${id}`);
       await adminApi.restoreUser(id);
       await fetchArchives();
     } catch (err: any) {
+      setUsers(previousUsers);
       alert('Failed to restore user: ' + (err.response?.data?.message || err.message));
     } finally {
       setActionLoading(null);
@@ -65,11 +68,14 @@ function ArchivesPageContent() {
 
   const handlePermanentDeleteUser = async (id: number) => {
     if (!confirm('Are you sure you want to PERMANENTLY delete this user? This cannot be undone. All data will be permanently erased.')) return;
+    const previousUsers = [...users];
+    setUsers((prev) => prev.filter((u) => u.id !== id));
     try {
       setActionLoading(`user-force-${id}`);
       await adminApi.permanentDeleteUser(id);
       await fetchArchives();
     } catch (err: any) {
+      setUsers(previousUsers);
       alert('Failed to permanently delete user: ' + (err.response?.data?.message || err.message));
     } finally {
       setActionLoading(null);
@@ -78,11 +84,14 @@ function ArchivesPageContent() {
 
   const handleRestoreJob = async (id: number) => {
     if (!confirm('Are you sure you want to restore this job post? It will become visible again.')) return;
+    const previousJobs = [...jobs];
+    setJobs((prev) => prev.filter((j) => j.id !== id));
     try {
       setActionLoading(`job-${id}`);
       await adminApi.restoreJob(id);
       await fetchArchives();
     } catch (err: any) {
+      setJobs(previousJobs);
       alert('Failed to restore job: ' + (err.response?.data?.message || err.message));
     } finally {
       setActionLoading(null);
@@ -91,18 +100,20 @@ function ArchivesPageContent() {
 
   const handlePermanentDeleteJob = async (id: number) => {
     if (!confirm('Are you sure you want to PERMANENTLY delete this job post? This cannot be undone. All data will be permanently erased.')) return;
+    const previousJobs = [...jobs];
+    setJobs((prev) => prev.filter((j) => j.id !== id));
     try {
       setActionLoading(`job-force-${id}`);
       await adminApi.permanentDeleteJob(id);
       await fetchArchives();
     } catch (err: any) {
+      setJobs(previousJobs);
       alert('Failed to permanently delete job: ' + (err.response?.data?.message || err.message));
     } finally {
       setActionLoading(null);
     }
   };
 
-  // Filter lists based on local search terms
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(userSearch.toLowerCase()) ||
     user.email.toLowerCase().includes(userSearch.toLowerCase())

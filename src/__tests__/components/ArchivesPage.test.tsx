@@ -54,6 +54,13 @@ describe('ArchivesPage Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Deleted User One')).toBeInTheDocument();
+    });
+
+    // Click Deleted Jobs tab
+    const jobsTab = screen.getByRole('button', { name: /Deleted Jobs/i });
+    fireEvent.click(jobsTab);
+
+    await waitFor(() => {
       expect(screen.getByText('Deleted Painter Job')).toBeInTheDocument();
       expect(screen.getByText('Jane Smith')).toBeInTheDocument();
     });
@@ -92,11 +99,19 @@ describe('ArchivesPage Component', () => {
     render(<ArchivesPage />);
 
     await waitFor(() => {
+      expect(screen.getByText('Deleted User One')).toBeInTheDocument();
+    });
+
+    // Click Deleted Jobs tab
+    const jobsTab = screen.getByRole('button', { name: /Deleted Jobs/i });
+    fireEvent.click(jobsTab);
+
+    await waitFor(() => {
       expect(screen.getByText('Deleted Painter Job')).toBeInTheDocument();
     });
 
     // Get the restore button for the job and click it
-    const restoreBtn = screen.getAllByRole('button', { name: /restore/i })[1];
+    const restoreBtn = screen.getAllByRole('button', { name: /restore/i })[0];
     fireEvent.click(restoreBtn);
 
     expect(window.confirm).toHaveBeenCalled();
