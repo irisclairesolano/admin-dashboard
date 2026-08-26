@@ -620,7 +620,7 @@ function UsersContent() {
       )}
 
       {/* View ID Modal */}
-      {showIdModal && selectedIdUser && <VerificationModal user={selectedIdUser} onClose={() => { setShowIdModal(false); setSelectedIdUser(null); }} onVerify={async (id, status, reason) => { await handleManualVerify(id, status, reason); }} actionLoading={actionLoading} />}
+      {showIdModal && selectedIdUser && <VerificationModal user={selectedIdUser} onClose={() => { setShowIdModal(false); setSelectedIdUser(null); }} onVerify={async (id, status, reason) => { await handleManualVerify(id, status, reason); }} actionLoading={actionLoading === selectedIdUser.id ? 'approved' : null} />}
 
       {/* User Details Drawer */}
       {selectedDetailUser && (

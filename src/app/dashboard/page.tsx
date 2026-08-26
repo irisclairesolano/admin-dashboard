@@ -551,11 +551,11 @@ export default function AnalyticsDashboard() {
                       <span className="w-1.5 h-6 bg-primary-dark rounded-full"></span>
                       {title}
                     </h4>
-                    <ReactMarkdown 
-                      className="text-sm text-ink-soft font-body space-y-2 whitespace-pre-line"
-                    >
-                      {content}
-                    </ReactMarkdown>
+                    <div className="text-sm text-ink-soft font-body space-y-2 whitespace-pre-line">
+                      <ReactMarkdown>
+                        {content}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                 );
               })}
