@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Avatar from '@/components/Avatar';
 import Tooltip from '@/components/Tooltip';
 import { AlertDialog } from '@/components/AlertDialog';
@@ -13,6 +13,7 @@ import { ArrowLeft, ArrowRight, X, ShieldAlert, CheckCircle2, AlertCircle, MapPi
 
 function UsersContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const urlSearch = searchParams.get('search') || '';
 
   const [users, setUsers] = useState<any[]>([]);
@@ -368,10 +369,10 @@ function UsersContent() {
 
       {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard title="Total Users" value={users.length} iconClass="lni lni-users" />
-        <StatCard title="Workers" value={users.filter(u => u.role === 'worker').length} iconClass="lni lni-user" />
-        <StatCard title="Employers" value={users.filter(u => u.role === 'employer').length} iconClass="lni lni-briefcase" />
-        <StatCard title="Pending Review" value={users.filter(u => u.registration_status === 'pending_review' || (u.verification_status === 'pending' && u.document_url)).length} iconClass="lni lni-warning" />
+        <StatCard title="Total Users" value={users.length} iconClass="lni lni-users" onClick={() => { setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }} />
+        <StatCard title="Workers" value={users.filter(u => u.role === 'worker').length} iconClass="lni lni-user" onClick={() => { setRoleFilter('worker'); setFilter('all'); setCurrentPage(1); }} />
+        <StatCard title="Employers" value={users.filter(u => u.role === 'employer').length} iconClass="lni lni-briefcase" onClick={() => { setRoleFilter('employer'); setFilter('all'); setCurrentPage(1); }} />
+        <StatCard title="Pending Review" value={users.filter(u => u.registration_status === 'pending_review' || (u.verification_status === 'pending' && u.document_url)).length} iconClass="lni lni-warning" onClick={() => router.push('/dashboard/verifications')} />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">

@@ -164,10 +164,10 @@ function JobsPageContent() {
 
         {/* 4 Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <StatCard title="Total Posts" value={jobs.length} iconClass="lni lni-briefcase" />
-          <StatCard title="Open" value={jobs.filter(j => j.status === 'open').length} iconClass="lni lni-play" />
-          <StatCard title="In Progress" value={jobs.filter(j => j.status === 'in_progress' || j.status === 'in progress').length} iconClass="lni lni-pause" />
-          <StatCard title="Suspended" value={jobs.filter(j => j.status === 'suspended').length} iconClass="lni lni-warning" />
+          <StatCard title="Total Posts" value={jobs.length} iconClass="lni lni-briefcase" onClick={() => setStatusFilter('All')} />
+          <StatCard title="Open" value={jobs.filter(j => j.status === 'open').length} iconClass="lni lni-play" onClick={() => setStatusFilter('Open')} />
+          <StatCard title="In Progress" value={jobs.filter(j => j.status === 'in_progress' || j.status === 'in progress').length} iconClass="lni lni-pause" onClick={() => setStatusFilter('In Progress')} />
+          <StatCard title="Suspended" value={jobs.filter(j => j.status === 'suspended').length} iconClass="lni lni-warning" onClick={() => setStatusFilter('Suspended')} />
         </div>
 
         {/* Status Switcher & Search Bar */}
