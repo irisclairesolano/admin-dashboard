@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import StatCard from '@/components/StatCard';
 import StatusTabs from '@/components/StatusTabs';
+import { AlertDialog } from '@/components/AlertDialog';
+import { formatDate } from '@/lib/date';
 
 function ArchivesPageContent() {
   const searchParams = useSearchParams();
@@ -18,6 +20,41 @@ function ArchivesPageContent() {
   const [userSearch, setUserSearch] = useState('');
   const [jobSearch, setJobSearch] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const [alertConfig, setAlertConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
+  const confirmAction = (title: string, message: string, onConfirm: () => void) => {
+    setAlertConfig({
+      isOpen: true,
+      title,
+      message,
+      confirmText: 'Confirm',
+      cancelText: 'Cancel',
+      onConfirm,
+    });
+  };
+
+  const showAlert = (title: string, message: string) => {
+    setAlertConfig({
+      isOpen: true,
+      title,
+      message,
+      confirmText: 'OK',
+      onConfirm: () => {},
+    });
+  };
 
   // Sync global search with the active tab's local search state
   useEffect(() => {
@@ -50,68 +87,88 @@ function ArchivesPageContent() {
     fetchArchives();
   }, []);
 
-  const handleRestoreUser = async (id: number) => {
-    if (!confirm('Are you sure you want to restore this user? They will regain access to the platform.')) return;
-    const previousUsers = [...users];
-    setUsers((prev) => prev.filter((u) => u.id !== id));
-    try {
-      setActionLoading(`user-${id}`);
-      await adminApi.restoreUser(id);
-      await fetchArchives();
-    } catch (err: any) {
-      setUsers(previousUsers);
-      alert('Failed to restore user: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setActionLoading(null);
-    }
+  const handleRestoreUser = (id: number) => {
+    confirmAction(
+      'Restore User',
+      'Are you sure you want to restore this user? They will regain access to the platform.',
+      async () => {
+        const previousUsers = [...users];
+        setUsers((prev) => prev.filter((u) => u.id !== id));
+        try {
+          setActionLoading(`user-${id}`);
+          await adminApi.restoreUser(id);
+          await fetchArchives();
+        } catch (err: any) {
+          setUsers(previousUsers);
+          showAlert('Error', 'Failed to restore user: ' + (err.response?.data?.message || err.message));
+        } finally {
+          setActionLoading(null);
+        }
+      }
+    );
   };
 
-  const handlePermanentDeleteUser = async (id: number) => {
-    if (!confirm('Are you sure you want to PERMANENTLY delete this user? This cannot be undone. All data will be permanently erased.')) return;
-    const previousUsers = [...users];
-    setUsers((prev) => prev.filter((u) => u.id !== id));
-    try {
-      setActionLoading(`user-force-${id}`);
-      await adminApi.permanentDeleteUser(id);
-      await fetchArchives();
-    } catch (err: any) {
-      setUsers(previousUsers);
-      alert('Failed to permanently delete user: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setActionLoading(null);
-    }
+  const handlePermanentDeleteUser = (id: number) => {
+    confirmAction(
+      'Permanently Delete User',
+      'Are you sure you want to PERMANENTLY delete this user? This cannot be undone. All data will be permanently erased.',
+      async () => {
+        const previousUsers = [...users];
+        setUsers((prev) => prev.filter((u) => u.id !== id));
+        try {
+          setActionLoading(`user-force-${id}`);
+          await adminApi.permanentDeleteUser(id);
+          await fetchArchives();
+        } catch (err: any) {
+          setUsers(previousUsers);
+          showAlert('Error', 'Failed to permanently delete user: ' + (err.response?.data?.message || err.message));
+        } finally {
+          setActionLoading(null);
+        }
+      }
+    );
   };
 
-  const handleRestoreJob = async (id: number) => {
-    if (!confirm('Are you sure you want to restore this job post? It will become visible again.')) return;
-    const previousJobs = [...jobs];
-    setJobs((prev) => prev.filter((j) => j.id !== id));
-    try {
-      setActionLoading(`job-${id}`);
-      await adminApi.restoreJob(id);
-      await fetchArchives();
-    } catch (err: any) {
-      setJobs(previousJobs);
-      alert('Failed to restore job: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setActionLoading(null);
-    }
+  const handleRestoreJob = (id: number) => {
+    confirmAction(
+      'Restore Job Post',
+      'Are you sure you want to restore this job post? It will become visible again.',
+      async () => {
+        const previousJobs = [...jobs];
+        setJobs((prev) => prev.filter((j) => j.id !== id));
+        try {
+          setActionLoading(`job-${id}`);
+          await adminApi.restoreJob(id);
+          await fetchArchives();
+        } catch (err: any) {
+          setJobs(previousJobs);
+          showAlert('Error', 'Failed to restore job: ' + (err.response?.data?.message || err.message));
+        } finally {
+          setActionLoading(null);
+        }
+      }
+    );
   };
 
-  const handlePermanentDeleteJob = async (id: number) => {
-    if (!confirm('Are you sure you want to PERMANENTLY delete this job post? This cannot be undone. All data will be permanently erased.')) return;
-    const previousJobs = [...jobs];
-    setJobs((prev) => prev.filter((j) => j.id !== id));
-    try {
-      setActionLoading(`job-force-${id}`);
-      await adminApi.permanentDeleteJob(id);
-      await fetchArchives();
-    } catch (err: any) {
-      setJobs(previousJobs);
-      alert('Failed to permanently delete job: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setActionLoading(null);
-    }
+  const handlePermanentDeleteJob = (id: number) => {
+    confirmAction(
+      'Permanently Delete Job Post',
+      'Are you sure you want to PERMANENTLY delete this job post? This cannot be undone. All data will be permanently erased.',
+      async () => {
+        const previousJobs = [...jobs];
+        setJobs((prev) => prev.filter((j) => j.id !== id));
+        try {
+          setActionLoading(`job-force-${id}`);
+          await adminApi.permanentDeleteJob(id);
+          await fetchArchives();
+        } catch (err: any) {
+          setJobs(previousJobs);
+          showAlert('Error', 'Failed to permanently delete job: ' + (err.response?.data?.message || err.message));
+        } finally {
+          setActionLoading(null);
+        }
+      }
+    );
   };
 
   const filteredUsers = users.filter(user =>
@@ -165,6 +222,7 @@ function ArchivesPageContent() {
               <input
                 type="text"
                 placeholder="Search deleted users..."
+                aria-label="Search deleted users"
                 value={userSearch}
                 onChange={e => setUserSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-white/80 backdrop-blur-md border border-ink-faint/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition text-sm font-body"
@@ -176,6 +234,7 @@ function ArchivesPageContent() {
               <input
                 type="text"
                 placeholder="Search deleted jobs..."
+                aria-label="Search deleted jobs"
                 value={jobSearch}
                 onChange={e => setJobSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-white/80 backdrop-blur-md border border-ink-faint/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition text-sm font-body"
@@ -231,7 +290,7 @@ function ArchivesPageContent() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-xs text-status-error font-numeric">
-                          {new Date(user.deleted_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                          {formatDate(user.deleted_at)}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end space-x-2">
@@ -240,6 +299,7 @@ function ArchivesPageContent() {
                               onClick={() => handleRestoreUser(user.id)}
                               className="p-1.5 rounded-lg bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border border-status-success/20 transition-all"
                               title="Restore User"
+                              aria-label="Restore User"
                             >
                               <i className="lni lni-arrow-left text-xs" />
                             </button>
@@ -248,6 +308,7 @@ function ArchivesPageContent() {
                               onClick={() => handlePermanentDeleteUser(user.id)}
                               className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all"
                               title="Permanently Delete User"
+                              aria-label="Permanently Delete User"
                             >
                               <i className="lni lni-trash-can text-xs" />
                             </button>
@@ -292,7 +353,7 @@ function ArchivesPageContent() {
                           {job.employer?.name || 'Unknown'}
                         </td>
                         <td className="px-6 py-4 text-xs text-status-error font-numeric">
-                          {new Date(job.deleted_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                          {formatDate(job.deleted_at)}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end space-x-2">
@@ -301,6 +362,7 @@ function ArchivesPageContent() {
                               onClick={() => handleRestoreJob(job.id)}
                               className="p-1.5 rounded-lg bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border border-status-success/20 transition-all"
                               title="Restore Job Post"
+                              aria-label="Restore Job Post"
                             >
                               <i className="lni lni-arrow-left text-xs" />
                             </button>
@@ -309,6 +371,7 @@ function ArchivesPageContent() {
                               onClick={() => handlePermanentDeleteJob(job.id)}
                               className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all"
                               title="Permanently Delete Job Post"
+                              aria-label="Permanently Delete Job Post"
                             >
                               <i className="lni lni-trash-can text-xs" />
                             </button>
@@ -323,6 +386,18 @@ function ArchivesPageContent() {
           </div>
         )}
       </div>
+      <AlertDialog
+        isOpen={alertConfig.isOpen}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        confirmText={alertConfig.confirmText}
+        cancelText={alertConfig.cancelText}
+        onConfirm={() => {
+          setAlertConfig((prev) => ({ ...prev, isOpen: false }));
+          alertConfig.onConfirm();
+        }}
+        onCancel={() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

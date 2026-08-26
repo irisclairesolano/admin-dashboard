@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import Tooltip from '@/components/Tooltip';
+import { AlertDialog } from '@/components/AlertDialog';
 
 function ReportsPageContent() {
   const searchParams = useSearchParams();
@@ -17,6 +18,17 @@ function ReportsPageContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [alertState, setAlertState] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
 
   // Sync search query from URL query parameter
   useEffect(() => {
@@ -24,7 +36,7 @@ function ReportsPageContent() {
     setCurrentPage(1);
   }, [urlSearch]);
 
-  const fetchReports = async (silent = false) => {
+  const fetchReports = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
       const res = await adminApi.getReports(statusFilter, currentPage);
@@ -35,30 +47,39 @@ function ReportsPageContent() {
     } finally {
       if (!silent) setLoading(false);
     }
-  };
+  }, [statusFilter, currentPage]);
 
   useEffect(() => {
     fetchReports(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, currentPage]);
+  }, [fetchReports]);
 
   useEffect(() => {
     const timer = setInterval(() => fetchReports(true), 30000);
     return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, currentPage]);
+  }, [fetchReports]);
 
-  const handleResolve = async (id: number, status: 'resolved' | 'dismissed') => {
-    if (!confirm(`Are you sure you want to mark this report as ${status}?`)) return;
-    try {
-      setActionLoading(id);
-      await adminApi.resolveReport(id, status);
-      await fetchReports(true);
-    } catch (err: any) {
-      alert('Failed to update report status: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setActionLoading(null);
-    }
+  const handleResolve = (id: number, status: 'resolved' | 'dismissed') => {
+    setAlertState({
+      open: true,
+      title: 'Confirm Action',
+      message: `Are you sure you want to mark this report as ${status}?`,
+      onConfirm: async () => {
+        try {
+          setActionLoading(id);
+          await adminApi.resolveReport(id, status);
+          await fetchReports(true);
+        } catch (err: any) {
+          setAlertState({
+            open: true,
+            title: 'Error',
+            message: 'Failed to update report status: ' + (err.response?.data?.message || err.message),
+            onConfirm: () => {},
+          });
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
   };
 
   const filteredReports = reports.filter((r) =>
@@ -84,6 +105,7 @@ function ReportsPageContent() {
           <div className="relative w-full md:w-64 group">
             <input
               type="text"
+              aria-label="Search reports"
               placeholder="Search reports..."
               value={searchTerm}
               onChange={(e) => {
@@ -97,6 +119,7 @@ function ReportsPageContent() {
 
           <div className="relative">
             <select
+              aria-label="Filter by status"
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value as any);
@@ -173,7 +196,7 @@ function ReportsPageContent() {
                       </td>
                       <td className="px-8 py-5">
                         <div className="font-body font-bold text-ink text-xs truncate capitalize" title={report.type}>
-                          {report.type.replace('_', ' ')}
+                          {report.type.replace(/_/g, ' ')}
                         </div>
                         <div className="text-xs text-ink-muted mt-1 leading-relaxed truncate" title={report.description}>
                           {report.description}
@@ -244,6 +267,19 @@ function ReportsPageContent() {
           </button>
         </div>
       )}
+
+      <AlertDialog
+        isOpen={alertState.open}
+        title={alertState.title}
+        message={alertState.message}
+        onConfirm={() => {
+          alertState.onConfirm();
+          setAlertState(s => ({ ...s, open: false }));
+        }}
+        onCancel={() => setAlertState(s => ({ ...s, open: false }))}
+        confirmText="Confirm"
+        cancelText="Cancel"
+      />
     </div>
   );
 }

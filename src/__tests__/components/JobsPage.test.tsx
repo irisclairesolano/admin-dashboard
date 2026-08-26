@@ -68,7 +68,6 @@ describe('JobsPage Component', () => {
   });
 
   it('handles suspending a job post', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     vi.mocked(adminApi.updateJobStatus).mockResolvedValue({
       data: { success: true, message: 'Status updated' },
     } as any);
@@ -79,17 +78,17 @@ describe('JobsPage Component', () => {
       expect(screen.getByText('Senior House Painter')).toBeInTheDocument();
     });
 
-    // Suspend button for job 1 (the play/pause icon buttons)
-    // The first button in the actions cell is the toggle status button
     const suspendButtons = screen.getAllByTitle(/suspend/i);
     fireEvent.click(suspendButtons[0]);
 
-    expect(window.confirm).toHaveBeenCalled();
+    // Click custom AlertDialog confirm button
+    const confirmBtn = screen.getByText('Confirm');
+    fireEvent.click(confirmBtn);
+
     expect(adminApi.updateJobStatus).toHaveBeenCalledWith(1, 'suspended');
   });
 
   it('handles deleting a job post', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     vi.mocked(adminApi.deleteJob).mockResolvedValue({
       data: { success: true, message: 'Job deleted' },
     } as any);
@@ -103,7 +102,10 @@ describe('JobsPage Component', () => {
     const deleteButtons = screen.getAllByTitle(/delete/i);
     fireEvent.click(deleteButtons[0]);
 
-    expect(window.confirm).toHaveBeenCalled();
+    // Click custom AlertDialog confirm button
+    const confirmBtn = screen.getByText('Confirm');
+    fireEvent.click(confirmBtn);
+
     expect(adminApi.deleteJob).toHaveBeenCalledWith(1);
   });
 });

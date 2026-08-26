@@ -57,7 +57,7 @@ describe('ArchivesPage Component', () => {
     });
 
     // Click Deleted Jobs tab
-    const jobsTab = screen.getByRole('button', { name: /Deleted Jobs/i });
+    const jobsTab = screen.getByRole('tab', { name: /Deleted Jobs/i });
     fireEvent.click(jobsTab);
 
     await waitFor(() => {
@@ -67,9 +67,6 @@ describe('ArchivesPage Component', () => {
   });
 
   it('handles restoring a user successfully', async () => {
-    // Mock confirmation dialog to click "OK"
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-
     vi.mocked(adminApi.restoreUser).mockResolvedValue({
       data: { success: true, message: 'User restored' },
     } as any);
@@ -84,14 +81,14 @@ describe('ArchivesPage Component', () => {
     const restoreBtn = screen.getAllByRole('button', { name: /restore/i })[0];
     fireEvent.click(restoreBtn);
 
-    expect(window.confirm).toHaveBeenCalled();
+    // Click Confirm in custom AlertDialog
+    const confirmBtn = screen.getByRole('button', { name: /Confirm/i });
+    fireEvent.click(confirmBtn);
+
     expect(adminApi.restoreUser).toHaveBeenCalledWith(10);
   });
 
   it('handles restoring a job successfully', async () => {
-    // Mock confirmation dialog to click "OK"
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
-
     vi.mocked(adminApi.restoreJob).mockResolvedValue({
       data: { success: true, message: 'Job restored' },
     } as any);
@@ -103,7 +100,7 @@ describe('ArchivesPage Component', () => {
     });
 
     // Click Deleted Jobs tab
-    const jobsTab = screen.getByRole('button', { name: /Deleted Jobs/i });
+    const jobsTab = screen.getByRole('tab', { name: /Deleted Jobs/i });
     fireEvent.click(jobsTab);
 
     await waitFor(() => {
@@ -114,7 +111,10 @@ describe('ArchivesPage Component', () => {
     const restoreBtn = screen.getAllByRole('button', { name: /restore/i })[0];
     fireEvent.click(restoreBtn);
 
-    expect(window.confirm).toHaveBeenCalled();
+    // Click Confirm in custom AlertDialog
+    const confirmBtn = screen.getByRole('button', { name: /Confirm/i });
+    fireEvent.click(confirmBtn);
+
     expect(adminApi.restoreJob).toHaveBeenCalledWith(20);
   });
 });

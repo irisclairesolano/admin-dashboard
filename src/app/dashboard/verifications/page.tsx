@@ -4,6 +4,8 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import Avatar from '@/components/Avatar';
+import VerificationModal from '@/components/VerificationModal';
+import { AlertDialog } from '@/components/AlertDialog';
 
 function VerificationsPageContent() {
   const searchParams = useSearchParams();
@@ -12,13 +14,20 @@ function VerificationsPageContent() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [reviewUser, setReviewUser] = useState<any | null>(null);
   const [actionLoading, setActionLoading] = useState<'approved' | 'rejected' | null>(null);
-  const [isRejecting, setIsRejecting] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [currentPage, setCurrentPage] = useState(1);
+  const [alertState, setAlertState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+  });
 
   const itemsPerPage = 5;
 
@@ -41,25 +50,46 @@ function VerificationsPageContent() {
   };
 
   useEffect(() => {
-    fetchVerifications();
-    const timer = setInterval(() => fetchVerifications(true), 30000);
-    return () => clearInterval(timer);
+    let cancelled = false;
+
+    const loadVerifications = async (silent = false) => {
+      try {
+        if (!silent) setLoading(true);
+        const res = await adminApi.getVerifications();
+        if (!cancelled) {
+          setUsers(res.data.data || []);
+        }
+      } catch (err: any) {
+        if (!cancelled && !silent) setError(err.message || 'Failed to load verifications');
+      } finally {
+        if (!cancelled && !silent) setLoading(false);
+      }
+    };
+
+    loadVerifications();
+    const timer = setInterval(() => loadVerifications(true), 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
   }, []);
 
-  const handleVerify = async (id: number, status: 'approved' | 'rejected') => {
+  const handleVerify = async (id: number, status: 'approved' | 'rejected', reason?: string) => {
     try {
       setActionLoading(status);
-      await adminApi.verifyUser(id, status, status === 'rejected' ? rejectionReason : undefined);
+      await adminApi.verifyUser(id, status, status === 'rejected' ? reason : undefined);
       
       // Instantly remove the verified/rejected user from state
       setUsers((prev) => prev.filter((u) => u.id !== id));
       
-      setSelectedUser(null);
-      setIsRejecting(false);
-      setRejectionReason('');
-      fetchVerifications(); // Refresh list
+      setReviewUser(null);
+      fetchVerifications(true); // Refresh list
     } catch (err: any) {
-      alert('Action failed: ' + (err.response?.data?.message || err.message));
+      setAlertState({
+        isOpen: true,
+        title: 'Action Failed',
+        message: 'Action failed: ' + (err.response?.data?.message || err.message),
+      });
     } finally {
       setActionLoading(null);
     }
@@ -94,6 +124,7 @@ function VerificationsPageContent() {
           <div className="relative w-full md:w-64 group">
             <input
               type="text"
+              aria-label="Search pending users"
               placeholder="Search pending users..."
               value={searchTerm}
               onChange={(e) => {
@@ -107,6 +138,7 @@ function VerificationsPageContent() {
 
           <div className="relative">
             <select
+              aria-label="Sort order"
               value={sortOrder}
               onChange={(e) => {
                 setSortOrder(e.target.value as any);
@@ -180,7 +212,7 @@ function VerificationsPageContent() {
                     </td>
                     <td className="px-8 py-5 text-right">
                       <button
-                        onClick={() => setSelectedUser(user)}
+                        onClick={() => setReviewUser(user)}
                         className="bg-ink text-white px-4 py-2 rounded-lg text-sm font-body font-medium hover:bg-ink-soft transition-colors"
                       >
                         Review
@@ -204,6 +236,7 @@ function VerificationsPageContent() {
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
+              aria-label="Previous page"
               className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <i className="lni lni-arrow-left text-sm" />
@@ -211,6 +244,7 @@ function VerificationsPageContent() {
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
+              aria-label="Next page"
               className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <i className="lni lni-arrow-right text-sm" />
@@ -219,172 +253,21 @@ function VerificationsPageContent() {
         </div>
       )}
 
-      {/* Review Modal */}
-      {selectedUser && (
-        <div className="fixed inset-0 bg-ink/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-ink-faint flex justify-between items-center bg-paper-cream">
-              <h2 className="font-display text-2xl text-ink">Review ID Document</h2>
-              <button onClick={() => !actionLoading && setSelectedUser(null)} className="text-ink-muted hover:text-ink">
-                <i className="lni lni-close text-lg" />
-              </button>
-            </div>
-            
-            <div className="p-6 flex-1 overflow-y-auto">
-              <div className="flex justify-between mb-6">
-                <div>
-                  <h3 className="font-body font-bold text-ink text-lg">{selectedUser.name}</h3>
-                  <p className="text-ink-soft font-body">{selectedUser.email}</p>
-                </div>
-                <div className="text-right">
-                  <span className="capitalize font-body font-medium text-ink-muted bg-paper px-3 py-1 rounded-lg border border-ink-faint">
-                    Role: {selectedUser.role}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div>
-                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Front)</span>
-                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
-                    {selectedUser.document_url ? (
-                      <img 
-                        src={selectedUser.document_url} 
-                        alt="ID Front" 
-                        className="max-w-full max-h-full object-contain rounded-lg"
-                      />
-                    ) : (
-                      <p className="text-ink-muted text-sm font-body font-medium">No Front ID uploaded</p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Back)</span>
-                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
-                    {selectedUser.document_back_url ? (
-                      <img 
-                        src={selectedUser.document_back_url} 
-                        alt="ID Back" 
-                        className="max-w-full max-h-full object-contain rounded-lg"
-                      />
-                    ) : (
-                      <p className="text-ink-muted text-sm font-body font-medium">No Back ID uploaded</p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
-                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
-                    {selectedUser.selfie_url ? (
-                      <img 
-                        src={selectedUser.selfie_url} 
-                        alt="Selfie holding ID" 
-                        className="max-w-full max-h-full object-contain rounded-lg"
-                      />
-                    ) : (
-                      <p className="text-ink-muted text-sm font-body font-medium">
-                        {selectedUser.role === 'employer' ? 'Selfie not required for employers' : 'No selfie uploaded'}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {selectedUser.role === 'employer' && selectedUser.business_documents && selectedUser.business_documents.length > 0 && (
-                <div className="mt-6 border-t border-ink-faint pt-6">
-                  <span className="block font-body font-semibold text-ink-soft text-sm mb-3">Uploaded Business Documents</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {selectedUser.business_documents.map((doc: string, idx: number) => {
-                      const isPdf = doc.toLowerCase().includes('.pdf') || doc.includes('token=') && doc.toLowerCase().includes('%2fpdf') || doc.toLowerCase().includes('pdf');
-                      return (
-                        <div key={idx} className="bg-paper rounded-xl border border-ink-faint p-2 h-[180px] flex flex-col items-center justify-center bg-black/5 overflow-hidden relative group">
-                          {isPdf ? (
-                            <div className="flex flex-col items-center justify-center">
-                              <svg className="w-12 h-12 text-status-error mb-2" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/><path d="M9 9a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1z"/></svg>
-                              <span className="text-xs text-ink-soft font-body font-semibold">Business Doc {idx + 1}</span>
-                              <a href={doc} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline mt-2">Open PDF</a>
-                            </div>
-                          ) : (
-                            <>
-                              <img 
-                                src={doc} 
-                                alt={`Business Doc ${idx + 1}`} 
-                                className="max-w-full max-h-full object-contain rounded-lg"
-                              />
-                              <a href={doc} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-body font-bold rounded-lg">
-                                View Full Image
-                              </a>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {isRejecting ? (
-              <div className="p-6 border-t border-ink-faint bg-white bg-status-error/5">
-                <h4 className="font-body font-bold text-status-error mb-2">Confirm Rejection</h4>
-                <p className="text-sm text-ink-soft mb-3">
-                  Please specify the reason for rejecting this ID submission. The user will receive a notification and be prompted to re-submit.
-                </p>
-                <textarea
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="e.g. Front ID photo is blurry, Name does not match profile, ID is expired..."
-                  className="w-full p-3.5 bg-white border border-ink-faint rounded-xl focus:border-status-error/50 outline-none font-body text-sm mb-4 resize-none shadow-sm focus:shadow-md transition-all"
-                  rows={3}
-                  required
-                />
-                <div className="flex justify-end space-x-3">
-                  <button
-                    onClick={() => {
-                      setIsRejecting(false);
-                      setRejectionReason('');
-                    }}
-                    className="px-4 py-2 text-ink-soft font-body font-medium hover:bg-paper rounded-xl"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    disabled={!rejectionReason.trim() || !!actionLoading}
-                    onClick={() => handleVerify(selectedUser.id, 'rejected')}
-                    className="px-6 py-2 bg-status-error text-white font-body font-semibold rounded-xl hover:bg-status-error/90 transition-colors disabled:opacity-50 flex items-center"
-                  >
-
-                    {actionLoading === 'rejected' && (
-                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                    )}
-                    Confirm Rejection
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="p-6 border-t border-ink-faint bg-white flex justify-end space-x-4">
-                <button
-                  disabled={!!actionLoading}
-                  onClick={() => setIsRejecting(true)}
-                  className="px-6 py-3 border border-status-error text-status-error font-body font-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50 flex items-center"
-                >
-                  Reject ID
-                </button>
-                <button
-                  disabled={!!actionLoading}
-                  onClick={() => handleVerify(selectedUser.id, 'approved')}
-                  className="px-6 py-3 bg-status-success text-white font-body font-semibold rounded-xl hover:bg-status-success/90 transition-colors disabled:opacity-50 flex items-center"
-                >
-                  {actionLoading === 'approved' && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>}
-                  Approve & Verify
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+      {reviewUser && (
+        <VerificationModal
+          user={reviewUser}
+          onClose={() => setReviewUser(null)}
+          onVerify={handleVerify}
+          actionLoading={actionLoading}
+        />
       )}
+
+      <AlertDialog
+        isOpen={alertState.isOpen}
+        title={alertState.title}
+        message={alertState.message}
+        onConfirm={() => setAlertState((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

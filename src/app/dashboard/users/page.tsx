@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Avatar from '@/components/Avatar';
 import Tooltip from '@/components/Tooltip';
 import { AlertDialog } from '@/components/AlertDialog';
+import VerificationModal from '@/components/VerificationModal';
 import { useDebounce } from '@/hooks/useDebounce';
 import { adminApi } from '@/lib/api';
 import StatCard from '@/components/StatCard';
@@ -68,19 +69,8 @@ function UsersContent() {
   // Job Preview state
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
 
-  const [alertConfig, setAlertConfig] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    confirmText?: string;
-    cancelText?: string;
-    onConfirm: () => void;
-  }>({
-    isOpen: false,
-    title: '',
-    message: '',
-    onConfirm: () => {},
-  });
+  const [alertState, setAlertState] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void }>({ open: false, title: '', message: '', onConfirm: () => {} });
+  const [showIdModal, setShowIdModal] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -106,7 +96,7 @@ function UsersContent() {
       const res = await adminApi.getUserDetails(id);
       setUserDetailData(res.data);
     } catch (err: any) {
-      alert('Failed to load user details: ' + (err.response?.data?.message || err.message));
+      setAlertState({ open: true, title: 'Error', message: 'Failed to load user details: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
     } finally {
       setDetailLoading(false);
     }
@@ -123,7 +113,7 @@ function UsersContent() {
         setActivityData(res.data);
       }
     } catch (err: any) {
-      alert('Failed to load user activity: ' + (err.response?.data?.message || err.message));
+      setAlertState({ open: true, title: 'Error', message: 'Failed to load user activity: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
     } finally {
       setActivityLoading(false);
     }
@@ -135,7 +125,7 @@ function UsersContent() {
       const res = await adminApi.getUserHired(id, page, search);
       setActivityData(res.data);
     } catch (err: any) {
-      alert('Failed to load hired history: ' + (err.response?.data?.message || err.message));
+      setAlertState({ open: true, title: 'Error', message: 'Failed to load hired history: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
     } finally {
       setActivityLoading(false);
     }
@@ -147,7 +137,7 @@ function UsersContent() {
       const res = await adminApi.getUserReviews(id, page);
       setReviewsData(res.data);
     } catch (err: any) {
-      alert('Failed to load reviews: ' + (err.response?.data?.message || err.message));
+      setAlertState({ open: true, title: 'Error', message: 'Failed to load reviews: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
     } finally {
       setReviewsLoading(false);
     }
@@ -159,7 +149,7 @@ function UsersContent() {
       const res = await adminApi.getUserReports(id, page);
       setReportsData(res.data);
     } catch (err: any) {
-      alert('Failed to load reports: ' + (err.response?.data?.message || err.message));
+      setAlertState({ open: true, title: 'Error', message: 'Failed to load reports: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
     } finally {
       setReportsLoading(false);
     }
@@ -171,7 +161,7 @@ function UsersContent() {
       const res = await adminApi.getUserLogs(id, page);
       setLogsData(res.data);
     } catch (err: any) {
-      alert('Failed to load activity logs: ' + (err.response?.data?.message || err.message));
+      setAlertState({ open: true, title: 'Error', message: 'Failed to load activity logs: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
     } finally {
       setLogsLoading(false);
     }
@@ -229,32 +219,12 @@ function UsersContent() {
     }
   }, [selectedDetailUser, activeTab, logsPage]);
 
-  const confirmAction = (title: string, message: string, onConfirm: () => void) => {
-    setAlertConfig({
-      isOpen: true,
-      title,
-      message,
-      confirmText: 'Confirm',
-      cancelText: 'Cancel',
-      onConfirm,
-    });
-  };
-
-  const showAlert = (title: string, message: string) => {
-    setAlertConfig({
-      isOpen: true,
-      title,
-      message,
-      confirmText: 'OK',
-      onConfirm: () => {},
-    });
-  };
-
   const handleSuspend = (id: number, currentStatus: boolean) => {
-    confirmAction(
-      'Update Suspension Status',
-      `Are you sure you want to ${currentStatus ? 'unsuspend' : 'suspend'} this user?`,
-      async () => {
+    setAlertState({
+      open: true,
+      title: 'Update Suspension Status',
+      message: `Are you sure you want to ${currentStatus ? 'unsuspend' : 'suspend'} this user?`,
+      onConfirm: async () => {
         const previousUsers = [...users];
         setUsers((prev: any[]) => prev.map(u => u.id === id ? { ...u, is_suspended: !currentStatus } : u));
         if (selectedDetailUser && selectedDetailUser.id === id) {
@@ -272,19 +242,19 @@ function UsersContent() {
           if (selectedDetailUser && selectedDetailUser.id === id) {
             setSelectedDetailUser((prev: any) => prev ? { ...prev, is_suspended: currentStatus } : null);
           }
-          showAlert('Error', 'Failed to update suspension status: ' + (err.response?.data?.message || err.message));
+          setAlertState({ open: true, title: 'Error', message: 'Failed to update suspension status: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
         } finally {
           setActionLoading(null);
         }
-      }
-    );
+      } })
   };
 
   const handleDelete = (id: number) => {
-    confirmAction(
-      'Delete User',
-      'Are you sure you want to delete this user? This action can be undone later by a database administrator (soft delete).',
-      async () => {
+    setAlertState({
+      open: true,
+      title: 'Delete User',
+      message: 'Are you sure you want to delete this user? This action can be undone later by a database administrator (soft delete).',
+      onConfirm: async () => {
         const previousUsers = [...users];
         setUsers(prev => prev.filter(u => u.id !== id));
         if (selectedDetailUser && selectedDetailUser.id === id) {
@@ -296,19 +266,19 @@ function UsersContent() {
           await fetchUsers(); // Refresh list
         } catch (err: any) {
           setUsers(previousUsers);
-          showAlert('Error', 'Failed to delete user: ' + (err.response?.data?.message || err.message));
+          setAlertState({ open: true, title: 'Error', message: 'Failed to delete user: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
         } finally {
           setActionLoading(null);
         }
-      }
-    );
+      } })
   };
 
   const handleRestore = (id: number) => {
-    confirmAction(
-      'Restore User',
-      'Are you sure you want to restore this user?',
-      async () => {
+    setAlertState({
+      open: true,
+      title: 'Restore User',
+      message: 'Are you sure you want to restore this user?',
+      onConfirm: async () => {
         const previousUsers = [...users];
         setUsers(prev => prev.filter(u => u.id !== id));
         if (selectedDetailUser && selectedDetailUser.id === id) {
@@ -320,47 +290,34 @@ function UsersContent() {
           await fetchUsers(); // Refresh list
         } catch (err: any) {
           setUsers(previousUsers);
-          showAlert('Error', 'Failed to restore user: ' + (err.response?.data?.message || err.message));
+          setAlertState({ open: true, title: 'Error', message: 'Failed to restore user: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
         } finally {
           setActionLoading(null);
         }
-      }
-    );
+      } })
   };
 
-  const handleManualVerify = (id: number, status: 'approved' | 'rejected') => {
-    if (status === 'rejected' && !rejectionReason.trim()) {
-      showAlert('Required', 'Please provide a rejection reason.');
-      return;
-    }
-    confirmAction(
-      'Verify User ID Documents',
-      `Are you sure you want to ${status === 'approved' ? 'approve' : 'reject'} this user's verification?`,
-      async () => {
-        try {
-          setActionLoading(id);
-          await adminApi.verifyUser(id, status, status === 'rejected' ? rejectionReason : undefined);
-          await fetchUsers(); // Refresh list
-          if (selectedDetailUser && selectedDetailUser.id === id) {
-            fetchUserDetails(id); // Refresh drawer
-          }
-          setSelectedIdUser(null);
-          setIsRejecting(false);
-          setRejectionReason('');
-        } catch (err: any) {
-          showAlert('Error', 'Verification action failed: ' + (err.response?.data?.message || err.message));
-        } finally {
-          setActionLoading(null);
-        }
+  const handleManualVerify = async (id: number, status: 'approved' | 'rejected', reason?: string) => {
+    try {
+      setActionLoading(id);
+      await adminApi.verifyUser(id, status, reason);
+      await fetchUsers(); // Refresh list
+      if (selectedDetailUser && selectedDetailUser.id === id) {
+        fetchUserDetails(id); // Refresh drawer
       }
-    );
+      setSelectedIdUser(null);
+      setShowIdModal(false);
+    } catch (err: any) {
+      setAlertState({ open: true, title: 'Error', message: 'Verification action failed: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const handleVerify = async (id: number) => {
     const userToVerify = userDetailData?.user || selectedDetailUser;
     setSelectedIdUser(userToVerify);
-    setIsRejecting(false);
-    setRejectionReason('');
+    setShowIdModal(true);
   };
 
   const filteredUsers = users.filter(u => {
@@ -396,6 +353,7 @@ function UsersContent() {
         <div className="mt-6 md:mt-0 relative w-full md:w-80 group">
           <input
             type="text"
+            aria-label="Search users by name or email"
             placeholder="Search users by name or email..."
             value={searchTerm}
             onChange={(e) => {
@@ -444,6 +402,7 @@ function UsersContent() {
           <label className="flex items-center space-x-2 bg-white/50 border border-ink-faint/50 px-4 py-2 rounded-xl text-sm font-body font-semibold text-ink-soft cursor-pointer hover:bg-white/80 transition-all select-none">
             <input
               type="checkbox"
+              aria-label="Show archived users"
               checked={showArchived}
               onChange={(e) => {
                 setShowArchived(e.target.checked);
@@ -456,6 +415,7 @@ function UsersContent() {
 
           <select
             value={roleFilter}
+            aria-label="Filter by user role"
             onChange={(e) => {
               setRoleFilter(e.target.value as any);
               setCurrentPage(1);
@@ -532,7 +492,7 @@ function UsersContent() {
                             ) : user.role === 'employer' ? (
                               <div className="text-[11px] text-ink-muted mt-1 font-body font-semibold flex items-center gap-1">
                                 <i className="lni lni-gallery text-[10px] text-primary" />
-                                <span>{user.posts_count ?? 0} {user.posts_count === 1 ? 'post' : 'posts'}</span>
+                                <span>{user.job_posts_count ?? 0} {user.job_posts_count === 1 ? 'post' : 'posts'}</span>
                               </div>
                             ) : null}
                           </div>
@@ -576,7 +536,7 @@ function UsersContent() {
                         </div>
                       </td>
                       <td className="px-4 py-3.5 text-xs font-body font-medium text-ink-soft">
-                        {new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        {new Date(user.created_at).toLocaleString('en-US', { timeZone: 'Asia/Manila', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })} PHT
                       </td>
                       <td className="px-4 py-3.5 text-xs text-ink-soft whitespace-nowrap">
                         <div className="flex items-center text-ink-muted font-body font-semibold">
@@ -659,190 +619,18 @@ function UsersContent() {
       )}
 
       {/* View ID Modal */}
-      {selectedIdUser && (
-        <div className="fixed inset-0 bg-ink/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-ink-faint flex justify-between items-center bg-paper-cream">
-              <h2 className="font-display text-2xl text-ink">Submitted ID Document</h2>
-              <button onClick={() => setSelectedIdUser(null)} className="text-ink-muted hover:text-ink">
-                <span className="text-2xl font-bold">&times;</span>
-              </button>
-            </div>
-
-            <div className="p-6 flex-1 overflow-y-auto">
-              <div className="flex justify-between mb-6">
-                <div>
-                  <h3 className="font-body font-bold text-ink text-lg">{selectedIdUser.name}</h3>
-                  <p className="text-ink-soft font-body">{selectedIdUser.email}</p>
-                </div>
-                <div className="text-right">
-                  <span className="capitalize font-body font-medium text-ink-muted bg-paper px-3 py-1 rounded-lg border border-ink-faint">
-                    Role: {selectedIdUser.role}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div>
-                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Front)</span>
-                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
-                    {selectedIdUser.document_url ? (
-                      <img
-                        src={selectedIdUser.document_url}
-                        alt="ID Front"
-                        className="max-w-full max-h-full object-contain rounded-lg"
-                      />
-                    ) : (
-                      <p className="text-ink-muted text-sm font-body font-medium">No Front ID uploaded</p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Back)</span>
-                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
-                    {selectedIdUser.document_back_url ? (
-                      <img
-                        src={selectedIdUser.document_back_url}
-                        alt="ID Back"
-                        className="max-w-full max-h-full object-contain rounded-lg"
-                      />
-                    ) : (
-                      <p className="text-ink-muted text-sm font-body font-medium">No Back ID uploaded</p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
-                  <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
-                    {selectedIdUser.selfie_url ? (
-                      <img
-                        src={selectedIdUser.selfie_url}
-                        alt="Selfie holding ID"
-                        className="max-w-full max-h-full object-contain rounded-lg"
-                      />
-                    ) : (
-                      <p className="text-ink-muted text-sm font-body font-medium">
-                        {selectedIdUser.role === 'employer' ? 'Selfie not required for employers' : 'No selfie uploaded'}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {selectedIdUser.role === 'employer' && selectedIdUser.business_documents && selectedIdUser.business_documents.length > 0 && (
-                <div className="mt-6 border-t border-ink-faint pt-6">
-                  <span className="block font-body font-semibold text-ink-soft text-sm mb-3">Uploaded Business Documents</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {selectedIdUser.business_documents.map((doc: string, idx: number) => {
-                      const isPdf = doc.toLowerCase().includes('.pdf') || doc.includes('token=') && doc.toLowerCase().includes('%2fpdf') || doc.toLowerCase().includes('pdf');
-                      return (
-                        <div key={idx} className="bg-paper rounded-xl border border-ink-faint p-2 h-[180px] flex flex-col items-center justify-center bg-black/5 overflow-hidden relative group">
-                          {isPdf ? (
-                            <div className="flex flex-col items-center justify-center">
-                              <svg className="w-12 h-12 text-status-error mb-2" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" /><path d="M9 9a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1z" /></svg>
-                              <span className="text-xs text-ink-soft font-body font-semibold">Business Doc {idx + 1}</span>
-                              <a href={doc} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline mt-2">Open PDF</a>
-                            </div>
-                          ) : (
-                            <>
-                              <img
-                                src={doc}
-                                alt={`Business Doc ${idx + 1}`}
-                                className="max-w-full max-h-full object-contain rounded-lg"
-                              />
-                              <a href={doc} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-body font-bold rounded-lg">
-                                View Full Image
-                              </a>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="p-6 border-t border-ink-faint bg-white flex flex-col gap-4">
-              {selectedIdUser.verification_status !== 'approved' && selectedIdUser.registration_status !== 'approved' && (
-                <>
-                  {isRejecting ? (
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-ink-soft uppercase tracking-wide">Rejection Reason</label>
-                      <textarea
-                        value={rejectionReason}
-                        onChange={(e) => setRejectionReason(e.target.value)}
-                        placeholder="Enter the reason why verification was rejected..."
-                        className="w-full p-3 border border-ink-faint rounded-xl text-sm focus:border-status-error outline-none font-body"
-                        rows={3}
-                      />
-                    </div>
-                  ) : null}
-                </>
-              )}
-
-              <div className="flex justify-end gap-3">
-                {selectedIdUser.verification_status !== 'approved' && selectedIdUser.registration_status !== 'approved' ? (
-                  <>
-                    {isRejecting ? (
-                      <>
-                        <button
-                          onClick={() => { setIsRejecting(false); setRejectionReason(''); }}
-                          className="px-5 py-2.5 bg-paper border border-ink-faint text-ink font-body font-semibold rounded-xl hover:bg-paper-dark transition-colors"
-                        >
-                          Back
-                        </button>
-                        <button
-                          disabled={actionLoading === selectedIdUser.id}
-                          onClick={() => handleManualVerify(selectedIdUser.id, 'rejected')}
-                          className="px-5 py-2.5 bg-status-error text-white font-body font-semibold rounded-xl hover:bg-status-error/90 transition-colors"
-                        >
-                          Submit Rejection
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => { setSelectedIdUser(null); setIsRejecting(false); setRejectionReason(''); }}
-                          className="px-5 py-2.5 bg-paper border border-ink-faint text-ink font-body font-semibold rounded-xl hover:bg-paper-dark transition-colors"
-                        >
-                          Close
-                        </button>
-                        <button
-                          onClick={() => setIsRejecting(true)}
-                          className="px-5 py-2.5 bg-status-error/10 border border-status-error/20 text-status-error font-body font-semibold rounded-xl hover:bg-status-error hover:text-white transition-colors"
-                        >
-                          Reject
-                        </button>
-                        <button
-                          disabled={actionLoading === selectedIdUser.id}
-                          onClick={() => handleManualVerify(selectedIdUser.id, 'approved')}
-                          className="px-5 py-2.5 bg-status-success text-white font-body font-semibold rounded-xl hover:bg-status-success/90 transition-colors"
-                        >
-                          Approve
-                        </button>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <button
-                    onClick={() => { setSelectedIdUser(null); setIsRejecting(false); setRejectionReason(''); }}
-                    className="px-6 py-3 bg-ink text-white font-body font-semibold rounded-xl hover:bg-ink-soft transition-colors"
-                  >
-                    Close
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {showIdModal && selectedIdUser && <VerificationModal user={selectedIdUser} onClose={() => { setShowIdModal(false); setSelectedIdUser(null); }} onVerify={async (id, status, reason) => { await handleManualVerify(id, status, reason); }} actionLoading={actionLoading} />}
 
       {/* User Details Drawer */}
       {selectedDetailUser && (
-        <div className="fixed inset-0 z-40 flex justify-end">
+        <div 
+          className="fixed inset-0 z-40 flex justify-end"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="user-drawer-title"
+          tabIndex={-1}
+          onKeyDown={(e) => { if (e.key === 'Escape') setSelectedDetailUser(null); }}
+        >
           <style>{`
             @keyframes slideIn {
               from { transform: translateX(100%); }
@@ -875,7 +663,7 @@ function UsersContent() {
                 <Avatar name={selectedDetailUser.name} url={selectedDetailUser.avatar_url} size="lg" isSuspended={selectedDetailUser.is_suspended} />
                 <div className="flex-1 min-w-0 pr-10">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-2xl font-display font-bold text-ink truncate" title={selectedDetailUser.name}>
+                    <h2 id="user-drawer-title" className="text-2xl font-display font-bold text-ink truncate" title={selectedDetailUser.name}>
                       {selectedDetailUser.name}
                     </h2>
                     {selectedDetailUser.deleted_at && (
@@ -1152,6 +940,7 @@ function UsersContent() {
                         <div className="relative flex-1">
                           <input
                             type="text"
+                            aria-label="Search activity"
                             placeholder={selectedDetailUser.role === 'employer' && employerSubTab === 'hired' ? "Search workers by name..." : "Search posts by title..."}
                             value={activitySearch}
                             onChange={(e) => { setActivitySearch(e.target.value); setActivityPage(1); }}
@@ -1163,6 +952,7 @@ function UsersContent() {
                         {!(selectedDetailUser.role === 'employer' && employerSubTab === 'hired') && (
                           <select
                             value={activityStatus}
+                            aria-label="Filter by activity status"
                             onChange={(e) => { setActivityStatus(e.target.value); setActivityPage(1); }}
                             className="px-3 py-2 border border-ink-faint rounded-xl text-sm outline-none"
                           >
@@ -1420,7 +1210,7 @@ function UsersContent() {
                             <div key={log.id} className="p-4 bg-paper rounded-2xl border border-ink-faint flex flex-col gap-1.5">
                               <div className="flex justify-between items-center">
                                 <span className="text-xs font-mono font-bold text-primary uppercase bg-primary/10 px-2 py-0.5 rounded">
-                                  {log.action.replace('_', ' ')}
+                                  {log.action.replace(/_/g, ' ')}
                                 </span>
                                 <span className="text-[10px] text-ink-muted">
                                   {new Date(log.created_at).toLocaleString()}
@@ -1556,18 +1346,7 @@ function UsersContent() {
           </div>
         </div>
       )}
-      <AlertDialog
-        isOpen={alertConfig.isOpen}
-        title={alertConfig.title}
-        message={alertConfig.message}
-        confirmText={alertConfig.confirmText}
-        cancelText={alertConfig.cancelText}
-        onConfirm={() => {
-          setAlertConfig((prev) => ({ ...prev, isOpen: false }));
-          alertConfig.onConfirm();
-        }}
-        onCancel={() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))}
-      />
+      <AlertDialog isOpen={alertState.open} title={alertState.title} message={alertState.message} onConfirm={() => { alertState.onConfirm(); setAlertState(s => ({...s, open: false})); }} onCancel={() => setAlertState(s => ({...s, open: false}))} confirmText="Confirm" cancelText="Cancel" />
     </div>
   );
 }

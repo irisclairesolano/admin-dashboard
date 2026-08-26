@@ -74,7 +74,13 @@ const cachedGet = async (url: string) => {
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('api_cache_' + url, JSON.stringify(response));
-      } catch {}
+      } catch (e) {
+        console.warn('Cache storage full, clearing old entries');
+        Object.keys(localStorage)
+          .filter(k => k.startsWith('api_cache_'))
+          .slice(0, 5)
+          .forEach(k => localStorage.removeItem(k));
+      }
     }
     return response;
   });
@@ -95,7 +101,7 @@ export const adminApi = {
   },
   
   getVerifications: async () => {
-    return apiClient.get('/admin/verifications');
+    return cachedGet('/admin/verifications');
   },
   
   verifyUser: async (id: number, status: 'approved' | 'rejected', rejection_reason?: string) => {
@@ -162,7 +168,7 @@ export const adminApi = {
   },
 
   getJobs: async (trashed: boolean = false) => {
-    return apiClient.get(`/admin/jobs${trashed ? '?trashed=1' : ''}`);
+    return cachedGet(`/admin/jobs${trashed ? '?trashed=1' : ''}`);
   },
 
   deleteJob: async (id: number) => {
@@ -181,7 +187,7 @@ export const adminApi = {
   },
 
   getReports: async (status: string = 'open', page: number = 1) => {
-    return apiClient.get(`/admin/reports?status=${status}&page=${page}`);
+    return cachedGet(`/admin/reports?status=${status}&page=${page}`);
   },
   
   resolveReport: async (id: number, status: 'resolved' | 'dismissed') => {
@@ -204,7 +210,7 @@ export const adminApi = {
 
   // Support Tickets
   getSupportTickets: async () => {
-    return apiClient.get('/admin/support');
+    return cachedGet('/admin/support');
   },
   
   replyToTicket: async (id: number, admin_reply: string) => {
@@ -224,11 +230,11 @@ export const adminApi = {
     if (action) params.append('action', action);
     if (dateFrom) params.append('date_from', dateFrom);
     if (dateTo) params.append('date_to', dateTo);
-    return apiClient.get(`/admin/logs?${params.toString()}`);
+    return cachedGet(`/admin/logs?${params.toString()}`);
   },
 
   getProfanityWords: async () => {
-    return apiClient.get('/admin/profanity-words');
+    return cachedGet('/admin/profanity-words');
   },
   addProfanityWord: async (word: string) => {
     clearApiCache();

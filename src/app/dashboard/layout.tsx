@@ -33,6 +33,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchVal, setSearchVal] = useState('');
 
+  // ── Web Notifications Permission & Helper ────────────────────────────
+  const prevVerifications = useRef(0);
+  const prevReports = useRef(0);
+  const prevTickets = useRef(0);
+  const isFirstLoad = useRef(true);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+  }, []);
+
+  const triggerBrowserNotification = (title: string, body: string, path: string) => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      const n = new Notification(title, {
+        body,
+        icon: '/favicon.ico',
+      });
+      n.onclick = () => {
+        window.focus();
+        router.push(path);
+        n.close();
+      };
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
@@ -108,6 +136,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       });
 
       setNotifications(list);
+
+      // Trigger web push notification if counts increased
+      if (!isFirstLoad.current) {
+        if (pendingVerificationsCount > prevVerifications.current) {
+          triggerBrowserNotification(
+            'New Pending Verification',
+            `There are ${pendingVerificationsCount} identity verifications awaiting review.`,
+            '/dashboard/verifications'
+          );
+        }
+        if (openReportsCount > prevReports.current) {
+          triggerBrowserNotification(
+            'New Report Filed',
+            `There are ${openReportsCount} content reports requiring moderation.`,
+            '/dashboard/reports'
+          );
+        }
+        if (openTicketsCount > prevTickets.current) {
+          triggerBrowserNotification(
+            'New Support Ticket',
+            `There are ${openTicketsCount} open support tickets awaiting response.`,
+            '/dashboard/support'
+          );
+        }
+      } else {
+        isFirstLoad.current = false;
+      }
+      prevVerifications.current = pendingVerificationsCount;
+      prevReports.current = openReportsCount;
+      prevTickets.current = openTicketsCount;
     } catch (err) {
       console.error('Failed to load notifications', err);
     }
@@ -211,7 +269,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <>
           {/* Backdrop overlay */}
           <div className="fixed inset-0 bg-ink/20 backdrop-blur-sm z-[100]" onClick={() => setDropdownOpen(false)} />
-          <div className="fixed inset-y-0 right-0 z-[101] w-full max-w-md bg-white/95 backdrop-blur-xl border-l border-white/50 shadow-2xl flex flex-col h-screen transform transition-transform duration-300 translate-x-0 animate-slide-in">
+          <div className="fixed inset-0 z-[101] w-screen h-screen bg-white/95 backdrop-blur-xl shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-0 animate-slide-in">
             {/* Header */}
             <div className="p-6 border-b border-ink-faint/30 bg-paper/30 flex justify-between items-center">
               <div>
@@ -346,9 +404,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span className="text-xs font-body font-semibold text-ink-muted ml-2 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
         </div>
         <div className="flex items-center gap-2">
-          {/* Notification dropdown for mobile */}
-          <NotificationButton isMobile={true} />
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-ink hover:bg-paper rounded-full transition-colors flex items-center justify-center">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-ink hover:bg-paper rounded-full transition-colors flex items-center justify-center" aria-label="Toggle sidebar">
             {sidebarOpen ? <i className="lni lni-close text-lg" /> : <i className="lni lni-menu text-lg" />}
           </button>
         </div>
@@ -361,9 +417,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         lg:translate-x-0 lg:static lg:flex-shrink-0 h-screen flex flex-col
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="h-20 items-center px-5 border-b border-ink-faint/30 lg:flex hidden flex-shrink-0">
-          <img src="/logo/04_Wordmark.png" alt="SIKAP Logo" className="h-10 object-contain" />
-          <span className="text-xs font-body font-semibold text-ink-muted ml-2.5 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
+        <div className="h-20 flex items-center justify-between px-5 border-b border-ink-faint/30 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <NotificationButton />
+            <div className="flex items-center">
+              <img src="/logo/04_Wordmark.png" alt="SIKAP Logo" className="h-9 object-contain" />
+              <span className="text-[10px] font-body font-semibold text-ink-muted ml-1.5 bg-ink-faint/30 px-1.5 py-0.5 rounded border border-ink-faint/50">Admin</span>
+            </div>
+          </div>
         </div>
 
         <div className="p-5 flex flex-col flex-1 min-h-0 justify-between">
@@ -419,51 +480,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </div>
 
-      {/* ── Persistent Content Wrapper (Header + Main) ──────────────────── */}
+      {/* ── Persistent Content Wrapper (Main) ──────────────────── */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        {/* Persistent Top Header (Desktop) */}
-        <header className="hidden lg:flex h-20 bg-white/45 backdrop-blur-xl border-b border-ink-faint/30 items-center justify-between px-10 flex-shrink-0 z-20">
-          {/* Breadcrumbs */}
-          <div className="flex items-center gap-2">
-            <Link href="/dashboard" className="text-xs font-body font-bold uppercase tracking-wider text-ink-muted hover:text-primary transition-colors">
-              Dashboard
-            </Link>
-            {pathname !== '/dashboard' && (
-              <>
-                <span className="text-xs text-ink-muted/50">/</span>
-                <span className="text-sm font-body font-bold text-ink capitalize">
-                  {pathname.split('/').pop()}
-                </span>
-              </>
-            )}
-          </div>
-
-          {/* Functional Search bar */}
-          <form onSubmit={handleSearchSubmit} className="relative w-80 group">
-            <input
-              type="text"
-              placeholder="Search dashboard..."
-              value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white/70 backdrop-blur-md rounded-2xl border border-ink-faint/30 outline-none text-sm font-body focus:bg-white focus:border-primary/40 focus:ring-4 focus:ring-primary/5 transition-all group-hover:shadow-sm"
-            />
-            <i className="lni lni-search text-ink-muted absolute left-3.5 top-3" />
-          </form>
-
-          {/* Right utilities */}
-          <div className="flex items-center gap-6">
-            {/* System Status */}
-            <div className="flex items-center gap-2 text-xs font-body text-ink-muted bg-white/40 border border-ink-faint/30 px-3 py-1.5 rounded-xl">
-              <span className="w-1.5 h-1.5 rounded-full bg-status-success animate-pulse" />
-              <span>System Live</span>
-            </div>
-
-            {/* Notification Bell (Desktop) */}
-            <NotificationButton />
-          </div>
-        </header>
-
-        <main className="flex-1 w-full mx-auto z-10 relative overflow-y-auto">
+        <main className="flex-1 w-full mx-auto z-10 relative overflow-y-auto pt-20 lg:pt-10">
           <div className="p-6 md:p-10 animate-fade-in max-w-[1400px] mx-auto">
             {children}
           </div>

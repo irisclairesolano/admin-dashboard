@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface AlertDialogProps {
   isOpen: boolean;
@@ -19,6 +19,31 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
   onConfirm,
   onCancel,
 }) => {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    modalRef.current?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (onCancel) {
+          onCancel();
+        } else {
+          onConfirm();
+        }
+      } else if (e.key === 'Enter') {
+        onConfirm();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onCancel, onConfirm]);
+
   if (!isOpen) return null;
 
   return (
@@ -30,11 +55,19 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
       />
 
       {/* Modal box */}
-      <div className="bg-white/95 backdrop-blur-xl border border-white/50 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 transform scale-100 transition-all duration-300 animate-fade-in">
-        <h3 className="text-xl font-display font-bold text-ink mb-2">
+      <div
+        ref={modalRef}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="alert-title"
+        aria-describedby="alert-msg"
+        tabIndex={-1}
+        className="bg-white/95 backdrop-blur-xl border border-white/50 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 transform scale-100 transition-all duration-300 animate-fade-in"
+      >
+        <h3 id="alert-title" className="text-xl font-display font-bold text-ink mb-2">
           {title}
         </h3>
-        <p className="text-sm font-body text-ink-soft leading-relaxed mb-6">
+        <p id="alert-msg" className="text-sm font-body text-ink-soft leading-relaxed mb-6">
           {message}
         </p>
 

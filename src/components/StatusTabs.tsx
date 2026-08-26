@@ -8,10 +8,12 @@ interface StatusTabsProps {
 
 export default function StatusTabs({ options, activeKey, onSelect }: StatusTabsProps) {
   return (
-    <div className="flex space-x-2 overflow-x-auto pb-1">
+    <div role="tablist" className="flex space-x-2 overflow-x-auto pb-1">
       {options.map((opt) => (
         <button
           key={opt}
+          role="tab"
+          aria-selected={opt === activeKey}
           onClick={() => onSelect(opt)}
           className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-all whitespace-nowrap ${
             opt === activeKey

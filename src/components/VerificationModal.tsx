@@ -36,33 +36,42 @@ export default function VerificationModal({
 }: VerificationModalProps) {
   const [isRejecting, setIsRejecting] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
-
+  const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
 
   const handleApprove = () => {
-    if (onApprove) {
-      onApprove(user.id);
-    }
     if (onVerify) {
       onVerify(user.id, 'approved');
+    } else if (onApprove) {
+      onApprove(user.id);
     }
   };
 
   const handleRejectConfirm = () => {
     const reason = rejectionReason.trim() || "Generic Rejection";
-    if (onReject) {
-      onReject(user.id, reason);
-    }
     if (onVerify) {
       onVerify(user.id, 'rejected', reason);
+    } else if (onReject) {
+      onReject(user.id, reason);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-ink/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm" data-testid="verification-modal">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="verification-title"
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 bg-ink/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+      data-testid="verification-modal"
+    >
       <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="p-6 border-b border-ink-faint flex justify-between items-center bg-paper-cream">
-          <h2 className="font-display text-2xl text-ink">Review ID Document</h2>
+          <h2 id="verification-title" className="font-display text-2xl text-ink">Review ID Document</h2>
           <button onClick={onClose} className="text-ink-muted hover:text-ink" aria-label="Close modal" data-testid="modal-close-btn">
             <XCircle className="w-6 h-6" />
           </button>
@@ -92,7 +101,8 @@ export default function VerificationModal({
                     src={user.document_url}
                     alt="ID Front"
                     data-testid="id-front-img"
-                    className="max-w-full max-h-full object-contain rounded-lg"
+                    onClick={() => setLightboxImage({ url: user.document_url!, title: 'Government ID (Front)' })}
+                    className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
                   />
                 ) : (
                   <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-id-front">No Front ID uploaded</p>
@@ -109,7 +119,8 @@ export default function VerificationModal({
                     src={user.document_back_url}
                     alt="ID Back"
                     data-testid="id-back-img"
-                    className="max-w-full max-h-full object-contain rounded-lg"
+                    onClick={() => setLightboxImage({ url: user.document_back_url!, title: 'Government ID (Back)' })}
+                    className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
                   />
                 ) : (
                   <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-id-back">No Back ID uploaded</p>
@@ -126,7 +137,8 @@ export default function VerificationModal({
                     src={user.selfie_url}
                     alt="Selfie holding ID"
                     data-testid="selfie-id-img"
-                    className="max-w-full max-h-full object-contain rounded-lg"
+                    onClick={() => setLightboxImage({ url: user.selfie_url!, title: 'Selfie holding ID' })}
+                    className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
                   />
                 ) : (
                   <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-selfie-id">
@@ -136,6 +148,45 @@ export default function VerificationModal({
               </div>
             </div>
           </div>
+
+          {/* Business Documents for Employers */}
+          {user.role === 'employer' && user.business_documents && user.business_documents.length > 0 && (
+            <div className="mt-6 border-t border-ink-faint pt-6">
+              <h4 className="font-body font-bold text-ink text-sm mb-3">Uploaded Business Documents</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {user.business_documents.map((docUrl, idx) => {
+                  const isPdf = docUrl.toLowerCase().endsWith('.pdf') || docUrl.includes('.pdf?');
+                  return (
+                    <div key={idx} className="group relative">
+                      <span className="block font-body font-semibold text-ink-soft text-xs mb-1.5">Document #{idx + 1}</span>
+                      <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[180px] flex items-center justify-center bg-black/5 overflow-hidden">
+                        {isPdf ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <i className="lni lni-files text-3xl text-primary" />
+                            <a
+                              href={docUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs text-primary font-bold hover:underline text-center px-2"
+                            >
+                              Open PDF Document
+                            </a>
+                          </div>
+                        ) : (
+                          <img
+                            src={docUrl}
+                            alt={`Business Doc ${idx + 1}`}
+                            onClick={() => setLightboxImage({ url: docUrl, title: `Business Document #${idx + 1}` })}
+                            className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Action Footer */}
@@ -210,6 +261,39 @@ export default function VerificationModal({
           </div>
         )}
       </div>
+
+      {lightboxImage && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 bg-black/90 z-[100] flex flex-col items-center justify-center p-4 backdrop-blur-md animate-fade-in"
+          onClick={() => setLightboxImage(null)}
+        >
+          {/* Header */}
+          <div className="absolute top-4 left-0 right-0 px-6 flex justify-between items-center text-white z-10">
+            <h4 className="font-display text-lg font-bold tracking-wide">{lightboxImage.title}</h4>
+            <button
+              onClick={() => setLightboxImage(null)}
+              className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all flex items-center justify-center"
+              aria-label="Close image viewer"
+            >
+              <XCircle className="w-8 h-8" />
+            </button>
+          </div>
+
+          {/* Image Container */}
+          <div className="w-full h-full max-w-5xl max-h-[80vh] flex items-center justify-center p-4">
+            <img
+              src={lightboxImage.url}
+              alt={lightboxImage.title}
+              className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-scale-up"
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image itself
+            />
+          </div>
+          
+          <p className="text-white/60 text-xs font-body mt-4">Click anywhere outside to close full screen view</p>
+        </div>
+      )}
     </div>
   );
 }

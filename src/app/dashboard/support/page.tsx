@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import Tooltip from '@/components/Tooltip';
 import Avatar from '@/components/Avatar';
+import { AlertDialog } from '@/components/AlertDialog';
 
 interface SupportTicket {
   id: number;
@@ -40,6 +41,17 @@ function SupportTicketsPageContent() {
   const [statusLoading, setStatusLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Alert Dialog state
+  const [alertState, setAlertState] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+  }>({
+    open: false,
+    title: '',
+    message: '',
+  });
+
   const itemsPerPage = 6;
 
   // Sync search query from URL query parameter
@@ -63,9 +75,24 @@ function SupportTicketsPageContent() {
   };
 
   useEffect(() => {
+    let cancelled = false;
+
     fetchTickets();
-    const timer = setInterval(() => fetchTickets(true), 30000);
-    return () => clearInterval(timer);
+    const timer = setInterval(async () => {
+      try {
+        const res = await adminApi.getSupportTickets();
+        if (!cancelled && res?.data?.data) {
+          setTickets(res.data.data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }, 30000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
   }, []);
 
   const handleStatusChange = async (newStatus: 'open' | 'processing' | 'resolved') => {
@@ -80,7 +107,11 @@ function SupportTicketsPageContent() {
       setSelectedTicket(prev => prev ? { ...prev, status: newStatus } : null);
     } catch (err) {
       console.error('Failed to update status:', err);
-      alert('Failed to update status.');
+      setAlertState({
+        open: true,
+        title: 'Error',
+        message: 'Failed to update status.',
+      });
     } finally {
       setStatusLoading(false);
     }
@@ -103,7 +134,11 @@ function SupportTicketsPageContent() {
       setReplyText('');
     } catch (err) {
       console.error('Failed to reply:', err);
-      alert('Failed to send reply. Check console for details.');
+      setAlertState({
+        open: true,
+        title: 'Error',
+        message: 'Failed to send reply. Check console for details.',
+      });
     } finally {
       setReplying(false);
     }
@@ -123,6 +158,11 @@ function SupportTicketsPageContent() {
 
   const totalPages = Math.ceil(filteredTickets.length / itemsPerPage) || 1;
   const paginatedTickets = filteredTickets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const closeModal = () => {
+    setSelectedTicket(null);
+    setReplyText('');
+  };
 
   return (
     <div className="space-y-6">
@@ -148,6 +188,7 @@ function SupportTicketsPageContent() {
           {['all', 'open', 'processing', 'resolved'].map(status => (
             <button
               key={status}
+              aria-label={status}
               onClick={() => { setStatusFilter(status as any); setCurrentPage(1); }}
               className={`px-4 py-2 text-sm font-body font-semibold rounded-xl capitalize transition-all ${
                 statusFilter === status 
@@ -163,6 +204,7 @@ function SupportTicketsPageContent() {
         <div className="relative w-full md:w-64 group">
           <input
             type="text"
+            aria-label="Search tickets"
             placeholder="Search tickets..."
             value={searchTerm}
             onChange={(e) => {
@@ -250,12 +292,23 @@ function SupportTicketsPageContent() {
 
       {/* Reply Modal */}
       {selectedTicket && (
-        <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div 
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ticket-modal-title"
+          tabIndex={-1}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              closeModal();
+            }
+          }}
+          className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 outline-none"
+        >
           <div className="bg-paper w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-ink-faint/20 flex justify-between items-center bg-white">
-              <h2 className="text-xl font-display font-bold text-ink">Ticket Details</h2>
+              <h2 id="ticket-modal-title" className="text-xl font-display font-bold text-ink">Ticket Details</h2>
               <button 
-                onClick={() => { setSelectedTicket(null); setReplyText(''); }}
+                onClick={closeModal}
                 className="p-2 hover:bg-paper-dark rounded-full text-ink-muted hover:text-ink transition-colors"
                 aria-label="Close modal"
               >
@@ -326,7 +379,7 @@ function SupportTicketsPageContent() {
                   <div className="mt-4 flex justify-end gap-3">
                     <Tooltip text="Discard reply and close" position="top">
                       <button
-                        onClick={() => { setSelectedTicket(null); setReplyText(''); }}
+                        onClick={closeModal}
                         className="px-6 py-2.5 rounded-xl font-body font-semibold text-ink-soft hover:bg-white transition-colors"
                       >
                         Cancel
@@ -353,6 +406,13 @@ function SupportTicketsPageContent() {
           </div>
         </div>
       )}
+
+      <AlertDialog
+        isOpen={alertState.open}
+        title={alertState.title}
+        message={alertState.message}
+        onConfirm={() => setAlertState(prev => ({ ...prev, open: false }))}
+      />
     </div>
   );
 }

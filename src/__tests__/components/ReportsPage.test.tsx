@@ -49,7 +49,6 @@ describe('ReportsPage Component', () => {
   });
 
   it('handles resolving a report successfully', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     vi.mocked(adminApi.resolveReport).mockResolvedValue({
       data: { success: true, message: 'Report resolved' },
     } as any);
@@ -64,12 +63,14 @@ describe('ReportsPage Component', () => {
     const resolveBtn = screen.getByTitle('Mark as Resolved');
     fireEvent.click(resolveBtn);
 
-    expect(window.confirm).toHaveBeenCalled();
+    // Click custom AlertDialog confirm button
+    const confirmBtn = screen.getByText('Confirm');
+    fireEvent.click(confirmBtn);
+
     expect(adminApi.resolveReport).toHaveBeenCalledWith(1, 'resolved');
   });
 
   it('handles dismissing a report successfully', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     vi.mocked(adminApi.resolveReport).mockResolvedValue({
       data: { success: true, message: 'Report dismissed' },
     } as any);
@@ -84,7 +85,10 @@ describe('ReportsPage Component', () => {
     const dismissBtn = screen.getByTitle('Dismiss Report');
     fireEvent.click(dismissBtn);
 
-    expect(window.confirm).toHaveBeenCalled();
+    // Click custom AlertDialog confirm button
+    const confirmBtn = screen.getByText('Confirm');
+    fireEvent.click(confirmBtn);
+
     expect(adminApi.resolveReport).toHaveBeenCalledWith(1, 'dismissed');
   });
 });

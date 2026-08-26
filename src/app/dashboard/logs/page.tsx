@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import { Download } from 'lucide-react';
 import Avatar from '@/components/Avatar';
 import { useDebounce } from '@/hooks/useDebounce';
+import { AlertDialog } from '@/components/AlertDialog';
+import { formatDate } from '@/lib/date';
 
 function LogsPageContent() {
   const searchParams = useSearchParams();
@@ -20,6 +22,15 @@ function LogsPageContent() {
   const [dateTo, setDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [alertState, setAlertState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+  });
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -29,7 +40,7 @@ function LogsPageContent() {
     setCurrentPage(1);
   }, [urlSearch]);
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
       const res = await adminApi.getLogs(
@@ -46,12 +57,11 @@ function LogsPageContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, debouncedSearchTerm, actionFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchLogs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, actionFilter, debouncedSearchTerm, dateFrom, dateTo]);
+  }, [fetchLogs]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +120,11 @@ function LogsPageContent() {
   // Convert current logs list to CSV and trigger browser download
   const handleExportCSV = () => {
     if (logs.length === 0) {
-      alert('No logs available to export.');
+      setAlertState({
+        isOpen: true,
+        title: 'Export Failed',
+        message: 'No logs available to export.',
+      });
       return;
     }
 
@@ -167,6 +181,7 @@ function LogsPageContent() {
             <input
               type="text"
               placeholder="Search description..."
+              aria-label="Search description"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -185,6 +200,7 @@ function LogsPageContent() {
           <span className="text-xs text-ink-soft font-semibold">From:</span>
           <input
             type="date"
+            aria-label="From date"
             value={dateFrom}
             onChange={(e) => { setDateFrom(e.target.value); setCurrentPage(1); }}
             className="bg-transparent text-sm text-ink outline-none border-none font-semibold cursor-pointer"
@@ -195,6 +211,7 @@ function LogsPageContent() {
           <span className="text-xs text-ink-soft font-semibold">To:</span>
           <input
             type="date"
+            aria-label="To date"
             value={dateTo}
             onChange={(e) => { setDateTo(e.target.value); setCurrentPage(1); }}
             className="bg-transparent text-sm text-ink outline-none border-none font-semibold cursor-pointer"
@@ -203,6 +220,7 @@ function LogsPageContent() {
 
         <select
           value={actionFilter}
+          aria-label="Filter by action"
           onChange={(e) => {
             setActionFilter(e.target.value);
             setCurrentPage(1);
@@ -274,7 +292,7 @@ function LogsPageContent() {
                       <td className="px-6 py-4 text-xs text-ink-soft whitespace-nowrap font-numeric">
                         <div className="flex items-center text-ink-muted">
                           <i className="lni lni-calendar mr-1.5 text-primary text-xs" />
-                          {new Date(log.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} {new Date(log.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                          {formatDate(log.created_at)} {new Date(log.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -328,6 +346,13 @@ function LogsPageContent() {
           </button>
         </div>
       )}
+
+      <AlertDialog
+        isOpen={alertState.isOpen}
+        title={alertState.title}
+        message={alertState.message}
+        onConfirm={() => setAlertState((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import StatCard from '@/components/StatCard';
 import StatusTabs from '@/components/StatusTabs';
+import { AlertDialog } from '@/components/AlertDialog';
 import { formatDate } from '@/lib/date';
 
 function JobsPageContent() {
@@ -18,6 +19,7 @@ function JobsPageContent() {
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedDetailJob, setSelectedDetailJob] = useState<any | null>(null);
+  const [alertState, setAlertState] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   // Sync search from URL query param
   useEffect(() => {
@@ -40,52 +42,85 @@ function JobsPageContent() {
     fetchJobs();
   }, []);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to soft delete this job post? It will be removed from public view.')) return;
-    const previousJobs = [...jobs];
-    setJobs(prev => prev.filter(j => j.id !== id));
-    if (selectedDetailJob?.id === id) {
-      setSelectedDetailJob(null);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedDetailJob) {
+        setSelectedDetailJob(null);
+      }
+    };
+    if (selectedDetailJob) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
     }
-    
-    try {
-      setActionLoading(id);
-      await adminApi.deleteJob(id);
-      await fetchJobs();
-    } catch (err: any) {
-      setJobs(previousJobs);
-      alert('Failed to delete job: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setActionLoading(null);
-    }
+  }, [selectedDetailJob]);
+
+  const handleDelete = (id: number) => {
+    setAlertState({
+      open: true,
+      title: 'Delete Job Post',
+      message: 'Are you sure you want to soft delete this job post? It will be removed from public view.',
+      onConfirm: async () => {
+        const previousJobs = [...jobs];
+        setJobs(prev => prev.filter(j => j.id !== id));
+        if (selectedDetailJob?.id === id) {
+          setSelectedDetailJob(null);
+        }
+        
+        try {
+          setActionLoading(id);
+          await adminApi.deleteJob(id);
+          await fetchJobs();
+        } catch (err: any) {
+          setJobs(previousJobs);
+          setAlertState({
+            open: true,
+            title: 'Error',
+            message: 'Failed to delete job: ' + (err.response?.data?.message || err.message),
+            onConfirm: () => {},
+          });
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
   };
 
-  const handleSuspendToggle = async (id: number, currentStatus: string) => {
+  const handleSuspendToggle = (id: number, currentStatus: string) => {
     const isSuspended = currentStatus === 'suspended';
     const newStatus = isSuspended ? 'open' : 'suspended';
     const actionText = isSuspended ? 'unsuspend' : 'suspend';
 
-    if (!confirm(`Are you sure you want to ${actionText} this job post?`)) return;
+    setAlertState({
+      open: true,
+      title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Job Post`,
+      message: `Are you sure you want to ${actionText} this job post?`,
+      onConfirm: async () => {
+        const previousJobs = [...jobs];
+        setJobs(prev => prev.map(j => j.id === id ? { ...j, status: newStatus } : j));
+        if (selectedDetailJob?.id === id) {
+          setSelectedDetailJob((prev: any) => prev ? { ...prev, status: newStatus } : null);
+        }
 
-    const previousJobs = [...jobs];
-    setJobs(prev => prev.map(j => j.id === id ? { ...j, status: newStatus } : j));
-    if (selectedDetailJob?.id === id) {
-      setSelectedDetailJob((prev: any) => prev ? { ...prev, status: newStatus } : null);
-    }
-
-    try {
-      setActionLoading(id);
-      await adminApi.updateJobStatus(id, newStatus);
-      await fetchJobs();
-    } catch (err: any) {
-      setJobs(previousJobs);
-      if (selectedDetailJob?.id === id) {
-        setSelectedDetailJob((prev: any) => prev ? { ...prev, status: currentStatus } : null);
-      }
-      alert(`Failed to ${actionText} job: ` + (err.response?.data?.message || err.message));
-    } finally {
-      setActionLoading(null);
-    }
+        try {
+          setActionLoading(id);
+          await adminApi.updateJobStatus(id, newStatus);
+          await fetchJobs();
+        } catch (err: any) {
+          setJobs(previousJobs);
+          if (selectedDetailJob?.id === id) {
+            setSelectedDetailJob((prev: any) => prev ? { ...prev, status: currentStatus } : null);
+          }
+          setAlertState({
+            open: true,
+            title: 'Error',
+            message: `Failed to ${actionText} job: ` + (err.response?.data?.message || err.message),
+            onConfirm: () => {},
+          });
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
   };
 
   const filteredJobs = jobs.filter(j => {
@@ -145,6 +180,7 @@ function JobsPageContent() {
           <div className="relative flex-1 max-w-xs group">
             <input
               type="text"
+              aria-label="Search jobs"
               placeholder="Search jobs..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
@@ -204,7 +240,7 @@ function JobsPageContent() {
                         </div>
                         <div className="flex items-center text-[11px] text-ink-soft mt-1.5 gap-2 flex-wrap">
                           <span className="font-numeric font-bold text-ink bg-primary-soft/40 px-2 py-0.5 rounded border border-primary/10">
-                            ₱{parseFloat(job.compensation).toFixed(2)} <span className="text-[10px] text-ink-muted font-normal">/ {job.duration_type}</span>
+                            ₱{(parseFloat(job.compensation) || 0).toFixed(2)} <span className="text-[10px] text-ink-muted font-normal">/ {job.duration_type}</span>
                           </span>
                           <span className="text-[10px] text-ink-soft font-body font-semibold bg-white/40 px-2 py-0.5 rounded border border-ink-faint/30">Slots: {job.slots}</span>
                         </div>
@@ -299,18 +335,28 @@ function JobsPageContent() {
             className="fixed inset-0 bg-ink/20 backdrop-blur-sm z-40 transition-opacity animate-fade-in"
             onClick={() => setSelectedDetailJob(null)}
           />
-          <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white/95 backdrop-blur-xl border-l border-white/50 shadow-2xl flex flex-col h-screen transform transition-transform duration-300 translate-x-0 animate-slide-in">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="job-drawer-title"
+            tabIndex={-1}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setSelectedDetailJob(null);
+            }}
+            className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white/95 backdrop-blur-xl border-l border-white/50 shadow-2xl flex flex-col h-screen transform transition-transform duration-300 translate-x-0 animate-slide-in"
+          >
             {/* Header */}
             <div className="p-6 border-b border-ink-faint/30 bg-paper/30 flex justify-between items-center">
               <div>
                 <span className="text-[10px] font-mono font-bold text-primary uppercase bg-primary/10 px-2.5 py-1 rounded">
                   #{selectedDetailJob.id}
                 </span>
-                <h2 className="font-display text-xl text-ink font-bold mt-2 leading-tight">{selectedDetailJob.title}</h2>
+                <h2 id="job-drawer-title" className="font-display text-xl text-ink font-bold mt-2 leading-tight">{selectedDetailJob.title}</h2>
               </div>
               <button
                 onClick={() => setSelectedDetailJob(null)}
                 className="w-8 h-8 flex items-center justify-center hover:bg-paper rounded-full text-ink-muted hover:text-ink transition-colors"
+                aria-label="Close details"
               >
                 <i className="lni lni-close text-xs" />
               </button>
@@ -337,7 +383,7 @@ function JobsPageContent() {
                   <div className="p-3 bg-white/50 rounded-xl border border-white/50">
                     <span className="block text-[9px] font-bold text-ink-muted uppercase tracking-wide">Compensation</span>
                     <span className="text-sm font-bold text-status-success mt-1 block">
-                      ₱{parseFloat(selectedDetailJob.compensation).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      ₱{(parseFloat(selectedDetailJob.compensation) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       <span className="text-[9px] text-ink-muted font-normal"> / {selectedDetailJob.duration_type || 'job'}</span>
                     </span>
                   </div>
@@ -399,6 +445,19 @@ function JobsPageContent() {
           </div>
         </>
       )}
+
+      <AlertDialog
+        isOpen={alertState.open}
+        title={alertState.title}
+        message={alertState.message}
+        onConfirm={() => {
+          alertState.onConfirm();
+          setAlertState(s => ({...s, open: false}));
+        }}
+        onCancel={() => setAlertState(s => ({...s, open: false}))}
+        confirmText="Confirm"
+        cancelText="Cancel"
+      />
     </>
   );
 }

@@ -7,8 +7,11 @@ import {
   PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
 import { adminApi } from '@/lib/api';
+import ReactMarkdown from 'react-markdown';
+import { useRouter } from 'next/navigation';
 
 export default function AnalyticsDashboard() {
+  const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [presetFilter, setPresetFilter] = useState<'30days' | '6months' | '1year' | 'custom'>('1year');
@@ -174,10 +177,10 @@ export default function AnalyticsDashboard() {
   };
 
   const stats = [
-    { label: 'New Users', value: data?.kpis?.total_users?.value ?? 0, change: data?.kpis?.total_users?.change, iconClass: 'lni lni-users', color: 'text-primary-dark', bg: 'bg-primary-soft' },
-    { label: 'Jobs Posted', value: data?.kpis?.active_jobs?.value ?? 0, change: data?.kpis?.active_jobs?.change, iconClass: 'lni lni-briefcase', color: 'text-accent-skyDeep', bg: 'bg-accent-sky' },
-    { label: 'Applications', value: data?.kpis?.applications?.value ?? 0, change: data?.kpis?.applications?.change, iconClass: 'lni lni-files', color: 'text-accent-mintDeep', bg: 'bg-accent-mint' },
-    { label: 'Reports Filed', value: data?.kpis?.unresolved_reports?.value ?? 0, change: data?.kpis?.unresolved_reports?.change, iconClass: 'lni lni-warning', color: 'text-status-error', bg: 'bg-status-error/10' },
+    { label: 'New Users', value: data?.kpis?.total_users?.value ?? 0, change: data?.kpis?.total_users?.change, iconClass: 'lni lni-users', color: 'text-primary-dark', bg: 'bg-primary-soft', href: '/dashboard/users' },
+    { label: 'Jobs Posted', value: data?.kpis?.active_jobs?.value ?? 0, change: data?.kpis?.active_jobs?.change, iconClass: 'lni lni-briefcase', color: 'text-accent-skyDeep', bg: 'bg-accent-sky', href: '/dashboard/jobs' },
+    { label: 'Applications', value: data?.kpis?.applications?.value ?? 0, change: data?.kpis?.applications?.change, iconClass: 'lni lni-files', color: 'text-accent-mintDeep', bg: 'bg-accent-mint', href: '/dashboard/jobs' },
+    { label: 'Reports Filed', value: data?.kpis?.unresolved_reports?.value ?? 0, change: data?.kpis?.unresolved_reports?.change, iconClass: 'lni lni-warning', color: 'text-status-error', bg: 'bg-status-error/10', href: '/dashboard/reports' },
   ];
 
   // User growth Recharts format
@@ -385,6 +388,7 @@ export default function AnalyticsDashboard() {
           <div className="flex bg-white/70 backdrop-blur-md p-1 rounded-2xl border border-white/50 shadow-sm items-center gap-1">
             <span className="text-xs font-body font-bold text-ink-muted px-2.5 uppercase tracking-wider">Aggregation:</span>
             <select
+              aria-label="Aggregation interval"
               value={intervalFilter}
               onChange={(e: any) => setIntervalFilter(e.target.value)}
               className="bg-transparent border-none outline-none font-body text-sm font-semibold text-ink-soft focus:text-ink pr-3 py-1.5 cursor-pointer ring-0 focus:ring-0"
@@ -426,6 +430,7 @@ export default function AnalyticsDashboard() {
           {presetFilter === 'custom' && (
             <div className="flex items-center gap-2 bg-white/70 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 shadow-sm">
               <input
+                aria-label="Start date"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
@@ -433,6 +438,7 @@ export default function AnalyticsDashboard() {
               />
               <span className="text-ink-muted text-sm font-body font-semibold">to</span>
               <input
+                aria-label="End date"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
@@ -453,7 +459,7 @@ export default function AnalyticsDashboard() {
       {/* KPI Cards section */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 print-card-grid">
         {stats.map((stat, i) => (
-          <div key={i} className={`group relative p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white/50 hover:-translate-y-1 overflow-hidden ${stat.bg} backdrop-blur-md`}>
+          <div key={i} onClick={() => router.push(stat.href)} className={`cursor-pointer group relative p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white/50 hover:-translate-y-1 overflow-hidden ${stat.bg} backdrop-blur-md`}>
             <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative flex items-center justify-between">
               <div className="flex items-center">
@@ -545,14 +551,11 @@ export default function AnalyticsDashboard() {
                       <span className="w-1.5 h-6 bg-primary-dark rounded-full"></span>
                       {title}
                     </h4>
-                    <div 
+                    <ReactMarkdown 
                       className="text-sm text-ink-soft font-body space-y-2 whitespace-pre-line"
-                      dangerouslySetInnerHTML={{ 
-                        __html: content
-                          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                          .replace(/^- (.*)/gm, '• $1')
-                      }}
-                    />
+                    >
+                      {content}
+                    </ReactMarkdown>
                   </div>
                 );
               })}
