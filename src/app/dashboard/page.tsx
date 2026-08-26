@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area
@@ -32,7 +32,7 @@ export default function AnalyticsDashboard() {
     setAiPeriod('');
   }, [presetFilter, startDate, endDate, intervalFilter]);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       let from = '';
@@ -73,11 +73,11 @@ export default function AnalyticsDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [presetFilter, startDate, endDate, intervalFilter]);
 
   useEffect(() => {
     fetchAnalytics();
-  }, [presetFilter, startDate, endDate, intervalFilter]);
+  }, [fetchAnalytics]);
 
   const handleGenerateInsights = async () => {
     try {

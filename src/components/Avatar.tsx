@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Lock } from 'lucide-react';
 
 interface AvatarProps {
@@ -32,14 +33,24 @@ export default function Avatar({ name, url, className = '', size = 'md', isSuspe
     lg: 'p-1 right-[-4px] bottom-[-4px]',
   };
 
+  const imgSizes = {
+    sm: 32,
+    md: 48,
+    lg: 64,
+  };
+  const imgSize = imgSizes[size];
+
   const renderContent = () => {
     if (url && !imgError) {
       return (
-        <img
+        <Image
           src={url}
           alt={name}
           onError={() => setImgError(true)}
           className={`${sizeClasses[size]} object-cover shadow-inner shrink-0 ${isSuspended ? 'filter grayscale contrast-75 opacity-75' : ''}`}
+          width={imgSize}
+          height={imgSize}
+          unoptimized
         />
       );
     }

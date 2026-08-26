@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { XCircle } from 'lucide-react';
 import Tooltip from '@/components/Tooltip';
 
@@ -97,9 +98,12 @@ export default function VerificationModal({
               <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Front)</span>
               <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                 {user.document_url ? (
-                  <img
+                  <Image
                     src={user.document_url}
                     alt="ID Front"
+                    width={400}
+                    height={300}
+                    unoptimized
                     data-testid="id-front-img"
                     onClick={() => setLightboxImage({ url: user.document_url!, title: 'Government ID (Front)' })}
                     className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
@@ -115,9 +119,12 @@ export default function VerificationModal({
               <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Back)</span>
               <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                 {user.document_back_url ? (
-                  <img
+                  <Image
                     src={user.document_back_url}
                     alt="ID Back"
+                    width={400}
+                    height={300}
+                    unoptimized
                     data-testid="id-back-img"
                     onClick={() => setLightboxImage({ url: user.document_back_url!, title: 'Government ID (Back)' })}
                     className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
@@ -133,9 +140,12 @@ export default function VerificationModal({
               <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
               <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
                 {user.selfie_url ? (
-                  <img
+                  <Image
                     src={user.selfie_url}
                     alt="Selfie holding ID"
+                    width={400}
+                    height={300}
+                    unoptimized
                     data-testid="selfie-id-img"
                     onClick={() => setLightboxImage({ url: user.selfie_url!, title: 'Selfie holding ID' })}
                     className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
@@ -173,9 +183,12 @@ export default function VerificationModal({
                             </a>
                           </div>
                         ) : (
-                          <img
+                          <Image
                             src={docUrl}
                             alt={`Business Doc ${idx + 1}`}
+                            width={400}
+                            height={300}
+                            unoptimized
                             onClick={() => setLightboxImage({ url: docUrl, title: `Business Document #${idx + 1}` })}
                             className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
                           />
@@ -283,9 +296,12 @@ export default function VerificationModal({
 
           {/* Image Container */}
           <div className="w-full h-full max-w-5xl max-h-[80vh] flex items-center justify-center p-4">
-            <img
+            <Image
               src={lightboxImage.url}
               alt={lightboxImage.title}
+              width={400}
+              height={300}
+              unoptimized
               className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-scale-up"
               onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image itself
             />

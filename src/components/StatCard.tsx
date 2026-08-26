@@ -14,7 +14,7 @@ export default function StatCard({ title, value, Icon, iconClass, className = ''
   return (
     <div 
       onClick={onClick}
-      className={`flex items-center p-5 bg-white/80 backdrop-blur-md border border-white/50 rounded-lg shadow-sm transition-all duration-300 ${
+      className={`flex items-center p-5 bg-white/80 backdrop-blur-md border border-white/50 rounded-2xl shadow-sm transition-all duration-300 ${
         isClickable ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5 hover:bg-white' : ''
       } ${className}`}
     >

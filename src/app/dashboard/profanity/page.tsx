@@ -105,7 +105,7 @@ export default function ProfanityFilterPage() {
     <div className="animate-fade-in max-w-4xl mx-auto">
       <div className="mb-8">
         <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">
-          Profanity {'\n'}Filter Moderation
+          Profanity Filter Moderation
         </h1>
         <p className="text-ink-soft font-body mt-2 text-lg">
           Manage words that are automatically blocked or flagged in job posts, descriptions, and profiles.
