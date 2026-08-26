@@ -74,7 +74,7 @@ const cachedGet = async (url: string) => {
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('api_cache_' + url, JSON.stringify(response));
-      } catch (e) {
+      } catch (_e) {
         console.warn('Cache storage full, clearing old entries');
         Object.keys(localStorage)
           .filter(k => k.startsWith('api_cache_'))
