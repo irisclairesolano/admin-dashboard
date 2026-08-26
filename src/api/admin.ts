@@ -58,11 +58,17 @@ const cachedGet = async (url: string) => {
     return memoryCached.data;
   }
 
-  // 2. Return from localStorage instantly while revalidating in background
+  // 2. Return from localStorage if fresh
   let localData: any = null;
+  let isFresh = false;
   if (typeof window !== 'undefined') {
     const stored = localStorage.getItem('api_cache_' + url);
-    if (stored) {
+    const storedTime = localStorage.getItem('api_cache_time_' + url);
+    if (stored && storedTime) {
+      const age = now - parseInt(storedTime);
+      if (age < CACHE_TTL) {
+        isFresh = true;
+      }
       try {
         localData = JSON.parse(stored);
       } catch {}
@@ -74,6 +80,7 @@ const cachedGet = async (url: string) => {
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('api_cache_' + url, JSON.stringify(response));
+        localStorage.setItem('api_cache_time_' + url, Date.now().toString());
       } catch {
         console.warn('Cache storage full, clearing old entries');
         Object.keys(localStorage)
@@ -85,8 +92,8 @@ const cachedGet = async (url: string) => {
     return response;
   });
 
-  if (localData) {
-    fetchPromise.catch(console.error); // Revalidate in background quietly
+  if (localData && isFresh) {
+    fetchPromise.catch(console.error); // Revalidate quietly
     return localData;
   }
 
