@@ -1,6 +1,7 @@
 'use client';
 
 import { adminApi, prefetchAll } from '@/api/admin';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
@@ -31,7 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [notifications, setNotifications] = useState<DashboardNotification[]>([]);
   const [readNotifications, setReadNotifications] = useState<string[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [searchVal, setSearchVal] = useState('');
+
 
   // ── Web Notifications Permission & Helper ────────────────────────────
   const prevVerifications = useRef(0);
@@ -63,8 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const currentSearch = new URLSearchParams(window.location.search).get('search') || '';
-      setSearchVal(currentSearch);
+      // Search value synced from URL for future use
     }
   }, [pathname]);
 
@@ -207,11 +207,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.push('/login');
   };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    router.push(`${pathname}?search=${encodeURIComponent(searchVal)}`);
-  };
-
   const navItems = [
     { name: 'Analytics',     href: '/dashboard',              iconClass: 'lni lni-grid-alt' },
     { name: 'Verifications', href: '/dashboard/verifications', iconClass: 'lni lni-user' },
@@ -250,7 +245,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.push(item.link);
   };
   // ── Notification Dropdown Element (Slide-over drawer panel) ─────────────────
-  const NotificationButton = ({ isMobile: _isMobile = false }: { isMobile?: boolean }) => (
+  const NotificationButton = () => (
     <div className="relative">
       <button
         onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -400,7 +395,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Mobile header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-white/50 z-20 flex items-center justify-between px-4 shadow-sm flex-shrink-0">
         <div className="flex items-center">
-          <img src="/logo/04_Wordmark.png" alt="SIKAP Logo" className="h-8 object-contain" />
+          <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={120} height={32} className="h-8 object-contain" />
           <span className="text-xs font-body font-semibold text-ink-muted ml-2 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
         </div>
         <div className="flex items-center gap-2">
@@ -421,7 +416,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-3">
             <NotificationButton />
             <div className="flex items-center">
-              <img src="/logo/04_Wordmark.png" alt="SIKAP Logo" className="h-9 object-contain" />
+              <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain" />
               <span className="text-[10px] font-body font-semibold text-ink-muted ml-1.5 bg-ink-faint/30 px-1.5 py-0.5 rounded border border-ink-faint/50">Admin</span>
             </div>
           </div>
