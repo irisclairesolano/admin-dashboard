@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Avatar from '@/components/Avatar';
-import Tooltip from '@/components/Tooltip';
+
 import { AlertDialog } from '@/components/AlertDialog';
 import VerificationModal from '@/components/VerificationModal';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -63,9 +63,7 @@ function UsersContent() {
   const [logsData, setLogsData] = useState<any | null>(null);
   const [logsPage, setLogsPage] = useState(1);
 
-  // Verification modal states
-  const [isRejecting, setIsRejecting] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
+
 
   // Job Preview state
   const [selectedJob, setSelectedJob] = useState<any | null>(null);
@@ -315,7 +313,7 @@ function UsersContent() {
     }
   };
 
-  const handleVerify = async (id: number) => {
+  const handleVerify = async (_id: number) => {
     const userToVerify = userDetailData?.user || selectedDetailUser;
     setSelectedIdUser(userToVerify);
     setShowIdModal(true);
