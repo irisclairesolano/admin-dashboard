@@ -34,9 +34,23 @@ export default function AnalyticsDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [presetFilter, setPresetFilter] = useState<'30days' | '6months' | '1year' | 'custom'>('1year');
-  const [intervalFilter, setIntervalFilter] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  // Auto-calculated aggregation interval based on selected date preset
+  const intervalFilter = (() => {
+    if (presetFilter === '30days') return 'daily';
+    if (presetFilter === '6months') return 'weekly';
+    if (presetFilter === '1year') return 'monthly';
+    if (presetFilter === 'custom' && startDate && endDate) {
+      const diffTime = Math.abs(new Date(endDate).getTime() - new Date(startDate).getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays < 45) return 'daily';
+      if (diffDays < 180) return 'weekly';
+      return 'monthly';
+    }
+    return 'daily';
+  })();
 
   // Tab State
   const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'distribution' | 'health'>('overview');
@@ -152,49 +166,50 @@ export default function AnalyticsDashboard() {
   const handleExportCSV = () => {
     if (!data) return;
 
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "SIKAP ADMIN DASHBOARD - ANALYTICS REPORT\n";
-    csvContent += `Generated On: ${new Date().toLocaleString()}\n`;
-    csvContent += `Reporting Preset: ${presetFilter}\n\n`;
+    let csv = "";
+    csv += "SIKAP ADMIN DASHBOARD - ANALYTICS REPORT\r\n";
+    csv += `Generated On: ${new Date().toLocaleString()}\r\n`;
+    csv += `Reporting Preset: ${presetFilter}\r\n\r\n`;
 
     // KPIs
-    csvContent += "KEY PERFORMANCE INDICATORS\n";
-    csvContent += "Metric,Current Value,PoP Change (%)\n";
-    csvContent += `New Registrations,${data.kpis?.total_users?.value ?? 0},${data.kpis?.total_users?.change ?? 0}%\n`;
-    csvContent += `Jobs Posted,${data.kpis?.active_jobs?.value ?? 0},${data.kpis?.active_jobs?.change ?? 0}%\n`;
-    csvContent += `Applications,${data.kpis?.applications?.value ?? 0},${data.kpis?.applications?.change ?? 0}%\n`;
-    csvContent += `Reports Filed,${data.kpis?.unresolved_reports?.value ?? 0},${data.kpis?.unresolved_reports?.change ?? 0}%\n\n`;
+    csv += "KEY PERFORMANCE INDICATORS\r\n";
+    csv += "Metric,Current Value,PoP Change (%)\r\n";
+    csv += `New Registrations,${data.kpis?.total_users?.value ?? 0},${data.kpis?.total_users?.change ?? 0}%\r\n`;
+    csv += `Jobs Posted,${data.kpis?.active_jobs?.value ?? 0},${data.kpis?.active_jobs?.change ?? 0}%\r\n`;
+    csv += `Applications,${data.kpis?.applications?.value ?? 0},${data.kpis?.applications?.change ?? 0}%\r\n`;
+    csv += `Reports Filed,${data.kpis?.unresolved_reports?.value ?? 0},${data.kpis?.unresolved_reports?.change ?? 0}%\r\n\r\n`;
 
     // Funnel & Retention
-    csvContent += "FUNNEL & RETENTION\n";
-    csvContent += `Total Applications,${data.funnel?.total_applications ?? 0}\n`;
-    csvContent += `Accepted Applications,${data.funnel?.accepted_applications ?? 0}\n`;
-    csvContent += `Completed Jobs,${data.funnel?.completed_jobs ?? 0}\n`;
-    csvContent += `Job Fill Rate,${data.fill_rate?.value ?? 0}%\n`;
-    csvContent += `Worker Retention Rate,${data.worker_retention?.retention_rate ?? 0}%\n\n`;
+    csv += "FUNNEL & RETENTION\r\n";
+    csv += `Total Applications,${data.funnel?.total_applications ?? 0}\r\n`;
+    csv += `Accepted Applications,${data.funnel?.accepted_applications ?? 0}\r\n`;
+    csv += `Completed Jobs,${data.funnel?.completed_jobs ?? 0}\r\n`;
+    csv += `Job Fill Rate,${data.fill_rate?.value ?? 0}%\r\n`;
+    csv += `Worker Retention Rate,${data.worker_retention?.retention_rate ?? 0}%\r\n\r\n`;
 
     // User Demographics
-    csvContent += "USER DEMOGRAPHICS\n";
-    csvContent += `Workers count,${data.user_ratio?.workers ?? 0}\n`;
-    csvContent += `Employers count,${data.user_ratio?.employers ?? 0}\n`;
-    csvContent += `Verified count,${data.user_ratio?.verified_users ?? 0}\n`;
-    csvContent += `Unverified count,${data.user_ratio?.unverified_users ?? 0}\n\n`;
+    csv += "USER DEMOGRAPHICS\r\n";
+    csv += `Workers count,${data.user_ratio?.workers ?? 0}\r\n`;
+    csv += `Employers count,${data.user_ratio?.employers ?? 0}\r\n`;
+    csv += `Verified count,${data.user_ratio?.verified_users ?? 0}\r\n`;
+    csv += `Unverified count,${data.user_ratio?.unverified_users ?? 0}\r\n\r\n`;
 
     // Compensation
-    csvContent += "COMPENSATION ANALYTICS\n";
-    csvContent += `Min Compensation,PHP ${data.compensation?.min ?? 0}\n`;
-    csvContent += `Avg Compensation,PHP ${data.compensation?.avg ?? 0}\n`;
-    csvContent += `Max Compensation,PHP ${data.compensation?.max ?? 0}\n\n`;
+    csv += "COMPENSATION ANALYTICS\r\n";
+    csv += `Min Compensation,PHP ${data.compensation?.min ?? 0}\r\n`;
+    csv += `Avg Compensation,PHP ${data.compensation?.avg ?? 0}\r\n`;
+    csv += `Max Compensation,PHP ${data.compensation?.max ?? 0}\r\n\r\n`;
 
     // Reports
-    csvContent += "REPORTS MODERATION\n";
-    csvContent += `Unresolved Open Reports,${data.reports?.open_reports ?? 0}\n`;
-    csvContent += `Avg Resolution Time (Sec),${data.reports?.average_resolution_seconds ?? 0}\n`;
-    csvContent += `Most Common Type,${data.reports?.most_common_type ?? 'None'}\n`;
+    csv += "REPORTS MODERATION\r\n";
+    csv += `Unresolved Open Reports,${data.reports?.open_reports ?? 0}\r\n`;
+    csv += `Avg Resolution Time (Sec),${data.reports?.average_resolution_seconds ?? 0}\r\n`;
+    csv += `Most Common Type,${data.reports?.most_common_type ?? 'None'}\r\n`;
 
-    const encodedUri = encodeURI(csvContent);
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", `sikap_analytics_${presetFilter}.csv`);
     document.body.appendChild(link);
     link.click();
@@ -339,14 +354,38 @@ export default function AnalyticsDashboard() {
     <div className="animate-fade-in print:p-0 print:bg-white min-h-screen pb-12">
       {/* Dynamic Style Block for PDF Exports */}
       <style jsx global>{`
+        @media screen {
+          .print-only-report {
+            position: absolute !important;
+            left: -9999px !important;
+            top: -9999px !important;
+            width: 1100px !important;
+            height: auto !important;
+            overflow: hidden !important;
+          }
+          .screen-only {
+            display: block !important;
+          }
+        }
         @media print {
           body {
             background: white !important;
             color: black !important;
             font-size: 12px !important;
           }
-          header, sidebar, nav, button, select, .no-print, [className*="sidebar"], [className*="Sidebar"] {
+          header, sidebar, nav, button, select, .no-print, [className*="sidebar"], [className*="Sidebar"], .screen-only {
             display: none !important;
+          }
+          .print-only-report {
+            position: static !important;
+            left: auto !important;
+            top: auto !important;
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: white !important;
           }
           .print-full-width {
             width: 100% !important;
@@ -360,11 +399,15 @@ export default function AnalyticsDashboard() {
           .print-chart-container {
             page-break-inside: avoid !important;
           }
+          .print-page-break {
+            page-break-before: always !important;
+          }
         }
       `}</style>
 
-      {/* Sticky Top Filter & Header Bar */}
-      <div className="sticky top-0 z-30 bg-paper/95 backdrop-blur-md border-b border-ink-faint py-4 mb-8 -mx-8 px-8 no-print shadow-sm flex flex-col gap-4">
+      <div className="screen-only">
+        {/* Sticky Top Filter & Header Bar */}
+        <div className="sticky top-[-24px] md:top-[-40px] z-30 bg-paper/95 backdrop-blur-md border-b border-ink-faint -mt-6 md:-mt-10 pt-6 md:pt-10 pb-4 mb-8 -mx-6 md:-mx-10 px-6 md:px-10 no-print shadow-sm flex flex-col gap-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-display font-bold text-ink">Dashboard Overview</h1>
@@ -391,20 +434,7 @@ export default function AnalyticsDashboard() {
               </button>
             </div>
 
-            <div className="flex bg-white/70 backdrop-blur-md p-1 rounded-2xl border border-white/50 shadow-sm items-center gap-1">
-              <span className="text-[10px] font-body font-bold text-ink-muted px-2.5 uppercase tracking-wider">Aggregation:</span>
-              <select
-                aria-label="Aggregation interval"
-                value={intervalFilter}
-                onChange={(e: any) => setIntervalFilter(e.target.value)}
-                className="bg-transparent border-none outline-none font-body text-xs font-semibold text-ink-soft pr-3 py-1 cursor-pointer ring-0 focus:ring-0"
-              >
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-              </select>
-            </div>
+
 
             <div className="flex bg-white/70 backdrop-blur-md p-1 rounded-2xl border border-white/50 shadow-sm">
               {['30days', '6months', '1year', 'custom'].map((preset) => (
@@ -760,7 +790,7 @@ export default function AnalyticsDashboard() {
                   <h3 className="font-display text-lg font-bold text-ink">User Registrations</h3>
                   <p className="text-xs text-ink-muted mt-1">Registrations compared by workers vs. employers.</p>
                 </div>
-                <div className="h-80 w-full font-numeric flex-1">
+                <div className="h-80 w-full font-numeric">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
@@ -793,7 +823,7 @@ export default function AnalyticsDashboard() {
                   <h3 className="font-display text-lg font-bold text-ink">Application Volume Over Time</h3>
                   <p className="text-xs text-ink-muted mt-1">Historical flow matching applications to unique job postings.</p>
                 </div>
-                <div className="h-80 w-full font-numeric flex-1">
+                <div className="h-80 w-full font-numeric">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={transformedApplicationVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
@@ -832,7 +862,7 @@ export default function AnalyticsDashboard() {
                     <h3 className="font-display text-lg font-bold text-ink">Skill & Category Demand</h3>
                     <p className="text-xs text-ink-muted mt-1">Platform job postings ranked descending by sector category.</p>
                   </div>
-                  <div className="h-80 w-full font-numeric flex-1">
+                  <div className="h-80 w-full font-numeric">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={transformedJobsData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E8DFCE" opacity={0.5} />
@@ -934,7 +964,7 @@ export default function AnalyticsDashboard() {
                   <h3 className="font-display text-lg font-bold text-ink">Geographic Postings & Activity</h3>
                   <p className="text-xs text-ink-muted mt-1">Jobs and Applications stacked on a single track per municipality.</p>
                 </div>
-                <div className="h-80 w-full font-numeric flex-1">
+                <div className="h-80 w-full font-numeric">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={transformedGeographicActivity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
@@ -1156,6 +1186,273 @@ export default function AnalyticsDashboard() {
               </div>
             </div>
           )}
+        </div>
+      )}
+      </div> {/* screen-only closing */}
+
+      {data && (
+        <div className="print-only-report">
+          {/* Cover Page */}
+          <div className="mb-8 flex flex-col items-center text-center pb-8 border-b border-gray-200">
+            <h1 className="text-3xl font-display font-black text-ink uppercase tracking-tight">SIKAP Platform Descriptive Analytics Report</h1>
+            <p className="text-sm font-body text-ink-soft mt-2">
+              Reporting Preset: <span className="font-bold">{presetFilter === 'custom' ? `${startDate} to ${endDate}` : presetFilter}</span> | 
+              Aggregation: <span className="font-bold">{intervalFilter}</span>
+            </p>
+            <p className="text-xs font-body text-ink-muted mt-1">
+              Generated On: {new Date().toLocaleString()}
+            </p>
+          </div>
+
+          {/* AI Insights & Recommendations */}
+          {aiInsights && (
+            <div className="bg-white p-6 rounded-2xl border border-gray-200 mb-8 print-chart-container">
+              <h2 className="text-base font-display font-bold text-ink mb-4 uppercase tracking-wider">AI Executive Summary & Recommendations</h2>
+              <div className="prose prose-sm font-body text-xs text-ink-soft">
+                <ReactMarkdown>{aiInsights}</ReactMarkdown>
+              </div>
+            </div>
+          )}
+
+          {/* KPI Summary Grid */}
+          <div className="mb-8 print-chart-container">
+            <h2 className="text-base font-display font-bold text-ink mb-4 uppercase tracking-wider">Key Performance Indicators</h2>
+            <div className="grid grid-cols-4 gap-4 print-card-grid">
+              {stats.map((stat, idx) => (
+                <div key={idx} className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
+                  <div className="flex justify-between items-start">
+                    <span className="text-[10px] font-body font-bold text-gray-500 uppercase tracking-wider">{stat.label}</span>
+                    <div className="w-6 h-6 rounded bg-gray-50 flex items-center justify-center">
+                      <i className={`${stat.iconClass} text-xs text-gray-600`} />
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <span className="text-xl font-display font-black text-gray-900">{stat.value}</span>
+                    {stat.change !== undefined && (
+                      <div className="flex items-center gap-1 mt-1 text-[9px] font-body font-semibold">
+                        <span className={stat.change >= 0 ? 'text-green-600' : 'text-red-600'}>
+                          {stat.change >= 0 ? '▲' : '▼'} {Math.abs(stat.change)}%
+                        </span>
+                        <span className="text-gray-400">vs last period</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Funnel & Turnaround */}
+          <div className="grid grid-cols-3 gap-6 mb-8 print-page-break print-chart-container">
+            <div className="col-span-2 bg-white p-6 rounded-xl border border-gray-200">
+              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Application-to-Hire Funnel</h3>
+              <div className="space-y-4">
+                {funnelSteps.map((step, idx) => (
+                  <div key={idx} className="space-y-1.5">
+                    <div className="flex justify-between text-[11px] font-semibold">
+                      <span className="text-gray-700">{step.label}</span>
+                      <span className="text-gray-900">{step.value} ({step.rate})</span>
+                    </div>
+                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                      <div className="bg-primary h-full rounded-full" style={{ width: step.rate }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col justify-between">
+              <div>
+                <h3 className="text-xs font-display font-bold text-gray-800 mb-3 uppercase tracking-wider">Verification Turnaround</h3>
+                <span className="text-2xl font-display font-black text-gray-900">
+                  {data?.verification?.average_turnaround_seconds
+                    ? (data.verification.average_turnaround_seconds / 3600).toFixed(1)
+                    : '0.0'}
+                </span>
+                <span className="text-[10px] font-semibold text-gray-500 ml-1">hours</span>
+              </div>
+              <div className="space-y-2 mt-4 text-[11px]">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Processed</span>
+                  <span className="font-bold text-gray-800">{data?.verification?.total_verifications ?? 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Pending Review</span>
+                  <span className="font-bold text-gray-800">{data?.verification?.pending_verifications ?? 0}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Delayed (&gt;48h)</span>
+                  <span className="font-bold text-red-600">{data?.verification?.delayed_verifications ?? 0}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Activity Trends */}
+          <div className="grid grid-cols-2 gap-6 mb-8 print-page-break print-chart-container">
+            <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col">
+              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">User Registrations</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} allowDecimals={false} />
+                    <Bar dataKey="workers" name="Workers" fill="#FFB6C1" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="employers" name="Employers" fill="#87CEEB" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col">
+              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Application Volume</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={transformedApplicationVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} allowDecimals={false} />
+                    <Area type="monotone" dataKey="applications" name="Applications" stroke="#FFB6C1" strokeWidth={2} fill="#FFB6C1" fillOpacity={0.08} />
+                    <Area type="monotone" dataKey="jobs" name="Unique Jobs" stroke="#87CEEB" strokeWidth={2} fill="#87CEEB" fillOpacity={0.08} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          {/* Distribution & Demand */}
+          <div className="grid grid-cols-2 gap-6 mb-8 print-page-break print-chart-container">
+            <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col">
+              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Skill & Category Demand</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={transformedJobsData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E8DFCE" opacity={0.5} />
+                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} allowDecimals={false} />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#8C7B6A', fontSize: 9 }}
+                      width={100}
+                      tickFormatter={(value) => (value.length > 12 ? `${value.slice(0, 12)}...` : value)}
+                    />
+                    <Bar dataKey="jobs" name="Total Postings" fill="#3E7648" radius={[0, 4, 4, 0]} barSize={12} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col items-center justify-center relative">
+              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 w-full uppercase tracking-wider text-left">Skill Profile Distribution</h3>
+              <div className="h-48 w-full relative flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <RechartsPie
+                      data={transformedSkillDistribution}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={45}
+                      outerRadius={65}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {transformedSkillDistribution.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </RechartsPie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-[8px] font-body font-bold text-gray-400 uppercase tracking-wider">Total Workers</span>
+                  <span className="text-lg font-display font-black text-gray-800">{data?.user_ratio?.workers ?? 0}</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2 text-[9px] font-semibold text-gray-500 w-full">
+                {transformedSkillDistribution.map((entry: any, idx: number) => (
+                  <div key={idx} className="flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+                    <span>{entry.name} ({entry.value})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Geographic stacked */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col mb-8 print-chart-container">
+            <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Geographic Activity</h3>
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={transformedGeographicActivity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} allowDecimals={false} />
+                  <Bar dataKey="jobs" name="Job Postings" fill="#87CEEB" stackId="a" />
+                  <Bar dataKey="applications" name="Applications" fill="#90EE90" stackId="a" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Detailed Data Tables (Wages & Reports) */}
+          <div className="grid grid-cols-2 gap-6 print-page-break print-chart-container">
+            {/* Wages */}
+            <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Wage Category Breakdown</h3>
+              <table className="w-full text-xs font-body text-left">
+                <thead>
+                  <tr className="border-b border-gray-200 text-gray-500 uppercase text-[9px]">
+                    <th className="py-2 px-3 font-semibold">Category</th>
+                    <th className="py-2 px-3 text-right font-semibold">Average Pay</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data?.compensation?.categories?.length > 0 ? (
+                    data.compensation.categories.map((c: any, idx: number) => (
+                      <tr key={idx} className="border-b border-gray-100 last:border-none">
+                        <td className="py-2 px-3 font-semibold text-gray-700 capitalize">{c.category}</td>
+                        <td className="py-2 px-3 text-right text-gray-900 font-bold">PHP {parseFloat(c.avg_comp || 0).toFixed(2)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={2} className="py-4 text-center text-gray-400">No wage records.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Reports */}
+            <div className="bg-white p-6 rounded-xl border border-gray-200">
+              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Moderation Breakdown</h3>
+              <table className="w-full text-xs font-body text-left">
+                <thead>
+                  <tr className="border-b border-gray-200 text-gray-500 uppercase text-[9px]">
+                    <th className="py-2 px-3 font-semibold">Violation Type</th>
+                    <th className="py-2 px-3 text-right font-semibold">Total Reports</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data?.reports?.breakdown?.length > 0 ? (
+                    data.reports.breakdown.map((r: any, idx: number) => (
+                      <tr key={idx} className="border-b border-gray-100 last:border-none">
+                        <td className="py-2 px-3 font-semibold text-gray-700 capitalize">{r.type}</td>
+                        <td className="py-2 px-3 text-right text-gray-900 font-bold">{r.count}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={2} className="py-4 text-center text-gray-400">No report records.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
     </div>
