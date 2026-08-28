@@ -1,6 +1,7 @@
 'use client';
 
 import { adminApi, prefetchAll } from '@/api/admin';
+import { useSSEReports } from '@/hooks/useSSEReports';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -23,10 +24,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [adminName, setAdminName] = useState('');
   const [prefetchStatus, setPrefetchStatus] = useState<PrefetchStatus>('idle');
   const [bannerVisible, setBannerVisible] = useState(false);
+  const [reportToastDismissed, setReportToastDismissed] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didPrefetch = useRef(false);
   const router = useRouter();
   const pathname = usePathname();
+
+  // ── SSE Real-time Report Alerts ───────────────────────────────────────────
+  const { newReportCount, latestReportAt, clearCount: clearSSECount } = useSSEReports();
+
+  // Auto-dismiss toast when user navigates to reports page
+  useEffect(() => {
+    if (pathname === '/dashboard/reports' && newReportCount > 0) {
+      clearSSECount();
+      setReportToastDismissed(true);
+    }
+  }, [pathname, newReportCount, clearSSECount]);
+
+  // Show toast again whenever new reports arrive
+  useEffect(() => {
+    if (newReportCount > 0) {
+      setReportToastDismissed(false);
+    }
+  }, [newReportCount]);
 
   // ── Global Notifications State ────────────────────────────────────────────
   const [notifications, setNotifications] = useState<DashboardNotification[]>([]);
@@ -208,15 +228,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const navItems = [
-    { name: 'Analytics',     href: '/dashboard',              iconClass: 'lni lni-grid-alt' },
-    { name: 'Verifications', href: '/dashboard/verifications', iconClass: 'lni lni-user' },
-    { name: 'Users',         href: '/dashboard/users',         iconClass: 'lni lni-users' },
-    { name: 'Jobs',          href: '/dashboard/jobs',          iconClass: 'lni lni-briefcase' },
-    { name: 'Support',       href: '/dashboard/support',       iconClass: 'lni lni-comments' },
-    { name: 'Reports',       href: '/dashboard/reports',       iconClass: 'lni lni-flag' },
-    { name: 'Word Filter',   href: '/dashboard/profanity',     iconClass: 'lni lni-ban' },
-    { name: 'Archives',      href: '/dashboard/archives',      iconClass: 'lni lni-archive' },
-    { name: 'Audit Logs',    href: '/dashboard/logs',          iconClass: 'lni lni-shield' },
+    { name: 'Analytics',     href: '/dashboard',              iconClass: 'lni lni-grid-alt',  badge: 0 },
+    { name: 'Verifications', href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: 0 },
+    { name: 'Users',         href: '/dashboard/users',         iconClass: 'lni lni-users',     badge: 0 },
+    { name: 'Jobs',          href: '/dashboard/jobs',          iconClass: 'lni lni-briefcase', badge: 0 },
+    { name: 'Support',       href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: 0 },
+    { name: 'Reports',       href: '/dashboard/reports',       iconClass: 'lni lni-flag',      badge: newReportCount },
+    { name: 'Word Filter',   href: '/dashboard/profanity',     iconClass: 'lni lni-ban',       badge: 0 },
+    { name: 'Archives',      href: '/dashboard/archives',      iconClass: 'lni lni-archive',   badge: 0 },
+    { name: 'Audit Logs',    href: '/dashboard/logs',          iconClass: 'lni lni-shield',    badge: 0 },
   ];
 
   // ── Pre-fetch banner config ────────────────────────────────────────────────
@@ -426,6 +446,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <nav className="flex-1 space-y-2 mt-4 lg:mt-0 overflow-y-auto pr-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
+              const hasBadge = item.badge > 0;
               return (
                 <Link
                   key={item.name}
@@ -443,10 +464,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />}
                   <i className={`${item.iconClass} text-lg mr-3 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-white' : 'text-ink-muted group-hover:text-primary-dark'}`} />
                   {item.name}
-                  {/* Pulse dot while pre-fetch is in flight */}
-                  {prefetchStatus === 'loading' && (
-                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                  )}
+                  <span className="ml-auto flex items-center gap-1.5">
+                    {/* SSE live badge (Reports nav item) */}
+                    {hasBadge && (
+                      <span className={`min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm animate-pulse ${
+                        isActive ? 'bg-status-error text-white' : 'bg-status-error text-white'
+                      }`}>
+                        {item.badge > 99 ? '99+' : item.badge}
+                      </span>
+                    )}
+                    {/* Pulse dot while pre-fetch is in flight */}
+                    {prefetchStatus === 'loading' && !hasBadge && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                    )}
+                  </span>
                 </Link>
               );
             })}
@@ -474,6 +505,54 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </div>
+
+      {/* ── SSE Report Alert Toast ────────────────────────────────── */}
+      {newReportCount > 0 && !reportToastDismissed && (
+        <div
+          className="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-white border border-status-error/30 shadow-2xl rounded-2xl overflow-hidden animate-slide-in"
+          style={{ boxShadow: '0 8px 32px rgba(220,53,69,0.18)' }}
+        >
+          {/* Red accent top bar */}
+          <div className="h-1 w-full bg-gradient-to-r from-status-error to-rose-400" />
+          <div className="p-4 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-status-error/10 border border-status-error/25 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i className="lni lni-flag text-status-error text-base" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-body font-bold uppercase tracking-wider text-status-error">New Report Filed</span>
+                <button
+                  onClick={() => setReportToastDismissed(true)}
+                  className="w-5 h-5 flex items-center justify-center text-ink-muted hover:text-ink rounded transition-colors flex-shrink-0"
+                  aria-label="Dismiss"
+                >
+                  <i className="lni lni-close text-[10px]" />
+                </button>
+              </div>
+              <p className="text-sm font-body font-bold text-ink mt-0.5">
+                {newReportCount === 1
+                  ? '1 new report requires your attention'
+                  : `${newReportCount} new reports require your attention`}
+              </p>
+              {latestReportAt && (
+                <p className="text-[10px] font-body text-ink-muted mt-0.5">
+                  Latest: {new Date(latestReportAt).toLocaleTimeString()}
+                </p>
+              )}
+              <button
+                onClick={() => {
+                  setReportToastDismissed(true);
+                  clearSSECount();
+                  router.push('/dashboard/reports');
+                }}
+                className="mt-2.5 text-xs font-body font-semibold text-status-error hover:underline flex items-center gap-1"
+              >
+                View Reports <i className="lni lni-arrow-right text-[10px]" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Persistent Content Wrapper (Main) ──────────────────── */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
