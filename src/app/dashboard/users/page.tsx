@@ -23,6 +23,8 @@ function UsersContent() {
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [filter, setFilter] = useState<'all' | 'verified' | 'unverified' | 'rejected'>('all');
   const [roleFilter, setRoleFilter] = useState<'all' | 'worker' | 'employer'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'created_at' | 'rating'>('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [selectedIdUser, setSelectedIdUser] = useState<any | null>(null);
@@ -337,8 +339,28 @@ function UsersContent() {
     return true;
   });
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage) || 1;
-  const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const sortedUsers = [...filteredUsers].sort((a: any, b: any) => {
+    let aVal: any;
+    let bVal: any;
+
+    if (sortBy === 'name') {
+      aVal = a.name.toLowerCase();
+      bVal = b.name.toLowerCase();
+    } else if (sortBy === 'created_at') {
+      aVal = new Date(a.created_at || 0).getTime();
+      bVal = new Date(b.created_at || 0).getTime();
+    } else if (sortBy === 'rating') {
+      aVal = a.reputation_score || a.rating || 0;
+      bVal = b.reputation_score || b.rating || 0;
+    }
+
+    if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage) || 1;
+  const paginatedUsers = sortedUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
@@ -422,11 +444,38 @@ function UsersContent() {
               setRoleFilter(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none"
+            className="px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none cursor-pointer"
           >
             <option value="all">All Roles</option>
             <option value="worker">Workers</option>
             <option value="employer">Employers</option>
+          </select>
+
+          <select
+            value={sortBy}
+            aria-label="Sort users by"
+            onChange={(e) => {
+              setSortBy(e.target.value as any);
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none cursor-pointer"
+          >
+            <option value="created_at">Date Registered</option>
+            <option value="name">Name (Alphabetical)</option>
+            <option value="rating">Reputation / Rating</option>
+          </select>
+
+          <select
+            value={sortOrder}
+            aria-label="Sort order"
+            onChange={(e) => {
+              setSortOrder(e.target.value as any);
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none cursor-pointer"
+          >
+            <option value="desc">Descending / Newest</option>
+            <option value="asc">Ascending / Oldest</option>
           </select>
         </div>
       </div>
