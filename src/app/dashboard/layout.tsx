@@ -282,9 +282,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {dropdownOpen && (
         <>
-          {/* Backdrop overlay */}
-          <div className="fixed inset-0 bg-ink/20 backdrop-blur-sm z-[100]" onClick={() => setDropdownOpen(false)} />
-          <div className="fixed inset-0 z-[101] w-screen h-screen bg-white/95 backdrop-blur-xl shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-0 animate-slide-in">
+          {/* Backdrop overlay (starts right of sidebar on desktop) */}
+          <div className="lg:left-72 fixed inset-0 bg-ink/20 backdrop-blur-sm z-[100]" onClick={() => setDropdownOpen(false)} />
+          <div className="fixed inset-y-0 right-0 z-[101] w-full max-w-md h-screen bg-white/95 backdrop-blur-xl shadow-2xl border-l border-ink-faint/30 flex flex-col transform transition-transform duration-300 translate-x-0 animate-slide-in">
             {/* Header */}
             <div className="p-6 border-b border-ink-faint/30 bg-paper/30 flex justify-between items-center">
               <div>
@@ -433,13 +433,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="h-20 flex items-center justify-between px-5 border-b border-ink-faint/30 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <NotificationButton />
-            <div className="flex items-center">
-              <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain" />
-              <span className="text-[10px] font-body font-semibold text-ink-muted ml-1.5 bg-ink-faint/30 px-1.5 py-0.5 rounded border border-ink-faint/50">Admin</span>
-            </div>
+          <div className="flex items-center">
+            <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain" />
+            <span className="text-[10px] font-body font-semibold text-ink-muted ml-1.5 bg-ink-faint/30 px-1.5 py-0.5 rounded border border-ink-faint/50">Admin</span>
           </div>
+          <NotificationButton />
         </div>
 
         <div className="p-5 flex flex-col flex-1 min-h-0 justify-between">

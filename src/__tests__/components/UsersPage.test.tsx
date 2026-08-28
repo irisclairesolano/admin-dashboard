@@ -84,7 +84,7 @@ describe('UsersPage Component', () => {
     fireEvent.change(searchInput, { target: { value: '' } });
 
     // Use role select dropdown
-    const roleSelect = screen.getByRole('combobox');
+    const roleSelect = screen.getByRole('combobox', { name: /filter by user role/i });
     fireEvent.change(roleSelect, { target: { value: 'worker' } });
 
     expect(screen.queryByText('Nena Cruz')).not.toBeInTheDocument();

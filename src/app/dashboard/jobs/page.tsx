@@ -196,12 +196,12 @@ function JobsPageContent() {
             <table className="w-full text-left font-body table-fixed border-collapse">
               <thead className="bg-white/50 border-b border-ink-faint/50">
                 <tr>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[36%]">Job Details</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[22%]">Employer</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[12%] text-center">Applicants</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[14%] text-center">Posted Date</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[10%] text-center">Status</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[6%] text-right"></th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[32%]">Job Details</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[18%]">Employer</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[10%] text-center">Applicants</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[12%] text-center">Posted Date</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[14%] text-center">Status</th>
+                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[14%] text-right"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-faint/30">
