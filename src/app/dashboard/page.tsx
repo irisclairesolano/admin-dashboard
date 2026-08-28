@@ -67,6 +67,13 @@ export default function AnalyticsDashboard() {
   // Interactive Pie State
   const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
 
+  // Tab-specific sorting states
+  const [trendsSortOrder, setTrendsSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [distSortBy, setDistSortBy] = useState<'value' | 'name'>('value');
+  const [distSortOrder, setDistSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [healthSortBy, setHealthSortBy] = useState<'value' | 'name'>('value');
+  const [healthSortOrder, setHealthSortOrder] = useState<'asc' | 'desc'>('desc');
+
   // Expandable Table States
   const [showWagesBreakdown, setShowWagesBreakdown] = useState(false);
   const [showReportsBreakdown, setShowReportsBreakdown] = useState(false);
@@ -263,7 +270,11 @@ export default function AnalyticsDashboard() {
       }
     });
     
-    return Object.values(grouped);
+    return Object.values(grouped).sort((a: any, b: any) => {
+      const timeA = new Date(a.name || 0).getTime();
+      const timeB = new Date(b.name || 0).getTime();
+      return trendsSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+    });
   })();
 
   // Skill Demand - horizontal bar chart category comparator
@@ -272,7 +283,16 @@ export default function AnalyticsDashboard() {
     const list = data.skill_demand.map((item: any) => ({
       name: item.category,
       jobs: parseInt(item.total_postings),
-    })).sort((a: any, b: any) => b.jobs - a.jobs);
+    }));
+
+    list.sort((a: any, b: any) => {
+      const aVal = distSortBy === 'value' ? a.jobs : a.name.toLowerCase();
+      const bVal = distSortBy === 'value' ? b.jobs : b.name.toLowerCase();
+      
+      if (aVal < bVal) return distSortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return distSortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
 
     if (list.length <= distLimitFilter) {
       return list;
@@ -293,6 +313,7 @@ export default function AnalyticsDashboard() {
   const transformedGeographicActivity = (() => {
     if (!data?.geographic_activity) return [];
     
+    let list: any[] = [];
     if (distRegionFilter === 'all') {
       // Group and aggregate by municipality to prevent duplicate chaotic barangay bars
       const grouped: { [key: string]: { name: string; jobs: number; applications: number } } = {};
@@ -308,19 +329,28 @@ export default function AnalyticsDashboard() {
         grouped[muni].jobs += parseInt(item.job_postings || 0);
         grouped[muni].applications += parseInt(item.total_applications || 0);
       });
-      return Object.values(grouped).sort((a, b) => b.jobs - a.jobs).slice(0, distLimitFilter);
+      list = Object.values(grouped);
     } else {
       // Show barangays of the selected municipality
-      return data.geographic_activity
+      list = data.geographic_activity
         .filter((item: any) => item.municipality === distRegionFilter)
         .map((item: any) => ({
           name: item.barangay || 'Unknown',
           jobs: parseInt(item.job_postings || 0),
           applications: parseInt(item.total_applications || 0)
-        }))
-        .sort((a: any, b: any) => b.jobs - a.jobs)
-        .slice(0, distLimitFilter);
+        }));
     }
+
+    list.sort((a: any, b: any) => {
+      const aVal = distSortBy === 'value' ? (a.jobs + a.applications) : a.name.toLowerCase();
+      const bVal = distSortBy === 'value' ? (b.jobs + b.applications) : b.name.toLowerCase();
+
+      if (aVal < bVal) return distSortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return distSortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return list.slice(0, distLimitFilter);
   })();
 
   // Application Volume respects global date & aggregation parameters
@@ -330,7 +360,11 @@ export default function AnalyticsDashboard() {
       name: item.period || 'Unknown',
       applications: parseInt(item.total_applications),
       jobs: parseInt(item.unique_jobs),
-    }));
+    })).sort((a: any, b: any) => {
+      const timeA = new Date(a.name || 0).getTime();
+      const timeB = new Date(b.name || 0).getTime();
+      return trendsSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+    });
   })();
 
   const transformedSkillDistribution = (() => {
@@ -379,22 +413,44 @@ export default function AnalyticsDashboard() {
   // Filtered Wages Category Breakdown
   const filteredCompensationCategories = (() => {
     if (!data?.compensation?.categories) return [];
-    return data.compensation.categories.filter((c: any) => {
+    const list = data.compensation.categories.filter((c: any) => {
       const avg = parseFloat(c.avg_comp || 0);
       if (healthWageFilter === 'low') return avg < 500;
       if (healthWageFilter === 'mid') return avg >= 500 && avg <= 1000;
       if (healthWageFilter === 'high') return avg > 1000;
       return true;
     });
+
+    list.sort((a: any, b: any) => {
+      const aVal = healthSortBy === 'value' ? parseFloat(a.avg_comp || 0) : a.category.toLowerCase();
+      const bVal = healthSortBy === 'value' ? parseFloat(b.avg_comp || 0) : b.category.toLowerCase();
+
+      if (aVal < bVal) return healthSortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return healthSortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return list;
   })();
 
   // Filtered Moderation Breakdown
   const filteredReportsBreakdown = (() => {
     if (!data?.reports?.breakdown) return [];
-    return data.reports.breakdown.filter((r: any) => {
+    const list = data.reports.breakdown.filter((r: any) => {
       if (healthReportFilter === 'all') return true;
       return r.type === healthReportFilter;
     });
+
+    list.sort((a: any, b: any) => {
+      const aVal = healthSortBy === 'value' ? a.count : a.type.toLowerCase();
+      const bVal = healthSortBy === 'value' ? b.count : b.type.toLowerCase();
+
+      if (aVal < bVal) return healthSortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return healthSortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return list;
   })();
 
   return (
@@ -866,6 +922,19 @@ export default function AnalyticsDashboard() {
                     ))}
                   </div>
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-body font-bold text-ink-soft">Timeline Order:</span>
+                  <select
+                    aria-label="Timeline sort order"
+                    value={trendsSortOrder}
+                    onChange={(e) => setTrendsSortOrder(e.target.value as any)}
+                    className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                  >
+                    <option value="asc">Chronological (Oldest First)</option>
+                    <option value="desc">Newest First</option>
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
@@ -981,6 +1050,32 @@ export default function AnalyticsDashboard() {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-body font-bold text-ink-soft">Sort Charts By:</span>
+                  <select
+                    aria-label="Sort distribution charts by"
+                    value={distSortBy}
+                    onChange={(e) => setDistSortBy(e.target.value as any)}
+                    className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                  >
+                    <option value="value">Volume (Highest / Total)</option>
+                    <option value="name">Name (Alphabetical)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-body font-bold text-ink-soft">Order:</span>
+                  <select
+                    aria-label="Sort distribution order"
+                    value={distSortOrder}
+                    onChange={(e) => setDistSortOrder(e.target.value as any)}
+                    className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                  >
+                    <option value="desc">Descending / Highest</option>
+                    <option value="asc">Ascending / Lowest</option>
+                  </select>
                 </div>
               </div>
 
@@ -1151,6 +1246,32 @@ export default function AnalyticsDashboard() {
                     <option value="other">Other Issues</option>
                   </select>
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-body font-bold text-ink-soft">Sort Tables By:</span>
+                  <select
+                    aria-label="Sort health tables by"
+                    value={healthSortBy}
+                    onChange={(e) => setHealthSortBy(e.target.value as any)}
+                    className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                  >
+                    <option value="value">Count / Average Wage</option>
+                    <option value="name">Name (Alphabetical)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-body font-bold text-ink-soft">Order:</span>
+                  <select
+                    aria-label="Sort health order"
+                    value={healthSortOrder}
+                    onChange={(e) => setHealthSortOrder(e.target.value as any)}
+                    className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                  >
+                    <option value="desc">Descending / Highest</option>
+                    <option value="asc">Ascending / Lowest</option>
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
@@ -1302,7 +1423,7 @@ export default function AnalyticsDashboard() {
 
                   <h4 className="font-display text-xs font-bold uppercase tracking-wider text-ink-soft mb-3">Top violation Categories</h4>
                   <div className="space-y-2 mb-6">
-                    {filteredReportsBreakdown
+                    {[...filteredReportsBreakdown]
                       .sort((a: any, b: any) => b.count - a.count)
                       .slice(0, 3)
                       .map((r: any, idx: number) => (
