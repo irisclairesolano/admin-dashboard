@@ -29,13 +29,109 @@ const renderActiveShape = (props: any) => {
 
 const RechartsPie = Pie as any;
 
+function getPeriodAndInterval(preset: string, start?: string, end?: string) {
+  const now = new Date();
+  let from = '';
+  let to = '';
+  let interval = 'daily';
+
+  const formatLocal = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  if (preset === 'Today') {
+    from = formatLocal(now);
+    to = from;
+    interval = 'hourly';
+  } else if (preset === 'Yesterday') {
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+    from = formatLocal(yesterday);
+    to = from;
+    interval = 'hourly';
+  } else if (preset === 'This Week') {
+    const current = new Date();
+    const day = current.getDay();
+    const diff = current.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(current.setDate(diff));
+    from = formatLocal(monday);
+    to = formatLocal(now);
+    interval = 'daily';
+  } else if (preset === 'Last Week') {
+    const current = new Date();
+    const day = current.getDay();
+    const diff = current.getDate() - day + (day === 0 ? -6 : 1) - 7;
+    const monday = new Date(current.setDate(diff));
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    from = formatLocal(monday);
+    to = formatLocal(sunday);
+    interval = 'daily';
+  } else if (preset === 'This Month') {
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    from = formatLocal(startOfMonth);
+    to = formatLocal(now);
+    interval = 'daily';
+  } else if (preset === 'Last Month') {
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    from = formatLocal(startOfLastMonth);
+    to = formatLocal(endOfLastMonth);
+    interval = 'daily';
+  } else if (preset === 'This Year') {
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    from = formatLocal(startOfYear);
+    to = formatLocal(now);
+    interval = 'monthly';
+  } else if (preset === 'Custom Date') {
+    if (start && end) {
+      from = start;
+      to = end;
+      const d1 = new Date(start);
+      const d2 = new Date(end);
+      const diffTime = Math.abs(d2.getTime() - d1.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays <= 2) {
+        interval = 'hourly';
+      } else if (diffDays <= 60) {
+        interval = 'daily';
+      } else {
+        interval = 'monthly';
+      }
+    } else {
+      from = formatLocal(now);
+      to = from;
+      interval = 'hourly';
+    }
+  }
+
+  return { from, to, interval };
+}
+
 export default function AnalyticsDashboard() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [presetFilter, setPresetFilter] = useState<'7days' | '30days' | '6months' | '1year' | 'custom'>('7days');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+
+  // Tab-specific date states (defaulting to 'Today')
+  const [overviewPreset, setOverviewPreset] = useState<string>('Today');
+  const [overviewStart, setOverviewStart] = useState<string>('');
+  const [overviewEnd, setOverviewEnd] = useState<string>('');
+
+  const [trendsPreset, setTrendsPreset] = useState<string>('Today');
+  const [trendsStart, setTrendsStart] = useState<string>('');
+  const [trendsEnd, setTrendsEnd] = useState<string>('');
+
+  const [distPreset, setDistPreset] = useState<string>('Today');
+  const [distStart, setDistStart] = useState<string>('');
+  const [distEnd, setDistEnd] = useState<string>('');
+
+  const [healthPreset, setHealthPreset] = useState<string>('Today');
+  const [healthStart, setHealthStart] = useState<string>('');
+  const [healthEnd, setHealthEnd] = useState<string>('');
 
   // Page-specific tab filters
   const [trendsRoleFilter, setTrendsRoleFilter] = useState<'all' | 'worker' | 'employer'>('all');
@@ -44,23 +140,6 @@ export default function AnalyticsDashboard() {
   const [distLimitFilter, setDistLimitFilter] = useState<number>(6);
   const [healthWageFilter, setHealthWageFilter] = useState<'all' | 'low' | 'mid' | 'high'>('all');
   const [healthReportFilter, setHealthReportFilter] = useState<'all' | 'pending' | 'resolved'>('all');
-
-  // Auto-calculated aggregation interval based on selected date preset
-  const intervalFilter = (() => {
-    if (presetFilter === '7days') return 'daily';
-    if (presetFilter === '30days') return 'daily';
-    if (presetFilter === '6months') return 'weekly';
-    if (presetFilter === '1year') return 'monthly';
-    if (presetFilter === 'custom' && startDate && endDate) {
-      const diffTime = Math.abs(new Date(endDate).getTime() - new Date(startDate).getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      if (diffDays < 45) return 'daily';
-      if (diffDays < 180) return 'weekly';
-      return 'monthly';
-    }
-    return 'daily';
-  })();
-
   // Tab State
   const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'distribution' | 'health'>('overview');
 
@@ -83,101 +162,64 @@ export default function AnalyticsDashboard() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
   const [aiPeriod, setAiPeriod] = useState('');
+  // Get active period and interval based on selected tab and its filters
+  const getActivePeriodAndInterval = useCallback(() => {
+    let preset: string;
+    let start: string;
+    let end: string;
+
+    if (activeTab === 'overview') {
+      preset = overviewPreset; start = overviewStart; end = overviewEnd;
+    } else if (activeTab === 'trends') {
+      preset = trendsPreset; start = trendsStart; end = trendsEnd;
+    } else if (activeTab === 'distribution') {
+      preset = distPreset; start = distStart; end = distEnd;
+    } else {
+      preset = healthPreset; start = healthStart; end = healthEnd;
+    }
+
+    return getPeriodAndInterval(preset, start, end);
+  }, [
+    activeTab,
+    overviewPreset, overviewStart, overviewEnd,
+    trendsPreset, trendsStart, trendsEnd,
+    distPreset, distStart, distEnd,
+    healthPreset, healthStart, healthEnd
+  ]);
+
+  const activeParams = getActivePeriodAndInterval();
+  const { from, to, interval: intervalFilter } = activeParams;
 
   // Reset insights when filters change to avoid showing stale data
   useEffect(() => {
     setAiInsights(null);
     setAiError('');
     setAiPeriod('');
-  }, [presetFilter, startDate, endDate, intervalFilter]);
+  }, [from, to, intervalFilter]);
 
   const fetchAnalytics = useCallback(async () => {
+    if (!from || !to) return;
     try {
       setLoading(true);
-      let from = '';
-      let to = '';
-      
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const todayStr = `${year}-${month}-${day}`;
-
-      if (presetFilter === '7days') {
-        const past = new Date();
-        past.setDate(now.getDate() - 7);
-        from = `${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, '0')}-${String(past.getDate()).padStart(2, '0')}`;
-        to = todayStr;
-      } else if (presetFilter === '30days') {
-        const past = new Date();
-        past.setDate(now.getDate() - 30);
-        from = `${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, '0')}-${String(past.getDate()).padStart(2, '0')}`;
-        to = todayStr;
-      } else if (presetFilter === '6months') {
-        const past = new Date();
-        past.setMonth(now.getMonth() - 6);
-        from = `${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, '0')}-${String(past.getDate()).padStart(2, '0')}`;
-        to = todayStr;
-      } else if (presetFilter === '1year') {
-        const past = new Date();
-        past.setFullYear(now.getFullYear() - 1);
-        from = `${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, '0')}-${String(past.getDate()).padStart(2, '0')}`;
-        to = todayStr;
-      } else if (presetFilter === 'custom') {
-        from = startDate;
-        to = endDate;
-      }
-
-      if (presetFilter !== 'custom' || (startDate && endDate)) {
-        const res = await adminApi.getAnalytics(from, to, intervalFilter);
-        setData(res.data);
-      }
+      const res = await adminApi.getAnalytics(from, to, intervalFilter);
+      setData(res.data);
     } catch (err) {
       console.error('Failed to load analytics', err);
     } finally {
       setLoading(false);
     }
-  }, [presetFilter, startDate, endDate, intervalFilter]);
+  }, [from, to, intervalFilter]);
 
   useEffect(() => {
     fetchAnalytics();
   }, [fetchAnalytics]);
 
   const handleGenerateInsights = async () => {
+    if (!from || !to) return;
     try {
       setAiLoading(true);
       setAiError('');
       
-      let from = '';
-      let to = '';
-      const now = new Date();
-      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-      
-      if (presetFilter === '7days') {
-        const past = new Date();
-        past.setDate(now.getDate() - 7);
-        from = `${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, '0')}-${String(past.getDate()).padStart(2, '0')}`;
-        to = todayStr;
-      } else if (presetFilter === '30days') {
-        const past = new Date();
-        past.setDate(now.getDate() - 30);
-        from = `${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, '0')}-${String(past.getDate()).padStart(2, '0')}`;
-        to = todayStr;
-      } else if (presetFilter === '6months') {
-        const past = new Date();
-        past.setMonth(now.getMonth() - 6);
-        from = `${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, '0')}-${String(past.getDate()).padStart(2, '0')}`;
-        to = todayStr;
-      } else if (presetFilter === '1year') {
-        const past = new Date();
-        past.setFullYear(now.getFullYear() - 1);
-        from = `${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, '0')}-${String(past.getDate()).padStart(2, '0')}`;
-        to = todayStr;
-      } else if (presetFilter === 'custom') {
-        from = startDate;
-        to = endDate;
-      }
-
       const res = await adminApi.generateAIInsights(from, to, intervalFilter);
       let parsed: InsightsData | null = null;
       try {
@@ -195,13 +237,86 @@ export default function AnalyticsDashboard() {
     }
   };
 
+  const renderDateSelector = (tab: 'overview' | 'trends' | 'distribution' | 'health') => {
+    let preset: string;
+    let setPreset: (p: string) => void;
+    let start: string;
+    let setStart: (s: string) => void;
+    let end: string;
+    let setEnd: (e: string) => void;
+
+    if (tab === 'overview') {
+      preset = overviewPreset; setPreset = setOverviewPreset;
+      start = overviewStart; setStart = setOverviewStart;
+      end = overviewEnd; setEnd = setOverviewEnd;
+    } else if (tab === 'trends') {
+      preset = trendsPreset; setPreset = setTrendsPreset;
+      start = trendsStart; setStart = setTrendsStart;
+      end = trendsEnd; setEnd = setTrendsEnd;
+    } else if (tab === 'distribution') {
+      preset = distPreset; setPreset = setDistPreset;
+      start = distStart; setStart = setDistStart;
+      end = distEnd; setEnd = setDistEnd;
+    } else {
+      preset = healthPreset; setPreset = setHealthPreset;
+      start = healthStart; setStart = setHealthStart;
+      end = healthEnd; setEnd = setHealthEnd;
+    }
+
+    const presets = ['Today', 'Yesterday', 'This Week', 'Last Week', 'This Month', 'Last Month', 'This Year', 'Custom Date'];
+
+    return (
+      <div className="flex flex-wrap items-center gap-3 no-print">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-body font-bold text-ink-soft">Date Range:</span>
+          <select
+            aria-label={`${tab} date range preset`}
+            value={preset}
+            onChange={(e) => {
+              setPreset(e.target.value);
+            }}
+            className="bg-white/70 px-3 py-1.5 rounded-xl border border-white/50 shadow-sm text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+          >
+            {presets.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
+
+        {preset === 'Custom Date' && (
+          <div className="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-xl border border-white/50 shadow-sm">
+            <input
+              aria-label={`${tab} custom start date`}
+              type="date"
+              value={start}
+              onChange={(e) => {
+                setStart(e.target.value);
+              }}
+              className="bg-transparent border-none outline-none font-body text-xs text-ink-soft focus:text-ink"
+            />
+            <span className="text-ink-muted text-xs font-body font-semibold">to</span>
+            <input
+              aria-label={`${tab} custom end date`}
+              type="date"
+              value={end}
+              onChange={(e) => {
+                setEnd(e.target.value);
+              }}
+              className="bg-transparent border-none outline-none font-body text-xs text-ink-soft focus:text-ink"
+            />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const handleExportCSV = () => {
     if (!data) return;
 
     let csv = "";
     csv += "SIKAP ADMIN DASHBOARD - ANALYTICS REPORT\r\n";
     csv += `Generated On: ${new Date().toLocaleString()}\r\n`;
-    csv += `Reporting Preset: ${presetFilter}\r\n\r\n`;
+    csv += `Reporting Period: ${from} to ${to}\r\n\r\n`;
 
     // KPIs
     csv += "KEY PERFORMANCE INDICATORS\r\n";
@@ -242,7 +357,7 @@ export default function AnalyticsDashboard() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `sikap_analytics_${presetFilter}.csv`);
+    link.setAttribute("download", `sikap_analytics_${from}_to_${to}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -545,39 +660,7 @@ export default function AnalyticsDashboard() {
 
 
 
-            <div className="flex bg-white/70 backdrop-blur-md p-1 rounded-2xl border border-white/50 shadow-sm">
-              {['7days', '30days', '6months', '1year', 'custom'].map((preset) => (
-                <button
-                  key={preset}
-                  onClick={() => setPresetFilter(preset as any)}
-                  className={`px-3 py-1 rounded-xl text-xs font-body font-semibold transition-all ${
-                    presetFilter === preset ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'
-                  }`}
-                >
-                  {preset === '7days' ? 'Weekly' : preset === '30days' ? '30 Days' : preset === '6months' ? '6 Months' : preset === '1year' ? '1 Year' : 'Custom'}
-                </button>
-              ))}
-            </div>
-
-            {presetFilter === 'custom' && (
-              <div className="flex items-center gap-2 bg-white/70 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-white/50 shadow-sm">
-                <input
-                  aria-label="Start date"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-transparent border-none outline-none font-body text-xs text-ink-soft focus:text-ink"
-                />
-                <span className="text-ink-muted text-xs font-body font-semibold">to</span>
-                <input
-                  aria-label="End date"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-transparent border-none outline-none font-body text-xs text-ink-soft focus:text-ink"
-                />
-              </div>
-            )}
+            {renderDateSelector(activeTab)}
           </div>
         </div>
 
@@ -608,7 +691,7 @@ export default function AnalyticsDashboard() {
       <div className="hidden print:block mb-8">
         <h1 className="text-3xl font-bold font-display text-ink">SIKAP Platform Descriptive Analytics</h1>
         <p className="text-sm font-body text-ink-soft mt-1">
-          Reporting Period: {presetFilter === 'custom' ? `${startDate} to ${endDate}` : presetFilter} | Aggregate: {intervalFilter}
+          Reporting Period: {from} to {to} | Aggregate: {intervalFilter}
         </p>
         <hr className="mt-4 border-gray-200" />
       </div>
@@ -1473,7 +1556,7 @@ export default function AnalyticsDashboard() {
           <div className="mb-8 flex flex-col items-center text-center pb-8 border-b border-gray-200">
             <h1 className="text-3xl font-display font-black text-ink uppercase tracking-tight">SIKAP Platform Descriptive Analytics Report</h1>
             <p className="text-sm font-body text-ink-soft mt-2">
-              Reporting Preset: <span className="font-bold">{presetFilter === 'custom' ? `${startDate} to ${endDate}` : presetFilter}</span> | 
+              Reporting Period: <span className="font-bold">{from} to {to}</span> | 
               Aggregation: <span className="font-bold">{intervalFilter}</span>
             </p>
             <p className="text-xs font-body text-ink-muted mt-1">
