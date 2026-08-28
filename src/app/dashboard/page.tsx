@@ -7,8 +7,8 @@ import {
   PieChart, Pie, Cell, AreaChart, Area, Sector
 } from 'recharts';
 import { adminApi } from '@/lib/api';
-import ReactMarkdown from 'react-markdown';
 import { useRouter } from 'next/navigation';
+import { AIInsightsCard, InsightsData } from '@/components/AIInsightsCard';
 
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
@@ -79,14 +79,14 @@ export default function AnalyticsDashboard() {
   const [showReportsBreakdown, setShowReportsBreakdown] = useState(false);
 
   // AI Insights State
-  const [aiInsights, setAiInsights] = useState('');
+  const [aiInsights, setAiInsights] = useState<InsightsData | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
   const [aiPeriod, setAiPeriod] = useState('');
 
   // Reset insights when filters change to avoid showing stale data
   useEffect(() => {
-    setAiInsights('');
+    setAiInsights(null);
     setAiError('');
     setAiPeriod('');
   }, [presetFilter, startDate, endDate, intervalFilter]);
@@ -179,7 +179,13 @@ export default function AnalyticsDashboard() {
       }
 
       const res = await adminApi.generateAIInsights(from, to, intervalFilter);
-      setAiInsights(res.data.insights);
+      let parsed: InsightsData | null = null;
+      try {
+        parsed = typeof res.data.insights === 'string' ? JSON.parse(res.data.insights) : res.data.insights;
+      } catch (e) {
+        console.error("Failed to parse AI insights JSON", e);
+      }
+      setAiInsights(parsed);
       setAiPeriod(res.data.period);
     } catch (err: any) {
       console.error('Failed to generate AI insights', err);
@@ -733,34 +739,7 @@ export default function AnalyticsDashboard() {
                 )}
 
                 {!aiLoading && !aiError && aiInsights && (
-                  <div className="prose max-w-none text-ink font-body leading-relaxed border-t border-white/40 pt-6">
-                    {aiPeriod && (
-                      <div className="mb-4 text-xs font-bold uppercase tracking-wider text-ink-soft bg-white/50 px-3 py-1 rounded-full w-max">
-                        Analyzed Period: {aiPeriod}
-                      </div>
-                    )}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {aiInsights.split('###').filter(Boolean).map((section, idx) => {
-                        const lines = section.trim().split('\n');
-                        const title = lines[0];
-                        const content = lines.slice(1).join('\n');
-                        
-                        return (
-                          <div key={idx} className="bg-white/50 backdrop-blur-sm p-6 rounded-2xl border border-white/50 shadow-inner">
-                            <h4 className="font-display text-lg font-bold text-primary-dark mb-3 flex items-center gap-2 border-b border-primary-dark/10 pb-2">
-                              <span className="w-1.5 h-6 bg-primary-dark rounded-full"></span>
-                              {title}
-                            </h4>
-                            <div className="text-sm text-ink-soft font-body space-y-2 whitespace-pre-line">
-                              <ReactMarkdown>
-                                {content}
-                              </ReactMarkdown>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  <AIInsightsCard data={aiInsights} period={aiPeriod} />
                 )}
 
                 {!aiLoading && !aiInsights && !aiError && (
@@ -1506,8 +1485,65 @@ export default function AnalyticsDashboard() {
           {aiInsights && (
             <div className="bg-white p-6 rounded-2xl border border-gray-200 mb-8 print-chart-container">
               <h2 className="text-base font-display font-bold text-ink mb-4 uppercase tracking-wider">AI Executive Summary & Recommendations</h2>
-              <div className="prose prose-sm font-body text-xs text-ink-soft">
-                <ReactMarkdown>{aiInsights}</ReactMarkdown>
+              
+              {aiInsights.dataSufficiency?.isLowVolume && (
+                <div className="mb-4 text-xs font-semibold text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                  {aiInsights.dataSufficiency.note ?? "Low data volume this period."}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {aiInsights.keyInsights?.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Key Insights</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
+                      {aiInsights.keyInsights.map((item, idx) => (
+                        <li key={idx}>
+                          <strong>{item.text}</strong> {item.supportingData && `— ${item.supportingData}`}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {aiInsights.trends?.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Trends</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
+                      {aiInsights.trends.map((item, idx) => (
+                        <li key={idx}>
+                          <strong>{item.text}</strong> {item.sampleSizeWarning && " (low sample size)"} {item.supportingData && `— ${item.supportingData}`}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {aiInsights.areasOfConcern?.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Areas of Concern</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
+                      {aiInsights.areasOfConcern.map((item, idx) => (
+                        <li key={idx}>
+                          <strong>{item.text}</strong> {item.supportingData && `— ${item.supportingData}`}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {aiInsights.recommendations?.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Recommendations</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
+                      {aiInsights.recommendations.map((item, idx) => (
+                        <li key={idx}>
+                          <strong>{item.text}</strong> {item.supportingData && `— ${item.supportingData}`}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           )}
