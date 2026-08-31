@@ -296,7 +296,22 @@ export default function UserDetailDrawer({
                         )}
                       </div>
                     </div>
-                  )}
+                  {/* Communication Platforms Section */}
+                  <div>
+                    <h4 className="text-xs font-bold text-ink-soft uppercase tracking-wider mb-2">Communication Platforms</h4>
+                    {userDetailData.user.contact_platforms && userDetailData.user.contact_platforms.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {userDetailData.user.contact_platforms.map((cp: any, idx: number) => (
+                          <div key={idx} className="bg-paper p-3 rounded-xl border border-ink-faint flex items-center gap-2 text-xs font-semibold text-ink">
+                            <span className="font-bold text-primary capitalize">{cp.platform}:</span>
+                            <span>{cp.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-ink-muted">No communication platforms configured yet.</span>
+                    )}
+                  </div>
 
                   {/* Admin Actions Panel */}
                   <div className="border-t border-ink-faint pt-6">
