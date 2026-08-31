@@ -296,6 +296,7 @@ export default function UserDetailDrawer({
                         )}
                       </div>
                     </div>
+                  )}
                   {/* Communication Platforms Section */}
                   <div>
                     <h4 className="text-xs font-bold text-ink-soft uppercase tracking-wider mb-2">Communication Platforms</h4>
