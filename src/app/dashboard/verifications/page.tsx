@@ -4,8 +4,12 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import Avatar from '@/components/Avatar';
-import VerificationModal from '@/components/VerificationModal';
+import dynamic from 'next/dynamic';
 import { AlertDialog } from '@/components/AlertDialog';
+
+const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
+  ssr: false,
+});
 
 function VerificationsPageContent() {
   const searchParams = useSearchParams();

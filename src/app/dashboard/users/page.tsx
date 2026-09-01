@@ -3,14 +3,22 @@
 import React, { useEffect, useState, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { AlertDialog } from '@/components/AlertDialog';
-import VerificationModal from '@/components/VerificationModal';
+import dynamic from 'next/dynamic';
 import { useDebounce } from '@/hooks/useDebounce';
 import { adminApi } from '@/lib/api';
 import StatCard from '@/components/StatCard';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import UserTable from '@/components/users/UserTable';
-import UserDetailDrawer from '@/components/users/UserDetailDrawer';
-import JobPreviewModal from '@/components/users/JobPreviewModal';
+
+const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
+  ssr: false,
+});
+const UserDetailDrawer = dynamic(() => import('@/components/users/UserDetailDrawer'), {
+  ssr: false,
+});
+const JobPreviewModal = dynamic(() => import('@/components/users/JobPreviewModal'), {
+  ssr: false,
+});
 
 function UsersContent() {
   const searchParams = useSearchParams();
