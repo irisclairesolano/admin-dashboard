@@ -104,7 +104,39 @@ const cachedGet = async (url: string) => {
 export const adminApi = {
   login: async (email: string, password: string) => {
     clearApiCache();
-    return apiClient.post('/auth/login', { email, password });
+    return apiClient.post('/admin/auth/login', { email, password });
+  },
+
+  mfaVerify: async (mfa_token: string, code: string) => {
+    clearApiCache();
+    return apiClient.post('/admin/auth/mfa-verify', { mfa_token, code });
+  },
+
+  getAdminMe: async () => {
+    return apiClient.get('/admin/auth/me');
+  },
+
+  mfaSetup: async () => {
+    return apiClient.post('/admin/auth/mfa/setup');
+  },
+
+  mfaConfirm: async (code: string) => {
+    return apiClient.post('/admin/auth/mfa/confirm', { code });
+  },
+
+  mfaDisable: async (password: string) => {
+    return apiClient.post('/admin/auth/mfa/disable', { password });
+  },
+
+  reauth: async (credentials: { password?: string; code?: string }) => {
+    return apiClient.post('/admin/auth/reauth', credentials);
+  },
+
+  logout: async () => {
+    clearApiCache();
+    try {
+      await apiClient.post('/admin/auth/logout');
+    } catch {}
   },
   
   getVerifications: async () => {

@@ -8,6 +8,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { usePolling } from '@/hooks/usePolling';
+import { useInactivityTimer } from '@/hooks/useInactivityTimer';
+import { TwoFactorSetupModal } from '@/components/TwoFactorSetupModal';
+import { ShieldCheck, ShieldAlert, KeyRound } from 'lucide-react';
 
 type PrefetchStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -24,6 +27,9 @@ interface DashboardNotification {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminName, setAdminName] = useState('');
+  const [adminRole, setAdminRole] = useState<'superadmin' | 'moderator'>('moderator');
+  const [is2faEnabled, setIs2faEnabled] = useState(false);
+  const [show2faModal, setShow2faModal] = useState(false);
   const [prefetchStatus, setPrefetchStatus] = useState<PrefetchStatus>('idle');
   const [bannerVisible, setBannerVisible] = useState(false);
   const [reportToastDismissed, setReportToastDismissed] = useState(false);
@@ -32,63 +38,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const pathname = usePathname();
 
-  // ── SSE Real-time Report Alerts ───────────────────────────────────────────
-  const { newReportCount, latestReportAt, clearCount: clearSSECount } = useSSEReports();
-
-  // Auto-dismiss toast when user navigates to reports page
-  useEffect(() => {
-    if (pathname === '/dashboard/reports' && newReportCount > 0) {
-      clearSSECount();
-      setReportToastDismissed(true);
-    }
-  }, [pathname, newReportCount, clearSSECount]);
-
-  // Show toast again whenever new reports arrive
-  useEffect(() => {
-    if (newReportCount > 0) {
-      setReportToastDismissed(false);
-    }
-  }, [newReportCount]);
-
-  // ── Global Notifications State ────────────────────────────────────────────
-  const [notifications, setNotifications] = useState<DashboardNotification[]>([]);
-  const [readNotifications, setReadNotifications] = useLocalStorage<string[]>('sikap-admin-read-notifications', []);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-
-  // ── Web Notifications Permission & Helper ────────────────────────────
-  const prevVerifications = useRef(0);
-  const prevReports = useRef(0);
-  const prevTickets = useRef(0);
-  const isFirstLoad = useRef(true);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      if (Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
-    }
-  }, []);
-
-  const triggerBrowserNotification = (title: string, body: string, path: string) => {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      const n = new Notification(title, {
-        body,
-        icon: '/favicon.ico',
-      });
-      n.onclick = () => {
-        window.focus();
-        router.push(path);
-        n.close();
-      };
-    }
+  // ── 15-Minute Inactivity Auto-Lockout ─────────────────────────────────────
+  const handleInactivityLogout = () => {
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_user');
+    router.push('/login?reason=inactivity');
   };
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // Search value synced from URL for future use
-    }
-  }, [pathname]);
+  const { showWarning, secondsRemaining, stayLoggedIn } = useInactivityTimer({
+    timeoutMs: 15 * 60 * 1000, // 15 minutes
+    warningMs: 60 * 1000,      // 60-second warning countdown
+    onTimeout: handleInactivityLogout,
+  });
 
   // ── Auth check ────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -97,6 +58,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     try {
       const user = JSON.parse(localStorage.getItem('admin_user') || '{}');
       setAdminName(user.name || 'Admin');
+      setAdminRole(user.admin_role === 'superadmin' ? 'superadmin' : 'moderator');
+      setIs2faEnabled(!!user.two_factor_enabled);
     } catch (e) { console.error(e); }
   }, [router]);
 
@@ -228,7 +191,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.push('/login');
   };
 
-  const navItems = [
+  const rawNavItems = [
     { name: 'Analytics',     href: '/dashboard',              iconClass: 'lni lni-grid-alt',  badge: 0 },
     { name: 'Verifications', href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: 0 },
     { name: 'Users',         href: '/dashboard/users',         iconClass: 'lni lni-users',     badge: 0 },
@@ -237,8 +200,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Reports',       href: '/dashboard/reports',       iconClass: 'lni lni-flag',      badge: newReportCount },
     { name: 'Word Filter',   href: '/dashboard/profanity',     iconClass: 'lni lni-ban',       badge: 0 },
     { name: 'Archives',      href: '/dashboard/archives',      iconClass: 'lni lni-archive',   badge: 0 },
-    { name: 'Audit Logs',    href: '/dashboard/logs',          iconClass: 'lni lni-shield',    badge: 0 },
+    { name: 'Audit Logs',    href: '/dashboard/logs',          iconClass: 'lni lni-shield',    badge: 0, superAdminOnly: true },
   ];
+
+  const navItems = rawNavItems.filter(item => !item.superAdminOnly || adminRole === 'superadmin');
 
   // ── Pre-fetch banner config ────────────────────────────────────────────────
   const bannerMap: Record<PrefetchStatus, { bg: string; icon: React.ReactNode; text: string } | null> = {
@@ -483,21 +448,51 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             })}
           </nav>
 
-          <div className="pt-6 border-t border-ink-faint/30 mt-4 relative flex-shrink-0">
+          <div className="pt-4 border-t border-ink-faint/30 mt-4 relative flex-shrink-0">
             <div className="absolute -top-[1px] left-1/2 transform -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-ink-faint to-transparent" />
-            <div className="flex items-center px-4 py-3 mb-3 bg-white/40 rounded-2xl border border-white/50">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-peach to-accent-peachBright flex items-center justify-center mr-3 shadow-inner flex-shrink-0">
-                <span className="font-body font-bold text-primary-dark text-lg">{adminName.charAt(0)}</span>
+            
+            {/* User Profile Card */}
+            <div className="p-3 mb-2 bg-white/50 rounded-2xl border border-white/60 shadow-sm">
+              <div className="flex items-center mb-2">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent-peach to-accent-peachBright flex items-center justify-center mr-2.5 shadow-inner flex-shrink-0">
+                  <span className="font-body font-bold text-primary-dark text-base">{adminName.charAt(0)}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-body font-bold text-ink truncate">{adminName}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className={`text-[10px] font-body font-bold px-1.5 py-0.2 rounded-md ${
+                      adminRole === 'superadmin' 
+                        ? 'bg-purple-100 text-purple-800 border border-purple-200' 
+                        : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                    }`}>
+                      {adminRole === 'superadmin' ? 'Super Admin' : 'Moderator'}
+                    </span>
+                    {is2faEnabled && (
+                      <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.2 rounded-md flex items-center gap-0.5">
+                        <ShieldCheck className="w-2.5 h-2.5" /> 2FA
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-body font-bold text-ink truncate">{adminName}</p>
-                <p className="text-xs font-body text-ink-muted truncate">Administrator</p>
-              </div>
+
+              {/* 2FA Setup trigger */}
+              <button
+                type="button"
+                onClick={() => setShow2faModal(true)}
+                className="w-full text-left py-1.5 px-2 text-xs font-semibold text-primary hover:bg-primary/5 rounded-lg transition-colors flex items-center justify-between"
+              >
+                <span className="flex items-center gap-1.5">
+                  <KeyRound className="w-3.5 h-3.5" />
+                  {is2faEnabled ? 'Manage 2FA' : 'Enable 2FA (TOTP)'}
+                </span>
+                {!is2faEnabled && <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />}
+              </button>
             </div>
 
             <button
               onClick={handleLogout}
-              className="group flex items-center w-full px-4 py-3.5 text-sm font-body font-semibold text-status-error hover:bg-status-error/10 rounded-2xl transition-all duration-300 hover:shadow-sm border border-transparent hover:border-status-error/20"
+              className="group flex items-center w-full px-4 py-2.5 text-sm font-body font-semibold text-status-error hover:bg-status-error/10 rounded-2xl transition-all duration-300 hover:shadow-sm border border-transparent hover:border-status-error/20"
             >
               <i className="lni lni-exit text-lg mr-3 transition-transform duration-300 group-hover:-translate-x-1" />
               Sign Out
@@ -562,6 +557,54 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </main>
       </div>
+
+      {/* ── Two-Factor Authentication Setup Modal ─────────────── */}
+      <TwoFactorSetupModal
+        isOpen={show2faModal}
+        onClose={() => setShow2faModal(false)}
+        onSuccess={() => {
+          setIs2faEnabled(true);
+          try {
+            const user = JSON.parse(localStorage.getItem('admin_user') || '{}');
+            user.two_factor_enabled = true;
+            localStorage.setItem('admin_user', JSON.stringify(user));
+          } catch {}
+        }}
+      />
+
+      {/* ── 15-Minute Inactivity Warning Modal ─────────────────── */}
+      {showWarning && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in" role="dialog" aria-modal="true">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-amber-200 text-center">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 animate-pulse">
+              <ShieldAlert className="w-8 h-8" />
+            </div>
+            <h3 className="font-display font-bold text-xl text-ink mb-2">Session Inactivity Warning</h3>
+            <p className="text-sm text-ink-soft mb-6 leading-relaxed">
+              You have been inactive for nearly 15 minutes. For security compliance, your session will automatically lock out in:
+            </p>
+            <div className="text-4xl font-mono font-black text-amber-600 mb-6 tracking-wider">
+              {secondsRemaining}s
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleInactivityLogout}
+                className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-ink font-bold text-xs rounded-xl transition-colors"
+              >
+                Sign Out Now
+              </button>
+              <button
+                type="button"
+                onClick={stayLoggedIn}
+                className="flex-1 py-3 px-4 bg-primary hover:bg-primary-dark text-white font-bold text-xs rounded-xl transition-colors shadow-md shadow-primary/20"
+              >
+                Stay Signed In
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile overlay */}
       {sidebarOpen && (
