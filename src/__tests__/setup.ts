@@ -15,3 +15,26 @@ vi.mock('next/navigation', () => {
     }),
   };
 });
+
+import React from 'react';
+import VerificationModal from '../components/VerificationModal';
+import UserDetailDrawer from '../components/users/UserDetailDrawer';
+import JobPreviewModal from '../components/users/JobPreviewModal';
+
+vi.mock('next/dynamic', () => {
+  return {
+    default: (loader: any) => {
+      const str = loader.toString();
+      if (str.includes('VerificationModal')) {
+        return VerificationModal;
+      }
+      if (str.includes('UserDetailDrawer')) {
+        return UserDetailDrawer;
+      }
+      if (str.includes('JobPreviewModal')) {
+        return JobPreviewModal;
+      }
+      return () => null;
+    },
+  };
+});
