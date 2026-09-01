@@ -8,6 +8,7 @@ import Avatar from '@/components/Avatar';
 import { useDebounce } from '@/hooks/useDebounce';
 import { AlertDialog } from '@/components/AlertDialog';
 import { formatDate } from '@/lib/date';
+import { ACTION_TYPES, DEFAULT_ACTION_BADGE } from '@/lib/constants';
 
 function LogsPageContent() {
   const searchParams = useSearchParams();
@@ -69,46 +70,8 @@ function LogsPageContent() {
   };
 
   const getActionBadgeColor = (action: string) => {
-    switch (action) {
-      // Approved states
-      case 'approve_user':
-        return 'bg-status-success/10 text-status-success border-status-success/20';
-
-      // Red/Error states
-      case 'reject_user':
-      case 'suspend_user':
-      case 'delete_user':
-      case 'suspend_job':
-      case 'delete_job':
-      case 'force_delete_job':
-      case 'force_delete_user':
-      case 'force_delete':
-        return 'bg-status-error/10 text-status-error border-status-error/20';
-
-      // Green states
-      case 'restore_job':
-      case 'unsuspend_job':
-      case 'restore_user':
-      case 'unsuspend_user':
-        return 'bg-accent-mint/10 text-accent-mintDeep border-accent-mint/20';
-
-      // Blue states
-      case 'post_job':
-      case 'update_job':
-      case 'resolve_report':
-      case 'dismiss_report':
-        return 'bg-accent-sky/10 text-accent-skyDeep border-accent-sky/20';
-
-      // Gold states
-      case 'add_profanity_word':
-      case 'remove_profanity_word':
-      case 'reply_support':
-      case 'update_support_status':
-        return 'bg-status-gold/10 text-status-gold border-status-gold/20';
-
-      default:
-        return 'bg-ink-faint/50 text-ink-soft border-ink-faint/80';
-    }
+    const style = ACTION_TYPES[action] ?? DEFAULT_ACTION_BADGE;
+    return `${style.bg} ${style.text} border-transparent`;
   };
 
   const formatActionName = (action: string) => {
@@ -228,24 +191,9 @@ function LogsPageContent() {
           className="px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none"
         >
           <option value="">All Actions</option>
-          <option value="approve_user">Approve User</option>
-          <option value="reject_user">Reject User</option>
-          <option value="suspend_user">Suspend User</option>
-          <option value="unsuspend_user">Unsuspend User</option>
-          <option value="delete_user">Delete User</option>
-          <option value="restore_user">Restore User</option>
-          <option value="force_delete_user">Permanently Delete User</option>
-          <option value="suspend_job">Suspend Job Post</option>
-          <option value="unsuspend_job">Unsuspend Job Post</option>
-          <option value="delete_job">Delete Job Post</option>
-          <option value="restore_job">Restore Job Post</option>
-          <option value="force_delete_job">Permanently Delete Job Post</option>
-          <option value="resolve_report">Resolve Report</option>
-          <option value="dismiss_report">Dismiss Report</option>
-          <option value="reply_support">Reply Support Ticket</option>
-          <option value="update_support_status">Update Support Status</option>
-          <option value="add_profanity_word">Add Profanity Word</option>
-          <option value="remove_profanity_word">Remove Profanity Word</option>
+          {Object.keys(ACTION_TYPES).map(act => (
+            <option key={act} value={act}>{formatActionName(act)}</option>
+          ))}
         </select>
       </div>
 

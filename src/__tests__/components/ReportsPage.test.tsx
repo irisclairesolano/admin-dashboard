@@ -39,7 +39,7 @@ describe('ReportsPage Component', () => {
   it('fetches and renders reports table on load', async () => {
     render(<ReportsPage />);
 
-    expect(adminApi.getReports).toHaveBeenCalledWith('open', 1);
+    expect(adminApi.getReports).toHaveBeenCalledWith('open', 1, expect.any(String));
 
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();

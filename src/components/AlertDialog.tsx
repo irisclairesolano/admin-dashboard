@@ -1,17 +1,24 @@
 import React, { useEffect, useRef } from 'react';
 
-interface AlertDialogProps {
-  isOpen: boolean;
+export interface AlertState {
+  isOpen?: boolean;
+  open?: boolean;
   title: string;
   message: string;
+  onConfirm?: () => void;
+  onCancel?: () => void;
   confirmText?: string;
   cancelText?: string;
-  onConfirm: () => void;
-  onCancel?: () => void;
+}
+
+interface AlertDialogProps extends AlertState {
+  isOpen?: boolean;
+  open?: boolean;
 }
 
 export const AlertDialog: React.FC<AlertDialogProps> = ({
   isOpen,
+  open,
   title,
   message,
   confirmText = 'OK',
@@ -19,10 +26,11 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
   onConfirm,
   onCancel,
 }) => {
+  const visible = isOpen ?? open ?? false;
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!visible) return;
 
     modalRef.current?.focus();
 
@@ -31,10 +39,10 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
         if (onCancel) {
           onCancel();
         } else {
-          onConfirm();
+          onConfirm?.();
         }
       } else if (e.key === 'Enter') {
-        onConfirm();
+        onConfirm?.();
       }
     };
 
@@ -42,9 +50,9 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onCancel, onConfirm]);
+  }, [visible, onCancel, onConfirm]);
 
-  if (!isOpen) return null;
+  if (!visible) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

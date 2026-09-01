@@ -9,6 +9,7 @@ import {
 import { adminApi } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { AIInsightsCard, InsightsData } from '@/components/AIInsightsCard';
+import { CHART_COLORS, FUNNEL_COLORS, KPI_LABELS } from '@/lib/constants';
 
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
@@ -197,14 +198,18 @@ export default function AnalyticsDashboard() {
     setAiPeriod('');
   }, [from, to, intervalFilter]);
 
+  const [analyticsError, setAnalyticsError] = useState('');
+
   const fetchAnalytics = useCallback(async () => {
     if (!from || !to) return;
     try {
       setLoading(true);
+      setAnalyticsError('');
       const res = await adminApi.getAnalytics(from, to, intervalFilter);
       setData(res.data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load analytics', err);
+      setAnalyticsError(err.message || 'Failed to load analytics data');
     } finally {
       setLoading(false);
     }
@@ -514,7 +519,7 @@ export default function AnalyticsDashboard() {
     return Array.from(set).sort();
   })();
 
-  const COLORS = ['#FFB6C1', '#87CEEB', '#90EE90', '#DDA0DD', '#F0E68C', '#FCD9C5', '#DCE9F2', '#D8EBDC', '#FFE9B0', '#E8DFCE'];
+  const COLORS = CHART_COLORS;
 
   // Funnel calculations
   const funnelSteps = [
@@ -665,7 +670,7 @@ export default function AnalyticsDashboard() {
         </div>
 
         {/* Tab System Controls */}
-        <div className="flex border-b border-ink-faint/50 overflow-x-auto pb-1 gap-2 mt-2">
+        <div role="tablist" aria-label="Analytics sections" className="flex border-b border-ink-faint/50 overflow-x-auto pb-1 gap-2 mt-2">
           {[
             { id: 'overview', label: 'Overview' },
             { id: 'trends', label: 'Activity Trends' },
@@ -674,6 +679,10 @@ export default function AnalyticsDashboard() {
           ].map((tab) => (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`panel-${tab.id}`}
+              id={`tab-${tab.id}`}
               onClick={() => setActiveTab(tab.id as any)}
               className={`py-2.5 px-4 font-body font-bold text-xs border-b-2 transition-all whitespace-nowrap ${
                 activeTab === tab.id
@@ -696,8 +705,22 @@ export default function AnalyticsDashboard() {
         <hr className="mt-4 border-gray-200" />
       </div>
 
-      {/* Loading Skeletons Orchestration */}
-      {loading ? (
+      {/* Error State */}
+      {analyticsError ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="w-16 h-16 bg-status-error/10 rounded-full flex items-center justify-center mb-4">
+            <i className="lni lni-warning text-2xl text-status-error" />
+          </div>
+          <h2 className="text-lg font-body font-bold text-ink mb-2">Failed to load analytics</h2>
+          <p className="text-ink-soft font-body text-sm mb-6">{analyticsError}</p>
+          <button
+            onClick={fetchAnalytics}
+            className="px-5 py-2.5 bg-ink text-white font-body font-semibold rounded-xl hover:bg-ink-soft transition-colors text-sm"
+          >
+            Retry
+          </button>
+        </div>
+      ) : loading ? (
         <div className="animate-pulse space-y-8">
           {activeTab === 'overview' && (
             <div className="space-y-8">
@@ -748,7 +771,11 @@ export default function AnalyticsDashboard() {
                 {stats.map((stat, i) => (
                   <div
                     key={i}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${stat.label}: ${stat.value}`}
                     onClick={() => router.push(stat.href)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(stat.href); }}
                     className={`cursor-pointer group relative p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white/50 hover:-translate-y-1 overflow-hidden ${stat.bg} backdrop-blur-md`}
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>

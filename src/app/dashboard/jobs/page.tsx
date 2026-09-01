@@ -7,6 +7,7 @@ import StatCard from '@/components/StatCard';
 import StatusTabs from '@/components/StatusTabs';
 import { AlertDialog } from '@/components/AlertDialog';
 import { formatDate } from '@/lib/date';
+import { STATUS_BADGE_MAP, DEFAULT_BADGE_CLASS } from '@/lib/constants';
 
 function JobsPageContent() {
   const searchParams = useSearchParams();
@@ -147,8 +148,57 @@ function JobsPageContent() {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
 
-  if (loading) return <div className="text-center py-20 font-body text-ink-muted">Loading jobs...</div>;
-  if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
+  if (loading) return (
+    <div className="animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">Job Posts</h1>
+          <p className="text-ink-soft font-body mt-2 text-lg">Monitor and moderate active job postings on the platform.</p>
+        </div>
+      </div>
+      <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-white/50 overflow-hidden mt-6">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left font-body table-fixed border-collapse">
+            <thead className="bg-white/50 border-b border-ink-faint/50">
+              <tr>
+                {['Job Details', 'Employer', 'Applicants', 'Posted Date', 'Status', ''].map((h) => (
+                  <th key={h} className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-ink-faint/30">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <tr key={i} className="animate-pulse">
+                  <td className="px-6 py-4"><div className="h-4 bg-ink-faint/30 rounded w-3/4 mb-2" /><div className="h-3 bg-ink-faint/20 rounded w-1/2" /></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-ink-faint/30 rounded w-2/3" /></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-ink-faint/30 rounded w-8 mx-auto" /></td>
+                  <td className="px-6 py-4"><div className="h-4 bg-ink-faint/30 rounded w-20 mx-auto" /></td>
+                  <td className="px-6 py-4"><div className="h-5 bg-ink-faint/30 rounded-full w-16 mx-auto" /></td>
+                  <td className="px-6 py-4"><div className="h-6 bg-ink-faint/30 rounded w-12 ml-auto" /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex flex-col items-center justify-center py-24 text-center">
+      <div className="w-16 h-16 bg-status-error/10 rounded-full flex items-center justify-center mb-4">
+        <i className="lni lni-warning text-2xl text-status-error" />
+      </div>
+      <h2 className="text-lg font-body font-bold text-ink mb-2">Failed to load jobs</h2>
+      <p className="text-ink-soft font-body text-sm mb-6">{error}</p>
+      <button
+        onClick={fetchJobs}
+        className="px-5 py-2.5 bg-ink text-white font-body font-semibold rounded-xl hover:bg-ink-soft transition-colors text-sm"
+      >
+        Retry
+      </button>
+    </div>
+  );
 
   return (
     <>
@@ -264,11 +314,7 @@ function JobsPageContent() {
                         {formatDate(job.created_at)}
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-body font-bold uppercase tracking-wide shadow-sm inline-block ${
-                          job.status === 'open' ? 'bg-status-success/20 text-status-success border border-status-success/30' : 
-                          job.status === 'suspended' ? 'bg-status-warning/20 text-status-warning border border-status-warning/30' : 
-                          'bg-ink-faint/50 text-ink-soft border border-ink-faint'
-                        }`}>
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-body font-bold uppercase tracking-wide shadow-sm inline-block ${STATUS_BADGE_MAP[job.status] ?? DEFAULT_BADGE_CLASS}`}>
                           {job.status}
                         </span>
                       </td>

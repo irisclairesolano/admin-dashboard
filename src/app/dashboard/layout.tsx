@@ -6,6 +6,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { usePolling } from '@/hooks/usePolling';
 
 type PrefetchStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -50,7 +52,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // ── Global Notifications State ────────────────────────────────────────────
   const [notifications, setNotifications] = useState<DashboardNotification[]>([]);
-  const [readNotifications, setReadNotifications] = useState<string[]>([]);
+  const [readNotifications, setReadNotifications] = useLocalStorage<string[]>('sikap-admin-read-notifications', []);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
 
@@ -211,15 +213,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         setPrefetchStatus('error');
       });
 
-    // Auto-refresh notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
-
     return () => {
       if (hideTimer.current) clearTimeout(hideTimer.current);
-      clearInterval(interval);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-refresh notifications every 30 seconds via shared hook
+  usePolling(fetchNotifications, 30000);
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
@@ -419,6 +420,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span className="text-xs font-body font-semibold text-ink-muted ml-2 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
         </div>
         <div className="flex items-center gap-2">
+          <NotificationButton />
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-ink hover:bg-paper rounded-full transition-colors flex items-center justify-center" aria-label="Toggle sidebar">
             {sidebarOpen ? <i className="lni lni-close text-lg" /> : <i className="lni lni-menu text-lg" />}
           </button>

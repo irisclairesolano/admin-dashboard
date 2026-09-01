@@ -5,6 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import Tooltip from '@/components/Tooltip';
 import { AlertDialog } from '@/components/AlertDialog';
+import { humanizeModel } from '@/lib/constants';
+import { formatDate } from '@/lib/date';
+import { usePolling } from '@/hooks/usePolling';
 
 function ReportsPageContent() {
   const searchParams = useSearchParams();
@@ -39,7 +42,7 @@ function ReportsPageContent() {
   const fetchReports = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const res = await adminApi.getReports(statusFilter, currentPage);
+      const res = await adminApi.getReports(statusFilter, currentPage, searchTerm);
       setReports(res.data.data || []);
       setTotalPages(res.data.last_page || 1);
     } catch (err: any) {
@@ -47,16 +50,13 @@ function ReportsPageContent() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [statusFilter, currentPage]);
+  }, [statusFilter, currentPage, searchTerm]);
 
   useEffect(() => {
     fetchReports(false);
   }, [fetchReports]);
 
-  useEffect(() => {
-    const timer = setInterval(() => fetchReports(true), 30000);
-    return () => clearInterval(timer);
-  }, [fetchReports]);
+  usePolling(() => fetchReports(true), 30000);
 
   const handleResolve = (id: number, status: 'resolved' | 'dismissed') => {
     setAlertState({
@@ -177,7 +177,7 @@ function ReportsPageContent() {
                     <tr key={report.id} className="hover:bg-white/60 transition-colors duration-200">
                       <td className="px-8 py-5">
                         <span className="px-3 py-1 rounded-md text-[10px] font-body font-bold tracking-wide uppercase bg-gradient-to-r from-ink to-ink-soft text-white shadow-sm inline-block truncate max-w-full">
-                          {report.reportable_type}
+                          {humanizeModel(report.reportable_type)}
                         </span>
                         <div className="mt-1.5 text-[10px] font-numeric font-bold text-ink-soft bg-white/50 inline-block px-2 py-0.5 rounded border border-ink-faint">
                           ID: {report.reportable_id}
@@ -203,7 +203,7 @@ function ReportsPageContent() {
                         </div>
                       </td>
                       <td className="px-8 py-5 text-xs font-body font-medium text-ink-soft whitespace-nowrap font-numeric">
-                        {new Date(report.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        {formatDate(report.created_at)}
                       </td>
                       <td className="px-8 py-5 text-right">
                         {statusFilter === 'open' ? (
