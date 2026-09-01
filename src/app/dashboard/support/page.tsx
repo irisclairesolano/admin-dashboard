@@ -6,6 +6,8 @@ import { adminApi } from '@/lib/api';
 import Tooltip from '@/components/Tooltip';
 import Avatar from '@/components/Avatar';
 import { AlertDialog } from '@/components/AlertDialog';
+import { usePolling } from '@/hooks/usePolling';
+import { formatDate } from '@/lib/date';
 
 interface SupportTicket {
   id: number;
@@ -31,6 +33,7 @@ function SupportTicketsPageContent() {
 
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'processing' | 'resolved'>('all');
   
@@ -62,38 +65,24 @@ function SupportTicketsPageContent() {
 
   const fetchTickets = async (silent = false) => {
     try {
+      setError('');
       if (!silent) setLoading(true);
       const res = await adminApi.getSupportTickets();
       if (res?.data?.data) {
         setTickets(res.data.data);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load support tickets');
     } finally {
       if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    let cancelled = false;
-
     fetchTickets();
-    const timer = setInterval(async () => {
-      try {
-        const res = await adminApi.getSupportTickets();
-        if (!cancelled && res?.data?.data) {
-          setTickets(res.data.data);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }, 30000);
-
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
   }, []);
+
+  usePolling(fetchTickets, 30000);
 
   const handleStatusChange = async (newStatus: 'open' | 'processing' | 'resolved') => {
     if (!selectedTicket) return;
@@ -164,6 +153,22 @@ function SupportTicketsPageContent() {
     setReplyText('');
   };
 
+  if (error) return (
+    <div className="flex flex-col items-center justify-center py-24 text-center">
+      <div className="w-16 h-16 bg-status-error/10 rounded-full flex items-center justify-center mb-4">
+        <i className="lni lni-warning text-2xl text-status-error" />
+      </div>
+      <h2 className="text-lg font-body font-bold text-ink mb-2">Failed to load support tickets</h2>
+      <p className="text-ink-soft font-body text-sm mb-6">{error}</p>
+      <button
+        onClick={() => { setError(''); fetchTickets(); }}
+        className="px-5 py-2.5 bg-ink text-white font-body font-semibold rounded-xl hover:bg-ink-soft transition-colors text-sm"
+      >
+        Retry
+      </button>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -226,6 +231,20 @@ function SupportTicketsPageContent() {
               <div className="w-full h-12 bg-ink-faint/50 rounded-xl mt-2"></div>
             </div>
           ))
+        ) : error ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 bg-status-error/10 rounded-full flex items-center justify-center mb-4">
+              <i className="lni lni-warning text-2xl text-status-error" />
+            </div>
+            <h2 className="text-lg font-body font-bold text-ink mb-2">Failed to load support tickets</h2>
+            <p className="text-ink-soft font-body text-sm mb-6">{error}</p>
+            <button
+              onClick={() => { setError(''); fetchTickets(); }}
+              className="px-5 py-2.5 bg-ink text-white font-body font-semibold rounded-xl hover:bg-ink-soft transition-colors text-sm"
+            >
+              Retry
+            </button>
+          </div>
         ) : filteredTickets.length === 0 ? (
           <div className="col-span-full bg-white/50 backdrop-blur-md p-16 rounded-xl border border-white/50 shadow-inner flex flex-col items-center justify-center text-ink-soft">
             <i className="lni lni-comments text-4xl mb-4 text-ink-faint" />
@@ -249,7 +268,7 @@ function SupportTicketsPageContent() {
                   {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
                 </span>
                 <span className="text-xs text-ink-muted font-body font-semibold">
-                  {new Date(ticket.created_at).toLocaleDateString()}
+                  {formatDate(ticket.created_at)}
                 </span>
               </div>
               

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { XCircle } from 'lucide-react';
 import Tooltip from '@/components/Tooltip';
@@ -39,6 +39,29 @@ export default function VerificationModal({
   const [rejectionReason, setRejectionReason] = useState('');
   const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
 
+  // Focus trap
+  const modalRef = React.useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = modalRef.current;
+    if (!el) return;
+    const focusable = el.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    first?.focus();
+    const trap = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first?.focus(); }
+      }
+    };
+    el.addEventListener('keydown', trap);
+    return () => el.removeEventListener('keydown', trap);
+  }, []);
+
   const handleApprove = () => {
     if (onVerify) {
       onVerify(user.id, 'approved');
@@ -58,6 +81,7 @@ export default function VerificationModal({
 
   return (
     <div
+      ref={modalRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="verification-title"
@@ -210,6 +234,7 @@ export default function VerificationModal({
               Please specify the reason for rejecting this ID. The user will be notified and prompted to re-upload.
             </p>
             <textarea
+              autoFocus
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               placeholder="e.g. Front ID photo is blurry, Name does not match profile, ID is expired..."
@@ -279,12 +304,13 @@ export default function VerificationModal({
         <div
           role="dialog"
           aria-modal="true"
+          aria-labelledby="lightbox-title"
           className="fixed inset-0 bg-black/90 z-[100] flex flex-col items-center justify-center p-4 backdrop-blur-md animate-fade-in"
           onClick={() => setLightboxImage(null)}
         >
           {/* Header */}
           <div className="absolute top-4 left-0 right-0 px-6 flex justify-between items-center text-white z-10">
-            <h4 className="font-display text-lg font-bold tracking-wide">{lightboxImage.title}</h4>
+            <h4 id="lightbox-title" className="font-display text-lg font-bold tracking-wide">{lightboxImage.title}</h4>
             <button
               onClick={() => setLightboxImage(null)}
               className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all flex items-center justify-center"

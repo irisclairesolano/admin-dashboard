@@ -8,88 +8,114 @@ import { User } from '@/types/models';
 interface UserDetailDrawerProps {
   selectedDetailUser: User;
   onClose: () => void;
-  userDetailData: any;
-  detailLoading: boolean;
-  activeTab: 'profile' | 'activity' | 'reviews' | 'reports' | 'logs';
-  setActiveTab: (tab: 'profile' | 'activity' | 'reviews' | 'reports' | 'logs') => void;
-  actionLoading: number | null;
-  onVerify: () => void;
-  onSuspend: (id: number, isSuspended: boolean) => void;
-  onDelete: (id: number) => void;
-  onRestore: (id: number) => void;
+  userDetailData?: any;
+  detailLoading?: boolean;
+  activeTab?: 'profile' | 'activity' | 'reviews' | 'reports' | 'logs';
+  setActiveTab?: (tab: 'profile' | 'activity' | 'reviews' | 'reports' | 'logs') => void;
+  actionLoading?: number | null;
+  onVerify?: () => void;
+  onSuspend?: (id: number, isSuspended: boolean) => void;
+  onDelete?: (id: number) => void;
+  onRestore?: (id: number) => void;
 
   // Tab 2 (Activity/History) props
-  employerSubTab: 'posts' | 'hired';
-  setEmployerSubTab: (subTab: 'posts' | 'hired') => void;
-  activitySearch: string;
-  setActivitySearch: (val: string) => void;
-  activityStatus: string;
-  setActivityStatus: (val: string) => void;
-  activityLoading: boolean;
-  activityData: any;
-  activityPage: number;
-  setActivityPage: (page: number) => void;
-  onSelectJob: (job: any) => void;
+  employerSubTab?: 'posts' | 'hired';
+  setEmployerSubTab?: (subTab: 'posts' | 'hired') => void;
+  activitySearch?: string;
+  setActivitySearch?: (val: string) => void;
+  activityStatus?: string;
+  setActivityStatus?: (val: string) => void;
+  activityLoading?: boolean;
+  activityData?: any;
+  activityPage?: number;
+  setActivityPage?: (page: number) => void;
+  onSelectJob?: (job: any) => void;
 
   // Tab 3 (Reviews) props
-  reviewsLoading: boolean;
-  reviewsData: any;
-  reviewsPage: number;
-  setReviewsPage: (page: number) => void;
+  reviewsLoading?: boolean;
+  reviewsData?: any;
+  reviewsPage?: number;
+  setReviewsPage?: (page: number) => void;
 
   // Tab 4 (Reports) props
-  reportsLoading: boolean;
-  reportsData: any;
-  reportsPage: number;
-  setReportsPage: (page: number) => void;
+  reportsLoading?: boolean;
+  reportsData?: any;
+  reportsPage?: number;
+  setReportsPage?: (page: number) => void;
 
   // Tab 5 (Logs) props
-  logsLoading: boolean;
-  logsData: any;
-  logsPage: number;
-  setLogsPage: (page: number) => void;
+  logsLoading?: boolean;
+  logsData?: any;
+  logsPage?: number;
+  setLogsPage?: (page: number) => void;
 }
 
 export default function UserDetailDrawer({
   selectedDetailUser,
   onClose,
   userDetailData,
-  detailLoading,
-  activeTab,
-  setActiveTab,
-  actionLoading,
-  onVerify,
-  onSuspend,
-  onDelete,
-  onRestore,
+  detailLoading = false,
+  activeTab: externalActiveTab,
+  setActiveTab: externalSetActiveTab,
+  actionLoading = null,
+  onVerify = () => {},
+  onSuspend = () => {},
+  onDelete = () => {},
+  onRestore = () => {},
 
-  employerSubTab,
-  setEmployerSubTab,
-  activitySearch,
-  setActivitySearch,
-  activityStatus,
-  setActivityStatus,
-  activityLoading,
-  activityData,
-  activityPage,
-  setActivityPage,
-  onSelectJob,
+  employerSubTab: externalEmployerSubTab,
+  setEmployerSubTab: externalSetEmployerSubTab,
+  activitySearch: externalActivitySearch,
+  setActivitySearch: externalSetActivitySearch,
+  activityStatus: externalActivityStatus,
+  setActivityStatus: externalSetActivityStatus,
+  activityLoading = false,
+  activityData = null,
+  activityPage: externalActivityPage,
+  setActivityPage: externalSetActivityPage,
+  onSelectJob = () => {},
 
-  reviewsLoading,
-  reviewsData,
-  reviewsPage,
-  setReviewsPage,
+  reviewsLoading = false,
+  reviewsData = null,
+  reviewsPage: externalReviewsPage,
+  setReviewsPage: externalSetReviewsPage,
 
-  reportsLoading,
-  reportsData,
-  reportsPage,
-  setReportsPage,
+  reportsLoading = false,
+  reportsData = null,
+  reportsPage: externalReportsPage,
+  setReportsPage: externalSetReportsPage,
 
-  logsLoading,
-  logsData,
-  logsPage,
-  setLogsPage,
+  logsLoading = false,
+  logsData = null,
+  logsPage: externalLogsPage,
+  setLogsPage: externalSetLogsPage,
 }: UserDetailDrawerProps) {
+  // Internal state fallbacks to prevent prop drilling overload
+  const [internalActiveTab, setInternalActiveTab] = React.useState<'profile' | 'activity' | 'reviews' | 'reports' | 'logs'>('profile');
+  const [internalEmployerSubTab, setInternalEmployerSubTab] = React.useState<'posts' | 'hired'>('posts');
+  const [internalActivitySearch, setInternalActivitySearch] = React.useState('');
+  const [internalActivityStatus, setInternalActivityStatus] = React.useState('all');
+  const [internalActivityPage, setInternalActivityPage] = React.useState(1);
+  const [internalReviewsPage, setInternalReviewsPage] = React.useState(1);
+  const [internalReportsPage, setInternalReportsPage] = React.useState(1);
+  const [internalLogsPage, setInternalLogsPage] = React.useState(1);
+
+  const activeTab = externalActiveTab ?? internalActiveTab;
+  const setActiveTab = externalSetActiveTab ?? setInternalActiveTab;
+  const employerSubTab = externalEmployerSubTab ?? internalEmployerSubTab;
+  const setEmployerSubTab = externalSetEmployerSubTab ?? setInternalEmployerSubTab;
+  const activitySearch = externalActivitySearch ?? internalActivitySearch;
+  const setActivitySearch = externalSetActivitySearch ?? setInternalActivitySearch;
+  const activityStatus = externalActivityStatus ?? internalActivityStatus;
+  const setActivityStatus = externalSetActivityStatus ?? setInternalActivityStatus;
+  const activityPage = externalActivityPage ?? internalActivityPage;
+  const setActivityPage = externalSetActivityPage ?? setInternalActivityPage;
+  const reviewsPage = externalReviewsPage ?? internalReviewsPage;
+  const setReviewsPage = externalSetReviewsPage ?? setInternalReviewsPage;
+  const reportsPage = externalReportsPage ?? internalReportsPage;
+  const setReportsPage = externalSetReportsPage ?? setInternalReportsPage;
+  const logsPage = externalLogsPage ?? internalLogsPage;
+  const setLogsPage = externalSetLogsPage ?? setInternalLogsPage;
   return (
     <div
       className="fixed inset-0 z-40 flex justify-end"
