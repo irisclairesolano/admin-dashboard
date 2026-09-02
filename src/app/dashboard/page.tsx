@@ -9,7 +9,7 @@ import {
 import { adminApi } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { AIInsightsCard, InsightsData } from '@/components/AIInsightsCard';
-import { CHART_COLORS, FUNNEL_COLORS, KPI_LABELS } from '@/lib/constants';
+import { CHART_COLORS } from '@/lib/constants';
 
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
