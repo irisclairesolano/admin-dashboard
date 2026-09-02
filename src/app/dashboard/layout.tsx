@@ -26,6 +26,7 @@ interface DashboardNotification {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [adminName, setAdminName] = useState('');
   const [adminRole, setAdminRole] = useState<'superadmin' | 'moderator'>('moderator');
   const [is2faEnabled, setIs2faEnabled] = useState(false);
@@ -33,10 +34,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [prefetchStatus, setPrefetchStatus] = useState<PrefetchStatus>('idle');
   const [bannerVisible, setBannerVisible] = useState(false);
   const [reportToastDismissed, setReportToastDismissed] = useState(false);
+  const [notifications, setNotifications] = useState<DashboardNotification[]>([]);
+  const [readNotifications, setReadNotifications] = useLocalStorage<string[]>('admin_read_notifications', []);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didPrefetch = useRef(false);
+  const isFirstLoad = useRef(true);
+  const prevVerifications = useRef(0);
+  const prevReports = useRef(0);
+  const prevTickets = useRef(0);
   const router = useRouter();
   const pathname = usePathname();
+  const { newReportCount, latestReportAt, clearCount: clearSSECount } = useSSEReports();
+
+  const triggerBrowserNotification = (title: string, body: string, url: string) => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        const notif = new Notification(title, { body, icon: '/favicon.ico' });
+        notif.onclick = () => {
+          window.focus();
+          router.push(url);
+        };
+      } catch (err) {
+        console.error('Browser notification error', err);
+      }
+    }
+  };
 
   // ── 15-Minute Inactivity Auto-Lockout ─────────────────────────────────────
   const handleInactivityLogout = () => {

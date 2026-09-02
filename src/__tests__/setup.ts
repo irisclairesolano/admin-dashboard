@@ -16,7 +16,6 @@ vi.mock('next/navigation', () => {
   };
 });
 
-import React from 'react';
 import VerificationModal from '../components/VerificationModal';
 import UserDetailDrawer from '../components/users/UserDetailDrawer';
 import JobPreviewModal from '../components/users/JobPreviewModal';
