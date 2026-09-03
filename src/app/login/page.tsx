@@ -1,9 +1,9 @@
 'use client';
 
-import { adminApi } from '@/lib/api';
+import { adminApi, warmUpServer } from '@/lib/api';
 import { LogIn } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -14,6 +14,10 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    warmUpServer();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,12 +188,18 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-primary hover:bg-primary-dark text-white font-body font-bold py-4 rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center text-lg mt-8"
+                className="w-full bg-primary hover:bg-primary-dark active:scale-[0.98] disabled:opacity-75 disabled:cursor-not-allowed text-white font-body font-bold py-4 rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center gap-3 text-lg mt-8 cursor-pointer"
               >
                 {loading ? (
-                  <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+                    <span>Signing In...</span>
+                  </>
                 ) : (
-                  'Sign In'
+                  <>
+                    <LogIn className="w-5 h-5" />
+                    <span>Sign In</span>
+                  </>
                 )}
               </button>
             </form>
@@ -217,12 +227,15 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || !totpCode}
-                className="w-full bg-primary hover:bg-primary-dark text-white font-body font-bold py-4 rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center text-lg mt-8 disabled:opacity-50"
+                className="w-full bg-primary hover:bg-primary-dark active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white font-body font-bold py-4 rounded-xl shadow-md hover:shadow-lg transition-all flex justify-center items-center gap-3 text-lg mt-8 cursor-pointer"
               >
                 {loading ? (
-                  <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+                    <span>Verifying Code...</span>
+                  </>
                 ) : (
-                  'Verify & Log In'
+                  <span>Verify & Log In</span>
                 )}
               </button>
 
