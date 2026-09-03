@@ -5,7 +5,7 @@ import { useSSEReports } from '@/hooks/useSSEReports';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { usePolling } from '@/hooks/usePolling';
 import { useInactivityTimer } from '@/hooks/useInactivityTimer';
@@ -61,7 +61,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const { newReportCount, latestReportAt, clearCount: clearSSECount } = useSSEReports();
 
-  const triggerBrowserNotification = (title: string, body: string, url: string) => {
+  const triggerBrowserNotification = useCallback((title: string, body: string, url: string) => {
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
       try {
         const notif = new Notification(title, { body, icon: '/favicon.ico' });
@@ -73,7 +73,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         console.error('Browser notification error', err);
       }
     }
-  };
+  }, [router]);
 
   // ── 15-Minute Inactivity Auto-Lockout ─────────────────────────────────────
   const handleInactivityLogout = () => {
@@ -101,7 +101,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [router]);
 
   // ── Parallel pre-fetch & Load individual notifications ─────────────────────
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const [verificationsRes, reportsRes, ticketsRes] = await Promise.all([
         adminApi.getVerifications(),
@@ -196,7 +196,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     } catch (err) {
       console.error('Failed to load notifications', err);
     }
-  };
+  }, [triggerBrowserNotification]);
 
   useEffect(() => {
     if (didPrefetch.current) return;
@@ -221,8 +221,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => {
       if (hideTimer.current) clearTimeout(hideTimer.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchNotifications]);
 
   // When visiting the reports page, automatically clear the SSE new reports alert counter
   useEffect(() => {
@@ -236,7 +235,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (newReportCount > 0) {
       fetchNotifications();
     }
-  }, [newReportCount, latestReportAt]);
+  }, [newReportCount, latestReportAt, fetchNotifications]);
 
   // Auto-refresh notifications every 30 seconds via shared hook
   usePolling(fetchNotifications, 30000);
