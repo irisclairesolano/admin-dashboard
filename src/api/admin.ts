@@ -191,7 +191,7 @@ export const adminApi = {
     return apiClient.get(`/admin/users/${id}/logs?page=${page}`);
   },
   
-  suspendUser: async (id: number, is_suspended: boolean) => {
+  suspendUser: async (id: number, is_suspended: boolean = true) => {
     clearApiCache();
     return apiClient.patch(`/admin/users/${id}`, { is_suspended });
   },
