@@ -47,13 +47,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [is2faEnabled, setIs2faEnabled] = useState(false);
   const [show2faModal, setShow2faModal] = useState(false);
   const [prefetchStatus, setPrefetchStatus] = useState<PrefetchStatus>('idle');
-  const [bannerVisible, setBannerVisible] = useState(false);
   const [reportToastDismissed, setReportToastDismissed] = useState(false);
   const [notifications, setNotifications] = useState<DashboardNotification[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [readNotifications, setReadNotifications] = useLocalStorage<string[]>('admin_read_notifications', []);
-  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didPrefetch = useRef(false);
-  const isFirstLoad = useRef(true);
+  const initialSyncDone = useRef(false);
   const prevVerifications = useRef(0);
   const prevReports = useRef(0);
   const prevTickets = useRef(0);
@@ -101,8 +101,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [router]);
 
   // ── Parallel pre-fetch & Load individual notifications ─────────────────────
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async (silent = false) => {
     try {
+      if (!silent) setIsSyncing(true);
       const [verificationsRes, reportsRes, ticketsRes] = await Promise.all([
         adminApi.getVerifications(),
         adminApi.getReports('open', 1),
@@ -164,8 +165,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setNotifications(list);
 
-      // Trigger web push notification if counts increased
-      if (!isFirstLoad.current) {
+      // Trigger browser notification ONLY on genuine count increases AFTER initial sync
+      if (initialSyncDone.current) {
         if (pendingUsers.length > prevVerifications.current) {
           triggerBrowserNotification(
             'New Pending Verification',
@@ -188,13 +189,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           );
         }
       } else {
-        isFirstLoad.current = false;
+        initialSyncDone.current = true;
       }
       prevVerifications.current = pendingUsers.length;
       prevReports.current = openReports.length;
       prevTickets.current = openTickets.length;
     } catch (err) {
       console.error('Failed to load notifications', err);
+    } finally {
+      setNotificationsLoading(false);
+      setIsSyncing(false);
     }
   }, [triggerBrowserNotification]);
 
@@ -206,21 +210,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!token) return;
 
     setPrefetchStatus('loading');
-    setBannerVisible(true);
 
     // Initial pre-fetch + load notification counts
-    Promise.all([prefetchAll(), fetchNotifications()])
+    Promise.all([prefetchAll(), fetchNotifications(true)])
       .then(() => {
         setPrefetchStatus('ready');
-        hideTimer.current = setTimeout(() => setBannerVisible(false), 2500);
       })
       .catch(() => {
         setPrefetchStatus('error');
       });
-
-    return () => {
-      if (hideTimer.current) clearTimeout(hideTimer.current);
-    };
   }, [fetchNotifications]);
 
   // When visiting the reports page, automatically clear the SSE new reports alert counter
@@ -233,12 +231,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // When a real-time SSE report alert arrives, instantly re-sync notifications
   useEffect(() => {
     if (newReportCount > 0) {
-      fetchNotifications();
+      fetchNotifications(true);
     }
   }, [newReportCount, latestReportAt, fetchNotifications]);
 
   // Auto-refresh notifications every 30 seconds via shared hook
-  usePolling(fetchNotifications, 30000);
+  usePolling(() => fetchNotifications(true), 30000);
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
@@ -263,15 +261,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ];
 
   const navItems = rawNavItems.filter(item => !item.superAdminOnly || adminRole === 'superadmin');
-
-  // ── Pre-fetch banner config ────────────────────────────────────────────────
-  const bannerMap: Record<PrefetchStatus, { bg: string; icon: React.ReactNode; text: string } | null> = {
-    idle: null,
-    loading: { bg: 'bg-blue-500/90', icon: <i className="lni lni-spinner-arrow animate-spin mr-1.5 text-sm" />, text: 'Loading all sections in background…' },
-    ready: { bg: 'bg-emerald-500/90', icon: <i className="lni lni-checkmark-circle mr-1.5 text-sm" />, text: 'All sections loaded — navigation is instant.' },
-    error: { bg: 'bg-red-500/90', icon: <i className="lni lni-ban mr-1.5 text-sm" />, text: 'Could not reach server. Check your connection.' },
-  };
-  const banner = bannerMap[prefetchStatus];
 
   // ── Notifications Helper Computes ──────────────────────────────────────────
   const unreadNotifications = notifications.filter(n => !readNotifications.includes(n.id));
@@ -427,7 +416,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* List */}
             <div className="flex-1 overflow-y-auto divide-y divide-ink-faint/20 p-4 space-y-2">
-              {filteredNotifications.length === 0 ? (
+              {notificationsLoading ? (
+                <div className="space-y-3 p-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="p-4 rounded-2xl bg-white/60 border border-ink-faint/30 animate-pulse flex gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-ink-faint/50 flex-shrink-0" />
+                      <div className="flex-1 space-y-2 py-1">
+                        <div className="h-4 bg-ink-faint/60 rounded w-3/4" />
+                        <div className="h-3 bg-ink-faint/40 rounded w-full" />
+                        <div className="h-2.5 bg-ink-faint/30 rounded w-1/4" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredNotifications.length === 0 ? (
                 <div className="py-16 text-center">
                   <div className="w-14 h-14 bg-status-success/10 text-status-success rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
                     <i className="lni lni-checkmark-circle text-2xl" />
@@ -518,28 +520,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-soft/50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse-slow" />
       <div className="absolute top-[20%] right-[-5%] w-72 h-72 bg-accent-sky/50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse-slow" style={{ animationDelay: '1s' }} />
       <div className="absolute bottom-[-10%] left-[20%] w-80 h-80 bg-accent-mint/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse-slow" style={{ animationDelay: '2s' }} />
-
-      {/* ── Pre-fetch status banner ─────────────────────────────────────── */}
-      {banner && (
-        <div className={`
-          fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2
-          px-4 py-2 text-white text-xs font-body font-semibold backdrop-blur-md shadow-md
-          transition-all duration-500
-          ${banner.bg}
-          ${bannerVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}
-        `}>
-          {banner.icon}
-          {banner.text}
-          {prefetchStatus === 'error' && (
-            <button
-              onClick={() => { didPrefetch.current = false; window.location.reload(); }}
-              className="ml-3 underline hover:no-underline"
-            >
-              Retry
-            </button>
-          )}
-        </div>
-      )}
 
       {/* Mobile header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-white/50 z-20 flex items-center justify-between px-4 shadow-sm flex-shrink-0">
@@ -725,9 +705,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <div className="flex items-center gap-4">
             {/* Live Synchronized Status Pill */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-body font-medium shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Real-time Active</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-body font-medium shadow-sm transition-all">
+              {isSyncing ? (
+                <>
+                  <i className="lni lni-spinner-arrow animate-spin text-emerald-600 text-xs" />
+                  <span>Syncing Live...</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Real-time Active</span>
+                </>
+              )}
             </div>
 
             {/* Action Center / Notifications Button on Content Side */}
