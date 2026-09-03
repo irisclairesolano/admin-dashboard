@@ -155,6 +155,15 @@ function VerificationsPageContent() {
             </select>
             <i className="lni lni-chevron-down absolute right-3.5 top-1/2 transform -translate-y-1/2 text-ink-muted pointer-events-none" />
           </div>
+
+          <button
+            onClick={() => fetchVerifications(false)}
+            aria-label="Refresh verifications list"
+            className="p-2.5 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm hover:bg-white text-ink-soft hover:text-primary transition flex items-center justify-center cursor-pointer"
+            title="Refresh list"
+          >
+            <i className={`lni lni-reload text-sm ${loading ? 'animate-spin' : ''}`} />
+          </button>
         </div>
       </div>
 

@@ -19,14 +19,29 @@ interface DashboardNotification {
   category: 'verification' | 'report' | 'support';
   title: string;
   description: string;
-  count: number;
-  priority: 'attention' | 'update' | 'info';
+  timestamp: string;
+  priority: 'critical' | 'attention' | 'update';
   link: string;
+  targetId?: number;
 }
+
+const getRelativeTime = (timestamp?: string) => {
+  if (!timestamp) return 'Just now';
+  const date = new Date(timestamp);
+  const diffSec = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (diffSec < 60) return 'Just now';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+};
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationFilter, setNotificationFilter] = useState<'all' | 'unread' | 'reports' | 'verifications' | 'support'>('all');
   const [adminName, setAdminName] = useState('');
   const [adminRole, setAdminRole] = useState<'superadmin' | 'moderator'>('moderator');
   const [is2faEnabled, setIs2faEnabled] = useState(false);
@@ -85,7 +100,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     } catch (e) { console.error(e); }
   }, [router]);
 
-  // ── Parallel pre-fetch & Load notifications ────────────────────────────────
+  // ── Parallel pre-fetch & Load individual notifications ─────────────────────
   const fetchNotifications = async () => {
     try {
       const [verificationsRes, reportsRes, ticketsRes] = await Promise.all([
@@ -94,85 +109,90 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         adminApi.getSupportTickets(),
       ]);
 
-      const pendingVerificationsCount = (verificationsRes.data?.data || []).filter((u: any) =>
-        u.registration_status === 'pending_review' || (u.verification_status === 'pending' && u.document_url)
-      ).length;
-
-      const openReportsCount = (reportsRes.data?.data || []).length;
-
-      const openTicketsCount = (ticketsRes.data?.data || []).filter((t: any) =>
-        t.status === 'open'
-      ).length;
-
       const list: DashboardNotification[] = [];
 
-      list.push({
-        id: 'verification-pending',
-        category: 'verification',
-        title: 'Pending Verifications',
-        description: pendingVerificationsCount > 0
-          ? `${pendingVerificationsCount} identity verification request${pendingVerificationsCount > 1 ? 's' : ''} waiting for review.`
-          : 'No identity verification requests waiting for review.',
-        count: pendingVerificationsCount,
-        priority: pendingVerificationsCount > 0 ? 'attention' : 'info',
-        link: '/dashboard/verifications',
+      // 1. Pending Verifications (Individual items)
+      const pendingUsers = (verificationsRes.data?.data || []).filter((u: any) =>
+        u.registration_status === 'pending_review' || (u.verification_status === 'pending' && u.document_url)
+      );
+
+      pendingUsers.forEach((u: any) => {
+        list.push({
+          id: `verification-${u.id}`,
+          category: 'verification',
+          title: `ID Verification: ${u.name || 'User'}`,
+          description: `${u.role === 'employer' ? 'Employer' : 'Worker'} submitted ID credentials (${u.municipality || 'Sorsogon'}).`,
+          timestamp: u.updated_at || u.created_at || new Date().toISOString(),
+          priority: 'attention',
+          link: `/dashboard/verifications?search=${encodeURIComponent(u.name || '')}`,
+          targetId: u.id,
+        });
       });
 
-      list.push({
-        id: 'reports-open',
-        category: 'report',
-        title: 'Reported Content',
-        description: openReportsCount > 0
-          ? `${openReportsCount} content report${openReportsCount > 1 ? 's' : ''} require attention.`
-          : 'No content reports require attention.',
-        count: openReportsCount,
-        priority: openReportsCount > 0 ? 'attention' : 'info',
-        link: '/dashboard/reports',
+      // 2. Open Reports (Individual items)
+      const openReports = (reportsRes.data?.data || []);
+      openReports.forEach((r: any) => {
+        const rawModel = r.reportable_type ? r.reportable_type.replace(/.*\\/, '').replace(/([A-Z])/g, ' $1').trim() : 'Content';
+        list.push({
+          id: `report-${r.id}`,
+          category: 'report',
+          title: `Report #${r.id}: Flagged ${rawModel}`,
+          description: `${r.reporter?.name ? `Reported by ${r.reporter.name}: ` : ''}${r.description || r.reason || 'Flagged content review needed.'}`,
+          timestamp: r.created_at || new Date().toISOString(),
+          priority: 'critical',
+          link: `/dashboard/reports?search=${encodeURIComponent(r.reason || '')}`,
+          targetId: r.id,
+        });
       });
 
-      list.push({
-        id: 'support-open',
-        category: 'support',
-        title: 'Open Support Tickets',
-        description: openTicketsCount > 0
-          ? `${openTicketsCount} support inquiry ticket${openTicketsCount > 1 ? 's' : ''} awaiting response.`
-          : 'No open support tickets.',
-        count: openTicketsCount,
-        priority: openTicketsCount > 0 ? 'update' : 'info',
-        link: '/dashboard/support',
+      // 3. Open Support Tickets (Individual items)
+      const openTickets = (ticketsRes.data?.data || []).filter((t: any) => t.status === 'open');
+      openTickets.forEach((t: any) => {
+        list.push({
+          id: `support-${t.id}`,
+          category: 'support',
+          title: `Support Ticket #${t.id}: ${t.subject || 'Inquiry'}`,
+          description: `From ${t.user?.name || 'User'}: ${t.message ? (t.message.length > 70 ? t.message.slice(0, 70) + '...' : t.message) : 'Open inquiry ticket.'}`,
+          timestamp: t.created_at || new Date().toISOString(),
+          priority: 'update',
+          link: `/dashboard/support?search=${encodeURIComponent(t.subject || t.user?.name || '')}`,
+          targetId: t.id,
+        });
       });
 
+      // Sort newest first
+      list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setNotifications(list);
 
       // Trigger web push notification if counts increased
       if (!isFirstLoad.current) {
-        if (pendingVerificationsCount > prevVerifications.current) {
+        if (pendingUsers.length > prevVerifications.current) {
           triggerBrowserNotification(
             'New Pending Verification',
-            `There are ${pendingVerificationsCount} identity verifications awaiting review.`,
+            `There are ${pendingUsers.length} identity verifications awaiting review.`,
             '/dashboard/verifications'
           );
         }
-        if (openReportsCount > prevReports.current) {
+        if (openReports.length > prevReports.current) {
           triggerBrowserNotification(
             'New Report Filed',
-            `There are ${openReportsCount} content reports requiring moderation.`,
+            `There are ${openReports.length} content reports requiring moderation.`,
             '/dashboard/reports'
           );
         }
-        if (openTicketsCount > prevTickets.current) {
+        if (openTickets.length > prevTickets.current) {
           triggerBrowserNotification(
             'New Support Ticket',
-            `There are ${openTicketsCount} open support tickets awaiting response.`,
+            `There are ${openTickets.length} open support tickets awaiting response.`,
             '/dashboard/support'
           );
         }
       } else {
         isFirstLoad.current = false;
       }
-      prevVerifications.current = pendingVerificationsCount;
-      prevReports.current = openReportsCount;
-      prevTickets.current = openTicketsCount;
+      prevVerifications.current = pendingUsers.length;
+      prevReports.current = openReports.length;
+      prevTickets.current = openTickets.length;
     } catch (err) {
       console.error('Failed to load notifications', err);
     }
@@ -204,6 +224,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // When visiting the reports page, automatically clear the SSE new reports alert counter
+  useEffect(() => {
+    if (pathname === '/dashboard/reports' && newReportCount > 0) {
+      clearSSECount();
+    }
+  }, [pathname, newReportCount, clearSSECount]);
+
+  // When a real-time SSE report alert arrives, instantly re-sync notifications
+  useEffect(() => {
+    if (newReportCount > 0) {
+      fetchNotifications();
+    }
+  }, [newReportCount, latestReportAt]);
+
   // Auto-refresh notifications every 30 seconds via shared hook
   usePolling(fetchNotifications, 30000);
 
@@ -213,13 +247,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.push('/login');
   };
 
+  const pendingVerificationsCount = notifications.filter(n => n.category === 'verification').length;
+  const openReportsCount = Math.max(newReportCount, notifications.filter(n => n.category === 'report').length);
+  const openTicketsCount = notifications.filter(n => n.category === 'support').length;
+
   const rawNavItems = [
     { name: 'Analytics',     href: '/dashboard',              iconClass: 'lni lni-grid-alt',  badge: 0 },
-    { name: 'Verifications', href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: 0 },
+    { name: 'Verifications', href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: pendingVerificationsCount },
     { name: 'Users',         href: '/dashboard/users',         iconClass: 'lni lni-users',     badge: 0 },
     { name: 'Jobs',          href: '/dashboard/jobs',          iconClass: 'lni lni-briefcase', badge: 0 },
-    { name: 'Support',       href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: 0 },
-    { name: 'Reports',       href: '/dashboard/reports',       iconClass: 'lni lni-flag',      badge: newReportCount },
+    { name: 'Support',       href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: openTicketsCount },
+    { name: 'Reports',       href: '/dashboard/reports',       iconClass: 'lni lni-flag',      badge: openReportsCount },
     { name: 'Word Filter',   href: '/dashboard/profanity',     iconClass: 'lni lni-ban',       badge: 0 },
     { name: 'Archives',      href: '/dashboard/archives',      iconClass: 'lni lni-archive',   badge: 0 },
     { name: 'Audit Logs',    href: '/dashboard/logs',          iconClass: 'lni lni-shield',    badge: 0, superAdminOnly: true },
@@ -237,11 +275,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const banner = bannerMap[prefetchStatus];
 
   // ── Notifications Helper Computes ──────────────────────────────────────────
-  const unreadNotifications = notifications.filter(n => n.count > 0 && !readNotifications.includes(n.id));
+  const unreadNotifications = notifications.filter(n => !readNotifications.includes(n.id));
   const unreadCount = unreadNotifications.length;
+
+  const filteredNotifications = notifications.filter(item => {
+    if (notificationFilter === 'unread') return !readNotifications.includes(item.id);
+    if (notificationFilter === 'reports') return item.category === 'report';
+    if (notificationFilter === 'verifications') return item.category === 'verification';
+    if (notificationFilter === 'support') return item.category === 'support';
+    return true;
+  });
 
   const markAllAsRead = () => {
     setReadNotifications(notifications.map(n => n.id));
+  };
+
+  const clearReadNotifications = () => {
+    setNotifications(prev => prev.filter(n => !readNotifications.includes(n.id)));
   };
 
   const handleNotificationClick = (item: DashboardNotification) => {
@@ -252,117 +302,209 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setSidebarOpen(false);
     router.push(item.link);
   };
+
   // ── Notification Dropdown Element (Slide-over drawer panel) ─────────────────
   const NotificationButton = () => (
     <div className="relative">
       <button
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="p-2.5 bg-white/50 hover:bg-white text-ink hover:text-primary rounded-2xl border border-ink-faint/30 hover:border-primary/20 shadow-sm transition-all relative flex items-center justify-center"
+        className="p-2.5 bg-white/70 hover:bg-white text-ink hover:text-primary rounded-2xl border border-white/60 hover:border-primary/30 shadow-sm transition-all relative flex items-center justify-center cursor-pointer"
         aria-label="View notifications"
+        title="Action Center & Notifications"
       >
         <i className="lni lni-alarm text-xl"></i>
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-status-error text-white font-body font-bold text-[10px] rounded-full flex items-center justify-center shadow-md animate-pulse">
-            {unreadCount}
+            {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
 
       {dropdownOpen && (
         <>
-          {/* Backdrop overlay (starts right of sidebar on desktop) */}
-          <div className="lg:left-72 fixed inset-0 bg-ink/20 backdrop-blur-sm z-[100]" onClick={() => setDropdownOpen(false)} />
+          {/* Backdrop overlay (covers content area on desktop & mobile) */}
+          <div className="fixed inset-0 bg-ink/30 backdrop-blur-sm z-[100] transition-opacity" onClick={() => setDropdownOpen(false)} />
           <div className="fixed inset-y-0 right-0 z-[101] w-full max-w-md h-screen bg-white/95 backdrop-blur-xl shadow-2xl border-l border-ink-faint/30 flex flex-col transform transition-transform duration-300 translate-x-0 animate-slide-in">
             {/* Header */}
-            <div className="p-6 border-b border-ink-faint/30 bg-paper/30 flex justify-between items-center">
-              <div>
-                <h3 className="font-display text-xl text-ink font-bold">Action Center</h3>
-                <p className="text-xs text-ink-soft mt-1">Pending tasks requiring administrative attention</p>
+            <div className="p-6 border-b border-ink-faint/30 bg-paper/40">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="font-display text-xl text-ink font-bold flex items-center gap-2">
+                    Action Center
+                    {unreadCount > 0 && (
+                      <span className="text-xs font-mono font-bold bg-status-error/10 text-status-error border border-status-error/20 px-2 py-0.5 rounded-full">
+                        {unreadCount} new
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-xs text-ink-soft mt-1">Pending items requiring moderation & review</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => fetchNotifications()}
+                    className="p-2 text-ink-soft hover:text-primary hover:bg-white/80 rounded-lg transition-colors cursor-pointer"
+                    title="Refresh notifications"
+                    aria-label="Refresh"
+                  >
+                    <i className="lni lni-reload text-sm" />
+                  </button>
+                  <button
+                    onClick={() => setDropdownOpen(false)}
+                    className="w-8 h-8 flex items-center justify-center hover:bg-paper rounded-full text-ink-muted hover:text-ink transition-colors cursor-pointer"
+                    aria-label="Close notifications"
+                  >
+                    <i className="lni lni-close text-xs" />
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center space-x-3">
-                {unreadCount > 0 && (
+
+              {/* Category Filter Tabs */}
+              <div className="flex items-center gap-1.5 mt-4 overflow-x-auto pb-1 text-xs">
+                <button
+                  onClick={() => setNotificationFilter('all')}
+                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
+                    notificationFilter === 'all'
+                      ? 'bg-ink text-white shadow-sm'
+                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
+                  }`}
+                >
+                  All ({notifications.length})
+                </button>
+                <button
+                  onClick={() => setNotificationFilter('unread')}
+                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
+                    notificationFilter === 'unread'
+                      ? 'bg-ink text-white shadow-sm'
+                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
+                  }`}
+                >
+                  Unread ({unreadCount})
+                </button>
+                <button
+                  onClick={() => setNotificationFilter('reports')}
+                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
+                    notificationFilter === 'reports'
+                      ? 'bg-status-error text-white shadow-sm'
+                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
+                  }`}
+                >
+                  Reports ({notifications.filter(n => n.category === 'report').length})
+                </button>
+                <button
+                  onClick={() => setNotificationFilter('verifications')}
+                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
+                    notificationFilter === 'verifications'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
+                  }`}
+                >
+                  IDs ({notifications.filter(n => n.category === 'verification').length})
+                </button>
+              </div>
+
+              {/* Action Toolbar */}
+              <div className="flex items-center justify-between mt-3 pt-2 border-t border-ink-faint/20 text-xs">
+                {unreadCount > 0 ? (
                   <button
                     onClick={markAllAsRead}
-                    className="text-xs font-body font-semibold text-primary hover:text-primary-dark transition-colors flex items-center gap-1 bg-primary/10 px-2.5 py-1 rounded-md"
+                    className="font-body font-semibold text-primary hover:text-primary-dark transition-colors flex items-center gap-1 cursor-pointer"
                   >
-                    <i className="lni lni-checkmark text-xs mr-1"></i>
+                    <i className="lni lni-checkmark text-xs" />
                     Mark all read
                   </button>
+                ) : (
+                  <span className="text-[11px] text-ink-muted">All notifications caught up</span>
                 )}
-                <button
-                  onClick={() => setDropdownOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center hover:bg-paper rounded-full text-ink-muted hover:text-ink transition-colors"
-                >
-                  <i className="lni lni-close text-xs" />
-                </button>
+                {notifications.some(n => readNotifications.includes(n.id)) && (
+                  <button
+                    onClick={clearReadNotifications}
+                    className="font-body text-ink-muted hover:text-status-error transition-colors cursor-pointer"
+                  >
+                    Clear read
+                  </button>
+                )}
               </div>
             </div>
 
             {/* List */}
-            <div className="flex-1 overflow-y-auto divide-y divide-ink-faint/25 p-4 space-y-3">
-              {notifications.map((item) => {
-                const isRead = item.count === 0 || readNotifications.includes(item.id);
-                const isAttention = item.count > 0 && item.priority === 'attention';
+            <div className="flex-1 overflow-y-auto divide-y divide-ink-faint/20 p-4 space-y-2">
+              {filteredNotifications.length === 0 ? (
+                <div className="py-16 text-center">
+                  <div className="w-14 h-14 bg-status-success/10 text-status-success rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                    <i className="lni lni-checkmark-circle text-2xl" />
+                  </div>
+                  <h4 className="font-display font-bold text-ink text-sm">Everything is Clear</h4>
+                  <p className="text-xs text-ink-soft mt-1">No notifications matching this filter.</p>
+                </div>
+              ) : (
+                filteredNotifications.map((item) => {
+                  const isRead = readNotifications.includes(item.id);
+                  const isCritical = item.priority === 'critical';
+                  const isAttention = item.priority === 'attention';
 
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNotificationClick(item)}
-                    className={`
-                      w-full text-left p-4 transition-all flex gap-3.5 rounded-xl border hover:bg-paper/50
-                      ${isRead ? 'opacity-50 bg-white/30 border-transparent' : 'bg-white border-white/50 shadow-sm'}
-                    `}
-                  >
-                    <div className={`
-                      w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center shadow-inner
-                      ${isAttention
-                        ? 'bg-status-error/10 text-status-error border border-status-error/25'
-                        : item.count > 0 ? 'bg-primary/10 text-primary border border-primary/25'
-                        : 'bg-ink-faint/40 text-ink-muted border border-ink-faint'
-                      }
-                    `}>
-                      {isAttention ? (
-                        <i className="lni lni-warning text-base" />
-                      ) : item.count > 0 ? (
-                        <i className="lni lni-alarm text-base" />
-                      ) : (
-                        <i className="lni lni-checkmark text-base" />
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-1.5">
-                        <span className={`text-[10px] font-body font-bold uppercase tracking-wider ${
-                          isAttention ? 'text-status-error' : item.count > 0 ? 'text-primary' : 'text-ink-muted'
-                        }`}>
-                          {isAttention ? 'Attention Needed' : item.count > 0 ? 'Task Update' : 'All Clear'}
-                        </span>
-                        {!isRead && (
-                          <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0 animate-ping" />
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleNotificationClick(item)}
+                      className={`
+                        w-full text-left p-4 transition-all flex gap-3.5 rounded-2xl border cursor-pointer
+                        ${isRead
+                          ? 'opacity-60 bg-white/40 border-transparent hover:opacity-90 hover:bg-white/70'
+                          : isCritical
+                            ? 'bg-status-error/5 border-status-error/25 shadow-sm hover:bg-status-error/10'
+                            : isAttention
+                              ? 'bg-amber-500/5 border-amber-500/25 shadow-sm hover:bg-amber-500/10'
+                              : 'bg-white border-white/70 shadow-sm hover:bg-paper/80'}
+                      `}
+                    >
+                      <div className={`
+                        w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center shadow-inner
+                        ${isCritical
+                          ? 'bg-status-error/15 text-status-error border border-status-error/30'
+                          : isAttention
+                            ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
+                            : 'bg-primary/10 text-primary border border-primary/25'
+                        }
+                      `}>
+                        {isCritical ? (
+                          <i className="lni lni-flag text-base" />
+                        ) : isAttention ? (
+                          <i className="lni lni-user text-base" />
+                        ) : (
+                          <i className="lni lni-comments text-base" />
                         )}
                       </div>
-                      <h4 className="text-sm font-body font-bold text-ink mt-1 truncate">
-                        {item.title}
-                      </h4>
-                      <p className="text-xs font-body text-ink-soft mt-1 leading-normal">
-                        {item.description}
-                      </p>
-                      {item.count > 0 && (
-                        <span className="inline-block mt-2 text-[10px] font-mono font-bold bg-ink-faint px-2 py-0.5 rounded text-ink-soft">
-                          {item.count} items
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1.5">
+                          <span className={`text-[10px] font-body font-bold uppercase tracking-wider ${
+                            isCritical ? 'text-status-error' : isAttention ? 'text-amber-600' : 'text-primary'
+                          }`}>
+                            {isCritical ? 'Critical Report' : isAttention ? 'ID Verification' : 'Support Inquiry'}
+                          </span>
+                          <span className="text-[10px] font-mono text-ink-muted flex items-center gap-1">
+                            {!isRead && <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0 animate-ping" />}
+                            {getRelativeTime(item.timestamp)}
+                          </span>
+                        </div>
+                        <h4 className={`text-sm font-body font-bold mt-1 truncate ${isRead ? 'text-ink-soft' : 'text-ink'}`}>
+                          {item.title}
+                        </h4>
+                        <p className="text-xs font-body text-ink-soft mt-1 leading-relaxed line-clamp-2">
+                          {item.description}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })
+              )}
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3.5 bg-paper/30 text-center border-t border-ink-faint/30">
+            <div className="px-5 py-3.5 bg-paper/40 text-center border-t border-ink-faint/30">
               <span className="text-[10px] font-body font-semibold text-ink-muted flex items-center justify-center gap-1">
-                <i className="lni lni-question-circle text-xs" />
-                Live refresh active (updates every 30s)
+                <i className="lni lni-checkmark-circle text-xs text-emerald-500" />
+                Live background synchronization active
               </span>
             </div>
           </div>
@@ -408,7 +550,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         <div className="flex items-center gap-2">
           <NotificationButton />
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-ink hover:bg-paper rounded-full transition-colors flex items-center justify-center" aria-label="Toggle sidebar">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-ink hover:bg-paper rounded-full transition-colors flex items-center justify-center cursor-pointer" aria-label="Toggle sidebar">
             {sidebarOpen ? <i className="lni lni-close text-lg" /> : <i className="lni lni-menu text-lg" />}
           </button>
         </div>
@@ -426,7 +568,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain" />
             <span className="text-[10px] font-body font-semibold text-ink-muted ml-1.5 bg-ink-faint/30 px-1.5 py-0.5 rounded border border-ink-faint/50">Admin</span>
           </div>
-          <NotificationButton />
         </div>
 
         <div className="p-5 flex flex-col flex-1 min-h-0 justify-between">
@@ -573,7 +714,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* ── Persistent Content Wrapper (Main) ──────────────────── */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        <main className="flex-1 w-full mx-auto z-10 relative overflow-y-auto pt-20 lg:pt-10">
+        {/* Desktop Top Header (Content Page Side) */}
+        <header className="hidden lg:flex items-center justify-between h-20 px-10 bg-white/70 backdrop-blur-xl border-b border-white/50 z-20 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-body uppercase tracking-wider text-ink-muted">Admin Dashboard</span>
+            <span className="text-ink-faint">/</span>
+            <span className="text-sm font-display font-bold text-ink capitalize">
+              {pathname.replace('/dashboard', '').replace('/', '') || 'Analytics Overview'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {/* Live Synchronized Status Pill */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-body font-medium shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Real-time Active</span>
+            </div>
+
+            {/* Action Center / Notifications Button on Content Side */}
+            <NotificationButton />
+          </div>
+        </header>
+
+        <main className="flex-1 w-full mx-auto z-10 relative overflow-y-auto pt-20 lg:pt-0">
           <div className="p-6 md:p-10 animate-fade-in max-w-[1400px] mx-auto">
             {children}
           </div>
