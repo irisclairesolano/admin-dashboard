@@ -204,6 +204,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // When visiting the reports page, automatically clear the SSE new reports alert counter
+  useEffect(() => {
+    if (pathname === '/dashboard/reports' && newReportCount > 0) {
+      clearSSECount();
+    }
+  }, [pathname, newReportCount, clearSSECount]);
+
+  // When a real-time SSE report alert arrives, instantly re-sync notifications
+  useEffect(() => {
+    if (newReportCount > 0) {
+      fetchNotifications();
+    }
+  }, [newReportCount, latestReportAt]);
+
   // Auto-refresh notifications every 30 seconds via shared hook
   usePolling(fetchNotifications, 30000);
 
@@ -213,13 +227,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.push('/login');
   };
 
+  const pendingVerificationsCount = notifications.find(n => n.id === 'verification-pending')?.count || 0;
+  const openReportsCount = Math.max(newReportCount, notifications.find(n => n.id === 'reports-open')?.count || 0);
+  const openTicketsCount = notifications.find(n => n.id === 'support-open')?.count || 0;
+
   const rawNavItems = [
     { name: 'Analytics',     href: '/dashboard',              iconClass: 'lni lni-grid-alt',  badge: 0 },
-    { name: 'Verifications', href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: 0 },
+    { name: 'Verifications', href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: pendingVerificationsCount },
     { name: 'Users',         href: '/dashboard/users',         iconClass: 'lni lni-users',     badge: 0 },
     { name: 'Jobs',          href: '/dashboard/jobs',          iconClass: 'lni lni-briefcase', badge: 0 },
-    { name: 'Support',       href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: 0 },
-    { name: 'Reports',       href: '/dashboard/reports',       iconClass: 'lni lni-flag',      badge: newReportCount },
+    { name: 'Support',       href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: openTicketsCount },
+    { name: 'Reports',       href: '/dashboard/reports',       iconClass: 'lni lni-flag',      badge: openReportsCount },
     { name: 'Word Filter',   href: '/dashboard/profanity',     iconClass: 'lni lni-ban',       badge: 0 },
     { name: 'Archives',      href: '/dashboard/archives',      iconClass: 'lni lni-archive',   badge: 0 },
     { name: 'Audit Logs',    href: '/dashboard/logs',          iconClass: 'lni lni-shield',    badge: 0, superAdminOnly: true },
