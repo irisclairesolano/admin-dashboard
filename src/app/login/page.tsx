@@ -10,10 +10,10 @@ import {
   ArrowRight,
   Eye,
   EyeOff,
-  Building2,
   Shield,
   Activity,
-  Layers
+  Layers,
+  Building2
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -95,10 +95,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 relative flex flex-col justify-between selection:bg-primary selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 relative flex flex-col justify-between overflow-y-auto selection:bg-primary selection:text-white">
       {/* ── Soft Ambient Glows ────────────────────────────────────────────── */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-sky-200/40 rounded-full blur-3xl pointer-events-none -z-10" />
-      <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-emerald-100/50 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="absolute bottom-40 right-1/4 w-96 h-96 bg-emerald-100/50 rounded-full blur-3xl pointer-events-none -z-10" />
       
       {/* ── Top Navigation Bar ────────────────────────────────────────────── */}
       <header className="w-full z-30 px-6 sm:px-10 lg:px-16 py-4 flex items-center justify-between bg-white/80 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
@@ -113,39 +113,17 @@ export default function LoginPage() {
               className="object-contain"
             />
           </div>
-          <span className="hidden sm:inline-flex items-center text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full border border-slate-200">
-            Admin Console
-          </span>
         </div>
 
-        {/* Center Nav Links (Desktop) */}
-        <nav className="hidden md:flex items-center gap-6 lg:gap-8 text-xs font-semibold text-slate-600">
-          <span className="flex items-center gap-1.5 hover:text-primary transition-colors">
-            <ShieldCheck className="w-3.5 h-3.5 text-primary" /> Identity Screening
-          </span>
-          <span className="flex items-center gap-1.5 hover:text-primary transition-colors">
-            <Building2 className="w-3.5 h-3.5 text-emerald-600" /> PESO & LGU Bulan
-          </span>
-          <span className="flex items-center gap-1.5 hover:text-primary transition-colors">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" /> AI Insights & Moderation
-          </span>
-        </nav>
-
-        {/* Right Status Pill */}
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>API Online</span>
-          </div>
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
-            <span>🇵🇭</span>
-            <span>Sorsogon, PH</span>
-          </div>
+        {/* Location Tag */}
+        <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
+          <span>🇵🇭</span>
+          <span>Sorsogon, Philippines</span>
         </div>
       </header>
 
       {/* ── Main Hero & Content Canvas ────────────────────────────────────── */}
-      <main className="relative z-20 flex-1 max-w-7xl mx-auto w-full px-6 sm:px-10 lg:px-16 py-8 lg:py-12 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-14">
+      <main className="relative z-20 flex-1 max-w-7xl mx-auto w-full px-6 sm:px-10 lg:px-16 py-12 lg:py-16 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-14">
         
         {/* Left Column: Vision, Value Prop & Live App Preview */}
         <div className="flex-1 max-w-xl text-center lg:text-left space-y-6 animate-slide-up">
@@ -351,23 +329,99 @@ export default function LoginPage() {
               </button>
             </form>
           )}
-
-          {/* Micro Trust Guarantee Footer */}
-          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              256-Bit SSL Encrypted
-            </span>
-            <span className="font-semibold text-slate-600">PESO Sorsogon</span>
-          </div>
         </div>
       </main>
 
-      {/* ── Refined Clean Bottom Footer ───────────────────────────────────── */}
-      <footer className="w-full bg-white border-t border-slate-200 py-3.5 px-6 text-center text-xs text-slate-500 font-body relative z-20">
-        <p>&copy; {new Date().getFullYear()} SIKAP Capstone Project · Sorsogon State University & LGU Bulan Platform</p>
+      {/* ── Comprehensive Professional Footer ─────────────────────────────── */}
+      <footer className="w-full bg-white border-t border-slate-200/90 pt-12 pb-8 px-6 sm:px-10 lg:px-16 text-slate-600 font-body relative z-20">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+          
+          {/* Col 1: Brand & Mission */}
+          <div className="space-y-3">
+            <div className="relative h-8 w-28 flex items-center">
+              <Image
+                src="/logo/04_Wordmark.png"
+                alt="SIKAP Logo"
+                width={112}
+                height={32}
+                className="object-contain"
+              />
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              A decentralized skills-matching and workforce management directory empowering local workers and verified employers across the Province of Sorsogon.
+            </p>
+          </div>
+
+          {/* Col 2: Core Platform Capabilities */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3.5">
+              Platform Features
+            </h4>
+            <ul className="space-y-2 text-xs text-slate-500">
+              <li className="flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                <span>Identity Verification</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>4-Stage Hiring Lifecycle</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Activity className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                <span>Real-Time Moderation</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
+                <span>AI Analytics & Ratings</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 3: Institutional Partnerships */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3.5">
+              Institutional Partners
+            </h4>
+            <ul className="space-y-2 text-xs text-slate-500">
+              <li className="flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+                <span>Sorsogon State University</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+                <span>LGU Bulan, Sorsogon</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+                <span>Public Employment Service Office</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 4: Compliance & Security */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3.5">
+              Compliance & Security
+            </h4>
+            <ul className="space-y-2 text-xs text-slate-500">
+              <li>Data Privacy Act of 2012 (RA 10173)</li>
+              <li>Two-Factor Authentication (TOTP)</li>
+              <li>Role-Based Access Control (RBAC)</li>
+              <li>Encrypted Credential Storage</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom Copyright Strip */}
+        <div className="max-w-7xl mx-auto pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <p>&copy; {new Date().getFullYear()} SIKAP Capstone Project. All rights reserved.</p>
+          <p className="text-[11px] text-slate-500">
+            Sorsogon State University & LGU Bulan Platform
+          </p>
+        </div>
       </footer>
     </div>
   );
 }
+
 
