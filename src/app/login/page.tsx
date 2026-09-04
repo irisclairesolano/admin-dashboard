@@ -6,13 +6,12 @@ import {
   ShieldCheck,
   Lock,
   Mail,
-  Sparkles,
   ArrowRight,
   Eye,
   EyeOff,
   Shield,
-  Activity,
-  Layers,
+  Briefcase,
+  FileCheck,
   Building2
 } from 'lucide-react';
 import Image from 'next/image';
@@ -130,62 +129,57 @@ export default function LoginPage() {
           
           {/* Tag Pill */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/5 border border-primary/15 text-primary text-xs font-bold tracking-wide uppercase shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
-            Decentralized Skills Marketplace
+            <FileCheck className="w-3.5 h-3.5 text-primary" />
+            Capstone Research Project
           </div>
 
-          <h1 className="font-display text-3xl sm:text-4xl lg:text-[46px] font-black tracking-tight text-slate-900 leading-[1.18]">
-            Connecting Skills,<br />
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight text-slate-900 leading-[1.2]">
+            Local Skills & Labor<br />
             <span className="text-primary bg-gradient-to-r from-primary via-slate-800 to-primary-soft bg-clip-text text-transparent">
-              Empowering Local Work.
+              Workforce Management.
             </span>
           </h1>
 
           <p className="font-body text-sm sm:text-base text-slate-600 leading-relaxed max-w-lg">
-            A trusted municipal directory and skills-matching platform uplifting labor sectors across Sorsogon through government-verified identity credentials, 4-stage job lifecycles, and real-time moderation.
+            An administrative management portal for the SIKAP mobile job platform—overseeing user identity verification, job post moderation, application tracking, and community safety in Bulan, Sorsogon.
           </p>
 
           {/* Three Feature Highlight Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-left">
             <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
               <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2">
-                <Shield className="w-4 h-4" />
+                <ShieldCheck className="w-4 h-4" />
               </div>
-              <p className="text-xs font-bold text-slate-900">100% ID-Verified</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Government screening</p>
+              <p className="text-xs font-bold text-slate-900">ID Verification</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Credential & ID review</p>
             </div>
 
             <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
               <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center mb-2">
-                <Layers className="w-4 h-4" />
+                <Briefcase className="w-4 h-4" />
               </div>
-              <p className="text-xs font-bold text-slate-900">4-Stage Pipeline</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Progressive disclosure</p>
+              <p className="text-xs font-bold text-slate-900">Job Listings</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Post & application oversight</p>
             </div>
 
             <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
               <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center mb-2">
-                <Activity className="w-4 h-4" />
+                <Shield className="w-4 h-4" />
               </div>
-              <p className="text-xs font-bold text-slate-900">Real-Time Sync</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Instant SSE moderation</p>
+              <p className="text-xs font-bold text-slate-900">Safety & Moderation</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Reports & profanity filter</p>
             </div>
           </div>
 
-          {/* Mini Live Chat Notification Bubble (Sleek Compact Representation) */}
-          <div className="bg-white/90 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/90 shadow-sm flex items-center gap-3.5 max-w-md mx-auto lg:mx-0 text-left">
-            <div className="w-10 h-10 rounded-xl bg-primary text-white font-bold flex items-center justify-center text-sm flex-shrink-0 shadow-xs">
-              S
+          {/* Institutional Note */}
+          <div className="bg-white/90 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/90 shadow-xs flex items-center gap-3.5 max-w-md mx-auto lg:mx-0 text-left">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-slate-900 truncate">Job Offer Locked · ₱650/day</p>
-                <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  Verified
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 mt-0.5 truncate">
-                Roland B. accepted offer for Carpentry & Repair at Bulan.
+              <p className="text-xs font-bold text-slate-900">Sorsogon State University & LGU Bulan</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                SIKAP Mobile Job Platform · Administrative Oversight Console
               </p>
             </div>
           </div>
@@ -348,7 +342,7 @@ export default function LoginPage() {
               />
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              A decentralized skills-matching and workforce management directory empowering local workers and verified employers across the Province of Sorsogon.
+              A dedicated mobile job platform and administrative management portal connecting local workers with nearby employment opportunities across Bulan, Sorsogon.
             </p>
           </div>
 
@@ -363,16 +357,16 @@ export default function LoginPage() {
                 <span>Identity Verification</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>4-Stage Hiring Lifecycle</span>
+                <Briefcase className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>Job Postings & Applications</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
-                <span>Real-Time Moderation</span>
+                <Shield className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+                <span>User Reports & Moderation</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
-                <span>AI Analytics & Ratings</span>
+                <FileCheck className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
+                <span>Activity Logs & Analytics</span>
               </li>
             </ul>
           </div>
