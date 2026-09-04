@@ -10,6 +10,7 @@ import { adminApi } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { AIInsightsCard, InsightsData } from '@/components/AIInsightsCard';
 import { CHART_COLORS } from '@/lib/constants';
+import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency } from '@/lib/export/csv';
 
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
@@ -318,54 +319,215 @@ export default function AnalyticsDashboard() {
   const handleExportCSV = () => {
     if (!data) return;
 
-    let csv = "";
-    csv += "SIKAP ADMIN DASHBOARD - ANALYTICS REPORT\r\n";
-    csv += `Generated On: ${new Date().toLocaleString()}\r\n`;
-    csv += `Reporting Period: ${from} to ${to}\r\n\r\n`;
+    const sections = [
+      {
+        title: 'Key Performance Indicators (KPIs)',
+        headers: ['Metric', 'Current Value', 'PoP Change (%)', 'Trend Direction'],
+        rows: [
+          ['New Registrations', data.kpis?.total_users?.value ?? 0, `${data.kpis?.total_users?.change ?? 0}%`, (data.kpis?.total_users?.change ?? 0) >= 0 ? 'Growth' : 'Decline'],
+          ['Jobs Posted', data.kpis?.active_jobs?.value ?? 0, `${data.kpis?.active_jobs?.change ?? 0}%`, (data.kpis?.active_jobs?.change ?? 0) >= 0 ? 'Growth' : 'Decline'],
+          ['Applications', data.kpis?.applications?.value ?? 0, `${data.kpis?.applications?.change ?? 0}%`, (data.kpis?.applications?.change ?? 0) >= 0 ? 'Growth' : 'Decline'],
+          ['Reports Filed', data.kpis?.unresolved_reports?.value ?? 0, `${data.kpis?.unresolved_reports?.change ?? 0}%`, (data.kpis?.unresolved_reports?.change ?? 0) <= 0 ? 'Improvement' : 'Alert'],
+        ]
+      },
+      {
+        title: 'User Growth & Time-Series Activity',
+        headers: ['Time Interval', 'New Workers', 'New Employers'],
+        rows: (transformedUserGrowth || []).map((item: any) => [
+          item.name || '',
+          item.workers ?? 0,
+          item.employers ?? 0
+        ])
+      },
+      {
+        title: 'Application Volume Time-Series',
+        headers: ['Time Interval', 'Applications', 'Unique Jobs'],
+        rows: (transformedApplicationVolume || []).map((item: any) => [
+          item.name || '',
+          item.applications ?? 0,
+          item.jobs ?? 0
+        ])
+      },
+      {
+        title: '4-Stage Application-to-Hire Funnel',
+        headers: ['Funnel Stage', 'Volume Count', 'Conversion Rate (%)'],
+        rows: (funnelSteps || []).map((step: any) => [
+          step.label || '',
+          step.value ?? 0,
+          step.rate || '0%'
+        ])
+      },
+      {
+        title: 'User Demographics & Verification Ratios',
+        headers: ['Demographic Group', 'Count', 'Percentage of Total'],
+        rows: [
+          ['Registered Workers', data.user_ratio?.workers ?? 0, `${data.user_ratio?.workers_pct ?? 0}%`],
+          ['Registered Employers', data.user_ratio?.employers ?? 0, `${data.user_ratio?.employers_pct ?? 0}%`],
+          ['Verified Users', data.user_ratio?.verified_users ?? 0, `${data.user_ratio?.verified_pct ?? 0}%`],
+          ['Unverified Users', data.user_ratio?.unverified_users ?? 0, `${data.user_ratio?.unverified_pct ?? 0}%`],
+        ]
+      },
+      {
+        title: 'Wage & Compensation by Category',
+        headers: ['Trade Category', 'Average Wage (PHP)', 'Min Wage (PHP)', 'Max Wage (PHP)'],
+        rows: (data.compensation?.categories || []).map((c: any) => [
+          c.category || 'General',
+          formatCSVCurrency(c.avg_comp),
+          formatCSVCurrency(data.compensation?.min),
+          formatCSVCurrency(data.compensation?.max)
+        ])
+      },
+      {
+        title: 'Geographic Activity by Location',
+        headers: ['Location', 'Job Postings Count', 'Applications Count'],
+        rows: (transformedGeographicActivity || []).map((g: any) => [
+          g.name || 'Bulan',
+          g.jobs ?? 0,
+          g.applications ?? 0
+        ])
+      },
+      {
+        title: 'Moderation & Safety Violation Breakdown',
+        headers: ['Violation Type', 'Report Count'],
+        rows: (data.reports?.breakdown || []).map((r: any) => [
+          r.type || 'Other',
+          r.count ?? 0
+        ])
+      }
+    ];
 
-    // KPIs
-    csv += "KEY PERFORMANCE INDICATORS\r\n";
-    csv += "Metric,Current Value,PoP Change (%)\r\n";
-    csv += `New Registrations,${data.kpis?.total_users?.value ?? 0},${data.kpis?.total_users?.change ?? 0}%\r\n`;
-    csv += `Jobs Posted,${data.kpis?.active_jobs?.value ?? 0},${data.kpis?.active_jobs?.change ?? 0}%\r\n`;
-    csv += `Applications,${data.kpis?.applications?.value ?? 0},${data.kpis?.applications?.change ?? 0}%\r\n`;
-    csv += `Reports Filed,${data.kpis?.unresolved_reports?.value ?? 0},${data.kpis?.unresolved_reports?.change ?? 0}%\r\n\r\n`;
+    exportMultiSectionCSV(
+      `sikap_analytics_${from}_to_${to}`,
+      'SIKAP Platform Descriptive Analytics Report',
+      [
+        ['Generated On:', formatCSVDate(new Date().toISOString())],
+        ['Reporting Period:', `${from} to ${to}`],
+        ['Aggregation Interval:', intervalFilter],
+        ['Platform:', 'Sorsogon State University & LGU Bulan Platform']
+      ],
+      sections
+    );
+  };
 
-    // Funnel & Retention
-    csv += "FUNNEL & RETENTION\r\n";
-    csv += `Total Applications,${data.funnel?.total_applications ?? 0}\r\n`;
-    csv += `Accepted Applications,${data.funnel?.accepted_applications ?? 0}\r\n`;
-    csv += `Completed Jobs,${data.funnel?.completed_jobs ?? 0}\r\n`;
-    csv += `Job Fill Rate,${data.fill_rate?.value ?? 0}%\r\n`;
-    csv += `Worker Retention Rate,${data.worker_retention?.retention_rate ?? 0}%\r\n\r\n`;
+  const handleExportMasterCSV = async () => {
+    try {
+      setLoading(true);
+      const [usersRes, jobsRes, verifRes, reportsRes] = await Promise.all([
+        adminApi.getUsers(),
+        adminApi.getJobs(),
+        adminApi.getVerifications(),
+        adminApi.getReports('all', 1)
+      ]);
 
-    // User Demographics
-    csv += "USER DEMOGRAPHICS\r\n";
-    csv += `Workers count,${data.user_ratio?.workers ?? 0}\r\n`;
-    csv += `Employers count,${data.user_ratio?.employers ?? 0}\r\n`;
-    csv += `Verified count,${data.user_ratio?.verified_users ?? 0}\r\n`;
-    csv += `Unverified count,${data.user_ratio?.unverified_users ?? 0}\r\n\r\n`;
+      const usersList = usersRes.data?.data || usersRes.data || [];
+      const jobsList = jobsRes.data?.data || jobsRes.data || [];
+      const verifList = verifRes.data?.data || verifRes.data || [];
+      const reportsList = reportsRes.data?.data || reportsRes.data || [];
 
-    // Compensation
-    csv += "COMPENSATION ANALYTICS\r\n";
-    csv += `Min Compensation,PHP ${data.compensation?.min ?? 0}\r\n`;
-    csv += `Avg Compensation,PHP ${data.compensation?.avg ?? 0}\r\n`;
-    csv += `Max Compensation,PHP ${data.compensation?.max ?? 0}\r\n\r\n`;
+      const masterSections = [
+        {
+          title: 'Section 1: Platform Executive Summary',
+          headers: ['Metric', 'Total Value'],
+          rows: [
+            ['Total Registered Users', usersList.length],
+            ['Total Jobs Posted', jobsList.length],
+            ['Pending Verifications', verifList.filter((v: any) => v.verification_status === 'pending').length],
+            ['Total Moderation Reports', reportsList.length],
+            ['Fill Rate', `${data?.fill_rate?.value ?? 0}%`],
+            ['Average Compensation (PHP)', formatCSVCurrency(data?.compensation?.avg)]
+          ]
+        },
+        {
+          title: 'Section 2: Registered Users Directory',
+          headers: ['User ID', 'Full Name', 'Role', 'Email', 'Phone', 'Municipality', 'Barangay', 'Verification Status', 'Operational Status', 'Reputation Score', 'Date Registered'],
+          rows: usersList.map((u: any) => [
+            u.id,
+            u.name,
+            u.role,
+            u.email,
+            u.phone || '',
+            u.municipality || 'Bulan',
+            u.barangay || '',
+            u.verification_status,
+            u.is_suspended ? 'Suspended' : 'Active',
+            u.reputation_score ?? '5.00',
+            formatCSVDate(u.created_at)
+          ])
+        },
+        {
+          title: 'Section 3: Job Postings & Opportunities',
+          headers: ['Job ID', 'Reference Code', 'Job Title', 'Employer', 'Category', 'Compensation (PHP)', 'Duration Type', 'Slots Required', 'Slots Hired', 'Status', 'Applications Count', 'Date Posted'],
+          rows: jobsList.map((j: any) => [
+            j.id,
+            j.reference_number || `SKP-JOB-${j.id}`,
+            j.title,
+            j.employer?.name || '',
+            j.category,
+            formatCSVCurrency(j.compensation),
+            j.duration_type,
+            j.slots ?? 1,
+            j.accepted_count ?? 0,
+            j.status,
+            j.applications_count ?? 0,
+            formatCSVDate(j.created_at)
+          ])
+        },
+        {
+          title: 'Section 4: Identity Verification & Credential Audit',
+          headers: ['User ID', 'Full Name', 'Role', 'Verification Status', 'Front ID', 'Back ID', 'Selfie', 'Rejection Reason', 'Submission Date'],
+          rows: verifList.map((v: any) => [
+            v.id,
+            v.name,
+            v.role,
+            v.verification_status,
+            v.document_url ? 'Yes' : 'No',
+            v.document_back_url ? 'Yes' : 'No',
+            v.selfie_url ? 'Yes' : 'No',
+            v.rejection_reason || '',
+            formatCSVDate(v.created_at)
+          ])
+        },
+        {
+          title: 'Section 5: Community Safety & Incident Reports',
+          headers: ['Report ID', 'Violation Type', 'Target Type', 'Target ID', 'Reporter Name', 'Description', 'Status', 'Date Reported', 'Date Resolved'],
+          rows: reportsList.map((r: any) => [
+            r.id,
+            r.type,
+            r.reportable_type,
+            r.reportable_id,
+            r.reporter?.name || '',
+            r.description,
+            r.status,
+            formatCSVDate(r.created_at),
+            formatCSVDate(r.resolved_at)
+          ])
+        },
+        {
+          title: 'Section 6: Wage & Trade Category Benchmarks',
+          headers: ['Trade Category', 'Average Wage (PHP)'],
+          rows: (data?.compensation?.categories || []).map((c: any) => [
+            c.category,
+            formatCSVCurrency(c.avg_comp)
+          ])
+        }
+      ];
 
-    // Reports
-    csv += "REPORTS MODERATION\r\n";
-    csv += `Unresolved Open Reports,${data.reports?.open_reports ?? 0}\r\n`;
-    csv += `Avg Resolution Time (Sec),${data.reports?.average_resolution_seconds ?? 0}\r\n`;
-    csv += `Most Common Type,${data.reports?.most_common_type ?? 'None'}\r\n`;
-
-    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `sikap_analytics_${from}_to_${to}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      exportMultiSectionCSV(
+        `sikap_master_platform_${new Date().toISOString().slice(0, 10)}`,
+        'SIKAP Comprehensive Platform Master Report',
+        [
+          ['Generated On:', formatCSVDate(new Date().toISOString())],
+          ['Reporting Scope:', 'Complete Platform Snapshot (All Entities)'],
+          ['Platform:', 'Sorsogon State University & LGU Bulan Platform'],
+          ['Document Classification:', 'Official Municipal Administration Export']
+        ],
+        masterSections
+      );
+    } catch (err) {
+      console.error('Failed to export master platform CSV', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleExportPDF = () => {
@@ -581,7 +743,7 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="animate-fade-in print:p-0 print:bg-white min-h-screen pb-12">
-      {/* Dynamic Style Block for PDF Exports */}
+      {/* Dynamic Style Block for PDF & Print Exports */}
       <style jsx global>{`
         @media screen {
           .print-only-report {
@@ -597,10 +759,14 @@ export default function AnalyticsDashboard() {
           }
         }
         @media print {
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
           body {
             background: white !important;
-            color: black !important;
-            font-size: 12px !important;
+            color: #0f172a !important;
+            font-size: 11px !important;
           }
           header, sidebar, nav, button, select, .no-print, [className*="sidebar"], [className*="Sidebar"], .screen-only {
             display: none !important;
@@ -612,7 +778,7 @@ export default function AnalyticsDashboard() {
             width: 100% !important;
             display: flex !important;
             flex-direction: column !important;
-            padding: 0 !important;
+            padding: 16px !important;
             margin: 0 !important;
             background: white !important;
           }
@@ -625,7 +791,8 @@ export default function AnalyticsDashboard() {
           .print-card-grid {
             grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
           }
-          .print-chart-container {
+          .print-chart-container, .print-card-grid, table, .avoid-break {
+            break-inside: avoid !important;
             page-break-inside: avoid !important;
           }
           .print-page-break {
@@ -640,30 +807,38 @@ export default function AnalyticsDashboard() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-display font-bold text-ink">Dashboard Overview</h1>
-            <p className="text-xs font-body text-ink-muted mt-1">Platform analytics and administrative insights.</p>
+            <p className="text-xs font-body text-ink-muted mt-1">Platform analytics, municipal labor trends, and data exports.</p>
           </div>
 
           {/* Date Filter & Aggregation Components */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Export Actions */}
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <button
                 onClick={handleExportCSV}
-                className="flex items-center gap-2 bg-white/70 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 shadow-sm text-xs font-body font-bold text-ink hover:bg-ink hover:text-white transition-all duration-300"
+                title="Export descriptive analytics report as CSV"
+                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-slate-700 hover:bg-slate-900 hover:text-white transition-all cursor-pointer"
               >
-                <i className="lni lni-download mr-1" />
-                CSV
+                <i className="lni lni-download text-xs" />
+                <span>Analytics CSV</span>
+              </button>
+              <button
+                onClick={handleExportMasterCSV}
+                title="Export complete master database snapshot as CSV"
+                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-primary hover:bg-primary hover:text-white transition-all cursor-pointer"
+              >
+                <i className="lni lni-database text-xs" />
+                <span>Master CSV</span>
               </button>
               <button
                 onClick={handleExportPDF}
-                className="flex items-center gap-2 bg-white/70 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 shadow-sm text-xs font-body font-bold text-ink hover:bg-ink hover:text-white transition-all duration-300"
+                title="Print or save official municipal report as PDF"
+                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-slate-700 hover:bg-slate-900 hover:text-white transition-all cursor-pointer"
               >
-                <i className="lni lni-printer mr-1" />
-                PDF
+                <i className="lni lni-printer text-xs" />
+                <span>PDF Report</span>
               </button>
             </div>
-
-
 
             {renderDateSelector(activeTab)}
           </div>
@@ -1579,16 +1754,26 @@ export default function AnalyticsDashboard() {
 
       {data && (
         <div className="print-only-report">
-          {/* Cover Page */}
-          <div className="mb-8 flex flex-col items-center text-center pb-8 border-b border-gray-200">
-            <h1 className="text-3xl font-display font-black text-ink uppercase tracking-tight">SIKAP Platform Descriptive Analytics Report</h1>
-            <p className="text-sm font-body text-ink-soft mt-2">
-              Reporting Period: <span className="font-bold">{from} to {to}</span> | 
-              Aggregation: <span className="font-bold">{intervalFilter}</span>
-            </p>
-            <p className="text-xs font-body text-ink-muted mt-1">
-              Generated On: {new Date().toLocaleString()}
-            </p>
+          {/* Institutional Document Header */}
+          <div className="mb-8 pb-6 border-b-2 border-slate-300 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white font-black text-lg">
+                S
+              </div>
+              <div>
+                <h1 className="text-xl font-display font-black text-slate-900 tracking-tight uppercase">
+                  SIKAP Administrative Workforce Report
+                </h1>
+                <p className="text-[11px] font-body text-slate-500 font-semibold">
+                  Sorsogon State University & LGU Bulan Platform
+                </p>
+              </div>
+            </div>
+            <div className="text-right text-[10px] text-slate-600 space-y-0.5">
+              <p><span className="font-bold text-slate-900">Period:</span> {from} to {to}</p>
+              <p><span className="font-bold text-slate-900">Granularity:</span> {intervalFilter.toUpperCase()}</p>
+              <p><span className="font-bold text-slate-900">Generated:</span> {new Date().toLocaleString()}</p>
+            </div>
           </div>
 
           {/* AI Insights & Recommendations */}
@@ -1895,6 +2080,22 @@ export default function AnalyticsDashboard() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+
+          {/* Official Municipal Sign-off Block */}
+          <div className="mt-12 pt-8 border-t-2 border-slate-200 grid grid-cols-2 gap-12 print-chart-container avoid-break">
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-8">Prepared & Certified By:</p>
+              <div className="border-b border-gray-400 w-48 mb-1"></div>
+              <p className="text-xs font-bold text-gray-800">Platform Administrator</p>
+              <p className="text-[10px] text-gray-500">SIKAP Management Console · Bulan, Sorsogon</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-8">Noted & Received By:</p>
+              <div className="border-b border-gray-400 w-48 mb-1"></div>
+              <p className="text-xs font-bold text-gray-800">Public Employment Service Office (PESO)</p>
+              <p className="text-[10px] text-gray-500">LGU Bulan / Sorsogon State University</p>
             </div>
           </div>
         </div>

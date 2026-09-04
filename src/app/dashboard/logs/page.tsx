@@ -9,6 +9,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { AlertDialog } from '@/components/AlertDialog';
 import { formatDate } from '@/lib/date';
 import { ACTION_TYPES, DEFAULT_ACTION_BADGE } from '@/lib/constants';
+import { exportTableToCSV, formatCSVDate } from '@/lib/export/csv';
 
 function LogsPageContent() {
   const searchParams = useSearchParams();
@@ -91,32 +92,33 @@ function LogsPageContent() {
       return;
     }
 
-    const headers = ['Timestamp', 'Administrator Name', 'Administrator Email', 'Action', 'Target', 'Description'];
+    const headers = [
+      'Log ID',
+      'Timestamp',
+      'Administrator Name',
+      'Administrator Email',
+      'Action Code',
+      'Target Entity',
+      'Target ID',
+      'Activity Description'
+    ];
+
     const rows = logs.map(log => [
-      new Date(log.created_at).toLocaleString(),
+      log.id,
+      formatCSVDate(log.created_at),
       log.admin?.name || 'System Admin',
       log.admin?.email || 'N/A',
       formatActionName(log.action),
-      log.target_name || '-',
-      log.description.replace(/"/g, '""') // Escape quotes for CSV
+      log.target_type || log.target_name || '-',
+      log.target_id || '',
+      log.description || ''
     ]);
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    const today = new Date().toISOString().slice(0, 10);
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', `sikap-audit-logs-${today}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    exportTableToCSV(
+      `sikap_audit_logs_${new Date().toISOString().slice(0, 10)}`,
+      headers,
+      rows
+    );
   };
 
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;

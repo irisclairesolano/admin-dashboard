@@ -8,6 +8,7 @@ import { AlertDialog } from '@/components/AlertDialog';
 import { humanizeModel } from '@/lib/constants';
 import { formatDate } from '@/lib/date';
 import { usePolling } from '@/hooks/usePolling';
+import { exportTableToCSV, formatCSVDate } from '@/lib/export/csv';
 
 function ReportsPageContent() {
   const router = useRouter();
@@ -34,6 +35,50 @@ function ReportsPageContent() {
     message: '',
     onConfirm: () => {},
   });
+
+  const handleExportCSV = () => {
+    if (!reports || reports.length === 0) {
+      setAlertState({
+        open: true,
+        title: 'Export Empty',
+        message: 'No moderation reports available to export.',
+        onConfirm: () => setAlertState(s => ({ ...s, open: false })),
+      });
+      return;
+    }
+
+    const headers = [
+      'Report ID',
+      'Violation Type',
+      'Target Model',
+      'Target ID',
+      'Reporter Name',
+      'Reporter Role',
+      'Description',
+      'Status',
+      'Date Reported',
+      'Date Resolved'
+    ];
+
+    const rows = filteredReports.map((r) => [
+      r.id,
+      r.type,
+      r.reportable_type,
+      r.reportable_id,
+      r.reporter?.name || '',
+      r.reporter?.role || '',
+      r.description,
+      r.status,
+      formatCSVDate(r.created_at),
+      formatCSVDate(r.resolved_at)
+    ]);
+
+    exportTableToCSV(
+      `sikap_reports_${new Date().toISOString().slice(0, 10)}`,
+      headers,
+      rows
+    );
+  };
 
   // Sync search query from URL query parameter
   useEffect(() => {
@@ -174,6 +219,16 @@ function ReportsPageContent() {
             </select>
             <i className="lni lni-chevron-down absolute right-3.5 top-1/2 transform -translate-y-1/2 text-ink-muted pointer-events-none" />
           </div>
+
+          <button
+            onClick={handleExportCSV}
+            aria-label="Export reports as CSV"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
+            title="Export filtered reports list as CSV"
+          >
+            <i className="lni lni-download text-xs" />
+            <span>Export CSV</span>
+          </button>
 
           <button
             onClick={() => fetchReports(false)}

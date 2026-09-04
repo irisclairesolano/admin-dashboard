@@ -8,6 +8,7 @@ import StatusTabs from '@/components/StatusTabs';
 import { AlertDialog } from '@/components/AlertDialog';
 import { formatDate } from '@/lib/date';
 import { STATUS_BADGE_MAP, DEFAULT_BADGE_CLASS } from '@/lib/constants';
+import { exportTableToCSV, formatCSVDate, formatCSVCurrency } from '@/lib/export/csv';
 
 function JobsPageContent() {
   const searchParams = useSearchParams();
@@ -21,6 +22,58 @@ function JobsPageContent() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedDetailJob, setSelectedDetailJob] = useState<any | null>(null);
   const [alertState, setAlertState] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void }>({ open: false, title: '', message: '', onConfirm: () => {} });
+
+  const handleExportCSV = () => {
+    if (!jobs || jobs.length === 0) {
+      setAlertState({
+        open: true,
+        title: 'Export Empty',
+        message: 'No job postings available to export.',
+        onConfirm: () => setAlertState(s => ({ ...s, open: false })),
+      });
+      return;
+    }
+
+    const headers = [
+      'Job ID',
+      'Reference Number',
+      'Job Title',
+      'Employer Name',
+      'Category',
+      'Compensation (PHP)',
+      'Duration Type',
+      'Slots Required',
+      'Slots Hired',
+      'Municipality',
+      'Barangay',
+      'Status',
+      'Applications Count',
+      'Date Posted'
+    ];
+
+    const rows = filteredJobs.map((j) => [
+      j.id,
+      j.reference_number || `SKP-JOB-${j.id}`,
+      j.title,
+      j.employer?.name || '',
+      j.category,
+      formatCSVCurrency(j.compensation),
+      j.duration_type,
+      j.slots ?? 1,
+      j.accepted_count ?? 0,
+      j.municipality || 'Bulan',
+      j.barangay || '',
+      j.status,
+      j.applications_count ?? 0,
+      formatCSVDate(j.created_at)
+    ]);
+
+    exportTableToCSV(
+      `sikap_jobs_${new Date().toISOString().slice(0, 10)}`,
+      headers,
+      rows
+    );
+  };
 
   // Sync search from URL query param
   useEffect(() => {
@@ -234,10 +287,20 @@ function JobsPageContent() {
               placeholder="Search jobs..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white/80 backdrop-blur-md border border-ink-faint/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition"
+              className="w-full pl-10 pr-4 py-2 bg-white/80 backdrop-blur-md border border-ink-faint/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition text-sm font-body"
             />
             <i className="lni lni-search text-ink-muted absolute left-3.5 top-1/2 transform -translate-y-1/2" />
           </div>
+
+          <button
+            onClick={handleExportCSV}
+            aria-label="Export jobs as CSV"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
+            title="Export filtered job postings as CSV"
+          >
+            <i className="lni lni-download text-xs" />
+            <span>Export CSV</span>
+          </button>
         </div>
 
         {/* Table layout (fixed w-full to prevent shifts) */}

@@ -6,6 +6,7 @@ import { adminApi } from '@/lib/api';
 import Avatar from '@/components/Avatar';
 import dynamic from 'next/dynamic';
 import { AlertDialog } from '@/components/AlertDialog';
+import { exportTableToCSV, formatCSVDate } from '@/lib/export/csv';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
@@ -51,6 +52,57 @@ function VerificationsPageContent() {
     } finally {
       if (!silent) setLoading(false);
     }
+  };
+
+  const handleExportCSV = () => {
+    if (!users || users.length === 0) {
+      setAlertState({
+        isOpen: true,
+        title: 'Export Empty',
+        message: 'There are no verification records available to export.',
+      });
+      return;
+    }
+
+    const headers = [
+      'User ID',
+      'Full Name',
+      'Role',
+      'Email Address',
+      'Phone Number',
+      'Municipality',
+      'Barangay',
+      'Verification Status',
+      'Front ID Uploaded',
+      'Back ID Uploaded',
+      'Selfie Uploaded',
+      'Rejection Reason',
+      'Submission Date',
+      'Last Review Date'
+    ];
+
+    const rows = pendingUsers.map((u) => [
+      u.id,
+      u.name,
+      u.role,
+      u.email,
+      u.phone || '',
+      u.municipality || 'Bulan',
+      u.barangay || '',
+      u.verification_status || u.registration_status,
+      u.document_url ? 'Yes' : 'No',
+      u.document_back_url ? 'Yes' : 'No',
+      u.selfie_url ? 'Yes' : 'No',
+      u.rejection_reason || '',
+      formatCSVDate(u.created_at),
+      formatCSVDate(u.updated_at)
+    ]);
+
+    exportTableToCSV(
+      `sikap_verifications_${new Date().toISOString().slice(0, 10)}`,
+      headers,
+      rows
+    );
   };
 
   useEffect(() => {
@@ -155,6 +207,16 @@ function VerificationsPageContent() {
             </select>
             <i className="lni lni-chevron-down absolute right-3.5 top-1/2 transform -translate-y-1/2 text-ink-muted pointer-events-none" />
           </div>
+
+          <button
+            onClick={handleExportCSV}
+            aria-label="Export verifications as CSV"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
+            title="Export verifications list as CSV"
+          >
+            <i className="lni lni-download text-xs" />
+            <span>Export CSV</span>
+          </button>
 
           <button
             onClick={() => fetchVerifications(false)}

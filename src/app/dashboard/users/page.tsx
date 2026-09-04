@@ -7,8 +7,9 @@ import dynamic from 'next/dynamic';
 import { useDebounce } from '@/hooks/useDebounce';
 import { adminApi } from '@/lib/api';
 import StatCard from '@/components/StatCard';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Download } from 'lucide-react';
 import UserTable from '@/components/users/UserTable';
+import { exportTableToCSV, formatCSVDate } from '@/lib/export/csv';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
@@ -332,6 +333,52 @@ function UsersContent() {
     }
   };
 
+  const handleExportCSV = () => {
+    if (!users || users.length === 0) {
+      setAlertState({
+        open: true,
+        title: 'Export Empty',
+        message: 'No user records available to export.',
+        onConfirm: () => setAlertState(s => ({ ...s, open: false })),
+      });
+      return;
+    }
+
+    const headers = [
+      'User ID',
+      'Full Name',
+      'Role',
+      'Email Address',
+      'Phone Number',
+      'Municipality',
+      'Barangay',
+      'Verification Status',
+      'Operational Status',
+      'Reputation Score',
+      'Date Registered'
+    ];
+
+    const rows = sortedUsers.map((u) => [
+      u.id,
+      u.name,
+      u.role,
+      u.email,
+      u.phone || '',
+      u.municipality || 'Bulan',
+      u.barangay || '',
+      u.verification_status,
+      u.is_suspended ? 'Suspended' : u.deleted_at ? 'Archived' : 'Active',
+      u.reputation_score ?? '5.00',
+      formatCSVDate(u.created_at)
+    ]);
+
+    exportTableToCSV(
+      `sikap_users_directory_${new Date().toISOString().slice(0, 10)}`,
+      headers,
+      rows
+    );
+  };
+
   const filteredUsers = users.filter(u => {
     const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email.toLowerCase().includes(searchTerm.toLowerCase());
@@ -485,6 +532,16 @@ function UsersContent() {
             <option value="desc">Descending / Newest</option>
             <option value="asc">Ascending / Oldest</option>
           </select>
+
+          <button
+            onClick={handleExportCSV}
+            aria-label="Export users as CSV"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
+            title="Export filtered users directory as CSV"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export CSV</span>
+          </button>
         </div>
       </div>
 
