@@ -164,6 +164,17 @@ export default function AnalyticsDashboard() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
   const [aiPeriod, setAiPeriod] = useState('');
+
+  // Print & Master PDF States
+  const [printMode, setPrintMode] = useState<'analytics' | 'master'>('analytics');
+  const [masterData, setMasterData] = useState<{
+    users: any[];
+    jobs: any[];
+    verifications: any[];
+    reports: any[];
+    logs: any[];
+  } | null>(null);
+  const [isGeneratingMasterPdf, setIsGeneratingMasterPdf] = useState(false);
   // Get active period and interval based on selected tab and its filters
   const getActivePeriodAndInterval = useCallback(() => {
     let preset: string;
@@ -403,7 +414,7 @@ export default function AnalyticsDashboard() {
         ['Generated On:', formatCSVDate(new Date().toISOString())],
         ['Reporting Period:', `${from} to ${to}`],
         ['Aggregation Interval:', intervalFilter],
-        ['Platform:', 'Sorsogon State University & LGU Bulan Platform']
+        ['Platform:', 'SIKAP: Skills & Job Matching Platform']
       ],
       sections
     );
@@ -413,10 +424,10 @@ export default function AnalyticsDashboard() {
     try {
       setLoading(true);
       const [usersRes, jobsRes, verifRes, reportsRes] = await Promise.all([
-        adminApi.getUsers(),
-        adminApi.getJobs(),
-        adminApi.getVerifications(),
-        adminApi.getReports('all', 1)
+        adminApi.getUsers().catch(() => ({ data: [] })),
+        adminApi.getJobs().catch(() => ({ data: [] })),
+        adminApi.getVerifications().catch(() => ({ data: [] })),
+        adminApi.getReports('all', 1).catch(() => ({ data: [] }))
       ]);
 
       const usersList = usersRes.data?.data || usersRes.data || [];
@@ -518,8 +529,8 @@ export default function AnalyticsDashboard() {
         [
           ['Generated On:', formatCSVDate(new Date().toISOString())],
           ['Reporting Scope:', 'Complete Platform Snapshot (All Entities)'],
-          ['Platform:', 'Sorsogon State University & LGU Bulan Platform'],
-          ['Document Classification:', 'Official Municipal Administration Export']
+          ['Platform:', 'SIKAP: Skills & Job Matching Platform'],
+          ['Document Classification:', 'SIKAP Platform Master Database Snapshot']
         ],
         masterSections
       );
@@ -531,7 +542,46 @@ export default function AnalyticsDashboard() {
   };
 
   const handleExportPDF = () => {
-    window.print();
+    setPrintMode('analytics');
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
+
+  const handleExportMasterPDF = async () => {
+    try {
+      setIsGeneratingMasterPdf(true);
+      const [usersRes, jobsRes, verifRes, reportsRes, logsRes] = await Promise.all([
+        adminApi.getUsers().catch(() => ({ data: [] })),
+        adminApi.getJobs().catch(() => ({ data: [] })),
+        adminApi.getVerifications().catch(() => ({ data: [] })),
+        adminApi.getReports('all', 1).catch(() => ({ data: [] })),
+        adminApi.getLogs(1).catch(() => ({ data: [] })),
+      ]);
+
+      const usersList = usersRes.data?.data || usersRes.data || [];
+      const jobsList = jobsRes.data?.data || jobsRes.data || [];
+      const verifList = verifRes.data?.data || verifRes.data || [];
+      const reportsList = reportsRes.data?.data || reportsRes.data || [];
+      const logsList = logsRes.data?.data || logsRes.data || [];
+
+      setMasterData({
+        users: Array.isArray(usersList) ? usersList : [],
+        jobs: Array.isArray(jobsList) ? jobsList : [],
+        verifications: Array.isArray(verifList) ? verifList : [],
+        reports: Array.isArray(reportsList) ? reportsList : [],
+        logs: Array.isArray(logsList) ? logsList : [],
+      });
+      setPrintMode('master');
+
+      setTimeout(() => {
+        setIsGeneratingMasterPdf(false);
+        window.print();
+      }, 300);
+    } catch (err) {
+      console.error('Failed to generate master platform PDF', err);
+      setIsGeneratingMasterPdf(false);
+    }
   };
 
   const stats = [
@@ -817,7 +867,7 @@ export default function AnalyticsDashboard() {
               <button
                 onClick={handleExportCSV}
                 title="Export descriptive analytics report as CSV"
-                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-slate-700 hover:bg-slate-900 hover:text-white transition-all cursor-pointer"
+                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-slate-700 hover:bg-slate-900 hover:text-white transition-all cursor-pointer"
               >
                 <i className="lni lni-download text-xs" />
                 <span>Analytics CSV</span>
@@ -825,18 +875,31 @@ export default function AnalyticsDashboard() {
               <button
                 onClick={handleExportMasterCSV}
                 title="Export complete master database snapshot as CSV"
-                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-primary hover:bg-primary hover:text-white transition-all cursor-pointer"
+                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-primary hover:bg-primary hover:text-white transition-all cursor-pointer"
               >
                 <i className="lni lni-database text-xs" />
                 <span>Master CSV</span>
               </button>
               <button
                 onClick={handleExportPDF}
-                title="Print or save official municipal report as PDF"
-                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-slate-700 hover:bg-slate-900 hover:text-white transition-all cursor-pointer"
+                title="Print or save descriptive analytics report as PDF"
+                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-slate-700 hover:bg-slate-900 hover:text-white transition-all cursor-pointer"
               >
                 <i className="lni lni-printer text-xs" />
-                <span>PDF Report</span>
+                <span>Analytics PDF</span>
+              </button>
+              <button
+                onClick={handleExportMasterPDF}
+                disabled={isGeneratingMasterPdf}
+                title="Print or save comprehensive multi-page master platform dossier as PDF"
+                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isGeneratingMasterPdf ? (
+                  <i className="lni lni-spinner animate-spin text-xs" />
+                ) : (
+                  <i className="lni lni-files text-xs" />
+                )}
+                <span>{isGeneratingMasterPdf ? 'Preparing...' : 'Master PDF'}</span>
               </button>
             </div>
 
@@ -1752,354 +1815,512 @@ export default function AnalyticsDashboard() {
       )}
       </div> {/* screen-only closing */}
 
-      {data && (
-        <div className="print-only-report">
-          {/* Institutional Document Header */}
-          <div className="mb-8 pb-6 border-b-2 border-slate-300 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white font-black text-lg">
-                S
+      {/* Printable Report Section */}
+      <div className="print-only-report">
+        {printMode === 'master' && masterData ? (
+          /* ================= MASTER PLATFORM DOSSIER ================= */
+          <div className="space-y-8">
+            {/* Master Header */}
+            <div className="pb-6 border-b-2 border-slate-300 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white font-black text-lg">
+                  S
+                </div>
+                <div>
+                  <h1 className="text-xl font-display font-black text-slate-900 tracking-tight uppercase">
+                    SIKAP Comprehensive Platform Master Dossier
+                  </h1>
+                  <p className="text-[11px] font-body text-slate-500 font-semibold">
+                    SIKAP: Skills and Job Matching Platform · Complete Platform Snapshot
+                  </p>
+                </div>
+              </div>
+              <div className="text-right text-[10px] text-slate-600 space-y-0.5">
+                <p><span className="font-bold text-slate-900">Document:</span> Master Executive Audit</p>
+                <p><span className="font-bold text-slate-900">Generated:</span> {new Date().toLocaleString()}</p>
+                <p><span className="font-bold text-slate-900">Status:</span> Live Database State</p>
+              </div>
+            </div>
+
+            {/* Section 1: Executive KPI Overview */}
+            <div className="print-chart-container">
+              <h2 className="text-sm font-display font-bold text-slate-900 mb-3 uppercase tracking-wider">
+                Section 1: Executive Key Performance Indicators
+              </h2>
+              <div className="grid grid-cols-4 gap-4 print-card-grid mb-6">
+                <div className="p-4 bg-white rounded-xl border border-slate-200">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Total Users</p>
+                  <p className="text-xl font-black text-slate-900 mt-1">{masterData.users.length}</p>
+                </div>
+                <div className="p-4 bg-white rounded-xl border border-slate-200">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Total Jobs Posted</p>
+                  <p className="text-xl font-black text-slate-900 mt-1">{masterData.jobs.length}</p>
+                </div>
+                <div className="p-4 bg-white rounded-xl border border-slate-200">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Pending Verifications</p>
+                  <p className="text-xl font-black text-slate-900 mt-1">
+                    {masterData.verifications.filter((v: any) => v.verification_status === 'pending').length}
+                  </p>
+                </div>
+                <div className="p-4 bg-white rounded-xl border border-slate-200">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Moderation Reports</p>
+                  <p className="text-xl font-black text-slate-900 mt-1">{masterData.reports.length}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2: Recruitment Lifecycle Funnel & Wage Categories */}
+            <div className="grid grid-cols-2 gap-6 print-chart-container avoid-break">
+              <div className="bg-white p-5 rounded-xl border border-slate-200">
+                <h3 className="text-xs font-display font-bold text-slate-900 mb-3 uppercase tracking-wider">
+                  Recruitment Funnel
+                </h3>
+                <div className="space-y-3">
+                  {funnelSteps.map((step, idx) => (
+                    <div key={idx} className="space-y-1">
+                      <div className="flex justify-between text-[10px] font-semibold">
+                        <span className="text-slate-700">{step.label}</span>
+                        <span className="text-slate-900">{step.value} ({step.rate})</span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div className="bg-primary h-full rounded-full" style={{ width: step.rate }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white p-5 rounded-xl border border-slate-200">
+                <h3 className="text-xs font-display font-bold text-slate-900 mb-3 uppercase tracking-wider">
+                  Compensation Benchmarks
+                </h3>
+                <table className="w-full text-[10px] font-body text-left">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500 uppercase">
+                      <th className="py-1.5 px-2">Category</th>
+                      <th className="py-1.5 px-2 text-right">Average Pay</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(data?.compensation?.categories || []).slice(0, 5).map((c: any, idx: number) => (
+                      <tr key={idx} className="border-b border-slate-100 last:border-none">
+                        <td className="py-1.5 px-2 font-medium capitalize text-slate-800">{c.category}</td>
+                        <td className="py-1.5 px-2 text-right font-bold text-slate-900">PHP {parseFloat(c.avg_comp || 0).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Section 3: Registered Users Directory */}
+            <div className="print-page-break avoid-break">
+              <h2 className="text-sm font-display font-bold text-slate-900 mb-3 uppercase tracking-wider">
+                Section 2: Registered Users Directory ({masterData.users.length} Records)
+              </h2>
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <table className="w-full text-[10px] font-body text-left">
+                  <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
+                    <tr>
+                      <th className="py-2 px-3">ID</th>
+                      <th className="py-2 px-3">Full Name</th>
+                      <th className="py-2 px-3">Role</th>
+                      <th className="py-2 px-3">Email</th>
+                      <th className="py-2 px-3">Location</th>
+                      <th className="py-2 px-3">Verification</th>
+                      <th className="py-2 px-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {masterData.users.slice(0, 25).map((u: any, idx: number) => (
+                      <tr key={idx} className="border-b border-slate-100 last:border-none">
+                        <td className="py-1.5 px-3 font-mono text-slate-500">#{u.id}</td>
+                        <td className="py-1.5 px-3 font-bold text-slate-900">{u.name}</td>
+                        <td className="py-1.5 px-3 capitalize text-slate-700">{u.role}</td>
+                        <td className="py-1.5 px-3 text-slate-600">{u.email}</td>
+                        <td className="py-1.5 px-3 text-slate-600">{u.barangay || '—'}</td>
+                        <td className="py-1.5 px-3">
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                            u.verification_status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
+                            u.verification_status === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'
+                          }`}>
+                            {u.verification_status || 'unverified'}
+                          </span>
+                        </td>
+                        <td className="py-1.5 px-3 text-slate-700">{u.is_suspended ? 'Suspended' : 'Active'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Section 4: Job Postings & Lifecycle */}
+            <div className="print-page-break avoid-break">
+              <h2 className="text-sm font-display font-bold text-slate-900 mb-3 uppercase tracking-wider">
+                Section 3: Job Listings & Hiring Status ({masterData.jobs.length} Posts)
+              </h2>
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <table className="w-full text-[10px] font-body text-left">
+                  <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
+                    <tr>
+                      <th className="py-2 px-3">Job Code</th>
+                      <th className="py-2 px-3">Job Title</th>
+                      <th className="py-2 px-3">Employer</th>
+                      <th className="py-2 px-3">Category</th>
+                      <th className="py-2 px-3">Rate</th>
+                      <th className="py-2 px-3">Apps</th>
+                      <th className="py-2 px-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {masterData.jobs.slice(0, 25).map((j: any, idx: number) => (
+                      <tr key={idx} className="border-b border-slate-100 last:border-none">
+                        <td className="py-1.5 px-3 font-mono text-slate-500">{j.reference_number || `#${j.id}`}</td>
+                        <td className="py-1.5 px-3 font-bold text-slate-900">{j.title}</td>
+                        <td className="py-1.5 px-3 text-slate-700">{j.employer?.name || '—'}</td>
+                        <td className="py-1.5 px-3 text-slate-600 capitalize">{j.category}</td>
+                        <td className="py-1.5 px-3 font-bold text-slate-900">PHP {parseFloat(j.compensation || 0).toFixed(2)}</td>
+                        <td className="py-1.5 px-3 text-slate-700">{j.applications_count ?? 0}</td>
+                        <td className="py-1.5 px-3 capitalize font-semibold text-slate-800">{j.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Section 5: Moderation & Incident Audit */}
+            <div className="print-page-break avoid-break">
+              <h2 className="text-sm font-display font-bold text-slate-900 mb-3 uppercase tracking-wider">
+                Section 4: Community Safety & Moderation Audit ({masterData.reports.length} Reports)
+              </h2>
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6">
+                <table className="w-full text-[10px] font-body text-left">
+                  <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
+                    <tr>
+                      <th className="py-2 px-3">Report ID</th>
+                      <th className="py-2 px-3">Violation Type</th>
+                      <th className="py-2 px-3">Target</th>
+                      <th className="py-2 px-3">Reporter</th>
+                      <th className="py-2 px-3">Description</th>
+                      <th className="py-2 px-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {masterData.reports.length > 0 ? (
+                      masterData.reports.slice(0, 15).map((r: any, idx: number) => (
+                        <tr key={idx} className="border-b border-slate-100 last:border-none">
+                          <td className="py-1.5 px-3 font-mono text-slate-500">#{r.id}</td>
+                          <td className="py-1.5 px-3 font-bold text-slate-900 capitalize">{r.type?.replace(/_/g, ' ')}</td>
+                          <td className="py-1.5 px-3 text-slate-700 capitalize">{r.reportable_type}</td>
+                          <td className="py-1.5 px-3 text-slate-600">{r.reporter?.name || 'Anonymous'}</td>
+                          <td className="py-1.5 px-3 text-slate-600 truncate max-w-xs">{r.description || '—'}</td>
+                          <td className="py-1.5 px-3 capitalize font-semibold text-slate-800">{r.status}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="py-4 text-center text-slate-400">No moderation incident records.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Official SIKAP Master Sign-off Block */}
+            <div className="mt-12 pt-8 border-t-2 border-slate-200 grid grid-cols-2 gap-12 print-chart-container avoid-break">
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-8">Prepared & Certified By:</p>
+                <div className="border-b border-gray-400 w-48 mb-1"></div>
+                <p className="text-xs font-bold text-gray-800">Platform Administrator</p>
+                <p className="text-[10px] text-gray-500">SIKAP Management Console</p>
               </div>
               <div>
-                <h1 className="text-xl font-display font-black text-slate-900 tracking-tight uppercase">
-                  SIKAP Administrative Workforce Report
-                </h1>
-                <p className="text-[11px] font-body text-slate-500 font-semibold">
-                  Sorsogon State University & LGU Bulan Platform
-                </p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-8">Noted & Approved By:</p>
+                <div className="border-b border-gray-400 w-48 mb-1"></div>
+                <p className="text-xs font-bold text-gray-800">Project Supervisor</p>
+                <p className="text-[10px] text-gray-500">SIKAP Project Advisory & Oversight</p>
               </div>
-            </div>
-            <div className="text-right text-[10px] text-slate-600 space-y-0.5">
-              <p><span className="font-bold text-slate-900">Period:</span> {from} to {to}</p>
-              <p><span className="font-bold text-slate-900">Granularity:</span> {intervalFilter.toUpperCase()}</p>
-              <p><span className="font-bold text-slate-900">Generated:</span> {new Date().toLocaleString()}</p>
             </div>
           </div>
-
-          {/* AI Insights & Recommendations */}
-          {aiInsights && (
-            <div className="bg-white p-6 rounded-2xl border border-gray-200 mb-8 print-chart-container">
-              <h2 className="text-base font-display font-bold text-ink mb-4 uppercase tracking-wider">AI Executive Summary & Recommendations</h2>
-              
-              {aiInsights.dataSufficiency?.isLowVolume && (
-                <div className="mb-4 text-xs font-semibold text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                  {aiInsights.dataSufficiency.note ?? "Low data volume this period."}
+        ) : (
+          /* ================= ANALYTICS PERIOD REPORT ================= */
+          data && (
+            <div>
+              {/* Institutional Document Header */}
+              <div className="mb-8 pb-6 border-b-2 border-slate-300 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white font-black text-lg">
+                    S
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-display font-black text-slate-900 tracking-tight uppercase">
+                      SIKAP Descriptive Analytics Report
+                    </h1>
+                    <p className="text-[11px] font-body text-slate-500 font-semibold">
+                      SIKAP: Skills and Job Matching Platform
+                    </p>
+                  </div>
                 </div>
-              )}
-
-              <div className="space-y-4">
-                {aiInsights.keyInsights?.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Key Insights</h3>
-                    <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
-                      {aiInsights.keyInsights.map((item, idx) => (
-                        <li key={idx}>
-                          <strong>{item.text}</strong> {item.supportingData && `— ${item.supportingData}`}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {aiInsights.trends?.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Trends</h3>
-                    <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
-                      {aiInsights.trends.map((item, idx) => (
-                        <li key={idx}>
-                          <strong>{item.text}</strong> {item.sampleSizeWarning && " (low sample size)"} {item.supportingData && `— ${item.supportingData}`}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {aiInsights.areasOfConcern?.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Areas of Concern</h3>
-                    <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
-                      {aiInsights.areasOfConcern.map((item, idx) => (
-                        <li key={idx}>
-                          <strong>{item.text}</strong> {item.supportingData && `— ${item.supportingData}`}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {aiInsights.recommendations?.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Recommendations</h3>
-                    <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
-                      {aiInsights.recommendations.map((item, idx) => (
-                        <li key={idx}>
-                          <strong>{item.text}</strong> {item.supportingData && `— ${item.supportingData}`}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                <div className="text-right text-[10px] text-slate-600 space-y-0.5">
+                  <p><span className="font-bold text-slate-900">Period:</span> {from} to {to}</p>
+                  <p><span className="font-bold text-slate-900">Granularity:</span> {intervalFilter.toUpperCase()}</p>
+                  <p><span className="font-bold text-slate-900">Generated:</span> {new Date().toLocaleString()}</p>
+                </div>
               </div>
-            </div>
-          )}
 
-          {/* KPI Summary Grid */}
-          <div className="mb-8 print-chart-container">
-            <h2 className="text-base font-display font-bold text-ink mb-4 uppercase tracking-wider">Key Performance Indicators</h2>
-            <div className="grid grid-cols-4 gap-4 print-card-grid">
-              {stats.map((stat, idx) => (
-                <div key={idx} className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
-                  <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-body font-bold text-gray-500 uppercase tracking-wider">{stat.label}</span>
-                    <div className="w-6 h-6 rounded bg-gray-50 flex items-center justify-center">
-                      <i className={`${stat.iconClass} text-xs text-gray-600`} />
+              {/* AI Insights & Recommendations */}
+              {aiInsights && (
+                <div className="bg-white p-6 rounded-2xl border border-gray-200 mb-8 print-chart-container">
+                  <h2 className="text-base font-display font-bold text-ink mb-4 uppercase tracking-wider">AI Executive Summary & Recommendations</h2>
+                  
+                  {aiInsights.dataSufficiency?.isLowVolume && (
+                    <div className="mb-4 text-xs font-semibold text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                      {aiInsights.dataSufficiency.note ?? "Low data volume this period."}
                     </div>
-                  </div>
-                  <div className="mt-2">
-                    <span className="text-xl font-display font-black text-gray-900">{stat.value}</span>
-                    {stat.change !== undefined && (
-                      <div className="flex items-center gap-1 mt-1 text-[9px] font-body font-semibold">
-                        <span className={stat.change >= 0 ? 'text-green-600' : 'text-red-600'}>
-                          {stat.change >= 0 ? '▲' : '▼'} {Math.abs(stat.change)}%
-                        </span>
-                        <span className="text-gray-400">vs last period</span>
+                  )}
+
+                  <div className="space-y-4">
+                    {aiInsights.keyInsights?.length > 0 && (
+                      <div>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Key Insights</h3>
+                        <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
+                          {aiInsights.keyInsights.map((item, idx) => (
+                            <li key={idx}>
+                              <strong>{item.text}</strong> {item.supportingData && `— ${item.supportingData}`}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {aiInsights.trends?.length > 0 && (
+                      <div>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Trends</h3>
+                        <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
+                          {aiInsights.trends.map((item, idx) => (
+                            <li key={idx}>
+                              <strong>{item.text}</strong> {item.sampleSizeWarning && " (low sample size)"} {item.supportingData && `— ${item.supportingData}`}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {aiInsights.areasOfConcern?.length > 0 && (
+                      <div>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Areas of Concern</h3>
+                        <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
+                          {aiInsights.areasOfConcern.map((item, idx) => (
+                            <li key={idx}>
+                              <strong>{item.text}</strong> {item.supportingData && `— ${item.supportingData}`}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {aiInsights.recommendations?.length > 0 && (
+                      <div>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Recommendations</h3>
+                        <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
+                          {aiInsights.recommendations.map((item, idx) => (
+                            <li key={idx}>
+                              <strong>{item.text}</strong> {item.supportingData && `— ${item.supportingData}`}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              )}
 
-          {/* Funnel & Turnaround */}
-          <div className="grid grid-cols-3 gap-6 mb-8 print-page-break print-chart-container">
-            <div className="col-span-2 bg-white p-6 rounded-xl border border-gray-200">
-              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Application-to-Hire Funnel</h3>
-              <div className="space-y-4">
-                {funnelSteps.map((step, idx) => (
-                  <div key={idx} className="space-y-1.5">
-                    <div className="flex justify-between text-[11px] font-semibold">
-                      <span className="text-gray-700">{step.label}</span>
-                      <span className="text-gray-900">{step.value} ({step.rate})</span>
+              {/* KPI Summary Grid */}
+              <div className="mb-8 print-chart-container">
+                <h2 className="text-base font-display font-bold text-ink mb-4 uppercase tracking-wider">Key Performance Indicators</h2>
+                <div className="grid grid-cols-4 gap-4 print-card-grid">
+                  {stats.map((stat, idx) => (
+                    <div key={idx} className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[10px] font-body font-bold text-gray-500 uppercase tracking-wider">{stat.label}</span>
+                        <div className="w-6 h-6 rounded bg-gray-50 flex items-center justify-center">
+                          <i className={`${stat.iconClass} text-xs text-gray-600`} />
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xl font-display font-black text-gray-900">{stat.value}</span>
+                        {stat.change !== undefined && (
+                          <div className="flex items-center gap-1 mt-1 text-[9px] font-body font-semibold">
+                            <span className={stat.change >= 0 ? 'text-green-600' : 'text-red-600'}>
+                              {stat.change >= 0 ? '▲' : '▼'} {Math.abs(stat.change)}%
+                            </span>
+                            <span className="text-gray-400">vs last period</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-primary h-full rounded-full" style={{ width: step.rate }} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Funnel & Turnaround */}
+              <div className="grid grid-cols-3 gap-6 mb-8 print-page-break print-chart-container">
+                <div className="col-span-2 bg-white p-6 rounded-xl border border-gray-200">
+                  <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Application-to-Hire Funnel</h3>
+                  <div className="space-y-4">
+                    {funnelSteps.map((step, idx) => (
+                      <div key={idx} className="space-y-1.5">
+                        <div className="flex justify-between text-[11px] font-semibold">
+                          <span className="text-gray-700">{step.label}</span>
+                          <span className="text-gray-900">{step.value} ({step.rate})</span>
+                        </div>
+                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                          <div className="bg-primary h-full rounded-full" style={{ width: step.rate }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-xs font-display font-bold text-gray-800 mb-3 uppercase tracking-wider">Verification Turnaround</h3>
+                    <span className="text-2xl font-display font-black text-gray-900">
+                      {data?.verification?.average_turnaround_seconds
+                        ? (data.verification.average_turnaround_seconds / 3600).toFixed(1)
+                        : '0.0'}
+                    </span>
+                    <span className="text-[10px] font-semibold text-gray-500 ml-1">hours</span>
+                  </div>
+                  <div className="space-y-2 mt-4 text-[11px]">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Processed</span>
+                      <span className="font-bold text-gray-800">{data?.verification?.total_verifications ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Pending Review</span>
+                      <span className="font-bold text-gray-800">{data?.verification?.pending_verifications ?? 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Delayed (&gt;48h)</span>
+                      <span className="font-bold text-red-600">{data?.verification?.delayed_verifications ?? 0}</span>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col justify-between">
-              <div>
-                <h3 className="text-xs font-display font-bold text-gray-800 mb-3 uppercase tracking-wider">Verification Turnaround</h3>
-                <span className="text-2xl font-display font-black text-gray-900">
-                  {data?.verification?.average_turnaround_seconds
-                    ? (data.verification.average_turnaround_seconds / 3600).toFixed(1)
-                    : '0.0'}
-                </span>
-                <span className="text-[10px] font-semibold text-gray-500 ml-1">hours</span>
-              </div>
-              <div className="space-y-2 mt-4 text-[11px]">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Processed</span>
-                  <span className="font-bold text-gray-800">{data?.verification?.total_verifications ?? 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Pending Review</span>
-                  <span className="font-bold text-gray-800">{data?.verification?.pending_verifications ?? 0}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Delayed (&gt;48h)</span>
-                  <span className="font-bold text-red-600">{data?.verification?.delayed_verifications ?? 0}</span>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Activity Trends */}
-          <div className="grid grid-cols-2 gap-6 mb-8 print-page-break print-chart-container">
-            <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col">
-              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">User Registrations</h3>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} allowDecimals={false} />
-                    <Bar dataKey="workers" name="Workers" fill="#FFB6C1" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="employers" name="Employers" fill="#87CEEB" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col">
-              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Application Volume</h3>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={transformedApplicationVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} allowDecimals={false} />
-                    <Area type="monotone" dataKey="applications" name="Applications" stroke="#FFB6C1" strokeWidth={2} fill="#FFB6C1" fillOpacity={0.08} />
-                    <Area type="monotone" dataKey="jobs" name="Unique Jobs" stroke="#87CEEB" strokeWidth={2} fill="#87CEEB" fillOpacity={0.08} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-
-          {/* Distribution & Demand */}
-          <div className="grid grid-cols-2 gap-6 mb-8 print-page-break print-chart-container">
-            <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col">
-              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Skill & Category Demand</h3>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={transformedJobsData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E8DFCE" opacity={0.5} />
-                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} allowDecimals={false} />
-                    <YAxis
-                      dataKey="name"
-                      type="category"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#8C7B6A', fontSize: 9 }}
-                      width={100}
-                      tickFormatter={(value) => (value.length > 12 ? `${value.slice(0, 12)}...` : value)}
-                    />
-                    <Bar dataKey="jobs" name="Total Postings" fill="#3E7648" radius={[0, 4, 4, 0]} barSize={12} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col items-center justify-center relative">
-              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 w-full uppercase tracking-wider text-left">Skill Profile Distribution</h3>
-              <div className="h-48 w-full relative flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <RechartsPie
-                      data={transformedSkillDistribution}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={45}
-                      outerRadius={65}
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      {transformedSkillDistribution.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </RechartsPie>
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[8px] font-body font-bold text-gray-400 uppercase tracking-wider">Total Workers</span>
-                  <span className="text-lg font-display font-black text-gray-800">{data?.user_ratio?.workers ?? 0}</span>
-                </div>
-              </div>
-              <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2 text-[9px] font-semibold text-gray-500 w-full">
-                {transformedSkillDistribution.map((entry: any, idx: number) => (
-                  <div key={idx} className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                    <span>{entry.name} ({entry.value})</span>
+              {/* Activity Trends */}
+              <div className="grid grid-cols-2 gap-6 mb-8 print-page-break print-chart-container">
+                <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col">
+                  <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">User Registrations</h3>
+                  <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} allowDecimals={false} />
+                        <Bar dataKey="workers" name="Workers" fill="#FFB6C1" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="employers" name="Employers" fill="#87CEEB" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
-                ))}
+                </div>
+
+                <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col">
+                  <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Application Volume</h3>
+                  <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={transformedApplicationVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} allowDecimals={false} />
+                        <Area type="monotone" dataKey="applications" name="Applications" stroke="#FFB6C1" strokeWidth={2} fill="#FFB6C1" fillOpacity={0.08} />
+                        <Area type="monotone" dataKey="jobs" name="Unique Jobs" stroke="#87CEEB" strokeWidth={2} fill="#87CEEB" fillOpacity={0.08} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detailed Data Tables (Wages & Reports) */}
+              <div className="grid grid-cols-2 gap-6 print-page-break print-chart-container">
+                {/* Wages */}
+                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                  <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Wage Category Breakdown</h3>
+                  <table className="w-full text-xs font-body text-left">
+                    <thead>
+                      <tr className="border-b border-gray-200 text-gray-500 uppercase text-[9px]">
+                        <th className="py-2 px-3 font-semibold">Category</th>
+                        <th className="py-2 px-3 text-right font-semibold">Average Pay</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data?.compensation?.categories?.length > 0 ? (
+                        data.compensation.categories.map((c: any, idx: number) => (
+                          <tr key={idx} className="border-b border-gray-100 last:border-none">
+                            <td className="py-2 px-3 font-semibold text-gray-700 capitalize">{c.category}</td>
+                            <td className="py-2 px-3 text-right text-gray-900 font-bold">PHP {parseFloat(c.avg_comp || 0).toFixed(2)}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={2} className="py-4 text-center text-gray-400">No wage records.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Reports */}
+                <div className="bg-white p-6 rounded-xl border border-gray-200">
+                  <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Moderation Breakdown</h3>
+                  <table className="w-full text-xs font-body text-left">
+                    <thead>
+                      <tr className="border-b border-gray-200 text-gray-500 uppercase text-[9px]">
+                        <th className="py-2 px-3 font-semibold">Violation Type</th>
+                        <th className="py-2 px-3 text-right font-semibold">Total Reports</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data?.reports?.breakdown?.length > 0 ? (
+                        data.reports.breakdown.map((r: any, idx: number) => (
+                          <tr key={idx} className="border-b border-gray-100 last:border-none">
+                            <td className="py-2 px-3 font-semibold text-gray-700 capitalize">{r.type}</td>
+                            <td className="py-2 px-3 text-right text-gray-900 font-bold">{r.count}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={2} className="py-4 text-center text-gray-400">No report records.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Official SIKAP Sign-off Block */}
+              <div className="mt-12 pt-8 border-t-2 border-slate-200 grid grid-cols-2 gap-12 print-chart-container avoid-break">
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-8">Prepared & Certified By:</p>
+                  <div className="border-b border-gray-400 w-48 mb-1"></div>
+                  <p className="text-xs font-bold text-gray-800">Platform Administrator</p>
+                  <p className="text-[10px] text-gray-500">SIKAP Management Console</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-8">Noted & Approved By:</p>
+                  <div className="border-b border-gray-400 w-48 mb-1"></div>
+                  <p className="text-xs font-bold text-gray-800">Project Supervisor</p>
+                  <p className="text-[10px] text-gray-500">SIKAP Project Advisory & Oversight</p>
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Geographic stacked */}
-          <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col mb-8 print-chart-container">
-            <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Geographic Activity</h3>
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={transformedGeographicActivity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} allowDecimals={false} />
-                  <Bar dataKey="jobs" name="Job Postings" fill="#87CEEB" stackId="a" />
-                  <Bar dataKey="applications" name="Applications" fill="#90EE90" stackId="a" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Detailed Data Tables (Wages & Reports) */}
-          <div className="grid grid-cols-2 gap-6 print-page-break print-chart-container">
-            {/* Wages */}
-            <div className="bg-white p-6 rounded-xl border border-gray-200">
-              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Wage Category Breakdown</h3>
-              <table className="w-full text-xs font-body text-left">
-                <thead>
-                  <tr className="border-b border-gray-200 text-gray-500 uppercase text-[9px]">
-                    <th className="py-2 px-3 font-semibold">Category</th>
-                    <th className="py-2 px-3 text-right font-semibold">Average Pay</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data?.compensation?.categories?.length > 0 ? (
-                    data.compensation.categories.map((c: any, idx: number) => (
-                      <tr key={idx} className="border-b border-gray-100 last:border-none">
-                        <td className="py-2 px-3 font-semibold text-gray-700 capitalize">{c.category}</td>
-                        <td className="py-2 px-3 text-right text-gray-900 font-bold">PHP {parseFloat(c.avg_comp || 0).toFixed(2)}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={2} className="py-4 text-center text-gray-400">No wage records.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Reports */}
-            <div className="bg-white p-6 rounded-xl border border-gray-200">
-              <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Moderation Breakdown</h3>
-              <table className="w-full text-xs font-body text-left">
-                <thead>
-                  <tr className="border-b border-gray-200 text-gray-500 uppercase text-[9px]">
-                    <th className="py-2 px-3 font-semibold">Violation Type</th>
-                    <th className="py-2 px-3 text-right font-semibold">Total Reports</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data?.reports?.breakdown?.length > 0 ? (
-                    data.reports.breakdown.map((r: any, idx: number) => (
-                      <tr key={idx} className="border-b border-gray-100 last:border-none">
-                        <td className="py-2 px-3 font-semibold text-gray-700 capitalize">{r.type}</td>
-                        <td className="py-2 px-3 text-right text-gray-900 font-bold">{r.count}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={2} className="py-4 text-center text-gray-400">No report records.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Official Municipal Sign-off Block */}
-          <div className="mt-12 pt-8 border-t-2 border-slate-200 grid grid-cols-2 gap-12 print-chart-container avoid-break">
-            <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-8">Prepared & Certified By:</p>
-              <div className="border-b border-gray-400 w-48 mb-1"></div>
-              <p className="text-xs font-bold text-gray-800">Platform Administrator</p>
-              <p className="text-[10px] text-gray-500">SIKAP Management Console · Bulan, Sorsogon</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-8">Noted & Received By:</p>
-              <div className="border-b border-gray-400 w-48 mb-1"></div>
-              <p className="text-xs font-bold text-gray-800">Public Employment Service Office (PESO)</p>
-              <p className="text-[10px] text-gray-500">LGU Bulan / Sorsogon State University</p>
-            </div>
-          </div>
-        </div>
-      )}
+          )
+        )}
+      </div>
     </div>
   );
 }

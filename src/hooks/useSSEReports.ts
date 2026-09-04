@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 interface SSEReportState {
   newReportCount: number;
@@ -14,74 +14,63 @@ export function useSSEReports() {
     newReportCount: 0,
     latestReportId: null,
     latestReportAt: null,
-    connected: false,
+    connected: true,
   });
-  const esRef = useRef<EventSource | null>(null);
-  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const connect = () => {
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const fetchUnreadCount = useCallback(async () => {
     if (typeof window === 'undefined') return;
     const token = localStorage.getItem('admin_token');
     if (!token) return;
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-    const url = `${apiBase}/admin/reports/stream?token=${encodeURIComponent(token)}`;
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://sikap-backend.onrender.com/api/v1';
+      const res = await fetch(`${apiBase}/admin/reports/unread-count`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      });
 
-    const es = new EventSource(url);
-    esRef.current = es;
-
-    es.addEventListener('report_alert', (e: MessageEvent) => {
-      try {
-        const data = JSON.parse(e.data);
+      if (res.ok) {
+        const data = await res.json();
         setState({
           newReportCount: data.count ?? 0,
           latestReportId: data.last_report_id ?? null,
           latestReportAt: data.last_report_at ?? null,
           connected: true,
         });
-      } catch {}
-    });
-
-    es.addEventListener('reconnect', () => {
-      es.close();
-      esRef.current = null;
-      setState(prev => ({ ...prev, connected: false }));
-      reconnectTimer.current = setTimeout(connect, 3000);
-    });
-
-    es.onerror = () => {
-      es.close();
-      esRef.current = null;
-      setState(prev => ({ ...prev, connected: false }));
-      reconnectTimer.current = setTimeout(connect, 10000);
-    };
-
-    es.onopen = () => {
-      setState(prev => ({ ...prev, connected: true }));
-    };
-  };
+      }
+    } catch {
+      // Quiet fail on network hiccups without blocking UI
+    }
+  }, []);
 
   useEffect(() => {
-    connect();
+    // Initial fetch
+    fetchUnreadCount();
+
+    // Lightweight 20-second background polling
+    timerRef.current = setInterval(fetchUnreadCount, 20000);
+
     return () => {
-      if (esRef.current) {
-        esRef.current.close();
-        esRef.current = null;
-      }
-      if (reconnectTimer.current) {
-        clearTimeout(reconnectTimer.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchUnreadCount]);
 
   const clearCount = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://sikap-backend.onrender.com/api/v1';
       await fetch(`${apiBase}/admin/reports/stream/clear`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
       });
     } catch {}
     setState(prev => ({ ...prev, newReportCount: 0 }));

@@ -171,15 +171,15 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Institutional Note */}
+          {/* Platform Note */}
           <div className="bg-white/90 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/90 shadow-xs flex items-center gap-3.5 max-w-md mx-auto lg:mx-0 text-left">
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
               <Building2 className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-slate-900">Sorsogon State University & LGU Bulan</p>
+              <p className="text-xs font-bold text-slate-900">SIKAP Platform</p>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                SIKAP Mobile Job Platform · Administrative Oversight Console
+                Skills & Job Matching Platform · Administrative Console
               </p>
             </div>
           </div>
@@ -342,7 +342,7 @@ export default function LoginPage() {
               />
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              A dedicated mobile job platform and administrative management portal connecting local workers with nearby employment opportunities across Bulan, Sorsogon.
+              A dedicated skills and job matching platform and administrative management portal connecting local workers with nearby employment opportunities.
             </p>
           </div>
 
@@ -371,23 +371,23 @@ export default function LoginPage() {
             </ul>
           </div>
 
-          {/* Col 3: Institutional Partnerships */}
+          {/* Col 3: System Overview */}
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3.5">
-              Institutional Partners
+              System Architecture
             </h4>
             <ul className="space-y-2 text-xs text-slate-500">
               <li className="flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
-                <span>Sorsogon State University</span>
+                <span>SIKAP Mobile Application</span>
               </li>
               <li className="flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
-                <span>LGU Bulan, Sorsogon</span>
+                <span>Admin Management Console</span>
               </li>
               <li className="flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
-                <span>Public Employment Service Office</span>
+                <span>Real-Time Moderation Engine</span>
               </li>
             </ul>
           </div>
@@ -408,9 +408,9 @@ export default function LoginPage() {
 
         {/* Bottom Copyright Strip */}
         <div className="max-w-7xl mx-auto pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <p>&copy; {new Date().getFullYear()} SIKAP Capstone Project. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} SIKAP Project. All rights reserved.</p>
           <p className="text-[11px] text-slate-500">
-            Sorsogon State University & LGU Bulan Platform
+            SIKAP: Skills and Job Matching Platform
           </p>
         </div>
       </footer>
