@@ -54,6 +54,12 @@ function getPeriodAndInterval(preset: string, start?: string, end?: string) {
     from = formatLocal(yesterday);
     to = from;
     interval = 'hourly';
+  } else if (preset === 'Last 7 Days') {
+    const d = new Date();
+    d.setDate(now.getDate() - 6);
+    from = formatLocal(d);
+    to = formatLocal(now);
+    interval = 'daily';
   } else if (preset === 'This Week') {
     const current = new Date();
     const day = current.getDay();
@@ -72,6 +78,12 @@ function getPeriodAndInterval(preset: string, start?: string, end?: string) {
     from = formatLocal(monday);
     to = formatLocal(sunday);
     interval = 'daily';
+  } else if (preset === 'Last 30 Days') {
+    const d = new Date();
+    d.setDate(now.getDate() - 29);
+    from = formatLocal(d);
+    to = formatLocal(now);
+    interval = 'daily';
   } else if (preset === 'This Month') {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     from = formatLocal(startOfMonth);
@@ -82,6 +94,12 @@ function getPeriodAndInterval(preset: string, start?: string, end?: string) {
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
     from = formatLocal(startOfLastMonth);
     to = formatLocal(endOfLastMonth);
+    interval = 'daily';
+  } else if (preset === 'This Quarter') {
+    const quarterMonth = Math.floor(now.getMonth() / 3) * 3;
+    const startOfQuarter = new Date(now.getFullYear(), quarterMonth, 1);
+    from = formatLocal(startOfQuarter);
+    to = formatLocal(now);
     interval = 'daily';
   } else if (preset === 'This Year') {
     const startOfYear = new Date(now.getFullYear(), 0, 1);
@@ -117,6 +135,7 @@ export default function AnalyticsDashboard() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isPresentationMode, setIsPresentationMode] = useState(false);
 
   // Tab-specific date states (defaulting to 'Today')
   const [overviewPreset, setOverviewPreset] = useState<string>('Today');
@@ -281,7 +300,7 @@ export default function AnalyticsDashboard() {
       end = healthEnd; setEnd = setHealthEnd;
     }
 
-    const presets = ['Today', 'Yesterday', 'This Week', 'Last Week', 'This Month', 'Last Month', 'This Year', 'Custom Date'];
+    const presets = ['Today', 'Yesterday', 'Last 7 Days', 'This Week', 'Last Week', 'Last 30 Days', 'This Month', 'Last Month', 'This Quarter', 'This Year', 'Custom Date'];
 
     return (
       <div className="flex flex-wrap items-center gap-3 no-print">
@@ -877,8 +896,20 @@ export default function AnalyticsDashboard() {
 
           {/* Date Filter & Aggregation Components */}
           <div className="flex flex-wrap items-center gap-3">
-            {/* Export Actions */}
+            {/* Export & Presentation Actions */}
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsPresentationMode(!isPresentationMode)}
+                title="Toggle distraction-free Capstone Panel Presentation Mode"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border shadow-2xs text-xs font-body font-bold transition-all cursor-pointer ${
+                  isPresentationMode
+                    ? 'bg-amber-500 text-white border-amber-600 shadow-md ring-2 ring-amber-300'
+                    : 'bg-white/80 backdrop-blur-md border-slate-200 text-slate-700 hover:bg-slate-900 hover:text-white'
+                }`}
+              >
+                <i className={`lni ${isPresentationMode ? 'lni-cross-circle' : 'lni-display'} text-xs`} />
+                <span>{isPresentationMode ? 'Exit Defense' : 'Defense Mode'}</span>
+              </button>
               <button
                 onClick={handleExportCSV}
                 title="Export descriptive analytics report as CSV"
@@ -1837,694 +1868,757 @@ export default function AnalyticsDashboard() {
           /* ================= 7-PAGE MASTER PLATFORM DOSSIER ================= */
           <div className="space-y-8">
             {/* ================= PAGE 1: COVER & EXECUTIVE KPI SCORECARD ================= */}
-            <div className="avoid-break">
-              {/* Institutional Header */}
-              <div className="pb-6 border-b-2 border-slate-300 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-11 w-11 bg-primary rounded-xl flex items-center justify-center text-white font-black text-xl">
-                    S
+            <div className="avoid-break flex flex-col justify-between min-h-[960px]">
+              <div>
+                {/* Institutional Header */}
+                <div className="pb-6 border-b-2 border-slate-300 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-11 w-11 bg-primary rounded-xl flex items-center justify-center text-white font-black text-xl">
+                      S
+                    </div>
+                    <div>
+                      <h1 className="text-xl font-display font-black text-slate-900 tracking-tight uppercase">
+                        SIKAP: Skills and Job Matching Platform
+                      </h1>
+                      <p className="text-[11px] font-body text-slate-500 font-semibold">
+                        Comprehensive Platform Master Dossier & System Audit
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h1 className="text-xl font-display font-black text-slate-900 tracking-tight uppercase">
-                      SIKAP: Skills and Job Matching Platform
-                    </h1>
-                    <p className="text-[11px] font-body text-slate-500 font-semibold">
-                      Comprehensive Platform Master Dossier & System Audit
+                  <div className="text-right text-[10px] text-slate-600 space-y-0.5">
+                    <p><span className="font-bold text-slate-900">Document Classification:</span> Master Administrative Snapshot</p>
+                    <p><span className="font-bold text-slate-900">Generated:</span> {new Date().toLocaleString()}</p>
+                    <p><span className="font-bold text-slate-900">System State:</span> Production Live Audit</p>
+                  </div>
+                </div>
+
+                {/* Page 1 Title */}
+                <div className="my-5">
+                  <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
+                    Page 1: Executive Key Performance Indicators & Summary
+                  </h2>
+                  <p className="text-[10px] text-slate-500 mt-0.5">
+                    High-level summary of labor market supply, demand, credentials, and financial metrics across the platform.
+                  </p>
+                </div>
+
+                {/* 8-Card Executive KPI Scorecard */}
+                <div className="grid grid-cols-4 gap-4 print-card-grid mb-5">
+                  <div className="p-3.5 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Total Users</p>
+                    <p className="text-xl font-black text-slate-900 mt-0.5">{masterData.users.length}</p>
+                    <p className="text-[9px] text-slate-500 mt-1 font-medium">
+                      {masterData.users.filter((u: any) => u.role === 'worker').length} Workers · {masterData.users.filter((u: any) => u.role === 'employer').length} Employers
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Total Job Postings</p>
+                    <p className="text-xl font-black text-slate-900 mt-0.5">{masterData.jobs.length}</p>
+                    <p className="text-[9px] text-slate-500 mt-1 font-medium">
+                      {masterData.jobs.filter((j: any) => j.status === 'open').length} Open · {masterData.jobs.filter((j: any) => j.status === 'completed').length} Completed
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Applications Filed</p>
+                    <p className="text-xl font-black text-slate-900 mt-0.5">{data?.funnel?.total_applications ?? 0}</p>
+                    <p className="text-[9px] text-slate-500 mt-1 font-medium">
+                      {data?.funnel?.accepted_applications ?? 0} Accepted for Engagement
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Placement Fill Rate</p>
+                    <p className="text-xl font-black text-emerald-700 mt-0.5">{data?.fill_rate?.value ?? 0}%</p>
+                    <p className="text-[9px] text-slate-500 mt-1 font-medium">Completed Jobs / Total Jobs</p>
+                  </div>
+
+                  <div className="p-3.5 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Verification Rate</p>
+                    <p className="text-xl font-black text-slate-900 mt-0.5">
+                      {masterData.verifications.length > 0
+                        ? Math.round((masterData.verifications.filter((v: any) => v.verification_status === 'approved').length / masterData.verifications.length) * 100)
+                        : 0}%
+                    </p>
+                    <p className="text-[9px] text-slate-500 mt-1 font-medium">
+                      {masterData.verifications.filter((v: any) => v.verification_status === 'approved').length} Verified Credentials
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Verification Turnaround</p>
+                    <p className="text-xl font-black text-slate-900 mt-0.5">
+                      {data?.verification?.average_turnaround_seconds
+                        ? (data.verification.average_turnaround_seconds / 3600).toFixed(1)
+                        : '0.0'}h
+                    </p>
+                    <p className="text-[9px] text-slate-500 mt-1 font-medium">Average ID Review Latency</p>
+                  </div>
+
+                  <div className="p-3.5 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Average Wage Rate</p>
+                    <p className="text-xl font-black text-slate-900 mt-0.5">
+                      PHP {parseFloat(data?.compensation?.avg || 0).toFixed(2)}
+                    </p>
+                    <p className="text-[9px] text-slate-500 mt-1 font-medium">Across All Trade Categories</p>
+                  </div>
+
+                  <div className="p-3.5 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Safety & Moderation</p>
+                    <p className="text-xl font-black text-slate-900 mt-0.5">{masterData.reports.length}</p>
+                    <p className="text-[9px] text-slate-500 mt-1 font-medium">
+                      {masterData.reports.filter((r: any) => r.status === 'resolved').length} Resolved Incidents
                     </p>
                   </div>
                 </div>
-                <div className="text-right text-[10px] text-slate-600 space-y-0.5">
-                  <p><span className="font-bold text-slate-900">Document Classification:</span> Master Administrative Snapshot</p>
-                  <p><span className="font-bold text-slate-900">Generated:</span> {new Date().toLocaleString()}</p>
-                  <p><span className="font-bold text-slate-900">System State:</span> Production Live Audit</p>
-                </div>
-              </div>
 
-              {/* Page 1 Title */}
-              <div className="my-5">
-                <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
-                  Page 1: Executive Key Performance Indicators & Summary
-                </h2>
-                <p className="text-[10px] text-slate-500 mt-0.5">
-                  High-level summary of labor market supply, demand, credentials, and financial metrics across the platform.
-                </p>
-              </div>
-
-              {/* 8-Card Executive KPI Scorecard */}
-              <div className="grid grid-cols-4 gap-4 print-card-grid mb-5">
-                <div className="p-3.5 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Total Users</p>
-                  <p className="text-xl font-black text-slate-900 mt-0.5">{masterData.users.length}</p>
-                  <p className="text-[9px] text-slate-500 mt-1 font-medium">
-                    {masterData.users.filter((u: any) => u.role === 'worker').length} Workers · {masterData.users.filter((u: any) => u.role === 'employer').length} Employers
-                  </p>
-                </div>
-
-                <div className="p-3.5 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Total Job Postings</p>
-                  <p className="text-xl font-black text-slate-900 mt-0.5">{masterData.jobs.length}</p>
-                  <p className="text-[9px] text-slate-500 mt-1 font-medium">
-                    {masterData.jobs.filter((j: any) => j.status === 'open').length} Open · {masterData.jobs.filter((j: any) => j.status === 'completed').length} Completed
-                  </p>
-                </div>
-
-                <div className="p-3.5 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Applications Filed</p>
-                  <p className="text-xl font-black text-slate-900 mt-0.5">{data?.funnel?.total_applications ?? 0}</p>
-                  <p className="text-[9px] text-slate-500 mt-1 font-medium">
-                    {data?.funnel?.accepted_applications ?? 0} Accepted for Engagement
-                  </p>
-                </div>
-
-                <div className="p-3.5 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Placement Fill Rate</p>
-                  <p className="text-xl font-black text-emerald-700 mt-0.5">{data?.fill_rate?.value ?? 0}%</p>
-                  <p className="text-[9px] text-slate-500 mt-1 font-medium">Completed Jobs / Total Jobs</p>
-                </div>
-
-                <div className="p-3.5 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Verification Rate</p>
-                  <p className="text-xl font-black text-slate-900 mt-0.5">
-                    {masterData.verifications.length > 0
-                      ? Math.round((masterData.verifications.filter((v: any) => v.verification_status === 'approved').length / masterData.verifications.length) * 100)
-                      : 0}%
-                  </p>
-                  <p className="text-[9px] text-slate-500 mt-1 font-medium">
-                    {masterData.verifications.filter((v: any) => v.verification_status === 'approved').length} Verified Credentials
-                  </p>
-                </div>
-
-                <div className="p-3.5 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Verification Turnaround</p>
-                  <p className="text-xl font-black text-slate-900 mt-0.5">
-                    {data?.verification?.average_turnaround_seconds
-                      ? (data.verification.average_turnaround_seconds / 3600).toFixed(1)
-                      : '0.0'}h
-                  </p>
-                  <p className="text-[9px] text-slate-500 mt-1 font-medium">Average ID Review Latency</p>
-                </div>
-
-                <div className="p-3.5 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Average Wage Rate</p>
-                  <p className="text-xl font-black text-slate-900 mt-0.5">
-                    PHP {parseFloat(data?.compensation?.avg || 0).toFixed(2)}
-                  </p>
-                  <p className="text-[9px] text-slate-500 mt-1 font-medium">Across All Trade Categories</p>
-                </div>
-
-                <div className="p-3.5 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Safety & Moderation</p>
-                  <p className="text-xl font-black text-slate-900 mt-0.5">{masterData.reports.length}</p>
-                  <p className="text-[9px] text-slate-500 mt-1 font-medium">
-                    {masterData.reports.filter((r: any) => r.status === 'resolved').length} Resolved Incidents
-                  </p>
-                </div>
-              </div>
-
-              {/* Mini Chart: Registration Growth */}
-              {transformedUserGrowth.length > 0 && (
-                <div className="bg-white p-4 rounded-xl border border-slate-200 mb-5">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-xs font-display font-bold text-slate-900 uppercase tracking-wider">
-                      User Registration & Growth Trend
-                    </h3>
-                    <span className="text-[9px] text-slate-500">Workers vs Employers</span>
-                  </div>
-                  <div className="h-44 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={transformedUserGrowth} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} allowDecimals={false} />
-                        <Bar dataKey="workers" name="Workers" fill="#C95D41" radius={[3, 3, 0, 0]} />
-                        <Bar dataKey="employers" name="Employers" fill="#3B82F6" radius={[3, 3, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              )}
-
-              {/* AI Executive Platform Diagnostics */}
-              <div className="bg-white p-4 rounded-xl border border-slate-200">
-                <div className="flex items-center gap-2 mb-2.5">
-                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <h3 className="text-xs font-display font-bold text-slate-900 uppercase tracking-wider">
-                    AI Platform Executive Diagnostic & Strategic Summary
-                  </h3>
-                </div>
-                
-                {aiInsights ? (
-                  <div className="grid grid-cols-2 gap-4 text-[10px] text-slate-700">
-                    <div className="space-y-2">
-                      <div>
-                        <p className="font-bold text-slate-900 uppercase text-[9px] text-primary">Key Strategic Insights</p>
-                        <ul className="list-disc pl-4 space-y-1 mt-1">
-                          {(aiInsights.keyInsights || []).slice(0, 2).map((item, idx) => (
-                            <li key={idx}>
-                              <strong>{item.text}</strong> {item.supportingData && `(${item.supportingData})`}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <p className="font-bold text-slate-900 uppercase text-[9px] text-blue-700">Market Dynamics & Trends</p>
-                        <ul className="list-disc pl-4 space-y-1 mt-1">
-                          {(aiInsights.trends || []).slice(0, 2).map((item, idx) => (
-                            <li key={idx}>
-                              <strong>{item.text}</strong> {item.supportingData && `(${item.supportingData})`}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                {/* Mini Chart: Registration Growth */}
+                {transformedUserGrowth.length > 0 && (
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 mb-5">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-xs font-display font-bold text-slate-900 uppercase tracking-wider">
+                        User Registration & Growth Trend
+                      </h3>
+                      <span className="text-[9px] text-slate-500">Workers vs Employers</span>
                     </div>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="font-bold text-slate-900 uppercase text-[9px] text-amber-700">Operational Observations</p>
-                        <ul className="list-disc pl-4 space-y-1 mt-1">
-                          {(aiInsights.areasOfConcern || []).slice(0, 2).map((item, idx) => (
-                            <li key={idx}>
-                              <strong>{item.text}</strong> {item.supportingData && `(${item.supportingData})`}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <p className="font-bold text-slate-900 uppercase text-[9px] text-emerald-700">Executive Recommendations</p>
-                        <ul className="list-disc pl-4 space-y-1 mt-1">
-                          {(aiInsights.recommendations || []).slice(0, 2).map((item, idx) => (
-                            <li key={idx}>
-                              <strong>{item.text}</strong> {item.supportingData && `(${item.supportingData})`}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                    <div className="h-44 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={transformedUserGrowth} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} allowDecimals={false} />
+                          <Bar dataKey="workers" name="Workers" fill="#C95D41" radius={[3, 3, 0, 0]} />
+                          <Bar dataKey="employers" name="Employers" fill="#3B82F6" radius={[3, 3, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
-                ) : (
-                  <p className="text-[10px] text-slate-500 italic">
-                    Platform metrics indicate healthy user onboarding with active conversion across municipal barangays. ID verification throughput maintains strong compliance integrity.
-                  </p>
                 )}
+
+                {/* AI Executive Platform Diagnostics */}
+                <div className="bg-white p-4 rounded-xl border border-slate-200">
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    <h3 className="text-xs font-display font-bold text-slate-900 uppercase tracking-wider">
+                      AI Platform Executive Diagnostic & Strategic Summary
+                    </h3>
+                  </div>
+                  
+                  {aiInsights ? (
+                    <div className="grid grid-cols-2 gap-4 text-[10px] text-slate-700">
+                      <div className="space-y-2">
+                        <div>
+                          <p className="font-bold text-slate-900 uppercase text-[9px] text-primary">Key Strategic Insights</p>
+                          <ul className="list-disc pl-4 space-y-1 mt-1">
+                            {(aiInsights.keyInsights || []).slice(0, 2).map((item, idx) => (
+                              <li key={idx}>
+                                <strong>{item.text}</strong> {item.supportingData && `(${item.supportingData})`}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900 uppercase text-[9px] text-blue-700">Market Dynamics & Trends</p>
+                          <ul className="list-disc pl-4 space-y-1 mt-1">
+                            {(aiInsights.trends || []).slice(0, 2).map((item, idx) => (
+                              <li key={idx}>
+                                <strong>{item.text}</strong> {item.supportingData && `(${item.supportingData})`}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <p className="font-bold text-slate-900 uppercase text-[9px] text-amber-700">Operational Observations</p>
+                          <ul className="list-disc pl-4 space-y-1 mt-1">
+                            {(aiInsights.areasOfConcern || []).slice(0, 2).map((item, idx) => (
+                              <li key={idx}>
+                                <strong>{item.text}</strong> {item.supportingData && `(${item.supportingData})`}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900 uppercase text-[9px] text-emerald-700">Executive Recommendations</p>
+                          <ul className="list-disc pl-4 space-y-1 mt-1">
+                            {(aiInsights.recommendations || []).slice(0, 2).map((item, idx) => (
+                              <li key={idx}>
+                                <strong>{item.text}</strong> {item.supportingData && `(${item.supportingData})`}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-slate-500 italic">
+                      Platform metrics indicate healthy user onboarding with active conversion across municipal barangays. ID verification throughput maintains strong compliance integrity.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Running Print Footer */}
+              <div className="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center text-[8px] text-slate-400 font-medium uppercase tracking-wider">
+                <span>SIKAP: Skills and Job Matching Platform</span>
+                <span>Master Dossier & System Audit · Document Classification: Official Confidential</span>
+                <span>Page 1 of 7</span>
               </div>
             </div>
 
             {/* ================= PAGE 2: RECRUITMENT LIFECYCLE & LABOR DYNAMICS ================= */}
-            <div className="print-page-break avoid-break">
-              <div className="mb-4">
-                <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
-                  Page 2: Recruitment Lifecycle & Labor Market Dynamics
-                </h2>
-                <p className="text-[10px] text-slate-500 mt-0.5">
-                  Detailed conversion tracking through the 4-stage job pipeline alongside skill supply/demand ratios and compensation benchmarks.
-                </p>
-              </div>
-
-              {/* 4-Stage Lifecycle Funnel */}
-              <div className="bg-white p-4 rounded-xl border border-slate-200 mb-5">
-                <h3 className="text-xs font-display font-bold text-slate-900 mb-2.5 uppercase tracking-wider">
-                  4-Stage Recruitment Pipeline Funnel
-                </h3>
-                <div className="grid grid-cols-4 gap-3">
-                  {funnelSteps.map((step, idx) => (
-                    <div key={idx} className="p-3 bg-slate-50 rounded-lg border border-slate-200/80">
-                      <p className="text-[8px] font-bold text-slate-500 uppercase">Stage {idx + 1}</p>
-                      <p className="text-[11px] font-bold text-slate-900 mt-0.5">{step.label}</p>
-                      <p className="text-lg font-black text-primary mt-0.5">{step.value}</p>
-                      <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-1.5">
-                        <div className="bg-primary h-full rounded-full" style={{ width: step.rate }} />
-                      </div>
-                      <p className="text-[8px] font-semibold text-slate-500 mt-1">Conversion: {step.rate}</p>
-                    </div>
-                  ))}
+            <div className="print-page-break avoid-break flex flex-col justify-between min-h-[960px]">
+              <div>
+                <div className="mb-4">
+                  <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
+                    Page 2: Recruitment Lifecycle & Labor Market Dynamics
+                  </h2>
+                  <p className="text-[10px] text-slate-500 mt-0.5">
+                    Detailed conversion tracking through the 4-stage job pipeline alongside skill supply/demand ratios and compensation benchmarks.
+                  </p>
                 </div>
-              </div>
 
-              {/* Chart: Skill Demand Bar Chart */}
-              {transformedJobsData.length > 0 && (
+                {/* 4-Stage Lifecycle Funnel */}
                 <div className="bg-white p-4 rounded-xl border border-slate-200 mb-5">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-xs font-display font-bold text-slate-900 uppercase tracking-wider">
-                      Skill Demand Distribution (Job Postings by Category)
-                    </h3>
-                    <span className="text-[9px] text-slate-500">Top In-Demand Trades</span>
-                  </div>
-                  <div className="h-44 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={transformedJobsData.slice(0, 8)} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} allowDecimals={false} />
-                        <Bar dataKey="jobs" name="Job Postings" fill="#C95D41" radius={[3, 3, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <h3 className="text-xs font-display font-bold text-slate-900 mb-2.5 uppercase tracking-wider">
+                    4-Stage Recruitment Pipeline Funnel
+                  </h3>
+                  <div className="grid grid-cols-4 gap-3">
+                    {funnelSteps.map((step, idx) => (
+                      <div key={idx} className="p-3 bg-slate-50 rounded-lg border border-slate-200/80">
+                        <p className="text-[8px] font-bold text-slate-500 uppercase">Stage {idx + 1}</p>
+                        <p className="text-[11px] font-bold text-slate-900 mt-0.5">{step.label}</p>
+                        <p className="text-lg font-black text-primary mt-0.5">{step.value}</p>
+                        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-1.5">
+                          <div className="bg-primary h-full rounded-full" style={{ width: step.rate }} />
+                        </div>
+                        <p className="text-[8px] font-semibold text-slate-500 mt-1">Conversion: {step.rate}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              )}
 
-              {/* Skills Supply vs Demand Gap & Wage Benchmarks */}
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                {/* Skills Supply vs Demand */}
-                <div className="bg-white p-4 rounded-xl border border-slate-200">
-                  <h3 className="text-xs font-display font-bold text-slate-900 mb-2 uppercase tracking-wider">
-                    Skills Supply vs. Demand Comparison
-                  </h3>
-                  <table className="w-full text-[9px] font-body text-left">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-slate-500 uppercase">
-                        <th className="py-1.5 px-2">Skill / Trade Category</th>
-                        <th className="py-1.5 px-2 text-center">Postings (Demand)</th>
-                        <th className="py-1.5 px-2 text-center">Workers (Supply)</th>
+                {/* Chart: Skill Demand Bar Chart */}
+                {transformedJobsData.length > 0 && (
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 mb-5">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-xs font-display font-bold text-slate-900 uppercase tracking-wider">
+                        Skill Demand Distribution (Job Postings by Category)
+                      </h3>
+                      <span className="text-[9px] text-slate-500">Top In-Demand Trades</span>
+                    </div>
+                    <div className="h-44 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={transformedJobsData.slice(0, 8)} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} allowDecimals={false} />
+                          <Bar dataKey="jobs" name="Job Postings" fill="#C95D41" radius={[3, 3, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+
+                {/* Skills Supply vs Demand Gap & Wage Benchmarks */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  {/* Skills Supply vs Demand */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200">
+                    <h3 className="text-xs font-display font-bold text-slate-900 mb-2 uppercase tracking-wider">
+                      Skills Supply vs. Demand Comparison
+                    </h3>
+                    <table className="w-full text-[9px] font-body text-left">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-slate-500 uppercase">
+                          <th className="py-1.5 px-2">Skill / Trade Category</th>
+                          <th className="py-1.5 px-2 text-center">Postings (Demand)</th>
+                          <th className="py-1.5 px-2 text-center">Workers (Supply)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(transformedJobsData.length > 0 ? transformedJobsData : transformedSkillDistribution).slice(0, 6).map((item: any, idx: number) => {
+                          const workerMatch = transformedSkillDistribution.find((s: any) => s.name.toLowerCase() === item.name.toLowerCase());
+                          const jobMatch = transformedJobsData.find((j: any) => j.name.toLowerCase() === item.name.toLowerCase());
+                          return (
+                            <tr key={idx} className="border-b border-slate-100 last:border-none">
+                              <td className="py-1 px-2 font-medium capitalize text-slate-800">{item.name}</td>
+                              <td className="py-1 px-2 text-center font-bold text-slate-900">{jobMatch ? jobMatch.jobs : '—'}</td>
+                              <td className="py-1 px-2 text-center font-bold text-primary">{workerMatch ? workerMatch.value : '—'}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Compensation Benchmarks */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200">
+                    <h3 className="text-xs font-display font-bold text-slate-900 mb-2 uppercase tracking-wider">
+                      Trade Category Compensation Benchmarks
+                    </h3>
+                    <table className="w-full text-[9px] font-body text-left">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-slate-500 uppercase">
+                          <th className="py-1.5 px-2">Trade Category</th>
+                          <th className="py-1.5 px-2 text-right">Average Pay (PHP)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(data?.compensation?.categories || []).slice(0, 6).map((c: any, idx: number) => (
+                          <tr key={idx} className="border-b border-slate-100 last:border-none">
+                            <td className="py-1 px-2 font-medium capitalize text-slate-800">{c.category}</td>
+                            <td className="py-1 px-2 text-right font-bold text-slate-900">PHP {parseFloat(c.avg_comp || 0).toFixed(2)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* AI Labor Market Diagnostic Memo */}
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[9px] text-slate-700">
+                  <span className="font-bold text-primary uppercase mr-1.5">AI Labor Market Diagnostic:</span>
+                  Recruitment throughput exhibits solid transition from submission to review. Discrepancies between worker supply and posted openings in primary vocational trades highlight opportunities for targeted skill alignment.
+                </div>
+              </div>
+
+              {/* Running Print Footer */}
+              <div className="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center text-[8px] text-slate-400 font-medium uppercase tracking-wider">
+                <span>SIKAP: Skills and Job Matching Platform</span>
+                <span>Master Dossier & System Audit · Document Classification: Official Confidential</span>
+                <span>Page 2 of 7</span>
+              </div>
+            </div>
+
+            {/* ================= PAGE 3: GEOGRAPHIC DISTRIBUTION & BARANGAY ACTIVITY ================= */}
+            <div className="print-page-break avoid-break flex flex-col justify-between min-h-[960px]">
+              <div>
+                <div className="mb-4">
+                  <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
+                    Page 3: Geographic Distribution & Barangay Labor Activity
+                  </h2>
+                  <p className="text-[10px] text-slate-500 mt-0.5">
+                    Spatial labor market engagement breakdown identifying active geographic clusters and localized employment demand.
+                  </p>
+                </div>
+
+                {/* Geographic Activity Chart */}
+                {transformedGeographicActivity.length > 0 && (
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 mb-5">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-xs font-display font-bold text-slate-900 uppercase tracking-wider">
+                        Barangay Spatial Activity Comparison
+                      </h3>
+                      <span className="text-[9px] text-slate-500">Job Postings vs Applications by Area</span>
+                    </div>
+                    <div className="h-48 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={transformedGeographicActivity.slice(0, 8)} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} allowDecimals={false} />
+                          <Bar dataKey="jobs" name="Job Postings" fill="#C95D41" radius={[3, 3, 0, 0]} />
+                          <Bar dataKey="applications" name="Applications" fill="#3B82F6" radius={[3, 3, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+
+                {/* Barangay Engagement Table */}
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-4">
+                  <table className="w-full text-[10px] font-body text-left">
+                    <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
+                      <tr>
+                        <th className="py-2 px-3">Barangay / Area</th>
+                        <th className="py-2 px-3 text-center">Job Postings</th>
+                        <th className="py-2 px-3 text-center">Applications Filed</th>
+                        <th className="py-2 px-3 text-center">Registered Workers</th>
+                        <th className="py-2 px-3 text-right">Labor Engagement Index</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {(transformedJobsData.length > 0 ? transformedJobsData : transformedSkillDistribution).slice(0, 6).map((item: any, idx: number) => {
-                        const workerMatch = transformedSkillDistribution.find((s: any) => s.name.toLowerCase() === item.name.toLowerCase());
-                        const jobMatch = transformedJobsData.find((j: any) => j.name.toLowerCase() === item.name.toLowerCase());
-                        return (
-                          <tr key={idx} className="border-b border-slate-100 last:border-none">
-                            <td className="py-1 px-2 font-medium capitalize text-slate-800">{item.name}</td>
-                            <td className="py-1 px-2 text-center font-bold text-slate-900">{jobMatch ? jobMatch.jobs : '—'}</td>
-                            <td className="py-1 px-2 text-center font-bold text-primary">{workerMatch ? workerMatch.value : '—'}</td>
-                          </tr>
-                        );
-                      })}
+                      {transformedGeographicActivity.length > 0 ? (
+                        transformedGeographicActivity.map((geo: any, idx: number) => {
+                          const totalActivity = (geo.jobs || 0) + (geo.applications || 0);
+                          const workersInArea = masterData.users.filter((u: any) => (u.barangay || '').toLowerCase() === geo.name.toLowerCase()).length;
+                          return (
+                            <tr key={idx} className="border-b border-slate-100 last:border-none">
+                              <td className="py-1.5 px-3 font-bold text-slate-900">{geo.name}</td>
+                              <td className="py-1.5 px-3 text-center font-semibold text-slate-800">{geo.jobs}</td>
+                              <td className="py-1.5 px-3 text-center font-semibold text-slate-800">{geo.applications}</td>
+                              <td className="py-1.5 px-3 text-center font-semibold text-primary">{workersInArea}</td>
+                              <td className="py-1.5 px-3 text-right font-bold text-emerald-700">{totalActivity} Actions</td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="py-4 text-center text-slate-400">No localized geographic records recorded.</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
 
-                {/* Compensation Benchmarks */}
-                <div className="bg-white p-4 rounded-xl border border-slate-200">
-                  <h3 className="text-xs font-display font-bold text-slate-900 mb-2 uppercase tracking-wider">
-                    Trade Category Compensation Benchmarks
-                  </h3>
-                  <table className="w-full text-[9px] font-body text-left">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-slate-500 uppercase">
-                        <th className="py-1.5 px-2">Trade Category</th>
-                        <th className="py-1.5 px-2 text-right">Average Pay (PHP)</th>
+                {/* AI Spatial Labor Allocation Memo */}
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[9px] text-slate-700">
+                  <span className="font-bold text-primary uppercase mr-1.5">AI Spatial Allocation Diagnostic:</span>
+                  Spatial mapping demonstrates high labor concentration in urban core barangays with emerging demand in suburban zones. Rebalancing outreach can optimize travel efficiency for service providers.
+                </div>
+              </div>
+
+              {/* Running Print Footer */}
+              <div className="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center text-[8px] text-slate-400 font-medium uppercase tracking-wider">
+                <span>SIKAP: Skills and Job Matching Platform</span>
+                <span>Master Dossier & System Audit · Document Classification: Official Confidential</span>
+                <span>Page 3 of 7</span>
+              </div>
+            </div>
+
+            {/* ================= PAGE 4: IDENTITY VERIFICATION & TRUST PIPELINE ================= */}
+            <div className="print-page-break avoid-break flex flex-col justify-between min-h-[960px]">
+              <div>
+                <div className="mb-4">
+                  <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
+                    Page 4: Identity Verification & Credential Compliance Audit
+                  </h2>
+                  <p className="text-[10px] text-slate-500 mt-0.5">
+                    ID and identity credential screening audit verifying trustworthiness across all platform participants.
+                  </p>
+                </div>
+
+                {/* Compliance Metric Cards */}
+                <div className="grid grid-cols-4 gap-4 print-card-grid mb-5">
+                  <div className="p-3 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Total Submissions</p>
+                    <p className="text-xl font-black text-slate-900 mt-0.5">{masterData.verifications.length}</p>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Approved Credentials</p>
+                    <p className="text-xl font-black text-emerald-700 mt-0.5">
+                      {masterData.verifications.filter((v: any) => v.verification_status === 'approved').length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Pending Review</p>
+                    <p className="text-xl font-black text-amber-700 mt-0.5">
+                      {masterData.verifications.filter((v: any) => v.verification_status === 'pending').length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Rejected Submissions</p>
+                    <p className="text-xl font-black text-red-700 mt-0.5">
+                      {masterData.verifications.filter((v: any) => v.verification_status === 'rejected').length}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Verification Table */}
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-4">
+                  <table className="w-full text-[10px] font-body text-left">
+                    <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
+                      <tr>
+                        <th className="py-2 px-3">User ID</th>
+                        <th className="py-2 px-3">Full Name</th>
+                        <th className="py-2 px-3">Role</th>
+                        <th className="py-2 px-3">Credentials Submitted</th>
+                        <th className="py-2 px-3">Status</th>
+                        <th className="py-2 px-3">Date Submitted</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {(data?.compensation?.categories || []).slice(0, 6).map((c: any, idx: number) => (
+                      {masterData.verifications.slice(0, 16).map((v: any, idx: number) => (
                         <tr key={idx} className="border-b border-slate-100 last:border-none">
-                          <td className="py-1 px-2 font-medium capitalize text-slate-800">{c.category}</td>
-                          <td className="py-1 px-2 text-right font-bold text-slate-900">PHP {parseFloat(c.avg_comp || 0).toFixed(2)}</td>
+                          <td className="py-1.5 px-3 font-mono text-slate-500">#{v.id}</td>
+                          <td className="py-1.5 px-3 font-bold text-slate-900">{v.name}</td>
+                          <td className="py-1.5 px-3 capitalize text-slate-700">{v.role}</td>
+                          <td className="py-1.5 px-3 text-slate-600">
+                            {v.document_url ? 'Front ID' : ''}
+                            {v.document_back_url ? ' + Back ID' : ''}
+                            {v.selfie_url ? ' + Selfie' : ''}
+                          </td>
+                          <td className="py-1.5 px-3">
+                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                              v.verification_status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
+                              v.verification_status === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              {v.verification_status}
+                            </span>
+                          </td>
+                          <td className="py-1.5 px-3 text-slate-600">{new Date(v.created_at).toLocaleDateString()}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-              </div>
 
-              {/* AI Labor Market Diagnostic Memo */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[9px] text-slate-700">
-                <span className="font-bold text-primary uppercase mr-1.5">AI Labor Market Diagnostic:</span>
-                Recruitment throughput exhibits solid transition from submission to review. Discrepancies between worker supply and posted openings in primary vocational trades highlight opportunities for targeted skill alignment.
-              </div>
-            </div>
-
-            {/* ================= PAGE 3: GEOGRAPHIC DISTRIBUTION & BARANGAY ACTIVITY ================= */}
-            <div className="print-page-break avoid-break">
-              <div className="mb-4">
-                <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
-                  Page 3: Geographic Distribution & Barangay Labor Activity
-                </h2>
-                <p className="text-[10px] text-slate-500 mt-0.5">
-                  Spatial labor market engagement breakdown identifying active geographic clusters and localized employment demand.
-                </p>
-              </div>
-
-              {/* Geographic Activity Chart */}
-              {transformedGeographicActivity.length > 0 && (
-                <div className="bg-white p-4 rounded-xl border border-slate-200 mb-5">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-xs font-display font-bold text-slate-900 uppercase tracking-wider">
-                      Barangay Spatial Activity Comparison
-                    </h3>
-                    <span className="text-[9px] text-slate-500">Job Postings vs Applications by Area</span>
-                  </div>
-                  <div className="h-48 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={transformedGeographicActivity.slice(0, 8)} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} allowDecimals={false} />
-                        <Bar dataKey="jobs" name="Job Postings" fill="#C95D41" radius={[3, 3, 0, 0]} />
-                        <Bar dataKey="applications" name="Applications" fill="#3B82F6" radius={[3, 3, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              )}
-
-              {/* Barangay Engagement Table */}
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-4">
-                <table className="w-full text-[10px] font-body text-left">
-                  <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
-                    <tr>
-                      <th className="py-2 px-3">Barangay / Area</th>
-                      <th className="py-2 px-3 text-center">Job Postings</th>
-                      <th className="py-2 px-3 text-center">Applications Filed</th>
-                      <th className="py-2 px-3 text-center">Registered Workers</th>
-                      <th className="py-2 px-3 text-right">Labor Engagement Index</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transformedGeographicActivity.length > 0 ? (
-                      transformedGeographicActivity.map((geo: any, idx: number) => {
-                        const totalActivity = (geo.jobs || 0) + (geo.applications || 0);
-                        const workersInArea = masterData.users.filter((u: any) => (u.barangay || '').toLowerCase() === geo.name.toLowerCase()).length;
-                        return (
-                          <tr key={idx} className="border-b border-slate-100 last:border-none">
-                            <td className="py-1.5 px-3 font-bold text-slate-900">{geo.name}</td>
-                            <td className="py-1.5 px-3 text-center font-semibold text-slate-800">{geo.jobs}</td>
-                            <td className="py-1.5 px-3 text-center font-semibold text-slate-800">{geo.applications}</td>
-                            <td className="py-1.5 px-3 text-center font-semibold text-primary">{workersInArea}</td>
-                            <td className="py-1.5 px-3 text-right font-bold text-emerald-700">{totalActivity} Actions</td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan={5} className="py-4 text-center text-slate-400">No localized geographic records recorded.</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* AI Spatial Labor Allocation Memo */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[9px] text-slate-700">
-                <span className="font-bold text-primary uppercase mr-1.5">AI Spatial Allocation Diagnostic:</span>
-                Spatial mapping demonstrates high labor concentration in urban core barangays with emerging demand in suburban zones. Rebalancing outreach can optimize travel efficiency for service providers.
-              </div>
-            </div>
-
-            {/* ================= PAGE 4: IDENTITY VERIFICATION & TRUST PIPELINE ================= */}
-            <div className="print-page-break avoid-break">
-              <div className="mb-4">
-                <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
-                  Page 4: Identity Verification & Credential Compliance Audit
-                </h2>
-                <p className="text-[10px] text-slate-500 mt-0.5">
-                  ID and identity credential screening audit verifying trustworthiness across all platform participants.
-                </p>
-              </div>
-
-              {/* Compliance Metric Cards */}
-              <div className="grid grid-cols-4 gap-4 print-card-grid mb-5">
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Total Submissions</p>
-                  <p className="text-xl font-black text-slate-900 mt-0.5">{masterData.verifications.length}</p>
-                </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Approved Credentials</p>
-                  <p className="text-xl font-black text-emerald-700 mt-0.5">
-                    {masterData.verifications.filter((v: any) => v.verification_status === 'approved').length}
-                  </p>
-                </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Pending Review</p>
-                  <p className="text-xl font-black text-amber-700 mt-0.5">
-                    {masterData.verifications.filter((v: any) => v.verification_status === 'pending').length}
-                  </p>
-                </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Rejected Submissions</p>
-                  <p className="text-xl font-black text-red-700 mt-0.5">
-                    {masterData.verifications.filter((v: any) => v.verification_status === 'rejected').length}
-                  </p>
+                {/* AI Trust & Compliance Assessment Memo */}
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[9px] text-slate-700">
+                  <span className="font-bold text-primary uppercase mr-1.5">AI Trust & Verification Diagnostic:</span>
+                  Verification approval rates remain consistently high, significantly mitigating platform fraud risk and building credibility among employers and jobseekers alike.
                 </div>
               </div>
 
-              {/* Verification Table */}
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-4">
-                <table className="w-full text-[10px] font-body text-left">
-                  <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
-                    <tr>
-                      <th className="py-2 px-3">User ID</th>
-                      <th className="py-2 px-3">Full Name</th>
-                      <th className="py-2 px-3">Role</th>
-                      <th className="py-2 px-3">Credentials Submitted</th>
-                      <th className="py-2 px-3">Status</th>
-                      <th className="py-2 px-3">Date Submitted</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {masterData.verifications.slice(0, 16).map((v: any, idx: number) => (
-                      <tr key={idx} className="border-b border-slate-100 last:border-none">
-                        <td className="py-1.5 px-3 font-mono text-slate-500">#{v.id}</td>
-                        <td className="py-1.5 px-3 font-bold text-slate-900">{v.name}</td>
-                        <td className="py-1.5 px-3 capitalize text-slate-700">{v.role}</td>
-                        <td className="py-1.5 px-3 text-slate-600">
-                          {v.document_url ? 'Front ID' : ''}
-                          {v.document_back_url ? ' + Back ID' : ''}
-                          {v.selfie_url ? ' + Selfie' : ''}
-                        </td>
-                        <td className="py-1.5 px-3">
-                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                            v.verification_status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
-                            v.verification_status === 'pending' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                            {v.verification_status}
-                          </span>
-                        </td>
-                        <td className="py-1.5 px-3 text-slate-600">{new Date(v.created_at).toLocaleDateString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* AI Trust & Compliance Assessment Memo */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[9px] text-slate-700">
-                <span className="font-bold text-primary uppercase mr-1.5">AI Trust & Verification Diagnostic:</span>
-                Verification approval rates remain consistently high, significantly mitigating platform fraud risk and building credibility among employers and jobseekers alike.
+              {/* Running Print Footer */}
+              <div className="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center text-[8px] text-slate-400 font-medium uppercase tracking-wider">
+                <span>SIKAP: Skills and Job Matching Platform</span>
+                <span>Master Dossier & System Audit · Document Classification: Official Confidential</span>
+                <span>Page 4 of 7</span>
               </div>
             </div>
 
             {/* ================= PAGE 5: JOB POSTINGS & HIRING DIRECTORY ================= */}
-            <div className="print-page-break avoid-break">
-              <div className="mb-4">
-                <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
-                  Page 5: Job Postings & Hiring Directory ({masterData.jobs.length} Posts)
-                </h2>
-                <p className="text-[10px] text-slate-500 mt-0.5">
-                  Comprehensive listing of all job posts, employer details, duration types, compensation, and hiring completion.
-                </p>
-              </div>
-
-              {/* Application Volume Area Chart */}
-              {transformedApplicationVolume.length > 0 && (
-                <div className="bg-white p-4 rounded-xl border border-slate-200 mb-5">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-xs font-display font-bold text-slate-900 uppercase tracking-wider">
-                      Application Volume & Job Postings Velocity
-                    </h3>
-                    <span className="text-[9px] text-slate-500">Applications vs Unique Jobs</span>
-                  </div>
-                  <div className="h-44 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={transformedApplicationVolume} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} allowDecimals={false} />
-                        <Area type="monotone" dataKey="applications" name="Applications" stroke="#C95D41" strokeWidth={2} fill="#C95D41" fillOpacity={0.12} />
-                        <Area type="monotone" dataKey="jobs" name="Unique Jobs" stroke="#3B82F6" strokeWidth={2} fill="#3B82F6" fillOpacity={0.12} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+            <div className="print-page-break avoid-break flex flex-col justify-between min-h-[960px]">
+              <div>
+                <div className="mb-4">
+                  <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
+                    Page 5: Job Postings & Hiring Directory ({masterData.jobs.length} Posts)
+                  </h2>
+                  <p className="text-[10px] text-slate-500 mt-0.5">
+                    Comprehensive listing of all job posts, employer details, duration types, compensation, and hiring completion.
+                  </p>
                 </div>
-              )}
 
-              {/* Job Directory Table */}
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-4">
-                <table className="w-full text-[10px] font-body text-left">
-                  <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
-                    <tr>
-                      <th className="py-2 px-3">Code</th>
-                      <th className="py-2 px-3">Job Title</th>
-                      <th className="py-2 px-3">Employer</th>
-                      <th className="py-2 px-3">Category</th>
-                      <th className="py-2 px-3">Compensation</th>
-                      <th className="py-2 px-3">Slots</th>
-                      <th className="py-2 px-3">Apps</th>
-                      <th className="py-2 px-3">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {masterData.jobs.slice(0, 15).map((j: any, idx: number) => (
-                      <tr key={idx} className="border-b border-slate-100 last:border-none">
-                        <td className="py-1.5 px-3 font-mono text-slate-500">{j.reference_number || `#${j.id}`}</td>
-                        <td className="py-1.5 px-3 font-bold text-slate-900">{j.title}</td>
-                        <td className="py-1.5 px-3 text-slate-700">{j.employer?.name || '—'}</td>
-                        <td className="py-1.5 px-3 text-slate-600 capitalize">{j.category}</td>
-                        <td className="py-1.5 px-3 font-bold text-slate-900">PHP {parseFloat(j.compensation || 0).toFixed(2)}</td>
-                        <td className="py-1.5 px-3 text-slate-700">{j.accepted_count ?? 0}/{j.slots ?? 1}</td>
-                        <td className="py-1.5 px-3 text-slate-700">{j.applications_count ?? 0}</td>
-                        <td className="py-1.5 px-3 capitalize font-semibold text-slate-800">{j.status}</td>
+                {/* Application Volume Area Chart */}
+                {transformedApplicationVolume.length > 0 && (
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 mb-5">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-xs font-display font-bold text-slate-900 uppercase tracking-wider">
+                        Application Volume & Job Postings Velocity
+                      </h3>
+                      <span className="text-[9px] text-slate-500">Applications vs Unique Jobs</span>
+                    </div>
+                    <div className="h-44 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={transformedApplicationVolume} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 8 }} allowDecimals={false} />
+                          <Area type="monotone" dataKey="applications" name="Applications" stroke="#C95D41" strokeWidth={2} fill="#C95D41" fillOpacity={0.12} />
+                          <Area type="monotone" dataKey="jobs" name="Unique Jobs" stroke="#3B82F6" strokeWidth={2} fill="#3B82F6" fillOpacity={0.12} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+
+                {/* Job Directory Table */}
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-4">
+                  <table className="w-full text-[10px] font-body text-left">
+                    <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
+                      <tr>
+                        <th className="py-2 px-3">Code</th>
+                        <th className="py-2 px-3">Job Title</th>
+                        <th className="py-2 px-3">Employer</th>
+                        <th className="py-2 px-3">Category</th>
+                        <th className="py-2 px-3">Compensation</th>
+                        <th className="py-2 px-3">Slots</th>
+                        <th className="py-2 px-3">Apps</th>
+                        <th className="py-2 px-3">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {masterData.jobs.slice(0, 15).map((j: any, idx: number) => (
+                        <tr key={idx} className="border-b border-slate-100 last:border-none">
+                          <td className="py-1.5 px-3 font-mono text-slate-500">{j.reference_number || `#${j.id}`}</td>
+                          <td className="py-1.5 px-3 font-bold text-slate-900">{j.title}</td>
+                          <td className="py-1.5 px-3 text-slate-700">{j.employer?.name || '—'}</td>
+                          <td className="py-1.5 px-3 text-slate-600 capitalize">{j.category}</td>
+                          <td className="py-1.5 px-3 font-bold text-slate-900">PHP {parseFloat(j.compensation || 0).toFixed(2)}</td>
+                          <td className="py-1.5 px-3 text-slate-700">{j.accepted_count ?? 0}/{j.slots ?? 1}</td>
+                          <td className="py-1.5 px-3 text-slate-700">{j.applications_count ?? 0}</td>
+                          <td className="py-1.5 px-3 capitalize font-semibold text-slate-800">{j.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* AI Labor Liquidity Diagnostic Memo */}
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[9px] text-slate-700">
+                  <span className="font-bold text-primary uppercase mr-1.5">AI Job Fulfillment Diagnostic:</span>
+                  Job post lifecycle metrics reveal rapid application intake for specialized skilled trade roles, maintaining healthy time-to-hire across local employers.
+                </div>
               </div>
 
-              {/* AI Labor Liquidity Diagnostic Memo */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[9px] text-slate-700">
-                <span className="font-bold text-primary uppercase mr-1.5">AI Job Fulfillment Diagnostic:</span>
-                Job post lifecycle metrics reveal rapid application intake for specialized skilled trade roles, maintaining healthy time-to-hire across local employers.
+              {/* Running Print Footer */}
+              <div className="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center text-[8px] text-slate-400 font-medium uppercase tracking-wider">
+                <span>SIKAP: Skills and Job Matching Platform</span>
+                <span>Master Dossier & System Audit · Document Classification: Official Confidential</span>
+                <span>Page 5 of 7</span>
               </div>
             </div>
 
             {/* ================= PAGE 6: COMMUNITY SAFETY & INCIDENT AUDIT ================= */}
-            <div className="print-page-break avoid-break">
-              <div className="mb-4">
-                <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
-                  Page 6: Community Safety, Content Moderation & Incident Audit
-                </h2>
-                <p className="text-[10px] text-slate-500 mt-0.5">
-                  Audit trail of community safety reports, violation resolutions, and profanity filtering enforcement.
-                </p>
-              </div>
-
-              {/* Safety Summary Metrics */}
-              <div className="grid grid-cols-4 gap-4 print-card-grid mb-5">
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Total Reports Filed</p>
-                  <p className="text-xl font-black text-slate-900 mt-0.5">{masterData.reports.length}</p>
-                </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Resolved Incidents</p>
-                  <p className="text-xl font-black text-emerald-700 mt-0.5">
-                    {masterData.reports.filter((r: any) => r.status === 'resolved').length}
+            <div className="print-page-break avoid-break flex flex-col justify-between min-h-[960px]">
+              <div>
+                <div className="mb-4">
+                  <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
+                    Page 6: Community Safety, Content Moderation & Incident Audit
+                  </h2>
+                  <p className="text-[10px] text-slate-500 mt-0.5">
+                    Audit trail of community safety reports, violation resolutions, and profanity filtering enforcement.
                   </p>
                 </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Pending Review</p>
-                  <p className="text-xl font-black text-amber-700 mt-0.5">
-                    {masterData.reports.filter((r: any) => r.status === 'pending').length}
-                  </p>
-                </div>
-                <div className="p-3 bg-white rounded-xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase">Active Profanity Filters</p>
-                  <p className="text-xl font-black text-indigo-700 mt-0.5">{masterData.profanity.length} Words</p>
-                </div>
-              </div>
 
-              {/* Incident Reports Table */}
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-4">
-                <table className="w-full text-[10px] font-body text-left">
-                  <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
-                    <tr>
-                      <th className="py-2 px-3">ID</th>
-                      <th className="py-2 px-3">Violation Type</th>
-                      <th className="py-2 px-3">Target Entity</th>
-                      <th className="py-2 px-3">Reporter</th>
-                      <th className="py-2 px-3">Description</th>
-                      <th className="py-2 px-3">Status</th>
-                      <th className="py-2 px-3">Date Filed</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {masterData.reports.length > 0 ? (
-                      masterData.reports.slice(0, 12).map((r: any, idx: number) => (
-                        <tr key={idx} className="border-b border-slate-100 last:border-none">
-                          <td className="py-1.5 px-3 font-mono text-slate-500">#{r.id}</td>
-                          <td className="py-1.5 px-3 font-bold text-slate-900 capitalize">{r.type?.replace(/_/g, ' ')}</td>
-                          <td className="py-1.5 px-3 text-slate-700 capitalize">{r.reportable_type}</td>
-                          <td className="py-1.5 px-3 text-slate-600">{r.reporter?.name || 'Anonymous'}</td>
-                          <td className="py-1.5 px-3 text-slate-600 truncate max-w-xs">{r.description || '—'}</td>
-                          <td className="py-1.5 px-3 capitalize font-semibold text-slate-800">{r.status}</td>
-                          <td className="py-1.5 px-3 text-slate-600">{new Date(r.created_at).toLocaleDateString()}</td>
-                        </tr>
-                      ))
-                    ) : (
+                {/* Safety Summary Metrics */}
+                <div className="grid grid-cols-4 gap-4 print-card-grid mb-5">
+                  <div className="p-3 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Total Reports Filed</p>
+                    <p className="text-xl font-black text-slate-900 mt-0.5">{masterData.reports.length}</p>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Resolved Incidents</p>
+                    <p className="text-xl font-black text-emerald-700 mt-0.5">
+                      {masterData.reports.filter((r: any) => r.status === 'resolved').length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Pending Review</p>
+                    <p className="text-xl font-black text-amber-700 mt-0.5">
+                      {masterData.reports.filter((r: any) => r.status === 'pending').length}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[9px] font-bold text-slate-500 uppercase">Active Profanity Filters</p>
+                    <p className="text-xl font-black text-indigo-700 mt-0.5">{masterData.profanity.length} Words</p>
+                  </div>
+                </div>
+
+                {/* Incident Reports Table */}
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-4">
+                  <table className="w-full text-[10px] font-body text-left">
+                    <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
                       <tr>
-                        <td colSpan={7} className="py-4 text-center text-slate-400">No moderation incident records.</td>
+                        <th className="py-2 px-3">ID</th>
+                        <th className="py-2 px-3">Violation Type</th>
+                        <th className="py-2 px-3">Target Entity</th>
+                        <th className="py-2 px-3">Reporter</th>
+                        <th className="py-2 px-3">Description</th>
+                        <th className="py-2 px-3">Status</th>
+                        <th className="py-2 px-3">Date Filed</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {masterData.reports.length > 0 ? (
+                        masterData.reports.slice(0, 12).map((r: any, idx: number) => (
+                          <tr key={idx} className="border-b border-slate-100 last:border-none">
+                            <td className="py-1.5 px-3 font-mono text-slate-500">#{r.id}</td>
+                            <td className="py-1.5 px-3 font-bold text-slate-900 capitalize">{r.type?.replace(/_/g, ' ')}</td>
+                            <td className="py-1.5 px-3 text-slate-700 capitalize">{r.reportable_type}</td>
+                            <td className="py-1.5 px-3 text-slate-600">{r.reporter?.name || 'Anonymous'}</td>
+                            <td className="py-1.5 px-3 text-slate-600 truncate max-w-xs">{r.description || '—'}</td>
+                            <td className="py-1.5 px-3 capitalize font-semibold text-slate-800">{r.status}</td>
+                            <td className="py-1.5 px-3 text-slate-600">{new Date(r.created_at).toLocaleDateString()}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={7} className="py-4 text-center text-slate-400">No moderation incident records.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* AI Community Safety Diagnostic Memo */}
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[9px] text-slate-700">
+                  <span className="font-bold text-primary uppercase mr-1.5">AI Community Safety Assessment:</span>
+                  Low incident frequency and high resolution rate indicate effective automated profanity filtering and prompt administrative moderation, sustaining a safe environment for all participants.
+                </div>
               </div>
 
-              {/* AI Community Safety Diagnostic Memo */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[9px] text-slate-700">
-                <span className="font-bold text-primary uppercase mr-1.5">AI Community Safety Assessment:</span>
-                Low incident frequency and high resolution rate indicate effective automated profanity filtering and prompt administrative moderation, sustaining a safe environment for all participants.
+              {/* Running Print Footer */}
+              <div className="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center text-[8px] text-slate-400 font-medium uppercase tracking-wider">
+                <span>SIKAP: Skills and Job Matching Platform</span>
+                <span>Master Dossier & System Audit · Document Classification: Official Confidential</span>
+                <span>Page 6 of 7</span>
               </div>
             </div>
 
             {/* ================= PAGE 7: ADMINISTRATIVE AUDIT TRAIL & OFFICIAL SIGN-OFF ================= */}
-            <div className="print-page-break avoid-break">
-              <div className="mb-4">
-                <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
-                  Page 7: System Audit Trail & Official Sign-off
-                </h2>
-                <p className="text-[10px] text-slate-500 mt-0.5">
-                  Administrative action audit log documenting administrative events, security changes, and institutional verification.
-                </p>
-              </div>
+            <div className="print-page-break avoid-break flex flex-col justify-between min-h-[960px]">
+              <div>
+                <div className="mb-4">
+                  <h2 className="text-base font-display font-bold text-slate-900 uppercase tracking-wider">
+                    Page 7: System Audit Trail & Official Sign-off
+                  </h2>
+                  <p className="text-[10px] text-slate-500 mt-0.5">
+                    Administrative action audit log documenting administrative events, security changes, and institutional verification.
+                  </p>
+                </div>
 
-              {/* System Audit Logs */}
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6">
-                <table className="w-full text-[10px] font-body text-left">
-                  <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
-                    <tr>
-                      <th className="py-2 px-3">Log ID</th>
-                      <th className="py-2 px-3">Administrator</th>
-                      <th className="py-2 px-3">Action</th>
-                      <th className="py-2 px-3">Target Entity</th>
-                      <th className="py-2 px-3">Details</th>
-                      <th className="py-2 px-3">Timestamp</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {masterData.logs.length > 0 ? (
-                      masterData.logs.slice(0, 12).map((l: any, idx: number) => (
-                        <tr key={idx} className="border-b border-slate-100 last:border-none">
-                          <td className="py-1.5 px-3 font-mono text-slate-500">#{l.id}</td>
-                          <td className="py-1.5 px-3 font-bold text-slate-900">{l.admin?.name || 'Superadmin'}</td>
-                          <td className="py-1.5 px-3 font-semibold text-primary capitalize">{l.action}</td>
-                          <td className="py-1.5 px-3 text-slate-700 capitalize">{l.target_type || 'System'}</td>
-                          <td className="py-1.5 px-3 text-slate-600 truncate max-w-xs">{l.details || '—'}</td>
-                          <td className="py-1.5 px-3 text-slate-600">{new Date(l.created_at).toLocaleString()}</td>
-                        </tr>
-                      ))
-                    ) : (
+                {/* System Audit Logs */}
+                <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6">
+                  <table className="w-full text-[10px] font-body text-left">
+                    <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
                       <tr>
-                        <td colSpan={6} className="py-4 text-center text-slate-400">No administrative logs recorded.</td>
+                        <th className="py-2 px-3">Log ID</th>
+                        <th className="py-2 px-3">Administrator</th>
+                        <th className="py-2 px-3">Action</th>
+                        <th className="py-2 px-3">Target Entity</th>
+                        <th className="py-2 px-3">Details</th>
+                        <th className="py-2 px-3">Timestamp</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {masterData.logs.length > 0 ? (
+                        masterData.logs.slice(0, 12).map((l: any, idx: number) => (
+                          <tr key={idx} className="border-b border-slate-100 last:border-none">
+                            <td className="py-1.5 px-3 font-mono text-slate-500">#{l.id}</td>
+                            <td className="py-1.5 px-3 font-bold text-slate-900">{l.admin?.name || 'Superadmin'}</td>
+                            <td className="py-1.5 px-3 font-semibold text-primary capitalize">{l.action}</td>
+                            <td className="py-1.5 px-3 text-slate-700 capitalize">{l.target_type || 'System'}</td>
+                            <td className="py-1.5 px-3 text-slate-600 truncate max-w-xs">{l.details || '—'}</td>
+                            <td className="py-1.5 px-3 text-slate-600">{new Date(l.created_at).toLocaleString()}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={6} className="py-4 text-center text-slate-400">No administrative logs recorded.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* AI Governance Audit Memo */}
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[9px] text-slate-700 mb-6">
+                  <span className="font-bold text-primary uppercase mr-1.5">AI Administrative Governance Audit:</span>
+                  All administrative operations are systematically logged with full timestamp traceability, verifying institutional compliance with data integrity and user data protection protocols.
+                </div>
+
+                {/* Formal 3-Signer Institutional Sign-Off Block */}
+                <div className="pt-6 border-t-2 border-slate-300 grid grid-cols-3 gap-8 avoid-break">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-8">Prepared & Certified By:</p>
+                    <div className="border-b border-slate-400 w-40 mb-1"></div>
+                    <p className="text-xs font-bold text-slate-900">Platform Administrator</p>
+                    <p className="text-[9px] text-slate-500">SIKAP Management Console</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-8">Reviewed & Endorsed By:</p>
+                    <div className="border-b border-slate-400 w-40 mb-1"></div>
+                    <p className="text-xs font-bold text-slate-900">Lead Researcher / Data Specialist</p>
+                    <p className="text-[9px] text-slate-500">SIKAP Project Team</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-8">Noted & Approved By:</p>
+                    <div className="border-b border-slate-400 w-40 mb-1"></div>
+                    <p className="text-xs font-bold text-slate-900">Project Adviser / Supervisor</p>
+                    <p className="text-[9px] text-slate-500">SIKAP Project Advisory & Oversight</p>
+                  </div>
+                </div>
               </div>
 
-              {/* AI Governance Audit Memo */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[9px] text-slate-700 mb-6">
-                <span className="font-bold text-primary uppercase mr-1.5">AI Administrative Governance Audit:</span>
-                All administrative operations are systematically logged with full timestamp traceability, verifying institutional compliance with data integrity and user data protection protocols.
-              </div>
-
-              {/* Formal 3-Signer Institutional Sign-Off Block */}
-              <div className="pt-6 border-t-2 border-slate-300 grid grid-cols-3 gap-8 avoid-break">
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-8">Prepared & Certified By:</p>
-                  <div className="border-b border-slate-400 w-40 mb-1"></div>
-                  <p className="text-xs font-bold text-slate-900">Platform Administrator</p>
-                  <p className="text-[9px] text-slate-500">SIKAP Management Console</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-8">Reviewed & Endorsed By:</p>
-                  <div className="border-b border-slate-400 w-40 mb-1"></div>
-                  <p className="text-xs font-bold text-slate-900">Lead Researcher / Data Specialist</p>
-                  <p className="text-[9px] text-slate-500">SIKAP Project Team</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-8">Noted & Approved By:</p>
-                  <div className="border-b border-slate-400 w-40 mb-1"></div>
-                  <p className="text-xs font-bold text-slate-900">Project Adviser / Supervisor</p>
-                  <p className="text-[9px] text-slate-500">SIKAP Project Advisory & Oversight</p>
-                </div>
+              {/* Running Print Footer */}
+              <div className="mt-6 pt-3 border-t border-slate-200 flex justify-between items-center text-[8px] text-slate-400 font-medium uppercase tracking-wider">
+                <span>SIKAP: Skills and Job Matching Platform</span>
+                <span>Master Dossier & System Audit · Document Classification: Official Confidential</span>
+                <span>Page 7 of 7</span>
               </div>
             </div>
           </div>
