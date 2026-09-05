@@ -50,7 +50,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [reportToastDismissed, setReportToastDismissed] = useState(false);
   const [notifications, setNotifications] = useState<DashboardNotification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(true);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [, setIsSyncing] = useState(false);
   const [readNotifications, setReadNotifications] = useLocalStorage<string[]>('admin_read_notifications', []);
   const didPrefetch = useRef(false);
   const initialSyncDone = useRef(false);
@@ -329,7 +329,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => fetchNotifications()}
+                    onClick={() => fetchNotifications(true)}
                     className="p-2 text-ink-soft hover:text-primary hover:bg-white/80 rounded-lg transition-colors cursor-pointer"
                     title="Refresh notifications"
                     aria-label="Refresh"
@@ -704,21 +704,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Live Synchronized Status Pill */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-body font-medium shadow-sm transition-all">
-              {isSyncing ? (
-                <>
-                  <i className="lni lni-spinner-arrow animate-spin text-emerald-600 text-xs" />
-                  <span>Syncing Live...</span>
-                </>
-              ) : (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Real-time Active</span>
-                </>
-              )}
-            </div>
-
             {/* Action Center / Notifications Button on Content Side */}
             <NotificationButton />
           </div>

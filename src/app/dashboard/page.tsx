@@ -10,7 +10,8 @@ import { adminApi } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { AIInsightsCard, InsightsData } from '@/components/AIInsightsCard';
 import { CHART_COLORS } from '@/lib/constants';
-import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus } from '@/lib/export/csv';
+import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency } from '@/lib/export/csv';
+import { generateMasterExcelWorkbook, downloadExcelBlob } from '@/lib/export/excel';
 
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
@@ -135,24 +136,12 @@ export default function AnalyticsDashboard() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [isPresentationMode, setIsPresentationMode] = useState(false);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
 
-  // Tab-specific date states (defaulting to 'Today')
-  const [overviewPreset, setOverviewPreset] = useState<string>('Today');
-  const [overviewStart, setOverviewStart] = useState<string>('');
-  const [overviewEnd, setOverviewEnd] = useState<string>('');
-
-  const [trendsPreset, setTrendsPreset] = useState<string>('Today');
-  const [trendsStart, setTrendsStart] = useState<string>('');
-  const [trendsEnd, setTrendsEnd] = useState<string>('');
-
-  const [distPreset, setDistPreset] = useState<string>('Today');
-  const [distStart, setDistStart] = useState<string>('');
-  const [distEnd, setDistEnd] = useState<string>('');
-
-  const [healthPreset, setHealthPreset] = useState<string>('Today');
-  const [healthStart, setHealthStart] = useState<string>('');
-  const [healthEnd, setHealthEnd] = useState<string>('');
+  // Shared persistent date states across all analytics sub-tabs (defaulting to 'Last 30 Days')
+  const [globalPreset, setGlobalPreset] = useState<string>('Last 30 Days');
+  const [globalStart, setGlobalStart] = useState<string>('');
+  const [globalEnd, setGlobalEnd] = useState<string>('');
 
   // Page-specific tab filters
   const [trendsRoleFilter, setTrendsRoleFilter] = useState<'all' | 'worker' | 'employer'>('all');
@@ -195,30 +184,10 @@ export default function AnalyticsDashboard() {
     profanity: any[];
   } | null>(null);
   const [isGeneratingMasterPdf, setIsGeneratingMasterPdf] = useState(false);
-  // Get active period and interval based on selected tab and its filters
+  // Get active period and interval based on shared global date filters
   const getActivePeriodAndInterval = useCallback(() => {
-    let preset: string;
-    let start: string;
-    let end: string;
-
-    if (activeTab === 'overview') {
-      preset = overviewPreset; start = overviewStart; end = overviewEnd;
-    } else if (activeTab === 'trends') {
-      preset = trendsPreset; start = trendsStart; end = trendsEnd;
-    } else if (activeTab === 'distribution') {
-      preset = distPreset; start = distStart; end = distEnd;
-    } else {
-      preset = healthPreset; start = healthStart; end = healthEnd;
-    }
-
-    return getPeriodAndInterval(preset, start, end);
-  }, [
-    activeTab,
-    overviewPreset, overviewStart, overviewEnd,
-    trendsPreset, trendsStart, trendsEnd,
-    distPreset, distStart, distEnd,
-    healthPreset, healthStart, healthEnd
-  ]);
+    return getPeriodAndInterval(globalPreset, globalStart, globalEnd);
+  }, [globalPreset, globalStart, globalEnd]);
 
   const activeParams = getActivePeriodAndInterval();
   const { from, to, interval: intervalFilter } = activeParams;
@@ -275,30 +244,12 @@ export default function AnalyticsDashboard() {
   };
 
   const renderDateSelector = (tab: 'overview' | 'trends' | 'distribution' | 'health') => {
-    let preset: string;
-    let setPreset: (p: string) => void;
-    let start: string;
-    let setStart: (s: string) => void;
-    let end: string;
-    let setEnd: (e: string) => void;
-
-    if (tab === 'overview') {
-      preset = overviewPreset; setPreset = setOverviewPreset;
-      start = overviewStart; setStart = setOverviewStart;
-      end = overviewEnd; setEnd = setOverviewEnd;
-    } else if (tab === 'trends') {
-      preset = trendsPreset; setPreset = setTrendsPreset;
-      start = trendsStart; setStart = setTrendsStart;
-      end = trendsEnd; setEnd = setTrendsEnd;
-    } else if (tab === 'distribution') {
-      preset = distPreset; setPreset = setDistPreset;
-      start = distStart; setStart = setDistStart;
-      end = distEnd; setEnd = setDistEnd;
-    } else {
-      preset = healthPreset; setPreset = setHealthPreset;
-      start = healthStart; setStart = setHealthStart;
-      end = healthEnd; setEnd = setHealthEnd;
-    }
+    const preset = globalPreset;
+    const setPreset = setGlobalPreset;
+    const start = globalStart;
+    const setStart = setGlobalStart;
+    const end = globalEnd;
+    const setEnd = setGlobalEnd;
 
     const presets = ['Today', 'Yesterday', 'Last 7 Days', 'This Week', 'Last Week', 'Last 30 Days', 'This Month', 'Last Month', 'This Quarter', 'This Year', 'Custom Date'];
 
@@ -444,9 +395,10 @@ export default function AnalyticsDashboard() {
     );
   };
 
-  const handleExportMasterCSV = async () => {
+
+  const handleExportMasterExcel = async () => {
     try {
-      setLoading(true);
+      setIsExportingExcel(true);
       const [usersRes, jobsRes, verifRes, reportsRes] = await Promise.all([
         adminApi.getUsers().catch(() => ({ data: [] })),
         adminApi.getJobs().catch(() => ({ data: [] })),
@@ -459,274 +411,20 @@ export default function AnalyticsDashboard() {
       const verifList: any[] = verifRes.data?.data || verifRes.data || [];
       const reportsList: any[] = reportsRes.data?.data || reportsRes.data || [];
 
-      // Live-computed core metrics (Step 1)
-      const validCompJobs = jobsList.filter((j: any) => parseFloat(j.compensation) > 0);
-      const computedAvgWage = validCompJobs.length > 0
-        ? (validCompJobs.reduce((acc: number, j: any) => acc + parseFloat(j.compensation), 0) / validCompJobs.length).toFixed(2)
-        : (data?.compensation?.avg ? Number(data.compensation.avg).toFixed(2) : '0.00');
-      const computedMinWage = validCompJobs.length > 0
-        ? Math.min(...validCompJobs.map((j: any) => parseFloat(j.compensation))).toFixed(2)
-        : '0.00';
-      const computedMaxWage = validCompJobs.length > 0
-        ? Math.max(...validCompJobs.map((j: any) => parseFloat(j.compensation))).toFixed(2)
-        : '0.00';
-
-      const totalWorkers = usersList.filter((u: any) => u.role === 'worker').length;
-      const totalEmployers = usersList.filter((u: any) => u.role === 'employer').length;
-      const approvedVerifs = verifList.filter((v: any) => v.verification_status === 'approved').length;
-      const pendingVerifs = verifList.filter((v: any) => v.verification_status === 'pending').length;
-      const totalApplicationsCount = jobsList.reduce((acc: number, j: any) => acc + (Number(j.applications_count) || 0), 0);
-      const completedJobsCount = jobsList.filter((j: any) => j.status === 'completed').length;
-      const activeJobsCount = jobsList.filter((j: any) => j.status === 'open').length;
-      const fillRatePct = jobsList.length > 0
-        ? `${(((completedJobsCount + jobsList.filter((j: any) => j.status === 'closed_in_progress').length) / jobsList.length) * 100).toFixed(1)}%`
-        : '0.0%';
-
-      // Compute Trade Category Benchmarks (Step 4)
-      const categoryMap = new Map<string, { count: number; totalComp: number; minComp: number; maxComp: number; slots: number }>();
-      jobsList.forEach((j: any) => {
-        const cat = j.category || 'General Labor';
-        const comp = parseFloat(j.compensation) || 0;
-        const slots = Number(j.slots) || 1;
-        const existing = categoryMap.get(cat) || { count: 0, totalComp: 0, minComp: Infinity, maxComp: 0, slots: 0 };
-        existing.count += 1;
-        existing.totalComp += comp;
-        if (comp > 0) {
-          existing.minComp = Math.min(existing.minComp, comp);
-          existing.maxComp = Math.max(existing.maxComp, comp);
-        }
-        existing.slots += slots;
-        categoryMap.set(cat, existing);
+      const blob = await generateMasterExcelWorkbook({
+        users: usersList,
+        jobs: jobsList,
+        verifications: verifList,
+        reports: reportsList,
+        analytics: data
       });
 
-      const wageBenchmarkRows = categoryMap.size > 0
-        ? Array.from(categoryMap.entries()).map(([category, stats]) => [
-            category,
-            stats.count,
-            stats.slots,
-            (stats.totalComp / stats.count).toFixed(2),
-            stats.minComp === Infinity ? '0.00' : stats.minComp.toFixed(2),
-            stats.maxComp.toFixed(2)
-          ])
-        : (data?.compensation?.categories || []).map((c: any) => [
-            c.category || 'General',
-            1,
-            1,
-            formatCSVCurrency(c.avg_comp),
-            formatCSVCurrency(data.compensation?.min),
-            formatCSVCurrency(data.compensation?.max)
-          ]);
-
-      // Automated Data Quality Check Pass (Step 5)
-      const qualityFlags: string[][] = [];
-
-      const emailMap = new Map<string, any[]>();
-      const nameMap = new Map<string, any[]>();
-      usersList.forEach((u: any) => {
-        if (u.email) {
-          const emailKey = String(u.email).trim().toLowerCase();
-          emailMap.set(emailKey, [...(emailMap.get(emailKey) || []), u]);
-        }
-        if (u.name) {
-          const nameKey = String(u.name).trim().toLowerCase();
-          nameMap.set(nameKey, [...(nameMap.get(nameKey) || []), u]);
-        }
-      });
-      emailMap.forEach((users, email) => {
-        if (users.length > 1) {
-          qualityFlags.push([
-            'Duplicate Email Collision',
-            'User Account',
-            users.map(u => u.id).join(', '),
-            email,
-            `Found ${users.length} accounts sharing identical email address.`,
-            'Review user credentials and merge or disable redundant profiles.'
-          ]);
-        }
-      });
-      nameMap.forEach((users, name) => {
-        if (users.length > 1) {
-          qualityFlags.push([
-            'Identical Name Collision',
-            'User Account',
-            users.map(u => u.id).join(', '),
-            name,
-            `Multiple accounts (${users.length}) registered under exact same full name.`,
-            'Cross-examine government ID documents to confirm distinct identities.'
-          ]);
-        }
-      });
-
-      const testKeywords = ['test', 'asdf', 'sample', 'trial', 'qwerty'];
-      jobsList.forEach((j: any) => {
-        const title = (j.title || '').toLowerCase();
-        if (testKeywords.some(kw => title.includes(kw)) || (title.length > 0 && title.length < 3)) {
-          qualityFlags.push([
-            'Potential Test Record',
-            'Job Posting',
-            String(j.id),
-            j.title || 'Untitled',
-            'Job title contains test keyword or low entropy characters.',
-            'Confirm employer listing authenticity or archive listing.'
-          ]);
-        }
-      });
-
-      jobsList.forEach((j: any) => {
-        const comp = parseFloat(j.compensation) || 0;
-        if (comp === 0 && j.status === 'open') {
-          qualityFlags.push([
-            'Zero Compensation Listing',
-            'Job Posting',
-            String(j.id),
-            j.title,
-            'Open job posting has 0.00 PHP compensation listed.',
-            'Clarify wage rate with posting employer.'
-          ]);
-        }
-        if (j.status === 'completed' && (!j.accepted_count || j.accepted_count === 0)) {
-          qualityFlags.push([
-            'Unassigned Completed Job',
-            'Job Lifecycle',
-            String(j.id),
-            j.title,
-            'Job marked completed with 0 accepted worker slots.',
-            'Audit application history and worker completion logs.'
-          ]);
-        }
-      });
-
-      usersList.forEach((u: any) => {
-        if (u.phone) {
-          const cleanPhone = String(u.phone).replace(/\D/g, '');
-          if (cleanPhone.length > 0 && cleanPhone.length < 10) {
-            qualityFlags.push([
-              'Truncated Phone Number',
-              'User Profile',
-              String(u.id),
-              u.name || u.email,
-              `Phone number "${u.phone}" contains fewer than 10 digits.`,
-              'Prompt user to update contact info in mobile settings.'
-            ]);
-          }
-        }
-      });
-
-      const finalQualityRows = qualityFlags.length > 0
-        ? qualityFlags
-        : [['Clean Status', 'System Audit', 'ALL', 'Database Integrity', 'No anomalies detected; all data integrity assertions passed.', 'None required.']];
-
-      const masterSections = [
-        {
-          title: 'Section 1: Platform Executive Summary & Core KPIs',
-          headers: ['Metric', 'Total Value', 'Analytical Context'],
-          rows: [
-            ['Total Registered Users', usersList.length, `Workers: ${totalWorkers} | Employers: ${totalEmployers}`],
-            ['Identity Verified Users', approvedVerifs, `${usersList.length > 0 ? ((approvedVerifs / usersList.length) * 100).toFixed(1) : 0}% compliance rate`],
-            ['Pending ID Verifications', pendingVerifs, 'Pending admin verification review queue'],
-            ['Total Job Postings', jobsList.length, `Active Open: ${activeJobsCount} | Completed: ${completedJobsCount}`],
-            ['Total Applications Filed', totalApplicationsCount, `Application throughput across all listings`],
-            ['Placement Fill Rate', fillRatePct, 'Proportion of job posts successfully staffed'],
-            ['Average Compensation (PHP)', formatCSVCurrency(computedAvgWage), `Range: PHP ${computedMinWage} - PHP ${computedMaxWage}`],
-            ['Community Safety Incidents', reportsList.length, `Resolved: ${reportsList.filter((r: any) => r.status === 'resolved' || r.status === 'dismissed').length} | Active: ${reportsList.filter((r: any) => r.status === 'pending' || r.status === 'investigating').length}`]
-          ]
-        },
-        {
-          title: 'Section 2: Registered Users Directory',
-          headers: ['User ID', 'Full Name', 'Role', 'Email', 'Phone', 'Municipality', 'Barangay', 'Verification Status', 'Operational Status', 'Reputation Score', 'Date Registered'],
-          rows: usersList.map((u: any) => [
-            u.id,
-            u.name,
-            u.role ? u.role.toUpperCase() : 'USER',
-            u.email,
-            u.phone || '',
-            u.municipality || 'Bulan',
-            u.barangay || '',
-            formatCSVStatus(u.verification_status),
-            u.is_suspended ? 'Suspended' : 'Active',
-            u.reputation_score ? Number(u.reputation_score).toFixed(2) : '5.00',
-            formatCSVDate(u.created_at)
-          ])
-        },
-        {
-          title: 'Section 3: Job Postings & Opportunities Directory',
-          headers: ['Job ID', 'Reference Code', 'Job Title', 'Employer', 'Category', 'Compensation (PHP)', 'Duration Type', 'Slots Required', 'Slots Hired', 'Status', 'Applications Count', 'Date Posted'],
-          rows: jobsList.map((j: any) => [
-            j.id,
-            j.reference_number || `SKP-JOB-${j.id}`,
-            j.title,
-            j.employer?.name || '',
-            j.category || 'General',
-            formatCSVCurrency(j.compensation),
-            j.duration_type ? j.duration_type.replace(/_/g, ' ') : 'Short Term',
-            j.slots ?? 1,
-            j.accepted_count ?? 0,
-            formatCSVStatus(j.status),
-            j.applications_count ?? 0,
-            formatCSVDate(j.created_at)
-          ])
-        },
-        {
-          title: 'Section 4: Identity Verification & Credential Compliance Audit',
-          headers: ['User ID', 'Full Name', 'Role', 'Verification Status', 'Front ID', 'Back ID', 'Selfie', 'Rejection Reason', 'Submission Date'],
-          rows: verifList.map((v: any) => [
-            v.id,
-            v.name,
-            v.role ? v.role.toUpperCase() : 'USER',
-            formatCSVStatus(v.verification_status),
-            v.document_url ? 'Yes' : 'No',
-            v.document_back_url ? 'Yes' : 'No',
-            v.selfie_url ? 'Yes' : 'No',
-            v.rejection_reason || 'N/A',
-            formatCSVDate(v.created_at)
-          ])
-        },
-        {
-          title: 'Section 5: Community Safety & Incident Reports',
-          headers: ['Report ID', 'Violation Type', 'Target Type', 'Target ID', 'Reporter Name', 'Description', 'Status', 'Date Reported', 'Date Resolved'],
-          rows: reportsList.length > 0
-            ? reportsList.map((r: any) => [
-                r.id,
-                r.type ? r.type.replace(/_/g, ' ').toUpperCase() : 'OTHER',
-                r.reportable_type ? r.reportable_type.replace(/_/g, ' ') : 'N/A',
-                r.reportable_id ?? 'N/A',
-                r.reporter?.name || 'Anonymous',
-                r.description || '',
-                formatCSVStatus(r.status),
-                formatCSVDate(r.created_at),
-                formatCSVDate(r.resolved_at)
-              ])
-            : [['N/A', 'NO INCIDENTS REPORTED', 'N/A', 'N/A', 'N/A', 'No community safety incidents reported for this evaluation period.', 'Clean', 'N/A', 'N/A']]
-        },
-        {
-          title: 'Section 6: Wage & Trade Category Benchmarks',
-          headers: ['Trade Category', 'Job Postings Count', 'Total Slots', 'Average Wage (PHP)', 'Min Wage (PHP)', 'Max Wage (PHP)'],
-          rows: wageBenchmarkRows.length > 0
-            ? wageBenchmarkRows
-            : [['General Labor', 0, 0, '0.00', '0.00', '0.00']]
-        },
-        {
-          title: 'Section 7: Data Quality & System Integrity Audit',
-          headers: ['Anomaly Type', 'Entity Scope', 'Record ID(s)', 'Entity Reference', 'Audit Finding / Description', 'Recommended Administrative Action'],
-          rows: finalQualityRows
-        }
-      ];
-
-      exportMultiSectionCSV(
-        `sikap_master_platform_${new Date().toISOString().slice(0, 10)}`,
-        'SIKAP Comprehensive Platform Master Report',
-        [
-          ['Generated On:', formatCSVDate(new Date().toISOString())],
-          ['Reporting Scope:', 'Complete Platform Database Snapshot (All Entities)'],
-          ['Platform:', 'SIKAP: Skills & Job Matching Platform'],
-          ['Document Classification:', 'Official Confidential · Platform Master Audit Snapshot']
-        ],
-        masterSections
-      );
+      const filename = `SIKAP-Platform-Master-Report.xlsx`;
+      downloadExcelBlob(blob, filename);
     } catch (err) {
-      console.error('Failed to export master platform CSV', err);
+      console.error('Failed to export master Excel report', err);
     } finally {
-      setLoading(false);
+      setIsExportingExcel(false);
     }
   };
 
@@ -1012,6 +710,11 @@ export default function AnalyticsDashboard() {
           }
         }
         @media print {
+          html, body, #__next, main, [class*="overflow-hidden"], div {
+            overflow: visible !important;
+            height: auto !important;
+            max-height: none !important;
+          }
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -1050,6 +753,7 @@ export default function AnalyticsDashboard() {
           }
           .print-page-break {
             page-break-before: always !important;
+            break-before: page !important;
           }
         }
       `}</style>
@@ -1068,18 +772,6 @@ export default function AnalyticsDashboard() {
             {/* Export & Presentation Actions */}
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setIsPresentationMode(!isPresentationMode)}
-                title="Toggle distraction-free Capstone Panel Presentation Mode"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border shadow-2xs text-xs font-body font-bold transition-all cursor-pointer ${
-                  isPresentationMode
-                    ? 'bg-amber-500 text-white border-amber-600 shadow-md ring-2 ring-amber-300'
-                    : 'bg-white/80 backdrop-blur-md border-slate-200 text-slate-700 hover:bg-slate-900 hover:text-white'
-                }`}
-              >
-                <i className={`lni ${isPresentationMode ? 'lni-cross-circle' : 'lni-display'} text-xs`} />
-                <span>{isPresentationMode ? 'Exit Defense' : 'Defense Mode'}</span>
-              </button>
-              <button
                 onClick={handleExportCSV}
                 title="Export descriptive analytics report as CSV"
                 className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-slate-700 hover:bg-slate-900 hover:text-white transition-all cursor-pointer"
@@ -1088,12 +780,17 @@ export default function AnalyticsDashboard() {
                 <span>Analytics CSV</span>
               </button>
               <button
-                onClick={handleExportMasterCSV}
-                title="Export complete master database snapshot as CSV"
-                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-primary hover:bg-primary hover:text-white transition-all cursor-pointer"
+                onClick={handleExportMasterExcel}
+                disabled={isExportingExcel}
+                title="Export complete multi-tab formatted Excel workbook (SIKAP-Platform-Master-Report.xlsx)"
+                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-emerald-700 hover:bg-emerald-700 hover:text-white transition-all cursor-pointer disabled:opacity-50"
               >
-                <i className="lni lni-database text-xs" />
-                <span>Master CSV</span>
+                {isExportingExcel ? (
+                  <i className="lni lni-spinner animate-spin text-xs" />
+                ) : (
+                  <i className="lni lni-database text-xs" />
+                )}
+                <span>{isExportingExcel ? 'Exporting...' : 'Master Excel'}</span>
               </button>
               <button
                 onClick={handleExportPDF}
@@ -1107,7 +804,7 @@ export default function AnalyticsDashboard() {
                 onClick={handleExportMasterPDF}
                 disabled={isGeneratingMasterPdf}
                 title="Print or save comprehensive multi-page master platform dossier as PDF"
-                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-1.5 bg-white/80 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-slate-700 hover:bg-slate-900 hover:text-white transition-all cursor-pointer disabled:opacity-50"
               >
                 {isGeneratingMasterPdf ? (
                   <i className="lni lni-spinner animate-spin text-xs" />
