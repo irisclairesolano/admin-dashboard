@@ -696,6 +696,10 @@ export default function AnalyticsDashboard() {
     <div className="animate-fade-in print:p-0 print:bg-white min-h-screen pb-12">
       {/* Dynamic Style Block for PDF & Print Exports */}
       <style jsx global>{`
+        @page {
+          size: A4 landscape;
+          margin: 10mm 12mm 12mm 12mm;
+        }
         @media screen {
           .print-only-report {
             position: absolute !important;
@@ -710,6 +714,10 @@ export default function AnalyticsDashboard() {
           }
         }
         @media print {
+          @page {
+            size: A4 landscape;
+            margin: 10mm 12mm 12mm 12mm;
+          }
           html, body, #__next, main, [class*="overflow-hidden"], div {
             overflow: visible !important;
             height: auto !important;
@@ -720,11 +728,13 @@ export default function AnalyticsDashboard() {
             print-color-adjust: exact !important;
           }
           body {
-            background: white !important;
+            background: #ffffff !important;
             color: #0f172a !important;
-            font-size: 11px !important;
+            font-size: 8.5pt !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+            line-height: 1.35 !important;
           }
-          header, sidebar, nav, button, select, .no-print, [className*="sidebar"], [className*="Sidebar"], .screen-only {
+          header, sidebar, nav, button, select, input, .no-print, [class*="sidebar"], [class*="Sidebar"], .screen-only {
             display: none !important;
           }
           .print-only-report {
@@ -732,11 +742,10 @@ export default function AnalyticsDashboard() {
             left: auto !important;
             top: auto !important;
             width: 100% !important;
-            display: flex !important;
-            flex-direction: column !important;
-            padding: 16px !important;
+            display: block !important;
+            padding: 0 !important;
             margin: 0 !important;
-            background: white !important;
+            background: #ffffff !important;
           }
           .print-full-width {
             width: 100% !important;
@@ -745,15 +754,62 @@ export default function AnalyticsDashboard() {
             margin: 0 !important;
           }
           .print-card-grid {
+            display: grid !important;
             grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 8pt !important;
           }
-          .print-chart-container, .print-card-grid, table, .avoid-break {
+          .print-grid-2 {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 12pt !important;
+          }
+          .print-grid-3 {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr 1fr !important;
+            gap: 12pt !important;
+          }
+          .print-chart-container, .print-card-grid, .avoid-break, .print-signoff-block {
             break-inside: avoid !important;
             page-break-inside: avoid !important;
           }
           .print-page-break {
             page-break-before: always !important;
             break-before: page !important;
+          }
+          table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            page-break-inside: auto !important;
+            break-inside: auto !important;
+            margin-bottom: 8pt !important;
+          }
+          thead {
+            display: table-header-group !important;
+          }
+          tfoot {
+            display: table-footer-group !important;
+          }
+          tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+          th {
+            background-color: #1e293b !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            font-size: 7.5pt !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.04em !important;
+            padding: 5pt 7pt !important;
+            border: 1px solid #cbd5e1 !important;
+          }
+          td {
+            padding: 4.5pt 7pt !important;
+            border: 1px solid #e2e8f0 !important;
+            font-size: 7.5pt !important;
+          }
+          tbody tr:nth-child(even) {
+            background-color: #f8fafc !important;
           }
         }
       `}</style>
@@ -2489,275 +2545,485 @@ export default function AnalyticsDashboard() {
             </div>
           </div>
         ) : (
-          /* ================= ANALYTICS PERIOD REPORT ================= */
+          /* ================= COMPREHENSIVE DESCRIPTIVE ANALYTICS PDF REPORT ================= */
           data && (
-            <div>
-              {/* Institutional Document Header */}
-              <div className="mb-8 pb-6 border-b-2 border-slate-300 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white font-black text-lg">
-                    S
-                  </div>
-                  <div>
-                    <h1 className="text-xl font-display font-black text-slate-900 tracking-tight uppercase">
-                      SIKAP Descriptive Analytics Report
-                    </h1>
-                    <p className="text-[11px] font-body text-slate-500 font-semibold">
-                      SIKAP: Skills and Job Matching Platform
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right text-[10px] text-slate-600 space-y-0.5">
-                  <p><span className="font-bold text-slate-900">Period:</span> {from} to {to}</p>
-                  <p><span className="font-bold text-slate-900">Granularity:</span> {intervalFilter.toUpperCase()}</p>
-                  <p><span className="font-bold text-slate-900">Generated:</span> {new Date().toLocaleString()}</p>
-                </div>
-              </div>
-
-              {/* AI Insights & Recommendations */}
-              {aiInsights && (
-                <div className="bg-white p-6 rounded-2xl border border-gray-200 mb-8 print-chart-container">
-                  <h2 className="text-base font-display font-bold text-ink mb-4 uppercase tracking-wider">AI Executive Summary & Recommendations</h2>
-                  
-                  {aiInsights.dataSufficiency?.isLowVolume && (
-                    <div className="mb-4 text-xs font-semibold text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                      {aiInsights.dataSufficiency.note ?? "Low data volume this period."}
+            <div className="space-y-6">
+              {/* ================= SECTION 1: COVER & EXECUTIVE METRIC SCORECARD ================= */}
+              <div className="avoid-break flex flex-col justify-between">
+                <div>
+                  {/* Institutional Header */}
+                  <div className="pb-4 border-b-2 border-slate-300 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white font-black text-lg shadow-xs">
+                        S
+                      </div>
+                      <div>
+                        <h1 className="text-lg font-display font-black text-slate-900 tracking-tight uppercase">
+                          SIKAP: Skills and Job Matching Platform
+                        </h1>
+                        <p className="text-[10px] font-body text-slate-500 font-semibold">
+                          Descriptive Analytics & Labor Market Intelligence Report
+                        </p>
+                      </div>
                     </div>
-                  )}
-
-                  <div className="space-y-4">
-                    {aiInsights.keyInsights?.length > 0 && (
-                      <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Key Insights</h3>
-                        <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
-                          {aiInsights.keyInsights.map((item, idx) => (
-                            <li key={idx}>
-                              <strong>{item.text}</strong> {item.supportingData && `— ${item.supportingData}`}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {aiInsights.trends?.length > 0 && (
-                      <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Trends</h3>
-                        <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
-                          {aiInsights.trends.map((item, idx) => (
-                            <li key={idx}>
-                              <strong>{item.text}</strong> {item.sampleSizeWarning && " (low sample size)"} {item.supportingData && `— ${item.supportingData}`}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {aiInsights.areasOfConcern?.length > 0 && (
-                      <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Areas of Concern</h3>
-                        <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
-                          {aiInsights.areasOfConcern.map((item, idx) => (
-                            <li key={idx}>
-                              <strong>{item.text}</strong> {item.supportingData && `— ${item.supportingData}`}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {aiInsights.recommendations?.length > 0 && (
-                      <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-ink mb-2">Recommendations</h3>
-                        <ul className="list-disc pl-5 space-y-1 text-xs text-ink-soft">
-                          {aiInsights.recommendations.map((item, idx) => (
-                            <li key={idx}>
-                              <strong>{item.text}</strong> {item.supportingData && `— ${item.supportingData}`}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    <div className="text-right text-[9px] text-slate-600 space-y-0.5">
+                      <p><span className="font-bold text-slate-900">Document ID:</span> SKP-ANL-{from.replace(/-/g, '')}-{to.replace(/-/g, '')}</p>
+                      <p><span className="font-bold text-slate-900">Document Classification:</span> Official Confidential Analytics</p>
+                      <p><span className="font-bold text-slate-900">Generated:</span> {new Date().toLocaleString()}</p>
+                    </div>
                   </div>
-                </div>
-              )}
 
-              {/* KPI Summary Grid */}
-              <div className="mb-8 print-chart-container">
-                <h2 className="text-base font-display font-bold text-ink mb-4 uppercase tracking-wider">Key Performance Indicators</h2>
-                <div className="grid grid-cols-4 gap-4 print-card-grid">
-                  {stats.map((stat, idx) => (
-                    <div key={idx} className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col justify-between">
+                  {/* Dynamic Report Subtitle & Filter Badges */}
+                  <div className="my-3 flex flex-col md:flex-row md:items-center justify-between gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div>
+                      <h2 className="text-sm font-display font-bold text-slate-900 uppercase tracking-wider">
+                        {activeTab === 'overview' && 'Executive Platform Overview & Core Metrics'}
+                        {activeTab === 'trends' && 'Labor Supply & Application Growth Trends'}
+                        {activeTab === 'distribution' && 'Trade Category Demand & Geographic Labor Distribution'}
+                        {activeTab === 'health' && 'Platform Trust, Credential Compliance & Wage Benchmarks'}
+                      </h2>
+                      <p className="text-[9px] text-slate-500 mt-0.5">
+                        {activeTab === 'overview' && 'Comprehensive evaluation of labor market supply, job creation, credential throughput, and placement velocity.'}
+                        {activeTab === 'trends' && 'Temporal breakdown of worker vs. employer registrations and application flow across evaluated intervals.'}
+                        {activeTab === 'distribution' && 'Analysis of high-demand skills, required labor slots, and geographic concentration across municipal barangays.'}
+                        {activeTab === 'health' && 'Audit of compensation tiers, ID turnaround SLAs, verification accuracy, and community moderation health.'}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 text-[8.5px] font-medium text-slate-600">
+                      <span className="px-2 py-0.5 bg-white rounded-md border border-slate-200">
+                        <strong className="text-slate-900">Period:</strong> {from} to {to} ({globalPreset})
+                      </span>
+                      <span className="px-2 py-0.5 bg-white rounded-md border border-slate-200">
+                        <strong className="text-slate-900">Granularity:</strong> {intervalFilter.toUpperCase()}
+                      </span>
+                      {activeTab === 'trends' && (
+                        <span className="px-2 py-0.5 bg-white rounded-md border border-slate-200">
+                          <strong className="text-slate-900">Role Filter:</strong> {trendsRoleFilter.toUpperCase()} · <strong className="text-slate-900">Metric:</strong> {trendsVolumeFilter.toUpperCase()}
+                        </span>
+                      )}
+                      {activeTab === 'distribution' && (
+                        <span className="px-2 py-0.5 bg-white rounded-md border border-slate-200">
+                          <strong className="text-slate-900">Region:</strong> {distRegionFilter === 'all' ? 'All Municipalities' : distRegionFilter} · <strong className="text-slate-900">Scope:</strong> Top {distLimitFilter}
+                        </span>
+                      )}
+                      {activeTab === 'health' && (
+                        <span className="px-2 py-0.5 bg-white rounded-md border border-slate-200">
+                          <strong className="text-slate-900">Wage Tier:</strong> {healthWageFilter.toUpperCase()} · <strong className="text-slate-900">Reports:</strong> {healthReportFilter.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 8-Card Executive KPI Scorecard Grid */}
+                  <div className="grid grid-cols-4 gap-3 print-card-grid mb-4">
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
                       <div className="flex justify-between items-start">
-                        <span className="text-[10px] font-body font-bold text-gray-500 uppercase tracking-wider">{stat.label}</span>
-                        <div className="w-6 h-6 rounded bg-gray-50 flex items-center justify-center">
-                          <i className={`${stat.iconClass} text-xs text-gray-600`} />
-                        </div>
+                        <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider">New Registrations</span>
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 bg-primary-soft text-primary-dark rounded">Users</span>
                       </div>
-                      <div className="mt-2">
-                        <span className="text-xl font-display font-black text-gray-900">{stat.value}</span>
-                        {stat.change !== undefined && (
-                          <div className="flex items-center gap-1 mt-1 text-[9px] font-body font-semibold">
-                            <span className={stat.change >= 0 ? 'text-green-600' : 'text-red-600'}>
-                              {stat.change >= 0 ? '▲' : '▼'} {Math.abs(stat.change)}%
-                            </span>
-                            <span className="text-gray-400">vs last period</span>
+                      <p className="text-lg font-black text-slate-900 mt-1">{data?.kpis?.total_users?.value ?? 0}</p>
+                      <p className="text-[8px] text-slate-500 mt-0.5">
+                        {data?.kpis?.total_users?.change !== undefined && (
+                          <span className={data.kpis.total_users.change >= 0 ? 'text-emerald-700 font-bold mr-1' : 'text-rose-700 font-bold mr-1'}>
+                            {data.kpis.total_users.change >= 0 ? '▲' : '▼'} {Math.abs(data.kpis.total_users.change)}%
+                          </span>
+                        )}
+                        Growth vs previous period
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider">Job Opportunities</span>
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 bg-sky-50 text-sky-700 rounded">Listings</span>
+                      </div>
+                      <p className="text-lg font-black text-slate-900 mt-1">{data?.kpis?.active_jobs?.value ?? 0}</p>
+                      <p className="text-[8px] text-slate-500 mt-0.5">
+                        {data?.kpis?.active_jobs?.change !== undefined && (
+                          <span className={data.kpis.active_jobs.change >= 0 ? 'text-emerald-700 font-bold mr-1' : 'text-rose-700 font-bold mr-1'}>
+                            {data.kpis.active_jobs.change >= 0 ? '▲' : '▼'} {Math.abs(data.kpis.active_jobs.change)}%
+                          </span>
+                        )}
+                        Active posts in period
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider">Application Throughput</span>
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded">Funnel</span>
+                      </div>
+                      <p className="text-lg font-black text-slate-900 mt-1">{data?.kpis?.applications?.value ?? 0}</p>
+                      <p className="text-[8px] text-slate-500 mt-0.5">
+                        {data?.funnel?.accepted_applications ?? 0} Accepted for Engagement
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider">Placement Fill Rate</span>
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded">Efficiency</span>
+                      </div>
+                      <p className="text-lg font-black text-emerald-700 mt-1">{data?.fill_rate?.value ?? 0}%</p>
+                      <p className="text-[8px] text-slate-500 mt-0.5">Completed & Assigned / Total</p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider">Verification Rate</span>
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded">Trust</span>
+                      </div>
+                      <p className="text-lg font-black text-slate-900 mt-1">
+                        {data?.verification?.total_verifications > 0
+                          ? Math.round(((data.verification.total_verifications - (data.verification.pending_verifications || 0)) / data.verification.total_verifications) * 100)
+                          : 100}%
+                      </p>
+                      <p className="text-[8px] text-slate-500 mt-0.5">ID credential audit compliance</p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider">Review Latency</span>
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded">SLA</span>
+                      </div>
+                      <p className="text-lg font-black text-slate-900 mt-1">
+                        {data?.verification?.average_turnaround_seconds
+                          ? (data.verification.average_turnaround_seconds / 3600).toFixed(1)
+                          : '0.0'}h
+                      </p>
+                      <p className="text-[8px] text-slate-500 mt-0.5">Average document verification SLA</p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider">Average Wage Rate</span>
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded">Wages</span>
+                      </div>
+                      <p className="text-lg font-black text-slate-900 mt-1">
+                        PHP {parseFloat(data?.compensation?.avg || 0).toFixed(2)}
+                      </p>
+                      <p className="text-[8px] text-slate-500 mt-0.5">
+                        Range: PHP {parseFloat(data?.compensation?.min || 0).toFixed(2)} - PHP {parseFloat(data?.compensation?.max || 0).toFixed(2)}
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-wider">Safety & Moderation</span>
+                        <span className="text-[8px] font-bold px-1.5 py-0.5 bg-rose-50 text-rose-700 rounded">Safety</span>
+                      </div>
+                      <p className="text-lg font-black text-slate-900 mt-1">{data?.kpis?.unresolved_reports?.value ?? 0}</p>
+                      <p className="text-[8px] text-slate-500 mt-0.5">Unresolved community safety reports</p>
+                    </div>
+                  </div>
+
+                  {/* AI Executive Diagnostic Summary (if available) */}
+                  {aiInsights && (
+                    <div className="bg-white p-3.5 rounded-xl border border-slate-200 mb-4 avoid-break">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 rounded-full bg-primary" />
+                        <h3 className="text-xs font-display font-bold text-slate-900 uppercase tracking-wider">
+                          AI Executive Intelligence & Strategic Assessment
+                        </h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-[9px] text-slate-700">
+                        {aiInsights.keyInsights?.length > 0 && (
+                          <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                            <span className="font-bold text-primary uppercase text-[8px] block mb-1">Key Findings</span>
+                            <ul className="list-disc pl-3.5 space-y-0.5">
+                              {aiInsights.keyInsights.slice(0, 3).map((item, idx) => (
+                                <li key={idx}><strong>{item.text}</strong> {item.supportingData && `(${item.supportingData})`}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {aiInsights.recommendations?.length > 0 && (
+                          <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                            <span className="font-bold text-emerald-700 uppercase text-[8px] block mb-1">Policy Recommendations</span>
+                            <ul className="list-disc pl-3.5 space-y-0.5">
+                              {aiInsights.recommendations.slice(0, 3).map((item, idx) => (
+                                <li key={idx}><strong>{item.text}</strong> {item.supportingData && `(${item.supportingData})`}</li>
+                              ))}
+                            </ul>
                           </div>
                         )}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
+                  )}
 
-              {/* Funnel & Turnaround */}
-              <div className="grid grid-cols-3 gap-6 mb-8 print-page-break print-chart-container">
-                <div className="col-span-2 bg-white p-6 rounded-xl border border-gray-200">
-                  <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Application-to-Hire Funnel</h3>
-                  <div className="space-y-4">
-                    {funnelSteps.map((step, idx) => (
-                      <div key={idx} className="space-y-1.5">
-                        <div className="flex justify-between text-[11px] font-semibold">
-                          <span className="text-gray-700">{step.label}</span>
-                          <span className="text-gray-900">{step.value} ({step.rate})</span>
-                        </div>
-                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                          <div className="bg-primary h-full rounded-full" style={{ width: step.rate }} />
+                  {/* Visual Analytics Charts Grid */}
+                  <div className="grid grid-cols-2 gap-3 mb-4 avoid-break">
+                    {/* Chart 1: User Registrations */}
+                    <div className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <h3 className="text-[10px] font-display font-bold text-slate-900 uppercase tracking-wider">
+                          User Registration & Growth Velocity
+                        </h3>
+                        <span className="text-[8px] text-slate-500 font-medium">Workers vs Employers</span>
+                      </div>
+                      <div className="h-44 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={transformedUserGrowth} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
+                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 7.5 }} />
+                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 7.5 }} allowDecimals={false} />
+                            <Bar dataKey="workers" name="Workers" fill="#C95D41" radius={[3, 3, 0, 0]} />
+                            <Bar dataKey="employers" name="Employers" fill="#3B82F6" radius={[3, 3, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    {/* Chart 2: Application & Job Volume */}
+                    <div className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <h3 className="text-[10px] font-display font-bold text-slate-900 uppercase tracking-wider">
+                          Application Volume & Job Listings Throughput
+                        </h3>
+                        <span className="text-[8px] text-slate-500 font-medium">Applications vs Unique Jobs</span>
+                      </div>
+                      <div className="h-44 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={transformedApplicationVolume} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
+                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 7.5 }} />
+                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 7.5 }} allowDecimals={false} />
+                            <Area type="monotone" dataKey="applications" name="Applications" stroke="#C95D41" strokeWidth={1.5} fill="#C95D41" fillOpacity={0.12} />
+                            <Area type="monotone" dataKey="jobs" name="Unique Jobs" stroke="#3B82F6" strokeWidth={1.5} fill="#3B82F6" fillOpacity={0.12} />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recruitment Lifecycle & SLA Gauges */}
+                  <div className="grid grid-cols-3 gap-3 mb-4 avoid-break">
+                    <div className="col-span-2 bg-white p-3 rounded-xl border border-slate-200">
+                      <h3 className="text-[10px] font-display font-bold text-slate-900 mb-2 uppercase tracking-wider">
+                        4-Stage Recruitment Pipeline & Conversion Funnel
+                      </h3>
+                      <div className="space-y-2">
+                        {funnelSteps.map((step, idx) => (
+                          <div key={idx} className="space-y-1">
+                            <div className="flex justify-between text-[9px] font-semibold">
+                              <span className="text-slate-700">{step.label}</span>
+                              <span className="text-slate-900 font-bold">{step.value} ({step.rate})</span>
+                            </div>
+                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                              <div className="bg-primary h-full rounded-full" style={{ width: step.rate }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-[10px] font-display font-bold text-slate-900 mb-1 uppercase tracking-wider">
+                          Identity Verification SLA
+                        </h3>
+                        <div className="flex items-baseline gap-1 mt-1">
+                          <span className="text-xl font-display font-black text-slate-900">
+                            {data?.verification?.average_turnaround_seconds
+                              ? (data.verification.average_turnaround_seconds / 3600).toFixed(1)
+                              : '0.0'}
+                          </span>
+                          <span className="text-[9px] font-semibold text-slate-500">hours average turnaround</span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-xs font-display font-bold text-gray-800 mb-3 uppercase tracking-wider">Verification Turnaround</h3>
-                    <span className="text-2xl font-display font-black text-gray-900">
-                      {data?.verification?.average_turnaround_seconds
-                        ? (data.verification.average_turnaround_seconds / 3600).toFixed(1)
-                        : '0.0'}
-                    </span>
-                    <span className="text-[10px] font-semibold text-gray-500 ml-1">hours</span>
-                  </div>
-                  <div className="space-y-2 mt-4 text-[11px]">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Processed</span>
-                      <span className="font-bold text-gray-800">{data?.verification?.total_verifications ?? 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Pending Review</span>
-                      <span className="font-bold text-gray-800">{data?.verification?.pending_verifications ?? 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Delayed (&gt;48h)</span>
-                      <span className="font-bold text-red-600">{data?.verification?.delayed_verifications ?? 0}</span>
+                      <div className="space-y-1 mt-2 text-[8.5px] border-t border-slate-100 pt-1.5">
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Total Processed</span>
+                          <span className="font-bold text-slate-800">{data?.verification?.total_verifications ?? 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Pending Review</span>
+                          <span className="font-bold text-slate-800">{data?.verification?.pending_verifications ?? 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Delayed (&gt;48h)</span>
+                          <span className="font-bold text-rose-700">{data?.verification?.delayed_verifications ?? 0}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Activity Trends */}
-              <div className="grid grid-cols-2 gap-6 mb-8 print-page-break print-chart-container">
-                <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col">
-                  <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">User Registrations</h3>
-                  <div className="h-64 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} dy={10} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} allowDecimals={false} />
-                        <Bar dataKey="workers" name="Workers" fill="#FFB6C1" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="employers" name="Employers" fill="#87CEEB" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-xl border border-gray-200 flex flex-col">
-                  <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Application Volume</h3>
-                  <div className="h-64 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={transformedApplicationVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} dy={10} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 9 }} allowDecimals={false} />
-                        <Area type="monotone" dataKey="applications" name="Applications" stroke="#FFB6C1" strokeWidth={2} fill="#FFB6C1" fillOpacity={0.08} />
-                        <Area type="monotone" dataKey="jobs" name="Unique Jobs" stroke="#87CEEB" strokeWidth={2} fill="#87CEEB" fillOpacity={0.08} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+                {/* Section 1 Running Footer */}
+                <div className="mt-3 pt-2 border-t border-slate-200 flex justify-between items-center text-[7.5px] text-slate-400 font-medium uppercase tracking-wider">
+                  <span>SIKAP: Skills and Job Matching Platform</span>
+                  <span>Descriptive Analytics Report · Period: {from} to {to}</span>
+                  <span>Section 1 of 2</span>
                 </div>
               </div>
 
-              {/* Detailed Data Tables (Wages & Reports) */}
-              <div className="grid grid-cols-2 gap-6 print-page-break print-chart-container">
-                {/* Wages */}
-                <div className="bg-white p-6 rounded-xl border border-gray-200">
-                  <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Wage Category Breakdown</h3>
-                  <table className="w-full text-xs font-body text-left">
-                    <thead>
-                      <tr className="border-b border-gray-200 text-gray-500 uppercase text-[9px]">
-                        <th className="py-2 px-3 font-semibold">Category</th>
-                        <th className="py-2 px-3 text-right font-semibold">Average Pay</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data?.compensation?.categories?.length > 0 ? (
-                        data.compensation.categories.map((c: any, idx: number) => (
-                          <tr key={idx} className="border-b border-gray-100 last:border-none">
-                            <td className="py-2 px-3 font-semibold text-gray-700 capitalize">{c.category}</td>
-                            <td className="py-2 px-3 text-right text-gray-900 font-bold">PHP {parseFloat(c.avg_comp || 0).toFixed(2)}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={2} className="py-4 text-center text-gray-400">No wage records.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Reports */}
-                <div className="bg-white p-6 rounded-xl border border-gray-200">
-                  <h3 className="text-xs font-display font-bold text-gray-800 mb-4 uppercase tracking-wider">Moderation Breakdown</h3>
-                  <table className="w-full text-xs font-body text-left">
-                    <thead>
-                      <tr className="border-b border-gray-200 text-gray-500 uppercase text-[9px]">
-                        <th className="py-2 px-3 font-semibold">Violation Type</th>
-                        <th className="py-2 px-3 text-right font-semibold">Total Reports</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data?.reports?.breakdown?.length > 0 ? (
-                        data.reports.breakdown.map((r: any, idx: number) => (
-                          <tr key={idx} className="border-b border-gray-100 last:border-none">
-                            <td className="py-2 px-3 font-semibold text-gray-700 capitalize">{r.type}</td>
-                            <td className="py-2 px-3 text-right text-gray-900 font-bold">{r.count}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={2} className="py-4 text-center text-gray-400">No report records.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Official SIKAP Sign-off Block */}
-              <div className="mt-12 pt-8 border-t-2 border-slate-200 grid grid-cols-2 gap-12 print-chart-container avoid-break">
+              {/* ================= SECTION 2: GRANULAR DATA LEDGERS & OFFICIAL CERTIFICATION ================= */}
+              <div className="print-page-break avoid-break flex flex-col justify-between">
                 <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-8">Prepared & Certified By:</p>
-                  <div className="border-b border-gray-400 w-48 mb-1"></div>
-                  <p className="text-xs font-bold text-gray-800">Platform Administrator</p>
-                  <p className="text-[10px] text-gray-500">SIKAP Management Console</p>
+                  <div className="mb-3">
+                    <h2 className="text-sm font-display font-bold text-slate-900 uppercase tracking-wider">
+                      Section 2: Detailed Performance Ledgers & Regulatory Compliance Audit
+                    </h2>
+                    <p className="text-[9px] text-slate-500 mt-0.5">
+                      Granular tabular data matching the selected date window ({from} to {to}), aggregation intervals, and municipal labor market parameters.
+                    </p>
+                  </div>
+
+                  {/* Table 1: Time Series Periodic Activity Ledger */}
+                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-3.5 avoid-break">
+                    <div className="px-3 py-2 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                      <h3 className="text-[9.5px] font-display font-bold text-slate-900 uppercase tracking-wider">
+                        Time-Series Activity Ledger ({intervalFilter.toUpperCase()} Aggregation)
+                      </h3>
+                      <span className="text-[8px] text-slate-500">Worker / Employer Signups & Application Flow</span>
+                    </div>
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr>
+                          <th>Period Interval</th>
+                          <th className="text-right">Worker Registrations</th>
+                          <th className="text-right">Employer Registrations</th>
+                          <th className="text-right">Total New Users</th>
+                          <th className="text-right">Applications Logged</th>
+                          <th className="text-right">Unique Jobs Posted</th>
+                          <th className="text-right">Throughput Ratio</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {transformedUserGrowth.length > 0 ? (
+                          transformedUserGrowth.map((row: any, idx: number) => {
+                            const appMatch = transformedApplicationVolume.find((a: any) => a.name === row.name);
+                            const apps = appMatch ? appMatch.applications : 0;
+                            const jobs = appMatch ? appMatch.jobs : 0;
+                            const totalUsers = (row.workers || 0) + (row.employers || 0);
+                            const ratio = jobs > 0 ? (apps / jobs).toFixed(1) : '0.0';
+                            return (
+                              <tr key={idx}>
+                                <td className="font-semibold text-slate-900">{row.name}</td>
+                                <td className="text-right text-slate-700">{row.workers}</td>
+                                <td className="text-right text-slate-700">{row.employers}</td>
+                                <td className="text-right font-bold text-slate-900">{totalUsers}</td>
+                                <td className="text-right text-slate-700">{apps}</td>
+                                <td className="text-right text-slate-700">{jobs}</td>
+                                <td className="text-right font-bold text-primary">{ratio} apps/job</td>
+                              </tr>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td colSpan={7} className="text-center text-slate-400 py-3">No activity logged for this period.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Dual Grid: Wage Categories & Geographic Distribution */}
+                  <div className="grid grid-cols-2 gap-3 mb-3.5 avoid-break">
+                    {/* Table 2: Trade Category Wage Benchmarks */}
+                    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="px-3 py-2 bg-slate-50 border-b border-slate-200">
+                        <h3 className="text-[9.5px] font-display font-bold text-slate-900 uppercase tracking-wider">
+                          Trade Category Wage & Labor Demand
+                        </h3>
+                      </div>
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr>
+                            <th>Category</th>
+                            <th className="text-right">Average Pay</th>
+                            <th className="text-right">Classification</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredCompensationCategories.length > 0 ? (
+                            filteredCompensationCategories.slice(0, 8).map((c: any, idx: number) => {
+                              const avg = parseFloat(c.avg_comp || 0);
+                              return (
+                                <tr key={idx}>
+                                  <td className="font-semibold text-slate-900 capitalize">{c.category}</td>
+                                  <td className="text-right font-bold text-slate-900">PHP {avg.toFixed(2)}</td>
+                                  <td className="text-right">
+                                    <span className={`px-1.5 py-0.2 rounded text-[7.5px] font-bold ${
+                                      avg >= 1000 ? 'bg-emerald-50 text-emerald-700' : avg >= 500 ? 'bg-sky-50 text-sky-700' : 'bg-slate-100 text-slate-700'
+                                    }`}>
+                                      {avg >= 1000 ? 'High' : avg >= 500 ? 'Mid' : 'Base'}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          ) : (
+                            <tr>
+                              <td colSpan={3} className="text-center text-slate-400 py-3">No category wage records found.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Table 3: Geographic Activity Ledger */}
+                    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="px-3 py-2 bg-slate-50 border-b border-slate-200">
+                        <h3 className="text-[9.5px] font-display font-bold text-slate-900 uppercase tracking-wider">
+                          Geographic & Barangay Labor Activity
+                        </h3>
+                      </div>
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr>
+                            <th>Location / Area</th>
+                            <th className="text-right">Job Listings</th>
+                            <th className="text-right">Applications</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {transformedGeographicActivity.length > 0 ? (
+                            transformedGeographicActivity.slice(0, 8).map((g: any, idx: number) => (
+                              <tr key={idx}>
+                                <td className="font-semibold text-slate-900 capitalize">{g.name}</td>
+                                <td className="text-right text-slate-700">{g.jobs}</td>
+                                <td className="text-right font-bold text-slate-900">{g.applications}</td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={3} className="text-center text-slate-400 py-3">No geographic activity records found.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Formal 3-Signer Institutional Sign-Off Block */}
+                  <div className="pt-4 border-t-2 border-slate-300 grid grid-cols-3 gap-6 avoid-break print-signoff-block">
+                    <div>
+                      <p className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider mb-6">Prepared & Certified By:</p>
+                      <div className="border-b border-slate-400 w-36 mb-1"></div>
+                      <p className="text-[10px] font-bold text-slate-900">Platform Administrator</p>
+                      <p className="text-[8px] text-slate-500">SIKAP Operations & Governance</p>
+                    </div>
+                    <div>
+                      <p className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider mb-6">Reviewed & Endorsed By:</p>
+                      <div className="border-b border-slate-400 w-36 mb-1"></div>
+                      <p className="text-[10px] font-bold text-slate-900">Lead Data Specialist</p>
+                      <p className="text-[8px] text-slate-500">SIKAP Research & Analytics</p>
+                    </div>
+                    <div>
+                      <p className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider mb-6">Noted & Approved By:</p>
+                      <div className="border-b border-slate-400 w-36 mb-1"></div>
+                      <p className="text-[10px] font-bold text-slate-900">Project Adviser / Supervisor</p>
+                      <p className="text-[8px] text-slate-500">SIKAP Institutional Oversight</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-8">Noted & Approved By:</p>
-                  <div className="border-b border-gray-400 w-48 mb-1"></div>
-                  <p className="text-xs font-bold text-gray-800">Project Supervisor</p>
-                  <p className="text-[10px] text-gray-500">SIKAP Project Advisory & Oversight</p>
+
+                {/* Section 2 Running Footer */}
+                <div className="mt-3 pt-2 border-t border-slate-200 flex justify-between items-center text-[7.5px] text-slate-400 font-medium uppercase tracking-wider">
+                  <span>SIKAP: Skills and Job Matching Platform</span>
+                  <span>Document Classification: Official Confidential · Verified Analytics Snapshot</span>
+                  <span>Section 2 of 2</span>
                 </div>
               </div>
             </div>
@@ -2767,3 +3033,4 @@ export default function AnalyticsDashboard() {
     </div>
   );
 }
+
