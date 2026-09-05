@@ -9,7 +9,7 @@ import { adminApi } from '@/lib/api';
 import StatCard from '@/components/StatCard';
 import { ArrowLeft, ArrowRight, Download } from 'lucide-react';
 import UserTable from '@/components/users/UserTable';
-import { exportTableToCSV, formatCSVDate } from '@/lib/export/csv';
+import { exportTableToCSV, formatCSVDate, formatCSVStatus } from '@/lib/export/csv';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
@@ -366,9 +366,9 @@ function UsersContent() {
       u.phone || '',
       u.municipality || 'Bulan',
       u.barangay || '',
-      u.verification_status,
+      formatCSVStatus(u.verification_status),
       u.is_suspended ? 'Suspended' : u.deleted_at ? 'Archived' : 'Active',
-      u.reputation_score ?? '5.00',
+      u.reputation_score ? Number(u.reputation_score).toFixed(2) : '5.00',
       formatCSVDate(u.created_at)
     ]);
 

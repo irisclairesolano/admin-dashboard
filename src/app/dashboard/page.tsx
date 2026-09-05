@@ -10,7 +10,7 @@ import { adminApi } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { AIInsightsCard, InsightsData } from '@/components/AIInsightsCard';
 import { CHART_COLORS } from '@/lib/constants';
-import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency } from '@/lib/export/csv';
+import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus } from '@/lib/export/csv';
 
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
@@ -352,7 +352,7 @@ export default function AnalyticsDashboard() {
 
     const sections = [
       {
-        title: 'Key Performance Indicators (KPIs)',
+        title: 'Section 1: Key Performance Indicators (KPIs)',
         headers: ['Metric', 'Current Value', 'PoP Change (%)', 'Trend Direction'],
         rows: [
           ['New Registrations', data.kpis?.total_users?.value ?? 0, `${data.kpis?.total_users?.change ?? 0}%`, (data.kpis?.total_users?.change ?? 0) >= 0 ? 'Growth' : 'Decline'],
@@ -362,7 +362,7 @@ export default function AnalyticsDashboard() {
         ]
       },
       {
-        title: 'User Growth & Time-Series Activity',
+        title: 'Section 2: User Growth & Time-Series Activity',
         headers: ['Time Interval', 'New Workers', 'New Employers'],
         rows: (transformedUserGrowth || []).map((item: any) => [
           item.name || '',
@@ -371,7 +371,7 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: 'Application Volume Time-Series',
+        title: 'Section 3: Application Volume Time-Series',
         headers: ['Time Interval', 'Applications', 'Unique Jobs'],
         rows: (transformedApplicationVolume || []).map((item: any) => [
           item.name || '',
@@ -380,7 +380,7 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: '4-Stage Application-to-Hire Funnel',
+        title: 'Section 4: 5-Stage Progressive Disclosure & Hiring Funnel',
         headers: ['Funnel Stage', 'Volume Count', 'Conversion Rate (%)'],
         rows: (funnelSteps || []).map((step: any) => [
           step.label || '',
@@ -389,7 +389,7 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: 'User Demographics & Verification Ratios',
+        title: 'Section 5: User Demographics & Verification Ratios',
         headers: ['Demographic Group', 'Count', 'Percentage of Total'],
         rows: [
           ['Registered Workers', data.user_ratio?.workers ?? 0, `${data.user_ratio?.workers_pct ?? 0}%`],
@@ -399,17 +399,19 @@ export default function AnalyticsDashboard() {
         ]
       },
       {
-        title: 'Wage & Compensation by Category',
+        title: 'Section 6: Wage & Compensation by Trade Category',
         headers: ['Trade Category', 'Average Wage (PHP)', 'Min Wage (PHP)', 'Max Wage (PHP)'],
-        rows: (data.compensation?.categories || []).map((c: any) => [
-          c.category || 'General',
-          formatCSVCurrency(c.avg_comp),
-          formatCSVCurrency(data.compensation?.min),
-          formatCSVCurrency(data.compensation?.max)
-        ])
+        rows: (data.compensation?.categories && data.compensation.categories.length > 0)
+          ? data.compensation.categories.map((c: any) => [
+              c.category || 'General',
+              formatCSVCurrency(c.avg_comp),
+              formatCSVCurrency(data.compensation?.min),
+              formatCSVCurrency(data.compensation?.max)
+            ])
+          : [['General Labor', formatCSVCurrency(data.compensation?.avg), formatCSVCurrency(data.compensation?.min), formatCSVCurrency(data.compensation?.max)]]
       },
       {
-        title: 'Geographic Activity by Location',
+        title: 'Section 7: Geographic Activity by Location',
         headers: ['Location', 'Job Postings Count', 'Applications Count'],
         rows: (transformedGeographicActivity || []).map((g: any) => [
           g.name || 'Bulan',
@@ -418,12 +420,14 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: 'Moderation & Safety Violation Breakdown',
+        title: 'Section 8: Moderation & Safety Violation Breakdown',
         headers: ['Violation Type', 'Report Count'],
-        rows: (data.reports?.breakdown || []).map((r: any) => [
-          r.type || 'Other',
-          r.count ?? 0
-        ])
+        rows: (data.reports?.breakdown && data.reports.breakdown.length > 0)
+          ? data.reports.breakdown.map((r: any) => [
+              r.type ? r.type.replace(/_/g, ' ').toUpperCase() : 'OTHER',
+              r.count ?? 0
+            ])
+          : [['No Active Violations Reported', 0]]
       }
     ];
 
@@ -450,22 +454,181 @@ export default function AnalyticsDashboard() {
         adminApi.getReports('all', 1).catch(() => ({ data: [] }))
       ]);
 
-      const usersList = usersRes.data?.data || usersRes.data || [];
-      const jobsList = jobsRes.data?.data || jobsRes.data || [];
-      const verifList = verifRes.data?.data || verifRes.data || [];
-      const reportsList = reportsRes.data?.data || reportsRes.data || [];
+      const usersList: any[] = usersRes.data?.data || usersRes.data || [];
+      const jobsList: any[] = jobsRes.data?.data || jobsRes.data || [];
+      const verifList: any[] = verifRes.data?.data || verifRes.data || [];
+      const reportsList: any[] = reportsRes.data?.data || reportsRes.data || [];
+
+      // Live-computed core metrics (Step 1)
+      const validCompJobs = jobsList.filter((j: any) => parseFloat(j.compensation) > 0);
+      const computedAvgWage = validCompJobs.length > 0
+        ? (validCompJobs.reduce((acc: number, j: any) => acc + parseFloat(j.compensation), 0) / validCompJobs.length).toFixed(2)
+        : (data?.compensation?.avg ? Number(data.compensation.avg).toFixed(2) : '0.00');
+      const computedMinWage = validCompJobs.length > 0
+        ? Math.min(...validCompJobs.map((j: any) => parseFloat(j.compensation))).toFixed(2)
+        : '0.00';
+      const computedMaxWage = validCompJobs.length > 0
+        ? Math.max(...validCompJobs.map((j: any) => parseFloat(j.compensation))).toFixed(2)
+        : '0.00';
+
+      const totalWorkers = usersList.filter((u: any) => u.role === 'worker').length;
+      const totalEmployers = usersList.filter((u: any) => u.role === 'employer').length;
+      const approvedVerifs = verifList.filter((v: any) => v.verification_status === 'approved').length;
+      const pendingVerifs = verifList.filter((v: any) => v.verification_status === 'pending').length;
+      const totalApplicationsCount = jobsList.reduce((acc: number, j: any) => acc + (Number(j.applications_count) || 0), 0);
+      const completedJobsCount = jobsList.filter((j: any) => j.status === 'completed').length;
+      const activeJobsCount = jobsList.filter((j: any) => j.status === 'open').length;
+      const fillRatePct = jobsList.length > 0
+        ? `${(((completedJobsCount + jobsList.filter((j: any) => j.status === 'closed_in_progress').length) / jobsList.length) * 100).toFixed(1)}%`
+        : '0.0%';
+
+      // Compute Trade Category Benchmarks (Step 4)
+      const categoryMap = new Map<string, { count: number; totalComp: number; minComp: number; maxComp: number; slots: number }>();
+      jobsList.forEach((j: any) => {
+        const cat = j.category || 'General Labor';
+        const comp = parseFloat(j.compensation) || 0;
+        const slots = Number(j.slots) || 1;
+        const existing = categoryMap.get(cat) || { count: 0, totalComp: 0, minComp: Infinity, maxComp: 0, slots: 0 };
+        existing.count += 1;
+        existing.totalComp += comp;
+        if (comp > 0) {
+          existing.minComp = Math.min(existing.minComp, comp);
+          existing.maxComp = Math.max(existing.maxComp, comp);
+        }
+        existing.slots += slots;
+        categoryMap.set(cat, existing);
+      });
+
+      const wageBenchmarkRows = categoryMap.size > 0
+        ? Array.from(categoryMap.entries()).map(([category, stats]) => [
+            category,
+            stats.count,
+            stats.slots,
+            (stats.totalComp / stats.count).toFixed(2),
+            stats.minComp === Infinity ? '0.00' : stats.minComp.toFixed(2),
+            stats.maxComp.toFixed(2)
+          ])
+        : (data?.compensation?.categories || []).map((c: any) => [
+            c.category || 'General',
+            1,
+            1,
+            formatCSVCurrency(c.avg_comp),
+            formatCSVCurrency(data.compensation?.min),
+            formatCSVCurrency(data.compensation?.max)
+          ]);
+
+      // Automated Data Quality Check Pass (Step 5)
+      const qualityFlags: string[][] = [];
+
+      const emailMap = new Map<string, any[]>();
+      const nameMap = new Map<string, any[]>();
+      usersList.forEach((u: any) => {
+        if (u.email) {
+          const emailKey = String(u.email).trim().toLowerCase();
+          emailMap.set(emailKey, [...(emailMap.get(emailKey) || []), u]);
+        }
+        if (u.name) {
+          const nameKey = String(u.name).trim().toLowerCase();
+          nameMap.set(nameKey, [...(nameMap.get(nameKey) || []), u]);
+        }
+      });
+      emailMap.forEach((users, email) => {
+        if (users.length > 1) {
+          qualityFlags.push([
+            'Duplicate Email Collision',
+            'User Account',
+            users.map(u => u.id).join(', '),
+            email,
+            `Found ${users.length} accounts sharing identical email address.`,
+            'Review user credentials and merge or disable redundant profiles.'
+          ]);
+        }
+      });
+      nameMap.forEach((users, name) => {
+        if (users.length > 1) {
+          qualityFlags.push([
+            'Identical Name Collision',
+            'User Account',
+            users.map(u => u.id).join(', '),
+            name,
+            `Multiple accounts (${users.length}) registered under exact same full name.`,
+            'Cross-examine government ID documents to confirm distinct identities.'
+          ]);
+        }
+      });
+
+      const testKeywords = ['test', 'asdf', 'sample', 'trial', 'qwerty'];
+      jobsList.forEach((j: any) => {
+        const title = (j.title || '').toLowerCase();
+        if (testKeywords.some(kw => title.includes(kw)) || (title.length > 0 && title.length < 3)) {
+          qualityFlags.push([
+            'Potential Test Record',
+            'Job Posting',
+            String(j.id),
+            j.title || 'Untitled',
+            'Job title contains test keyword or low entropy characters.',
+            'Confirm employer listing authenticity or archive listing.'
+          ]);
+        }
+      });
+
+      jobsList.forEach((j: any) => {
+        const comp = parseFloat(j.compensation) || 0;
+        if (comp === 0 && j.status === 'open') {
+          qualityFlags.push([
+            'Zero Compensation Listing',
+            'Job Posting',
+            String(j.id),
+            j.title,
+            'Open job posting has 0.00 PHP compensation listed.',
+            'Clarify wage rate with posting employer.'
+          ]);
+        }
+        if (j.status === 'completed' && (!j.accepted_count || j.accepted_count === 0)) {
+          qualityFlags.push([
+            'Unassigned Completed Job',
+            'Job Lifecycle',
+            String(j.id),
+            j.title,
+            'Job marked completed with 0 accepted worker slots.',
+            'Audit application history and worker completion logs.'
+          ]);
+        }
+      });
+
+      usersList.forEach((u: any) => {
+        if (u.phone) {
+          const cleanPhone = String(u.phone).replace(/\D/g, '');
+          if (cleanPhone.length > 0 && cleanPhone.length < 10) {
+            qualityFlags.push([
+              'Truncated Phone Number',
+              'User Profile',
+              String(u.id),
+              u.name || u.email,
+              `Phone number "${u.phone}" contains fewer than 10 digits.`,
+              'Prompt user to update contact info in mobile settings.'
+            ]);
+          }
+        }
+      });
+
+      const finalQualityRows = qualityFlags.length > 0
+        ? qualityFlags
+        : [['Clean Status', 'System Audit', 'ALL', 'Database Integrity', 'No anomalies detected; all data integrity assertions passed.', 'None required.']];
 
       const masterSections = [
         {
-          title: 'Section 1: Platform Executive Summary',
-          headers: ['Metric', 'Total Value'],
+          title: 'Section 1: Platform Executive Summary & Core KPIs',
+          headers: ['Metric', 'Total Value', 'Analytical Context'],
           rows: [
-            ['Total Registered Users', usersList.length],
-            ['Total Jobs Posted', jobsList.length],
-            ['Pending Verifications', verifList.filter((v: any) => v.verification_status === 'pending').length],
-            ['Total Moderation Reports', reportsList.length],
-            ['Fill Rate', `${data?.fill_rate?.value ?? 0}%`],
-            ['Average Compensation (PHP)', formatCSVCurrency(data?.compensation?.avg)]
+            ['Total Registered Users', usersList.length, `Workers: ${totalWorkers} | Employers: ${totalEmployers}`],
+            ['Identity Verified Users', approvedVerifs, `${usersList.length > 0 ? ((approvedVerifs / usersList.length) * 100).toFixed(1) : 0}% compliance rate`],
+            ['Pending ID Verifications', pendingVerifs, 'Pending admin verification review queue'],
+            ['Total Job Postings', jobsList.length, `Active Open: ${activeJobsCount} | Completed: ${completedJobsCount}`],
+            ['Total Applications Filed', totalApplicationsCount, `Application throughput across all listings`],
+            ['Placement Fill Rate', fillRatePct, 'Proportion of job posts successfully staffed'],
+            ['Average Compensation (PHP)', formatCSVCurrency(computedAvgWage), `Range: PHP ${computedMinWage} - PHP ${computedMaxWage}`],
+            ['Community Safety Incidents', reportsList.length, `Resolved: ${reportsList.filter((r: any) => r.status === 'resolved' || r.status === 'dismissed').length} | Active: ${reportsList.filter((r: any) => r.status === 'pending' || r.status === 'investigating').length}`]
           ]
         },
         {
@@ -474,72 +637,78 @@ export default function AnalyticsDashboard() {
           rows: usersList.map((u: any) => [
             u.id,
             u.name,
-            u.role,
+            u.role ? u.role.toUpperCase() : 'USER',
             u.email,
             u.phone || '',
             u.municipality || 'Bulan',
             u.barangay || '',
-            u.verification_status,
+            formatCSVStatus(u.verification_status),
             u.is_suspended ? 'Suspended' : 'Active',
-            u.reputation_score ?? '5.00',
+            u.reputation_score ? Number(u.reputation_score).toFixed(2) : '5.00',
             formatCSVDate(u.created_at)
           ])
         },
         {
-          title: 'Section 3: Job Postings & Opportunities',
+          title: 'Section 3: Job Postings & Opportunities Directory',
           headers: ['Job ID', 'Reference Code', 'Job Title', 'Employer', 'Category', 'Compensation (PHP)', 'Duration Type', 'Slots Required', 'Slots Hired', 'Status', 'Applications Count', 'Date Posted'],
           rows: jobsList.map((j: any) => [
             j.id,
             j.reference_number || `SKP-JOB-${j.id}`,
             j.title,
             j.employer?.name || '',
-            j.category,
+            j.category || 'General',
             formatCSVCurrency(j.compensation),
-            j.duration_type,
+            j.duration_type ? j.duration_type.replace(/_/g, ' ') : 'Short Term',
             j.slots ?? 1,
             j.accepted_count ?? 0,
-            j.status,
+            formatCSVStatus(j.status),
             j.applications_count ?? 0,
             formatCSVDate(j.created_at)
           ])
         },
         {
-          title: 'Section 4: Identity Verification & Credential Audit',
+          title: 'Section 4: Identity Verification & Credential Compliance Audit',
           headers: ['User ID', 'Full Name', 'Role', 'Verification Status', 'Front ID', 'Back ID', 'Selfie', 'Rejection Reason', 'Submission Date'],
           rows: verifList.map((v: any) => [
             v.id,
             v.name,
-            v.role,
-            v.verification_status,
+            v.role ? v.role.toUpperCase() : 'USER',
+            formatCSVStatus(v.verification_status),
             v.document_url ? 'Yes' : 'No',
             v.document_back_url ? 'Yes' : 'No',
             v.selfie_url ? 'Yes' : 'No',
-            v.rejection_reason || '',
+            v.rejection_reason || 'N/A',
             formatCSVDate(v.created_at)
           ])
         },
         {
           title: 'Section 5: Community Safety & Incident Reports',
           headers: ['Report ID', 'Violation Type', 'Target Type', 'Target ID', 'Reporter Name', 'Description', 'Status', 'Date Reported', 'Date Resolved'],
-          rows: reportsList.map((r: any) => [
-            r.id,
-            r.type,
-            r.reportable_type,
-            r.reportable_id,
-            r.reporter?.name || '',
-            r.description,
-            r.status,
-            formatCSVDate(r.created_at),
-            formatCSVDate(r.resolved_at)
-          ])
+          rows: reportsList.length > 0
+            ? reportsList.map((r: any) => [
+                r.id,
+                r.type ? r.type.replace(/_/g, ' ').toUpperCase() : 'OTHER',
+                r.reportable_type ? r.reportable_type.replace(/_/g, ' ') : 'N/A',
+                r.reportable_id ?? 'N/A',
+                r.reporter?.name || 'Anonymous',
+                r.description || '',
+                formatCSVStatus(r.status),
+                formatCSVDate(r.created_at),
+                formatCSVDate(r.resolved_at)
+              ])
+            : [['N/A', 'NO INCIDENTS REPORTED', 'N/A', 'N/A', 'N/A', 'No community safety incidents reported for this evaluation period.', 'Clean', 'N/A', 'N/A']]
         },
         {
           title: 'Section 6: Wage & Trade Category Benchmarks',
-          headers: ['Trade Category', 'Average Wage (PHP)'],
-          rows: (data?.compensation?.categories || []).map((c: any) => [
-            c.category,
-            formatCSVCurrency(c.avg_comp)
-          ])
+          headers: ['Trade Category', 'Job Postings Count', 'Total Slots', 'Average Wage (PHP)', 'Min Wage (PHP)', 'Max Wage (PHP)'],
+          rows: wageBenchmarkRows.length > 0
+            ? wageBenchmarkRows
+            : [['General Labor', 0, 0, '0.00', '0.00', '0.00']]
+        },
+        {
+          title: 'Section 7: Data Quality & System Integrity Audit',
+          headers: ['Anomaly Type', 'Entity Scope', 'Record ID(s)', 'Entity Reference', 'Audit Finding / Description', 'Recommended Administrative Action'],
+          rows: finalQualityRows
         }
       ];
 
@@ -548,9 +717,9 @@ export default function AnalyticsDashboard() {
         'SIKAP Comprehensive Platform Master Report',
         [
           ['Generated On:', formatCSVDate(new Date().toISOString())],
-          ['Reporting Scope:', 'Complete Platform Snapshot (All Entities)'],
+          ['Reporting Scope:', 'Complete Platform Database Snapshot (All Entities)'],
           ['Platform:', 'SIKAP: Skills & Job Matching Platform'],
-          ['Document Classification:', 'SIKAP Platform Master Database Snapshot']
+          ['Document Classification:', 'Official Confidential · Platform Master Audit Snapshot']
         ],
         masterSections
       );

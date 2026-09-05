@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SIKAP Universal CSV Export Utility
  * RFC-4180 compliant with UTF-8 Byte Order Mark (BOM) for Excel compatibility.
  */
@@ -37,6 +37,38 @@ export function formatCSVCurrency(val: number | string | null | undefined): stri
   if (val === null || val === undefined) return '0.00';
   const num = typeof val === 'string' ? parseFloat(val) : val;
   return isNaN(num) ? '0.00' : num.toFixed(2);
+}
+
+export function formatCSVStatus(status?: string | null): string {
+  if (!status) return 'Unknown';
+  switch (status.toLowerCase()) {
+    case 'approved':
+    case 'active':
+    case 'open':
+    case 'completed':
+    case 'resolved':
+    case 'hired':
+      return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' ');
+    case 'pending':
+    case 'pending_review':
+    case 'pending_email_verification':
+    case 'pending_id_upload':
+    case 'requested':
+    case 'offer_sent':
+    case 'investigating':
+    case 'in_progress':
+    case 'closed_in_progress':
+      return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' ');
+    case 'rejected':
+    case 'banned':
+    case 'suspended':
+    case 'cancelled':
+    case 'dismissed':
+    case 'inactive':
+      return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' ');
+    default:
+      return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  }
 }
 
 export function downloadCSV(filename: string, csvContent: string): void {

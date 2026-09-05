@@ -8,7 +8,7 @@ import StatusTabs from '@/components/StatusTabs';
 import { AlertDialog } from '@/components/AlertDialog';
 import { formatDate } from '@/lib/date';
 import { STATUS_BADGE_MAP, DEFAULT_BADGE_CLASS } from '@/lib/constants';
-import { exportTableToCSV, formatCSVDate, formatCSVCurrency } from '@/lib/export/csv';
+import { exportTableToCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus } from '@/lib/export/csv';
 
 function JobsPageContent() {
   const searchParams = useSearchParams();
@@ -63,7 +63,7 @@ function JobsPageContent() {
       j.accepted_count ?? 0,
       j.municipality || 'Bulan',
       j.barangay || '',
-      j.status,
+      formatCSVStatus(j.status),
       j.applications_count ?? 0,
       formatCSVDate(j.created_at)
     ]);
