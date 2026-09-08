@@ -9,7 +9,7 @@ export interface User {
   document_url?: string;
   document_back_url?: string;
   selfie_url?: string;
-  business_documents?: string;
+  business_documents?: string | string[];
   verification_status: 'unverified' | 'pending' | 'approved' | 'rejected';
   verification_badge: boolean;
   is_suspended: boolean;

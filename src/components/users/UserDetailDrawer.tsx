@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { X, ShieldAlert, CheckCircle2, AlertCircle, MapPin, Star, RefreshCw, Mail, Phone, Calendar, UserX, Undo, Trash2, Search } from 'lucide-react';
+import { X, ShieldAlert, CheckCircle2, AlertCircle, MapPin, Star, RefreshCw, Mail, Phone, Calendar, UserX, Undo, Trash2, Search, FileText, FileDown, ExternalLink } from 'lucide-react';
 import Avatar from '@/components/Avatar';
+import Image from 'next/image';
 import { User } from '@/types/models';
 
 interface UserDetailDrawerProps {
@@ -208,23 +209,23 @@ export default function UserDetailDrawer({
         {/* Inconsistency Warning & Missing Document Info */}
         {selectedDetailUser.verification_status !== 'approved' && (
           <div className="px-6 pt-4 shrink-0">
-            {selectedDetailUser.registration_status === 'pending_review' && !selectedDetailUser.document_url ? (
+            {selectedDetailUser.registration_status === 'pending_review' && !selectedDetailUser.document_url && (!selectedDetailUser.business_documents || selectedDetailUser.business_documents.length === 0) ? (
               <div className="bg-status-warning/10 border border-status-warning/20 rounded-2xl p-4 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-status-warning shrink-0 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-bold text-status-warning">Inconsistent Verification State</h4>
                   <p className="text-xs text-status-warning/90 mt-1 leading-relaxed">
-                    This user is in "Pending Review" status but has not uploaded any ID documents. Bypassing document review is recommended via manual verification.
+                    This user is in "Pending Review" status but has not uploaded any ID or business documents. Bypassing document review is recommended via manual verification.
                   </p>
                 </div>
               </div>
-            ) : !selectedDetailUser.document_url ? (
+            ) : !selectedDetailUser.document_url && (!selectedDetailUser.business_documents || selectedDetailUser.business_documents.length === 0) ? (
               <div className="bg-ink-faint/50 border border-ink-faint rounded-2xl p-4 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-ink-muted shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-bold text-ink-soft">Unverified (Missing ID Upload)</h4>
+                  <h4 className="text-sm font-bold text-ink-soft">Unverified (Missing Document Upload)</h4>
                   <p className="text-xs text-ink-muted mt-1 leading-relaxed">
-                    The user has created their account but hasn't submitted their government ID documents. They will not appear in the verification queue.
+                    The user has created their account but hasn't submitted their ID or business documents. They will not appear in the verification queue.
                   </p>
                 </div>
               </div>
@@ -339,6 +340,78 @@ export default function UserDetailDrawer({
                       <span className="text-sm text-ink-muted">No communication platforms configured yet.</span>
                     )}
                   </div>
+
+                  {/* Uploaded Business Documents (Employer) */}
+                  {selectedDetailUser.role === 'employer' && (
+                    <div>
+                      <h4 className="text-xs font-bold text-ink-soft uppercase tracking-wider mb-2">Uploaded Business Documents</h4>
+                      {userDetailData.user.business_documents && Array.isArray(userDetailData.user.business_documents) && userDetailData.user.business_documents.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {userDetailData.user.business_documents.map((docUrl: string, idx: number) => {
+                            const isPdf = typeof docUrl === 'string' && (docUrl.toLowerCase().endsWith('.pdf') || docUrl.includes('.pdf?'));
+                            return (
+                              <div key={idx} className="bg-paper rounded-2xl border border-ink-faint p-3 flex flex-col gap-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                                    <FileText className="w-4 h-4 text-primary" />
+                                    Document #{idx + 1}
+                                  </span>
+                                  <a
+                                    href={docUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-xs text-primary font-semibold hover:underline flex items-center gap-1"
+                                    title="Open document in new tab"
+                                  >
+                                    <span>View</span>
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </div>
+                                <div className="h-36 bg-black/5 rounded-xl border border-ink-faint/50 overflow-hidden flex items-center justify-center relative">
+                                  {isPdf ? (
+                                    <div className="flex flex-col items-center gap-2 p-4 text-center">
+                                      <FileText className="w-10 h-10 text-primary/70" />
+                                      <span className="text-xs text-ink-muted font-medium">PDF Document</span>
+                                      <a
+                                        href={docUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-primary px-2.5 py-1 rounded-lg hover:bg-primary/90 transition-colors"
+                                      >
+                                        <FileDown className="w-3 h-3" /> Download / Open
+                                      </a>
+                                    </div>
+                                  ) : (
+                                    <a
+                                      href={docUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="w-full h-full flex items-center justify-center p-1 group cursor-zoom-in"
+                                      title="Click to view full image"
+                                    >
+                                      <Image
+                                        src={docUrl}
+                                        alt={`Business Doc ${idx + 1}`}
+                                        width={300}
+                                        height={200}
+                                        unoptimized
+                                        className="max-w-full max-h-full object-contain rounded-lg group-hover:scale-105 transition-transform"
+                                      />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="bg-paper p-4 rounded-2xl border border-ink-faint text-sm text-ink-muted flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 text-ink-muted shrink-0" />
+                          <span>No business documents uploaded yet.</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Admin Actions Panel */}
                   <div className="border-t border-ink-faint pt-6">
