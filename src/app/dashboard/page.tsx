@@ -184,6 +184,14 @@ export default function AnalyticsDashboard() {
     profanity: any[];
   } | null>(null);
   const [isGeneratingMasterPdf, setIsGeneratingMasterPdf] = useState(false);
+  // Messaging stats (aggregate only — no message content)
+  const [convStats, setConvStats] = useState<{
+    total_conversations: number;
+    active_conversations: number;
+    locked_conversations: number;
+    messages_today: number;
+    avg_messages_per_hire: number;
+  } | null>(null);
   // Get active period and interval based on shared global date filters
   const getActivePeriodAndInterval = useCallback(() => {
     return getPeriodAndInterval(globalPreset, globalStart, globalEnd);
@@ -219,6 +227,13 @@ export default function AnalyticsDashboard() {
   useEffect(() => {
     fetchAnalytics();
   }, [fetchAnalytics]);
+
+  // Fetch messaging stats once on mount (aggregate counts only)
+  useEffect(() => {
+    adminApi.getConversationStats()
+      .then((res: any) => setConvStats(res.data))
+      .catch(() => { /* silently ignore if messaging feature not yet deployed */ });
+  }, []);
 
   const handleGenerateInsights = async () => {
     if (!from || !to) return;
@@ -491,6 +506,13 @@ export default function AnalyticsDashboard() {
     { label: 'Applications', value: data?.kpis?.applications?.value ?? 0, change: data?.kpis?.applications?.change, iconClass: 'lni lni-files', color: 'text-accent-mintDeep', bg: 'bg-accent-mint', href: '/dashboard/jobs' },
     { label: 'Reports Filed', value: data?.kpis?.unresolved_reports?.value ?? 0, change: data?.kpis?.unresolved_reports?.change, iconClass: 'lni lni-warning', color: 'text-status-error', bg: 'bg-status-error/10', href: '/dashboard/reports' },
   ];
+
+  const messagingStats = convStats ? [
+    { label: 'Total Conversations', value: convStats.total_conversations, icon: '💬', color: 'text-accent-skyDeep', bg: 'bg-accent-sky/20' },
+    { label: 'Active Chats', value: convStats.active_conversations, icon: '🟢', color: 'text-status-success', bg: 'bg-accent-mint/20' },
+    { label: 'Messages Today', value: convStats.messages_today, icon: '📨', color: 'text-primary-dark', bg: 'bg-primary-tint' },
+    { label: 'Avg Msgs / Hire', value: convStats.avg_messages_per_hire, icon: '📊', color: 'text-accent-mintDeep', bg: 'bg-accent-mint/20' },
+  ] : null;
 
   // User growth Recharts format
   const transformedUserGrowth = (() => {
@@ -1018,6 +1040,24 @@ export default function AnalyticsDashboard() {
                   </div>
                 ))}
               </div>
+
+              {/* In-App Messaging Stats — aggregate counts only, no message content */}
+              {messagingStats && (
+                <div className="space-y-2">
+                  <p className="text-xs font-body font-bold text-ink-soft uppercase tracking-wider px-1">💬 Messaging Activity</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {messagingStats.map((s, i) => (
+                      <div key={i} className={`p-4 rounded-2xl border border-white/50 shadow-sm ${s.bg}`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">{s.icon}</span>
+                          <p className="text-xs font-body font-semibold text-ink-soft uppercase tracking-wider">{s.label}</p>
+                        </div>
+                        <h3 className={`text-xl font-numeric font-bold ${s.color}`}>{s.value}</h3>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Gemini AI Insights Component */}
               <div className="bg-gradient-to-r from-primary-soft to-accent-mint/30 backdrop-blur-md p-8 rounded-3xl shadow-sm border border-primary-dark/10 print-chart-container">

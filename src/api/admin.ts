@@ -295,7 +295,12 @@ export const adminApi = {
   permanentDeleteJob: async (id: number) => {
     clearApiCache();
     return apiClient.delete(`/admin/jobs/${id}/force`);
-  }
+  },
+
+  // ─── Messaging Stats (aggregate only — no message content) ───────────────
+  getConversationStats: async () => {
+    return cachedGet('/admin/conversations/stats');
+  },
 };
 
 /**
