@@ -13,7 +13,7 @@ export interface User {
   document_url?: string | null;
   document_back_url?: string | null;
   selfie_url?: string | null;
-  business_documents?: string[];
+  business_documents?: string[] | string | null;
   updated_at?: string;
   registration_status?: string;
 }
@@ -184,44 +184,71 @@ export default function VerificationModal({
           </div>
 
           {/* Business Documents for Employers */}
-          {user.role === 'employer' && user.business_documents && user.business_documents.length > 0 && (
+          {user.role === 'employer' && (
             <div className="mt-6 border-t border-ink-faint pt-6">
-              <h4 className="font-body font-bold text-ink text-sm mb-3">Uploaded Business Documents</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {user.business_documents.map((docUrl, idx) => {
-                  const isPdf = docUrl.toLowerCase().endsWith('.pdf') || docUrl.includes('.pdf?');
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-body font-bold text-ink text-sm">Uploaded Business Documents</h4>
+                {user.business_documents && (Array.isArray(user.business_documents) ? user.business_documents.length > 0 : !!user.business_documents) && (
+                  <span className="text-xs text-ink-muted font-body">
+                    {Array.isArray(user.business_documents) ? `${user.business_documents.length} document(s)` : '1 document'}
+                  </span>
+                )}
+              </div>
+
+              {(() => {
+                const docs: string[] = Array.isArray(user.business_documents)
+                  ? user.business_documents
+                  : typeof user.business_documents === 'string' && user.business_documents.trim()
+                  ? [user.business_documents]
+                  : [];
+
+                if (docs.length === 0) {
                   return (
-                    <div key={idx} className="group relative">
-                      <span className="block font-body font-semibold text-ink-soft text-xs mb-1.5">Document #{idx + 1}</span>
-                      <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[180px] flex items-center justify-center bg-black/5 overflow-hidden">
-                        {isPdf ? (
-                          <div className="flex flex-col items-center gap-2">
-                            <i className="lni lni-files text-3xl text-primary" />
-                            <a
-                              href={docUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs text-primary font-bold hover:underline text-center px-2"
-                            >
-                              Open PDF Document
-                            </a>
-                          </div>
-                        ) : (
-                          <Image
-                            src={docUrl}
-                            alt={`Business Doc ${idx + 1}`}
-                            width={400}
-                            height={300}
-                            unoptimized
-                            onClick={() => setLightboxImage({ url: docUrl, title: `Business Document #${idx + 1}` })}
-                            className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
-                          />
-                        )}
-                      </div>
+                    <div className="bg-paper p-4 rounded-xl border border-ink-faint text-sm text-ink-muted flex items-center gap-2">
+                      <p className="text-xs text-ink-muted">No business documents uploaded yet by this employer.</p>
                     </div>
                   );
-                })}
-              </div>
+                }
+
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {docs.map((docUrl, idx) => {
+                      const isPdf = typeof docUrl === 'string' && (docUrl.toLowerCase().endsWith('.pdf') || docUrl.includes('.pdf?'));
+                      return (
+                        <div key={idx} className="group relative">
+                          <span className="block font-body font-semibold text-ink-soft text-xs mb-1.5">Document #{idx + 1}</span>
+                          <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[180px] flex items-center justify-center bg-black/5 overflow-hidden">
+                            {isPdf ? (
+                              <div className="flex flex-col items-center gap-2">
+                                <i className="lni lni-files text-3xl text-primary" />
+                                <a
+                                  href={docUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-xs text-primary font-bold hover:underline text-center px-2 inline-flex items-center gap-1"
+                                >
+                                  <span>Open PDF Document</span>
+                                  <i className="lni lni-arrow-right text-[10px]" />
+                                </a>
+                              </div>
+                            ) : (
+                              <Image
+                                src={docUrl}
+                                alt={`Business Doc ${idx + 1}`}
+                                width={400}
+                                height={300}
+                                unoptimized
+                                onClick={() => setLightboxImage({ url: docUrl, title: `Business Document #${idx + 1}` })}
+                                className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>

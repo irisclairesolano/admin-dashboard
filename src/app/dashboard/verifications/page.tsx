@@ -276,11 +276,23 @@ function VerificationsPageContent() {
                       </div>
                     </td>
                     <td className="px-8 py-5">
-                      <span className={`px-4 py-1.5 rounded-full text-xs font-body font-bold tracking-wide uppercase shadow-sm ${
-                        user.role === 'employer' ? 'bg-accent-peach border border-accent-peachBright/50 text-primary-dark' : 'bg-accent-mint border border-accent-mintDeep/30 text-accent-mintDeep'
-                      }`}>
-                        {user.role}
-                      </span>
+                      <div className="flex flex-col gap-1.5 items-start">
+                        <span className={`px-3 py-1 rounded-full text-xs font-body font-bold tracking-wide uppercase shadow-sm ${
+                          user.role === 'employer' ? 'bg-accent-peach border border-accent-peachBright/50 text-primary-dark' : 'bg-accent-mint border border-accent-mintDeep/30 text-accent-mintDeep'
+                        }`}>
+                          {user.role}
+                        </span>
+                        {user.role === 'employer' && (user.business_documents && (Array.isArray(user.business_documents) ? user.business_documents.length > 0 : !!user.business_documents)) ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">
+                            <i className="lni lni-files text-[10px]" />
+                            {Array.isArray(user.business_documents) ? `${user.business_documents.length} Business Doc(s)` : 'Business Doc'}
+                          </span>
+                        ) : user.document_url ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-ink-soft bg-paper px-2 py-0.5 rounded-md border border-ink-faint">
+                            <i className="lni lni-postcard text-[10px]" /> Govt ID
+                          </span>
+                        ) : null}
+                      </div>
                     </td>
                     <td className="px-8 py-5 text-sm font-body font-medium text-ink-soft">
                       {new Date(user.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
