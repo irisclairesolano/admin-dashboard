@@ -11,6 +11,8 @@ vi.mock('@/lib/api', () => ({
     getJobs: vi.fn(),
     restoreUser: vi.fn(),
     restoreJob: vi.fn(),
+    permanentDeleteUser: vi.fn(),
+    permanentDeleteJob: vi.fn(),
   },
 }));
 
@@ -49,8 +51,8 @@ describe('ArchivesPage Component', () => {
   it('fetches and displays deleted users and jobs on render', async () => {
     render(<ArchivesPage />);
 
-    expect(adminApi.getUsers).toHaveBeenCalledWith(true);
-    expect(adminApi.getJobs).toHaveBeenCalledWith(true);
+    expect(adminApi.getUsers).toHaveBeenCalledWith(true, false);
+    expect(adminApi.getJobs).toHaveBeenCalledWith(true, false);
 
     await waitFor(() => {
       expect(screen.getByText('Deleted User One')).toBeInTheDocument();
@@ -88,6 +90,28 @@ describe('ArchivesPage Component', () => {
     expect(adminApi.restoreUser).toHaveBeenCalledWith(10);
   });
 
+  it('handles permanently deleting a user successfully', async () => {
+    vi.mocked(adminApi.permanentDeleteUser).mockResolvedValue({
+      data: { success: true, message: 'User permanently deleted' },
+    } as any);
+
+    render(<ArchivesPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Deleted User One')).toBeInTheDocument();
+    });
+
+    // Click Permanently Delete User button
+    const deleteBtn = screen.getByRole('button', { name: /Permanently Delete User/i });
+    fireEvent.click(deleteBtn);
+
+    // Click Confirm in custom AlertDialog
+    const confirmBtn = screen.getByRole('button', { name: /Confirm/i });
+    fireEvent.click(confirmBtn);
+
+    expect(adminApi.permanentDeleteUser).toHaveBeenCalledWith(10);
+  });
+
   it('handles restoring a job successfully', async () => {
     vi.mocked(adminApi.restoreJob).mockResolvedValue({
       data: { success: true, message: 'Job restored' },
@@ -116,5 +140,35 @@ describe('ArchivesPage Component', () => {
     fireEvent.click(confirmBtn);
 
     expect(adminApi.restoreJob).toHaveBeenCalledWith(20);
+  });
+
+  it('handles permanently deleting a job successfully', async () => {
+    vi.mocked(adminApi.permanentDeleteJob).mockResolvedValue({
+      data: { success: true, message: 'Job permanently deleted' },
+    } as any);
+
+    render(<ArchivesPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Deleted User One')).toBeInTheDocument();
+    });
+
+    // Click Deleted Jobs tab
+    const jobsTab = screen.getByRole('tab', { name: /Deleted Jobs/i });
+    fireEvent.click(jobsTab);
+
+    await waitFor(() => {
+      expect(screen.getByText('Deleted Painter Job')).toBeInTheDocument();
+    });
+
+    // Click Permanently Delete Job Post button
+    const deleteBtn = screen.getByRole('button', { name: /Permanently Delete Job Post/i });
+    fireEvent.click(deleteBtn);
+
+    // Click Confirm in custom AlertDialog
+    const confirmBtn = screen.getByRole('button', { name: /Confirm/i });
+    fireEvent.click(confirmBtn);
+
+    expect(adminApi.permanentDeleteJob).toHaveBeenCalledWith(20);
   });
 });

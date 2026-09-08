@@ -148,8 +148,13 @@ export const adminApi = {
     return apiClient.patch(`/admin/users/${id}/verify`, { status, rejection_reason });
   },
   
-  getUsers: async (trashed: boolean = false) => {
-    return cachedGet(`/admin/users${trashed ? '?trashed=1' : ''}`);
+  getUsers: async (trashed: boolean = false, forceRefresh: boolean = false) => {
+    const url = `/admin/users${trashed ? '?trashed=1' : ''}`;
+    if (forceRefresh) {
+      clearApiCache();
+      return apiClient.get(url);
+    }
+    return cachedGet(url);
   },
 
   getUserDetails: async (id: number) => {
@@ -206,8 +211,13 @@ export const adminApi = {
     return apiClient.patch(`/admin/users/${id}/restore`);
   },
 
-  getJobs: async (trashed: boolean = false) => {
-    return cachedGet(`/admin/jobs${trashed ? '?trashed=1' : ''}`);
+  getJobs: async (trashed: boolean = false, forceRefresh: boolean = false) => {
+    const url = `/admin/jobs${trashed ? '?trashed=1' : ''}`;
+    if (forceRefresh) {
+      clearApiCache();
+      return apiClient.get(url);
+    }
+    return cachedGet(url);
   },
 
   deleteJob: async (id: number) => {

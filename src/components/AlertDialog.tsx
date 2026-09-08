@@ -54,12 +54,22 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
 
   if (!visible) return null;
 
+  const handleBackdropClick = () => {
+    if (cancelText && onCancel) {
+      onCancel();
+    } else if (onCancel) {
+      onCancel();
+    } else {
+      onConfirm?.();
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-ink/40 backdrop-blur-sm transition-opacity duration-300"
-        onClick={onCancel || onConfirm}
+        onClick={handleBackdropClick}
       />
 
       {/* Modal box */}

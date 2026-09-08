@@ -67,12 +67,12 @@ function ArchivesPageContent() {
     }
   }, [urlSearch, activeTab]);
 
-  const fetchArchives = async () => {
+  const fetchArchives = async (forceRefresh: boolean = false) => {
     try {
       setLoading(true);
       const [usersRes, jobsRes] = await Promise.all([
-        adminApi.getUsers(true), // trashed users
-        adminApi.getJobs(true),  // trashed jobs
+        adminApi.getUsers(true, forceRefresh), // trashed users
+        adminApi.getJobs(true, forceRefresh),  // trashed jobs
       ]);
       setUsers(usersRes.data.data || []);
       setJobs(jobsRes.data.data || []);
@@ -97,7 +97,7 @@ function ArchivesPageContent() {
         try {
           setActionLoading(`user-${id}`);
           await adminApi.restoreUser(id);
-          await fetchArchives();
+          await fetchArchives(true);
         } catch (err: any) {
           setUsers(previousUsers);
           showAlert('Error', 'Failed to restore user: ' + (err.response?.data?.message || err.message));
@@ -118,7 +118,7 @@ function ArchivesPageContent() {
         try {
           setActionLoading(`user-force-${id}`);
           await adminApi.permanentDeleteUser(id);
-          await fetchArchives();
+          await fetchArchives(true);
         } catch (err: any) {
           setUsers(previousUsers);
           showAlert('Error', 'Failed to permanently delete user: ' + (err.response?.data?.message || err.message));
@@ -139,7 +139,7 @@ function ArchivesPageContent() {
         try {
           setActionLoading(`job-${id}`);
           await adminApi.restoreJob(id);
-          await fetchArchives();
+          await fetchArchives(true);
         } catch (err: any) {
           setJobs(previousJobs);
           showAlert('Error', 'Failed to restore job: ' + (err.response?.data?.message || err.message));
@@ -160,7 +160,7 @@ function ArchivesPageContent() {
         try {
           setActionLoading(`job-force-${id}`);
           await adminApi.permanentDeleteJob(id);
-          await fetchArchives();
+          await fetchArchives(true);
         } catch (err: any) {
           setJobs(previousJobs);
           showAlert('Error', 'Failed to permanently delete job: ' + (err.response?.data?.message || err.message));
