@@ -194,7 +194,7 @@ function ArchivesPageContent() {
           </p>
         </div>
         <button 
-          onClick={fetchArchives}
+          onClick={() => fetchArchives(true)}
           className="flex items-center px-4 py-2 bg-paper rounded-xl text-ink font-body font-semibold hover:bg-ink-faint border border-ink-faint/55 transition-colors text-sm"
         >
           <i className="lni lni-reload mr-2" />
