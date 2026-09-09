@@ -153,15 +153,22 @@ function VerificationsPageContent() {
 
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
-  const pendingUsers = users.filter(u => {
-    const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          u.email.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch && (u.verification_status === 'pending' || u.registration_status === 'pending_review');
-  }).sort((a, b) => {
-    const dateA = new Date(a.updated_at).getTime();
-    const dateB = new Date(b.updated_at).getTime();
-    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
-  });
+  const pendingUsers = users
+    .filter((u) => {
+      const matchesSearch =
+        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const isUnverified =
+        u.verification_status !== 'approved' ||
+        !u.verification_badge ||
+        u.registration_status !== 'approved';
+      return matchesSearch && isUnverified;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
+      const dateB = new Date(b.updated_at || b.created_at || 0).getTime();
+      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    });
 
   const totalPages = Math.ceil(pendingUsers.length / itemsPerPage) || 1;
   const paginatedUsers = pendingUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -291,11 +298,15 @@ function VerificationsPageContent() {
                           <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-ink-soft bg-paper px-2 py-0.5 rounded-md border border-ink-faint">
                             <i className="lni lni-postcard text-[10px]" /> Govt ID
                           </span>
-                        ) : null}
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                            <i className="lni lni-timer text-[10px]" /> Pending ID
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="px-8 py-5 text-sm font-body font-medium text-ink-soft">
-                      {new Date(user.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                      {new Date(user.updated_at || user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                     </td>
                     <td className="px-8 py-5 text-right">
                       <button
