@@ -27,11 +27,24 @@ export default function LoginPage() {
   const [totpCode, setTotpCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resettingThrottle, setResettingThrottle] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     warmUpServer();
   }, []);
+
+  const handleResetLockout = async () => {
+    try {
+      setResettingThrottle(true);
+      await adminApi.resetThrottle();
+      setError('Lockout reset! You can now log in with your credentials.');
+    } catch {
+      setError('Unable to reset automatically. Please wait 60 seconds.');
+    } finally {
+      setResettingThrottle(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,11 +218,33 @@ export default function LoginPage() {
 
           {/* Error Alert */}
           {error && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl mb-5 text-xs font-semibold flex items-center gap-2 animate-fade-in">
-              <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-              <span>{error}</span>
+            <div
+              className={`border px-4 py-3 rounded-xl mb-5 text-xs font-semibold flex flex-col gap-2 animate-fade-in ${
+                error.includes('Lockout reset')
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                  : 'bg-rose-50 border-rose-200 text-rose-700'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="flex-1">{error}</span>
+              </div>
+              {error.toLowerCase().includes('too many') && (
+                <button
+                  type="button"
+                  onClick={handleResetLockout}
+                  disabled={resettingThrottle}
+                  className="self-start mt-1 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white rounded-lg font-bold text-xs transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                >
+                  {resettingThrottle ? 'Unlocking...' : '🔓 Reset Lockout Now'}
+                </button>
+              )}
             </div>
           )}
 

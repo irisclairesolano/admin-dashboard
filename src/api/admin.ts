@@ -107,6 +107,10 @@ export const adminApi = {
     return apiClient.post('/admin/auth/login', { email, password });
   },
 
+  resetThrottle: async () => {
+    return apiClient.get('/admin/auth/reset-throttle');
+  },
+
   mfaVerify: async (mfa_token: string, code: string) => {
     clearApiCache();
     return apiClient.post('/admin/auth/mfa-verify', { mfa_token, code });
