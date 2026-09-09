@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { XCircle } from 'lucide-react';
 import Tooltip from '@/components/Tooltip';
@@ -38,6 +39,12 @@ export default function VerificationModal({
   const [isRejecting, setIsRejecting] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   // Focus trap
   const modalRef = React.useRef<HTMLDivElement>(null);
@@ -79,25 +86,38 @@ export default function VerificationModal({
     }
   };
 
-  return (
+  const modalContent = (
     <div
       ref={modalRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="verification-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           onClose();
         }
       }}
-      className="fixed inset-0 bg-ink/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+      className="fixed inset-0 bg-ink/60 z-[200] flex items-center justify-center p-3 sm:p-6 backdrop-blur-md overflow-y-auto"
       data-testid="verification-modal"
     >
-      <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div 
+        className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto relative z-10 animate-scale-up"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="p-6 border-b border-ink-faint flex justify-between items-center bg-paper-cream">
+        <div className="p-5 sm:p-6 border-b border-ink-faint flex justify-between items-center bg-paper-cream flex-shrink-0 sticky top-0 z-10">
           <h2 id="verification-title" className="font-display text-2xl text-ink">Review ID Document</h2>
-          <button onClick={onClose} className="text-ink-muted hover:text-ink" aria-label="Close modal" data-testid="modal-close-btn">
+          <button 
+            onClick={onClose} 
+            className="p-2 -mr-2 text-ink-muted hover:text-ink hover:bg-ink-faint/50 rounded-full transition-colors cursor-pointer flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary" 
+            aria-label="Close modal" 
+            data-testid="modal-close-btn"
+          >
             <XCircle className="w-6 h-6" />
           </button>
         </div>
@@ -332,7 +352,7 @@ export default function VerificationModal({
           role="dialog"
           aria-modal="true"
           aria-labelledby="lightbox-title"
-          className="fixed inset-0 bg-black/90 z-[100] flex flex-col items-center justify-center p-4 backdrop-blur-md animate-fade-in"
+          className="fixed inset-0 bg-black/90 z-[250] flex flex-col items-center justify-center p-4 backdrop-blur-md animate-fade-in"
           onClick={() => setLightboxImage(null)}
         >
           {/* Header */}
@@ -365,4 +385,10 @@ export default function VerificationModal({
       )}
     </div>
   );
+
+  if (!mounted) {
+    return null;
+  }
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 }
