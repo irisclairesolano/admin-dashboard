@@ -25,7 +25,7 @@ export function useSSEReports() {
     if (!token) return;
 
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://sikap-backend.onrender.com/api/v1';
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://sikap-backend-singapore.onrender.com/api/v1';
       const res = await fetch(`${apiBase}/admin/reports/unread-count`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -64,7 +64,7 @@ export function useSSEReports() {
   const clearCount = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://sikap-backend.onrender.com/api/v1';
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://sikap-backend-singapore.onrender.com/api/v1';
       await fetch(`${apiBase}/admin/reports/stream/clear`, {
         method: 'POST',
         headers: {
