@@ -38,7 +38,7 @@ export default function StatCard({
 
   return (
     <div
-      className={`bg-white/80 backdrop-blur-md rounded-2xl p-5 border border-white/50 shadow-sm transition-all ${
+      className={`bg-white/90 backdrop-blur-md rounded-xl p-3.5 sm:p-4 border border-ink-faint/30 shadow-xs transition-all ${
         onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5' : ''
       } ${className}`}
       onClick={onClick}
@@ -49,10 +49,10 @@ export default function StatCard({
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-body font-semibold text-ink-soft uppercase tracking-wider mb-1">{title}</p>
-          <p className="text-2xl font-display font-bold text-ink">{value}</p>
+          <p className="text-[11px] font-body font-semibold text-ink-muted uppercase tracking-wider mb-0.5">{title}</p>
+          <p className="text-xl sm:text-2xl font-display font-bold text-ink">{value}</p>
           {trendValue && (
-            <div className={`flex items-center gap-1 mt-1.5 text-xs font-body font-semibold ${trendColor}`}>
+            <div className={`flex items-center gap-1 mt-1 text-xs font-body font-semibold ${trendColor}`}>
               {trendIcon && <i className={`${trendIcon} text-[10px]`} />}
               <span>{trendValue}</span>
               {trendLabel && <span className="text-ink-muted font-normal">{trendLabel}</span>}
@@ -60,10 +60,10 @@ export default function StatCard({
           )}
         </div>
         {(Icon || iconClass) && (
-          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${bg} flex items-center justify-center shadow-inner flex-shrink-0`}>
+          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br ${bg} flex items-center justify-center shadow-inner flex-shrink-0`}>
             {Icon
-              ? <Icon className={`w-5 h-5 ${iconColor}`} />
-              : <i className={`${iconClass} ${iconColor} text-lg`} />}
+              ? <Icon className={`w-4 h-4 ${iconColor}`} />
+              : <i className={`${iconClass} ${iconColor} text-base`} />}
           </div>
         )}
       </div>

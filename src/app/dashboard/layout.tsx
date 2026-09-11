@@ -763,7 +763,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── Persistent Content Wrapper (Main) ──────────────────── */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {/* Desktop Top Header (Content Page Side) */}
-        <header className="hidden lg:flex items-center justify-between h-20 px-8 bg-white/70 backdrop-blur-xl border-b border-white/50 z-20 flex-shrink-0">
+        <header className="hidden lg:flex items-center justify-between h-14 px-6 bg-white/70 backdrop-blur-xl border-b border-white/50 z-20 flex-shrink-0">
           <div className="flex items-center gap-4">
             {/* Sidebar toggle button */}
             <button
@@ -771,23 +771,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               title={sidebarCollapsed ? "Expand sidebar" : "Minimize sidebar"}
               aria-label={sidebarCollapsed ? "Expand sidebar" : "Minimize sidebar"}
-              className="w-9 h-9 rounded-xl bg-white/80 hover:bg-white border border-ink-faint/50 hover:border-ink-faint text-ink-muted hover:text-ink shadow-sm flex items-center justify-center transition-all cursor-pointer group"
+              className="w-8 h-8 rounded-lg bg-white/80 hover:bg-white border border-ink-faint/50 hover:border-ink-faint text-ink-muted hover:text-ink shadow-2xs flex items-center justify-center transition-all cursor-pointer group"
             >
-              <i className={`text-base transition-transform duration-300 group-hover:scale-110 ${
+              <i className={`text-sm transition-transform duration-300 group-hover:scale-110 ${
                 sidebarCollapsed ? 'lni lni-menu' : 'lni lni-chevron-left'
               }`} />
             </button>
 
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-body uppercase tracking-wider text-ink-muted">Admin Dashboard</span>
+            <div className="flex items-center gap-2.5">
+              <span className="text-[11px] font-body uppercase tracking-wider text-ink-muted">Admin Dashboard</span>
               <span className="text-ink-faint">/</span>
-              <span className="text-sm font-display font-bold text-ink capitalize">
+              <span className="text-xs font-display font-bold text-ink capitalize">
                 {pathname.replace('/dashboard', '').replace('/', '') || 'Analytics Overview'}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             {/* Action Center / Notifications Button on Content Side */}
             <NotificationButton />
             {/* Admin Profile Menu */}
@@ -795,8 +795,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="flex-1 w-full mx-auto relative overflow-y-auto pt-20 lg:pt-0">
-          <div className="p-3 sm:p-6 md:p-10 animate-fade-in max-w-[1400px] mx-auto">
+        <main className="flex-1 w-full mx-auto relative overflow-y-auto pt-16 lg:pt-0">
+          <div className="p-3 sm:p-4 md:p-6 animate-fade-in max-w-[1560px] mx-auto">
             {children}
           </div>
         </main>

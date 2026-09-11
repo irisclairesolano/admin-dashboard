@@ -179,16 +179,16 @@ function ReportsPageContent() {
 
   return (
     <div className="animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
         <div>
-          <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">Reported Content</h1>
-          <p className="text-ink-soft font-body mt-2 text-lg">
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">Reported Content</h1>
+          <p className="text-xs text-ink-muted mt-0.5">
             Review and take action on content flagged by the community.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 mt-6 md:mt-0">
-          <div className="relative w-full md:w-64 group">
+        <div className="flex flex-wrap items-center gap-2 mt-3 md:mt-0 text-xs">
+          <div className="relative w-full md:w-60 group">
             <input
               type="text"
               aria-label="Search reports"
@@ -198,9 +198,9 @@ function ReportsPageContent() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-4 py-2 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary transition text-sm font-body"
+              className="w-full pl-8 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white focus:border-ink/50 outline-none text-xs font-body transition"
             />
-            <i className="lni lni-search text-ink-muted absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+            <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
           </div>
 
           <div className="relative">
@@ -211,19 +211,19 @@ function ReportsPageContent() {
                 setStatusFilter(e.target.value as any);
                 setCurrentPage(1);
               }}
-              className="appearance-none pl-4 pr-10 py-2.5 rounded-xl font-body font-semibold text-sm transition-colors bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none shadow-sm cursor-pointer"
+              className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer"
             >
               <option value="open">Open Reports</option>
               <option value="resolved">Resolved</option>
               <option value="dismissed">Dismissed</option>
             </select>
-            <i className="lni lni-chevron-down absolute right-3.5 top-1/2 transform -translate-y-1/2 text-ink-muted pointer-events-none" />
+            <i className="lni lni-chevron-down absolute right-2.5 top-1/2 transform -translate-y-1/2 text-ink-muted text-[10px] pointer-events-none" />
           </div>
 
           <button
             onClick={handleExportCSV}
             aria-label="Export reports as CSV"
-            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
             title="Export filtered reports list as CSV"
           >
             <i className="lni lni-download text-xs" />
@@ -233,47 +233,47 @@ function ReportsPageContent() {
           <button
             onClick={() => fetchReports(false)}
             aria-label="Refresh reports list"
-            className="p-2.5 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm hover:bg-white text-ink-soft hover:text-primary transition flex items-center justify-center cursor-pointer"
+            className="p-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-white text-ink-soft hover:text-primary transition flex items-center justify-center cursor-pointer"
             title="Refresh list"
           >
-            <i className={`lni lni-reload text-sm ${loading ? 'animate-spin' : ''}`} />
+            <i className={`lni lni-reload text-xs ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
 
-      <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-white/50 overflow-hidden transition-all hover:shadow-lg">
+      <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
         {loading && reports.length === 0 ? (
-          <div className="p-8 space-y-4">
+          <div className="p-6 space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-ink-faint/30 rounded-2xl animate-pulse flex items-center justify-between px-6">
-                <div className="w-1/3 h-6 bg-ink-faint/50 rounded-lg"></div>
-                <div className="w-1/6 h-6 bg-ink-faint/50 rounded-lg"></div>
-                <div className="w-1/4 h-8 bg-ink-faint/50 rounded-lg"></div>
+              <div key={i} className="h-12 bg-ink-faint/20 rounded-xl animate-pulse flex items-center justify-between px-4">
+                <div className="w-1/3 h-4 bg-ink-faint/40 rounded-lg"></div>
+                <div className="w-1/6 h-4 bg-ink-faint/40 rounded-lg"></div>
+                <div className="w-1/4 h-6 bg-ink-faint/40 rounded-lg"></div>
               </div>
             ))}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[850px] text-left font-body table-fixed border-collapse">
-              <thead className="bg-white/50 border-b border-ink-faint/50">
+              <thead className="bg-slate-50/70 border-b border-ink-faint/30">
                 <tr>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[15%]">Target / Type</th>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[22%]">Reported By</th>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[33%]">Reason / Description</th>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[15%]">Reported At</th>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[15%] text-right">Actions</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[15%]">Target / Type</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[22%]">Reported By</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[33%]">Reason / Description</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[15%]">Reported At</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[15%] text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-faint/30">
+              <tbody className="divide-y divide-ink-faint/20">
                 {filteredReports.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-8 py-16 text-center">
+                    <td colSpan={5} className="px-4 py-12 text-center">
                       <div className="flex flex-col items-center justify-center">
-                        <div className="w-16 h-16 bg-status-success/10 rounded-full flex items-center justify-center mb-4">
-                          <i className="lni lni-flag text-2xl text-status-success" />
+                        <div className="w-12 h-12 bg-status-success/10 rounded-full flex items-center justify-center mb-3">
+                          <i className="lni lni-flag text-xl text-status-success" />
                         </div>
-                        <h3 className="font-display text-lg text-ink font-bold">All Clear!</h3>
-                        <p className="font-body text-ink-soft mt-1.5 text-sm">No reports found matching your criteria.</p>
+                        <h3 className="font-display text-base text-ink font-bold">All Clear!</h3>
+                        <p className="font-body text-ink-muted mt-1 text-xs">No reports found matching your criteria.</p>
                       </div>
                     </td>
                   </tr>
@@ -282,17 +282,17 @@ function ReportsPageContent() {
                     <tr
                       key={report.id}
                       onClick={() => setSelectedReport(report)}
-                      className="hover:bg-primary/5 transition-colors duration-200 cursor-pointer group"
+                      className="hover:bg-slate-50/70 transition-colors duration-150 cursor-pointer group"
                     >
-                      <td className="px-8 py-5">
-                        <span className="px-3 py-1 rounded-md text-[10px] font-body font-bold tracking-wide uppercase bg-gradient-to-r from-ink to-ink-soft text-white shadow-sm inline-block truncate max-w-full">
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-body font-bold tracking-wide uppercase bg-ink text-white inline-block truncate max-w-full">
                           {humanizeModel(report.reportable_type)}
                         </span>
-                        <div className="mt-1.5 text-[10px] font-numeric font-bold text-ink-soft bg-white/50 inline-block px-2 py-0.5 rounded border border-ink-faint">
+                        <div className="mt-1 text-[10px] font-numeric font-bold text-ink-soft bg-white/70 inline-block px-1.5 py-0.5 rounded border border-ink-faint/40">
                           ID: #{report.reportable_id}
                         </div>
                       </td>
-                      <td className="px-8 py-5">
+                      <td className="px-4 py-3">
                         <div className="flex items-center">
                           <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-paper-cream to-ink-faint flex items-center justify-center text-ink font-body font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
                             {(report.reporter?.name || 'U').charAt(0)}
@@ -303,18 +303,18 @@ function ReportsPageContent() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-8 py-5">
+                      <td className="px-4 py-3">
                         <div className="font-body font-bold text-ink text-xs truncate capitalize" title={report.type}>
                           {report.type.replace(/_/g, ' ')}
                         </div>
-                        <div className="text-xs text-ink-muted mt-1 leading-relaxed truncate" title={report.description}>
+                        <div className="text-xs text-ink-muted mt-0.5 leading-relaxed truncate" title={report.description}>
                           {report.description}
                         </div>
                       </td>
-                      <td className="px-8 py-5 text-xs font-body font-medium text-ink-soft whitespace-nowrap font-numeric">
+                      <td className="px-4 py-3 text-xs font-body font-medium text-ink-soft whitespace-nowrap font-numeric">
                         {formatDate(report.created_at)}
                       </td>
-                      <td className="px-8 py-5 text-right">
+                      <td className="px-4 py-3 text-right">
                         {statusFilter === 'open' ? (
                           <div className="flex justify-end items-center space-x-2">
                             <button

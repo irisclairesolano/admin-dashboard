@@ -183,25 +183,25 @@ function LogsPageContent() {
 
   return (
     <div className="animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
         <div>
-          <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">Audit Logs</h1>
-          <p className="text-ink-soft font-body mt-2 text-lg">
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">Audit Logs</h1>
+          <p className="text-xs text-ink-muted mt-0.5">
             Track administrator actions and system activities.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 mt-6 md:mt-0">
+        <div className="flex flex-wrap items-center gap-2 mt-3 md:mt-0 text-xs">
           <button
             onClick={handleExportCSV}
             disabled={exporting}
-            className="flex items-center px-4 py-2 bg-primary text-white rounded-xl font-body font-semibold hover:bg-primary-dark transition-colors shadow-sm text-sm disabled:opacity-50"
+            className="flex items-center px-3 py-1.5 bg-white text-ink-soft hover:text-ink rounded-lg font-body font-semibold border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white transition-colors text-xs disabled:opacity-50 cursor-pointer"
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="w-3.5 h-3.5 mr-1.5" />
             {exporting ? 'Exporting...' : 'Export CSV'}
           </button>
           
-          <form onSubmit={handleSearchSubmit} className="relative w-full md:w-64 group">
+          <form onSubmit={handleSearchSubmit} className="relative w-full md:w-60 group">
             <input
               type="text"
               placeholder="Search description..."
@@ -211,34 +211,34 @@ function LogsPageContent() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-4 py-2 bg-white/80 backdrop-blur-md rounded-xl border border-ink-faint/30 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary transition text-sm font-body"
+              className="w-full pl-8 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white focus:border-ink/50 outline-none text-xs font-body transition"
             />
-            <i className="lni lni-search text-ink-muted absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+            <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
           </form>
         </div>
       </div>
 
       {/* Date Range Inputs & Action Filter */}
-      <div className="flex flex-wrap gap-4 items-center mb-6 font-body">
-        <div className="flex items-center space-x-2 bg-white/50 border border-ink-faint/50 px-3 py-1.5 rounded-xl">
-          <span className="text-xs text-ink-soft font-semibold">From:</span>
+      <div className="flex flex-wrap gap-2.5 items-center mb-4 font-body text-xs">
+        <div className="flex items-center space-x-1.5 bg-white border border-ink-faint/40 px-2.5 py-1 rounded-lg shadow-2xs">
+          <span className="text-[11px] text-ink-muted font-semibold">From:</span>
           <input
             type="date"
             aria-label="From date"
             value={dateFrom}
             onChange={(e) => { setDateFrom(e.target.value); setCurrentPage(1); }}
-            className="bg-transparent text-sm text-ink outline-none border-none font-semibold cursor-pointer"
+            className="bg-transparent text-xs text-ink outline-none border-none font-semibold cursor-pointer"
           />
         </div>
 
-        <div className="flex items-center space-x-2 bg-white/50 border border-ink-faint/50 px-3 py-1.5 rounded-xl">
-          <span className="text-xs text-ink-soft font-semibold">To:</span>
+        <div className="flex items-center space-x-1.5 bg-white border border-ink-faint/40 px-2.5 py-1 rounded-lg shadow-2xs">
+          <span className="text-[11px] text-ink-muted font-semibold">To:</span>
           <input
             type="date"
             aria-label="To date"
             value={dateTo}
             onChange={(e) => { setDateTo(e.target.value); setCurrentPage(1); }}
-            className="bg-transparent text-sm text-ink outline-none border-none font-semibold cursor-pointer"
+            className="bg-transparent text-xs text-ink outline-none border-none font-semibold cursor-pointer"
           />
         </div>
 
@@ -249,7 +249,7 @@ function LogsPageContent() {
             setActionFilter(e.target.value);
             setCurrentPage(1);
           }}
-          className="px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none"
+          className="px-2.5 py-1 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer shadow-2xs"
         >
           <option value="">All Actions</option>
           {Object.keys(ACTION_TYPES).map(act => (
@@ -259,52 +259,52 @@ function LogsPageContent() {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-white/50 overflow-hidden transition-all hover:shadow-lg">
+      <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
         {loading ? (
-          <div className="p-8 space-y-4">
+          <div className="p-6 space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-16 bg-ink-faint/30 rounded-2xl animate-pulse flex items-center justify-between px-6">
-                <div className="w-1/4 h-6 bg-ink-faint/50 rounded-lg"></div>
-                <div className="w-1/2 h-6 bg-ink-faint/50 rounded-lg"></div>
-                <div className="w-1/6 h-6 bg-ink-faint/50 rounded-lg"></div>
+              <div key={i} className="h-12 bg-ink-faint/20 rounded-xl animate-pulse flex items-center justify-between px-4">
+                <div className="w-1/4 h-4 bg-ink-faint/40 rounded-lg"></div>
+                <div className="w-1/2 h-4 bg-ink-faint/40 rounded-lg"></div>
+                <div className="w-1/6 h-4 bg-ink-faint/40 rounded-lg"></div>
               </div>
             ))}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left font-body table-fixed border-collapse">
-              <thead className="bg-white/50 border-b border-ink-faint/50">
+              <thead className="bg-slate-50/70 border-b border-ink-faint/30">
                 <tr>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[15%]">Timestamp</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[22%]">Administrator</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[15%]">Action</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[18%]">Target</th>
-                  <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[30%]">Description</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[15%]">Timestamp</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[22%]">Administrator</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[15%]">Action</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[18%]">Target</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[30%]">Description</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-faint/30">
+              <tbody className="divide-y divide-ink-faint/20">
                 {logs.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-16 text-center">
+                    <td colSpan={5} className="px-4 py-12 text-center">
                       <div className="flex flex-col items-center justify-center">
-                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                          <i className="lni lni-shield text-2xl text-primary" />
+                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                          <i className="lni lni-shield text-xl text-primary" />
                         </div>
-                        <h3 className="font-display text-lg text-ink font-bold">No Logs</h3>
-                        <p className="font-body text-ink-soft mt-1.5 text-sm">No admin audit logs match your query.</p>
+                        <h3 className="font-display text-base text-ink font-bold">No Logs</h3>
+                        <p className="font-body text-ink-muted mt-1 text-xs">No admin audit logs match your query.</p>
                       </div>
                     </td>
                   </tr>
                 ) : (
                   logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-white/60 transition-colors duration-200">
-                      <td className="px-6 py-4 text-xs text-ink-soft whitespace-nowrap font-numeric">
+                    <tr key={log.id} className="hover:bg-slate-50/70 transition-colors duration-150">
+                      <td className="px-4 py-3 text-xs text-ink-soft whitespace-nowrap font-numeric">
                         <div className="flex items-center text-ink-muted">
                           <i className="lni lni-calendar mr-1.5 text-primary text-xs" />
                           {formatDate(log.created_at)} {new Date(log.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         <div className="flex items-center">
                           <Avatar name={log.admin?.name || 'System Admin'} url={log.admin?.avatar_url} size="sm" className="mr-2.5 flex-shrink-0" />
                           <div className="min-w-0">
@@ -313,15 +313,15 @@ function LogsPageContent() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-body font-semibold border ${getActionBadgeColor(log.action)}`}>
                           {formatActionName(log.action)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-xs font-bold text-ink truncate">
+                      <td className="px-4 py-3 text-xs font-bold text-ink truncate">
                         {log.target_name || '-'}
                       </td>
-                      <td className="px-6 py-4 text-ink font-body font-medium text-xs leading-relaxed">
+                      <td className="px-4 py-3 text-ink font-body font-medium text-xs leading-relaxed">
                         {log.description}
                       </td>
                     </tr>

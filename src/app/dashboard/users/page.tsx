@@ -425,15 +425,15 @@ function UsersContent() {
 
   return (
     <div className="animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
         <div>
-          <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">User Management</h1>
-          <p className="text-ink-soft font-body mt-2 text-lg">
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">User Management</h1>
+          <p className="text-xs text-ink-muted mt-0.5">
             Monitor, suspend, or remove users from the platform.
           </p>
         </div>
 
-        <div className="mt-6 md:mt-0 relative w-full md:w-80 group">
+        <div className="mt-3 md:mt-0 relative w-full md:w-72 group">
           <input
             type="text"
             aria-label="Search users by name or email"
@@ -443,46 +443,46 @@ function UsersContent() {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-10 pr-4 py-2 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm focus:bg-white focus:border-primary/50 focus:ring-4 focus:ring-primary/10 outline-none font-body transition-all group-hover:shadow-md text-sm"
+            className="w-full pl-9 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white focus:border-ink/50 outline-none font-body transition-all text-xs"
           />
-          <i className="lni lni-search text-ink-muted absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+          <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-xs" />
         </div>
       </div>
 
       {/* 4 Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         <StatCard title="Total Users" value={users.length} iconClass="lni lni-users" onClick={() => { setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }} />
         <StatCard title="Workers" value={users.filter(u => u.role === 'worker').length} iconClass="lni lni-user" onClick={() => { setRoleFilter('worker'); setFilter('all'); setCurrentPage(1); }} />
         <StatCard title="Employers" value={users.filter(u => u.role === 'employer').length} iconClass="lni lni-briefcase" onClick={() => { setRoleFilter('employer'); setFilter('all'); setCurrentPage(1); }} />
         <StatCard title="Pending Review" value={users.filter(u => u.registration_status === 'pending_review' || (u.verification_status === 'pending' && u.document_url)).length} iconClass="lni lni-warning" onClick={() => router.push('/dashboard/verifications')} />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div className="flex space-x-2 overflow-x-auto pb-1">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 mb-4">
+        <div className="flex space-x-1.5 overflow-x-auto pb-1">
           <button
             onClick={() => { setFilter('all'); setCurrentPage(1); }}
-            className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'all' ? 'bg-ink text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'all' ? 'bg-ink text-white' : 'bg-white/70 text-ink-soft hover:bg-white border border-ink-faint/40'}`}>
             All Users
           </button>
           <button
             onClick={() => { setFilter('verified'); setCurrentPage(1); }}
-            className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'verified' ? 'bg-status-success text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'verified' ? 'bg-status-success text-white' : 'bg-white/70 text-ink-soft hover:bg-white border border-ink-faint/40'}`}>
             Verified
           </button>
           <button
             onClick={() => { setFilter('unverified'); setCurrentPage(1); }}
-            className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'unverified' ? 'bg-status-warning text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'unverified' ? 'bg-status-warning text-white' : 'bg-white/70 text-ink-soft hover:bg-white border border-ink-faint/40'}`}>
             Unverified
           </button>
           <button
             onClick={() => { setFilter('rejected'); setCurrentPage(1); }}
-            className={`px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap ${filter === 'rejected' ? 'bg-status-error text-white' : 'bg-white/50 text-ink-soft hover:bg-white/80 border border-ink-faint/50'}`}>
+            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'rejected' ? 'bg-status-error text-white' : 'bg-white/70 text-ink-soft hover:bg-white border border-ink-faint/40'}`}>
             Rejected
           </button>
         </div>
 
-        <div className="flex items-center space-x-3">
-          <label className="flex items-center space-x-2 bg-white/50 border border-ink-faint/50 px-4 py-2 rounded-xl text-sm font-body font-semibold text-ink-soft cursor-pointer hover:bg-white/80 transition-all select-none">
+        <div className="flex items-center space-x-2 text-xs">
+          <label className="flex items-center space-x-1.5 bg-white/70 border border-ink-faint/40 px-2.5 py-1.5 rounded-lg text-xs font-body font-semibold text-ink-soft cursor-pointer hover:bg-white transition-all select-none">
             <input
               type="checkbox"
               aria-label="Show archived users"
@@ -491,9 +491,9 @@ function UsersContent() {
                 setShowArchived(e.target.checked);
                 setCurrentPage(1);
               }}
-              className="rounded text-primary focus:ring-primary w-4 h-4 border-ink-faint"
+              className="rounded text-primary focus:ring-primary w-3.5 h-3.5 border-ink-faint"
             />
-            <span>Show Archived Users</span>
+            <span>Show Archived</span>
           </label>
 
           <select
@@ -503,7 +503,7 @@ function UsersContent() {
               setRoleFilter(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none cursor-pointer"
+            className="px-2.5 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer"
           >
             <option value="all">All Roles</option>
             <option value="worker">Workers</option>
@@ -517,7 +517,7 @@ function UsersContent() {
               setSortBy(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none cursor-pointer"
+            className="px-2.5 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer"
           >
             <option value="created_at">Date Registered</option>
             <option value="name">Name (Alphabetical)</option>
@@ -531,16 +531,16 @@ function UsersContent() {
               setSortOrder(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="px-4 py-2 rounded-xl font-body font-semibold text-sm transition-colors whitespace-nowrap bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none cursor-pointer"
+            className="px-2.5 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer"
           >
-            <option value="desc">Descending / Newest</option>
-            <option value="asc">Ascending / Oldest</option>
+            <option value="desc">Newest</option>
+            <option value="asc">Oldest</option>
           </select>
 
           <button
             onClick={handleExportCSV}
             aria-label="Export users as CSV"
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
             title="Export filtered users directory as CSV"
           >
             <Download className="w-3.5 h-3.5" />
@@ -549,7 +549,7 @@ function UsersContent() {
         </div>
       </div>
 
-      <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-sm border border-white/50 overflow-hidden transition-all hover:shadow-lg">
+      <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
         <UserTable
           paginatedUsers={paginatedUsers}
           loading={loading}

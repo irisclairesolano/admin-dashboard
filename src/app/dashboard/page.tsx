@@ -92,17 +92,6 @@ function ChartEmptyState({ title, message }: { title?: string; message?: string 
   );
 }
 
-function ChartInsightBox({ icon = "💡", title = "Key Insight", text }: { icon?: string; title?: string; text: string }) {
-  return (
-    <div className="mt-4 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start gap-2.5">
-      <span className="text-base leading-none mt-0.5 select-none">{icon}</span>
-      <div className="text-xs font-body">
-        <span className="font-bold text-ink mr-1.5">{title}:</span>
-        <span className="text-ink-soft">{text}</span>
-      </div>
-    </div>
-  );
-}
 
 function MetricHeaderStrip({ items }: { items: { label: string; value: string | number; change?: number; highlight?: boolean }[] }) {
   return (
@@ -347,6 +336,7 @@ export default function AnalyticsDashboard() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
   const [aiPeriod, setAiPeriod] = useState('');
+  const [showAiBriefing, setShowAiBriefing] = useState(false);
 
   // Print & Master PDF States
   const [printMode, setPrintMode] = useState<'analytics' | 'master'>('analytics');
@@ -430,6 +420,7 @@ export default function AnalyticsDashboard() {
     if (!from || !to) return;
     try {
       setAiLoading(true);
+      setShowAiBriefing(true);
       setAiError('');
       
       const res = await adminApi.generateAIInsights(from, to, intervalFilter);
@@ -460,25 +451,22 @@ export default function AnalyticsDashboard() {
     const presets = ['Today', 'Yesterday', 'Last 7 Days', 'This Week', 'Last Week', 'Last 30 Days', 'This Month', 'Last Month', 'This Quarter', 'This Year', 'Custom Date'];
 
     return (
-      <div className="flex flex-wrap items-center gap-3 no-print">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-body font-bold text-ink-soft">Date Range:</span>
-          <select
-            aria-label={`${tab} date range preset`}
-            value={preset}
-            onChange={(e) => {
-              setPreset(e.target.value);
-            }}
-            className="bg-white/70 px-3 py-1.5 rounded-xl border border-white/50 shadow-sm text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
-          >
-            {presets.map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
-        </div>
+      <div className="flex flex-wrap items-center gap-2 no-print">
+        <select
+          aria-label={`${tab} date range preset`}
+          value={preset}
+          onChange={(e) => {
+            setPreset(e.target.value);
+          }}
+          className="bg-white/90 px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs text-xs font-body font-semibold text-slate-700 outline-none focus:border-ink cursor-pointer"
+        >
+          {presets.map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
 
         {preset === 'Custom Date' && (
-          <div className="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-xl border border-white/50 shadow-sm">
+          <div className="flex items-center gap-1.5 bg-white/90 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
             <input
               aria-label={`${tab} custom start date`}
               type="date"
@@ -486,9 +474,9 @@ export default function AnalyticsDashboard() {
               onChange={(e) => {
                 setStart(e.target.value);
               }}
-              className="bg-transparent border-none outline-none font-body text-xs text-ink-soft focus:text-ink"
+              className="bg-transparent border-none outline-none font-body text-xs text-slate-700 focus:text-ink"
             />
-            <span className="text-ink-muted text-xs font-body font-semibold">to</span>
+            <span className="text-slate-400 text-xs font-body">to</span>
             <input
               aria-label={`${tab} custom end date`}
               type="date"
@@ -496,7 +484,7 @@ export default function AnalyticsDashboard() {
               onChange={(e) => {
                 setEnd(e.target.value);
               }}
-              className="bg-transparent border-none outline-none font-body text-xs text-ink-soft focus:text-ink"
+              className="bg-transparent border-none outline-none font-body text-xs text-slate-700 focus:text-ink"
             />
           </div>
         )}
@@ -1039,98 +1027,6 @@ export default function AnalyticsDashboard() {
     }));
   })();
 
-  const conversionInsight = (() => {
-    const apps = detailedTotals.applications || 0;
-    const hires = detailedTotals.completed_hires || 0;
-    if (apps === 0) {
-      return "No application activity recorded for this period yet to measure hiring conversion velocity.";
-    }
-    const rate = ((hires / apps) * 100).toFixed(1);
-    if (hires === 0) {
-      return `${apps.toLocaleString()} application(s) submitted with 0 confirmed hires recorded so far. Monitor employer response times to prevent candidate attrition.`;
-    }
-    return `${apps.toLocaleString()} applications resulted in ${hires.toLocaleString()} verified hires (${rate}% conversion rate). ${
-      Number(rate) >= 20
-        ? 'Conversion velocity indicates strong market liquidity and rapid worker placement.'
-        : Number(rate) >= 10
-        ? 'Steady conversion flow with typical evaluation turnaround.'
-        : 'Low conversion velocity suggests opportunities to assist employers in candidate evaluation.'
-    }`;
-  })();
-
-  // Dynamic Insight Calculations
-  const activityInsight = (() => {
-    if (!transformedApplicationVolume || transformedApplicationVolume.length === 0) {
-      return "No application activity recorded for this period yet. Data will populate in real-time as workers submit applications.";
-    }
-    let maxApps = 0;
-    let peakPeriod = '';
-    let totalApps = 0;
-    let totalJobs = 0;
-    transformedApplicationVolume.forEach((item: any) => {
-      const apps = item.applications ?? 0;
-      const jobs = item.jobs ?? 0;
-      totalApps += apps;
-      totalJobs += jobs;
-      if (apps > maxApps) {
-        maxApps = apps;
-        peakPeriod = item.name;
-      }
-    });
-    if (totalApps === 0 && totalJobs === 0) {
-      return "Platform is awaiting user activity in this period. As workers apply and employers list openings, hourly/daily trends will highlight here.";
-    }
-    const ratio = totalJobs > 0 ? (totalApps / totalJobs).toFixed(1) : totalApps.toString();
-    if (peakPeriod && maxApps > 0) {
-      const formattedPeak = formatPeriodLabel(peakPeriod, intervalFilter);
-      return `Peak activity occurred during ${formattedPeak} with ${maxApps} application${maxApps === 1 ? '' : 's'}. Overall throughput is ${ratio} applications per job post.`;
-    }
-    return `Platform recorded ${totalApps} applications across ${totalJobs} active job posts (${ratio} apps/post throughput).`;
-  })();
-
-  const roleInsight = (() => {
-    const workers = data?.user_ratio?.workers ?? 0;
-    const employers = data?.user_ratio?.employers ?? 0;
-    const total = workers + employers;
-    if (total === 0) return "User signups will populate as new workers and employers register.";
-    const workerPct = total > 0 ? Math.round((workers / total) * 100) : 0;
-    const ratio = employers > 0 ? (workers / employers).toFixed(1) : workers.toString();
-    return `Talent pool ratio is ${ratio}:1 (${workerPct}% workers, ${100 - workerPct}% employers), ensuring ample candidate coverage for incoming job posts.`;
-  })();
-
-  const geoInsight = (() => {
-    if (!transformedGeographicActivity || transformedGeographicActivity.length === 0) {
-      return "Geographic distribution will map across municipalities as jobs are published.";
-    }
-    const top = transformedGeographicActivity[0];
-    if (!top || (top.jobs === 0 && top.applications === 0)) {
-      return "No geographic clustering recorded for the current filter.";
-    }
-    return `${top.name} currently represents the primary labor activity hub with ${top.jobs} job post${top.jobs === 1 ? '' : 's'} and ${top.applications} application${top.applications === 1 ? '' : 's'} filed.`;
-  })();
-
-  const categoryInsight = (() => {
-    if (!transformedJobsData || transformedJobsData.length === 0) {
-      return "Job categories will be categorized as employers publish listings.";
-    }
-    const top = transformedJobsData[0];
-    if (!top || top.jobs === 0) {
-      return "No category postings recorded yet in this period.";
-    }
-    return `${top.name} leads employer demand with ${top.jobs} job post${top.jobs === 1 ? '' : 's'}, representing the highest workforce requirement.`;
-  })();
-
-  const healthInsight = (() => {
-    const total = filteredReportsBreakdown?.reduce((sum: number, r: any) => sum + (r.count || 0), 0) || 0;
-    const avgSec = data?.reports?.average_resolution_seconds || 0;
-    const turnaroundHrs = avgSec > 0 ? (avgSec / 3600).toFixed(1) : null;
-    if (total === 0) {
-      return "Zero safety violations reported in this period. Platform community trust standards are operating optimally.";
-    }
-    const turnaroundText = turnaroundHrs ? ` Average turnaround latency is ${turnaroundHrs} hours.` : '';
-    return `Moderation queue logged ${total} total incident report${total === 1 ? '' : 's'}.${turnaroundText} Prioritize pending review items to protect user trust.`;
-  })();
-
   return (
     <div className="animate-fade-in print:p-0 print:bg-white min-h-screen pb-12">
       {/* Dynamic Style Block for PDF & Print Exports */}
@@ -1299,12 +1195,11 @@ export default function AnalyticsDashboard() {
 
       <div className="screen-only">
         {/* Sticky Top Filter & Header Bar */}
-        <div className="sticky top-[-12px] sm:top-[-24px] md:top-[-40px] z-30 bg-paper/95 backdrop-blur-md border-b border-ink-faint -mt-3 sm:-mt-6 md:-mt-10 pt-3 sm:pt-6 md:pt-10 pb-4 mb-8 -mx-3 sm:-mx-6 md:-mx-10 px-3 sm:px-6 md:px-10 no-print shadow-sm flex flex-col gap-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-display font-bold text-ink">Dashboard Overview</h1>
-            <p className="text-xs font-body text-ink-muted mt-1">Platform analytics, municipal labor trends, and data exports.</p>
-          </div>
+        <div className="sticky top-0 z-30 bg-paper/95 backdrop-blur-md border-b border-ink-faint/60 -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6 py-2 mb-3 no-print shadow-2xs flex flex-col gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div>
+              <h1 className="text-xl font-display font-bold text-ink tracking-tight">Analytics Overview</h1>
+            </div>
 
           {/* Date Filter & Aggregation Components */}
           <div className="flex flex-wrap items-center gap-3">
@@ -1465,13 +1360,13 @@ export default function AnalyticsDashboard() {
         </div>
 
         {/* Tab System Controls & View Mode Switcher */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-ink-faint/50 mt-2 pb-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-ink-faint/50 pb-0.5">
           <div role="tablist" aria-label="Analytics sections" className="flex overflow-x-auto gap-1">
             {[
-              { id: 'overview', label: 'Executive Pulse', subtitle: 'Platform Vitals & AI Briefing' },
-              { id: 'trends', label: 'Marketplace & Liquidity', subtitle: 'Application & Match Velocity' },
-              { id: 'distribution', label: 'Regional & Sector Demand', subtitle: 'Skills, Categories & Wages' },
-              { id: 'health', label: 'Trust, Safety & Compliance', subtitle: 'Ratings, Reports & Moderation' },
+              { id: 'overview', label: 'Overview' },
+              { id: 'trends', label: 'Trends & Velocity' },
+              { id: 'distribution', label: 'Sectors & Wages' },
+              { id: 'health', label: 'Trust & Safety' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1480,51 +1375,50 @@ export default function AnalyticsDashboard() {
                 aria-controls={`panel-${tab.id}`}
                 id={`tab-${tab.id}`}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`py-2 px-3 sm:px-4 font-body text-xs border-b-2 transition-all whitespace-nowrap text-left cursor-pointer ${
+                className={`py-1.5 px-3 font-body text-xs border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === tab.id
                     ? 'border-ink text-ink font-bold'
-                    : 'border-transparent text-ink-muted hover:text-ink font-semibold'
+                    : 'border-transparent text-ink-muted hover:text-ink font-medium'
                 }`}
               >
-                <span className="block text-xs">{tab.label}</span>
-                <span className="block text-[10px] text-ink-muted font-normal hidden md:block">{tab.subtitle}</span>
+                {tab.label}
               </button>
             ))}
           </div>
 
           {/* View Mode Switcher: Charts | Table | Split */}
-          <div className="flex items-center gap-1 self-start sm:self-auto bg-white/80 backdrop-blur-md p-1 rounded-xl border border-slate-200/80 shadow-2xs no-print">
+          <div className="flex items-center gap-1 self-start sm:self-auto bg-white/90 p-0.5 rounded-lg border border-slate-200/80 shadow-2xs no-print">
             <button
               type="button"
               onClick={() => setViewMode('charts')}
-              title="View Visual Charts & Insights only"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                viewMode === 'charts' ? 'bg-ink text-white shadow-xs' : 'text-ink-muted hover:text-ink hover:bg-white/60'
+              title="View Visual Charts only"
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+                viewMode === 'charts' ? 'bg-ink text-white shadow-2xs' : 'text-slate-600 hover:text-ink hover:bg-slate-100'
               }`}
             >
-              <i className="lni lni-pie-chart text-xs" />
+              <i className="lni lni-pie-chart text-[10px]" />
               <span>Charts</span>
             </button>
             <button
               type="button"
               onClick={() => setViewMode('table')}
-              title="View Detailed Tabular Report only"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                viewMode === 'table' ? 'bg-ink text-white shadow-xs' : 'text-ink-muted hover:text-ink hover:bg-white/60'
+              title="View Detailed Table only"
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+                viewMode === 'table' ? 'bg-ink text-white shadow-2xs' : 'text-slate-600 hover:text-ink hover:bg-slate-100'
               }`}
             >
-              <i className="lni lni-table text-xs" />
+              <i className="lni lni-table text-[10px]" />
               <span>Table</span>
             </button>
             <button
               type="button"
               onClick={() => setViewMode('split')}
-              title="Split View: Visual charts above, tabular report below"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                viewMode === 'split' ? 'bg-ink text-white shadow-xs' : 'text-ink-muted hover:text-ink hover:bg-white/60'
+              title="Split View: Visual charts and tables"
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+                viewMode === 'split' ? 'bg-ink text-white shadow-2xs' : 'text-slate-600 hover:text-ink hover:bg-slate-100'
               }`}
             >
-              <i className="lni lni-layers text-xs" />
+              <i className="lni lni-layers text-[10px]" />
               <span>Split View</span>
             </button>
           </div>
@@ -1597,44 +1491,40 @@ export default function AnalyticsDashboard() {
           )}
         </div>
       ) : data && (
-        <div className="space-y-8">
+        <div className="space-y-4">
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
-            <div className="space-y-8">
+            <div className="space-y-4">
               {/* Thematic Operational Clusters (Executive Vitals) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 print-card-grid">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 print-card-grid">
                 {/* Card 1: Ecosystem Growth */}
                 <div
                   role="button"
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/users')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/users'); }}
-                  className="cursor-pointer group relative p-6 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white/60 hover:-translate-y-1 overflow-hidden bg-white/80 backdrop-blur-md flex flex-col justify-between"
+                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 bg-white/90 shadow-2xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[10px] font-body font-bold text-primary-dark uppercase tracking-wider bg-primary-soft/60 px-2.5 py-1 rounded-lg">
-                        Ecosystem Growth
-                      </span>
-                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary-soft shadow-inner">
-                        <i className="lni lni-users text-lg text-primary-dark" />
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-ink-muted">New Registrations</span>
+                      <i className="lni lni-users text-sm text-primary-dark/80" />
                     </div>
-                    <p className="text-xs font-body font-semibold text-ink-soft uppercase tracking-wider">New Registrations</p>
-                    <h3 className="text-3xl font-numeric font-bold text-ink mt-1">{(data?.kpis?.total_users?.value ?? 0).toLocaleString()}</h3>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
+                        {(data?.kpis?.total_users?.value ?? 0).toLocaleString()}
+                      </h3>
+                      {data?.kpis?.total_users?.change !== undefined && (
+                        <span className={`inline-flex items-center text-[11px] font-bold font-numeric ${(data.kpis.total_users.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
+                          <i className={`lni ${(data.kpis.total_users.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-0.5 text-[9px]`} />
+                          {Math.abs(data.kpis.total_users.change ?? 0)}%
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-ink-faint/30">
-                    <div className="flex items-center justify-between text-xs font-semibold text-ink-muted mb-1.5">
-                      <span>{detailedTotals.new_workers.toLocaleString()} Workers</span>
-                      <span>·</span>
-                      <span>{detailedTotals.new_employers.toLocaleString()} Employers</span>
-                    </div>
-                    {data?.kpis?.total_users?.change !== undefined && (
-                      <div className={`flex items-center text-xs font-bold ${(data.kpis.total_users.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
-                        <i className={`lni ${(data.kpis.total_users.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-1 font-bold`} />
-                        <span>{Math.abs(data.kpis.total_users.change ?? 0)}% PoP change</span>
-                      </div>
-                    )}
+                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
+                    <span>{detailedTotals.new_workers.toLocaleString()} Workers · {detailedTotals.new_employers.toLocaleString()} Employers</span>
+                    <span className="text-[10px] text-ink-muted/70 group-hover:text-primary-dark transition-colors">Users →</span>
                   </div>
                 </div>
 
@@ -1644,125 +1534,105 @@ export default function AnalyticsDashboard() {
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/jobs')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/jobs'); }}
-                  className="cursor-pointer group relative p-6 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white/60 hover:-translate-y-1 overflow-hidden bg-white/80 backdrop-blur-md flex flex-col justify-between"
+                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 bg-white/90 shadow-2xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[10px] font-body font-bold text-sky-800 uppercase tracking-wider bg-sky-100 px-2.5 py-1 rounded-lg">
-                        Labor Demand
-                      </span>
-                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-sky-100 shadow-inner">
-                        <i className="lni lni-briefcase text-lg text-sky-700" />
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-ink-muted">Job Posts</span>
+                      <i className="lni lni-briefcase text-sm text-sky-700/80" />
                     </div>
-                    <p className="text-xs font-body font-semibold text-ink-soft uppercase tracking-wider">Job Posts</p>
-                    <h3 className="text-3xl font-numeric font-bold text-ink mt-1">{(data?.kpis?.active_jobs?.value ?? 0).toLocaleString()}</h3>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
+                        {(data?.kpis?.active_jobs?.value ?? 0).toLocaleString()}
+                      </h3>
+                      {data?.kpis?.active_jobs?.change !== undefined && (
+                        <span className={`inline-flex items-center text-[11px] font-bold font-numeric ${(data.kpis.active_jobs.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
+                          <i className={`lni ${(data.kpis.active_jobs.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-0.5 text-[9px]`} />
+                          {Math.abs(data.kpis.active_jobs.change ?? 0)}%
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-ink-faint/30">
-                    <div className="flex items-center justify-between text-xs font-semibold text-ink-muted mb-1.5">
-                      <span>Active listings</span>
-                      <span>·</span>
-                      <span>Municipal trades</span>
-                    </div>
-                    {data?.kpis?.active_jobs?.change !== undefined && (
-                      <div className={`flex items-center text-xs font-bold ${(data.kpis.active_jobs.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
-                        <i className={`lni ${(data.kpis.active_jobs.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-1 font-bold`} />
-                        <span>{Math.abs(data.kpis.active_jobs.change ?? 0)}% PoP change</span>
-                      </div>
-                    )}
+                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
+                    <span>Active municipal listings</span>
+                    <span className="text-[10px] text-ink-muted/70 group-hover:text-primary-dark transition-colors">Jobs →</span>
                   </div>
                 </div>
 
-                {/* Card 3: Applications & Liquidity */}
+                {/* Card 3: Applications Filed */}
                 <div
                   role="button"
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/jobs')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/jobs'); }}
-                  className="cursor-pointer group relative p-6 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white/60 hover:-translate-y-1 overflow-hidden bg-white/80 backdrop-blur-md flex flex-col justify-between"
+                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 bg-white/90 shadow-2xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[10px] font-body font-bold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-2.5 py-1 rounded-lg">
-                        Marketplace Flow
-                      </span>
-                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-emerald-100 shadow-inner">
-                        <i className="lni lni-files text-lg text-emerald-700" />
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-ink-muted">Applications Filed</span>
+                      <i className="lni lni-files text-sm text-emerald-700/80" />
                     </div>
-                    <p className="text-xs font-body font-semibold text-ink-soft uppercase tracking-wider">Applications Filed</p>
-                    <h3 className="text-3xl font-numeric font-bold text-ink mt-1">{(data?.kpis?.applications?.value ?? 0).toLocaleString()}</h3>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
+                        {(data?.kpis?.applications?.value ?? 0).toLocaleString()}
+                      </h3>
+                      {data?.kpis?.applications?.change !== undefined && (
+                        <span className={`inline-flex items-center text-[11px] font-bold font-numeric ${(data.kpis.applications.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
+                          <i className={`lni ${(data.kpis.applications.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-0.5 text-[9px]`} />
+                          {Math.abs(data.kpis.applications.change ?? 0)}%
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-ink-faint/30">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs font-semibold text-ink-muted font-numeric">
-                        {((data?.kpis?.active_jobs?.value ?? 0) > 0 ? ((data?.kpis?.applications?.value ?? 0) / (data?.kpis?.active_jobs?.value || 1)).toFixed(1) : 0)} apps/post
-                      </span>
-                      <HealthStatusBadge type="throughput" value={(data?.kpis?.active_jobs?.value ?? 0) > 0 ? ((data?.kpis?.applications?.value ?? 0) / (data?.kpis?.active_jobs?.value || 1)) : 0} />
-                    </div>
-                    {data?.kpis?.applications?.change !== undefined && (
-                      <div className={`flex items-center text-xs font-bold ${(data.kpis.applications.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
-                        <i className={`lni ${(data.kpis.applications.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-1 font-bold`} />
-                        <span>{Math.abs(data.kpis.applications.change ?? 0)}% PoP change</span>
-                      </div>
-                    )}
+                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted font-numeric">
+                    <span>{((data?.kpis?.active_jobs?.value ?? 0) > 0 ? ((data?.kpis?.applications?.value ?? 0) / (data?.kpis?.active_jobs?.value || 1)).toFixed(1) : 0)} apps/post</span>
+                    <HealthStatusBadge type="throughput" value={(data?.kpis?.active_jobs?.value ?? 0) > 0 ? ((data?.kpis?.applications?.value ?? 0) / (data?.kpis?.active_jobs?.value || 1)) : 0} />
                   </div>
                 </div>
 
-                {/* Card 4: Trust & Reports */}
+                {/* Card 4: Trust & Safety */}
                 <div
                   role="button"
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/reports')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/reports'); }}
-                  className="cursor-pointer group relative p-6 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white/60 hover:-translate-y-1 overflow-hidden bg-white/80 backdrop-blur-md flex flex-col justify-between"
+                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 bg-white/90 shadow-2xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-[10px] font-body font-bold text-rose-800 uppercase tracking-wider bg-rose-100 px-2.5 py-1 rounded-lg">
-                        Trust & Safety
-                      </span>
-                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-rose-100 shadow-inner">
-                        <i className="lni lni-shield text-lg text-rose-700" />
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-ink-muted">Reports Filed</span>
+                      <i className="lni lni-shield text-sm text-rose-700/80" />
                     </div>
-                    <p className="text-xs font-body font-semibold text-ink-soft uppercase tracking-wider">Reports Filed</p>
-                    <h3 className="text-3xl font-numeric font-bold text-ink mt-1">{(data?.kpis?.unresolved_reports?.value ?? 0).toLocaleString()}</h3>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-ink-faint/30">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs font-semibold text-ink-muted">Active Moderation</span>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
+                        {(data?.kpis?.unresolved_reports?.value ?? 0).toLocaleString()}
+                      </h3>
                       <HealthStatusBadge type="reports" value={data?.kpis?.unresolved_reports?.value ?? 0} />
                     </div>
-                    <div className="text-[11px] font-semibold text-ink-muted">
-                      {data?.verification?.delayed_verifications ? `${data.verification.delayed_verifications} pending reviews` : 'Verification queue cleared'}
-                    </div>
+                  </div>
+                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
+                    <span className="truncate">
+                      {data?.verification?.delayed_verifications ? `${data.verification.delayed_verifications} pending reviews` : 'Queue cleared'}
+                    </span>
+                    <span className="text-[10px] text-ink-muted/70 group-hover:text-primary-dark transition-colors">Reports →</span>
                   </div>
                 </div>
               </div>
 
               {/* Compact Platform Vitals & Messaging Pulse Strip */}
               {convStats && (
-                <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white/70 backdrop-blur-md rounded-2xl border border-white/60 shadow-2xs">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm shadow-inner">
-                      <i className="lni lni-comments" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-body font-bold uppercase tracking-wider text-ink-muted block">Direct In-App Messaging Activity</span>
-                      <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-ink font-numeric mt-0.5">
-                        <span>{convStats.active_conversations.toLocaleString()} active chats</span>
-                        <span className="text-ink-faint">·</span>
-                        <span>{convStats.messages_today.toLocaleString()} messages today</span>
-                        <span className="text-ink-faint">·</span>
-                        <span>Avg {convStats.avg_messages_per_hire} msgs per hire</span>
-                      </div>
-                    </div>
+                <div className="flex flex-wrap items-center justify-between gap-3 px-3.5 py-2 bg-white/80 backdrop-blur-md rounded-xl border border-ink-faint/60 shadow-2xs text-xs">
+                  <div className="flex items-center gap-2 text-ink-soft">
+                    <i className="lni lni-comments text-primary-dark" />
+                    <span className="font-semibold text-ink">In-App Messaging:</span>
+                    <span className="font-numeric text-ink">
+                      <b>{convStats.active_conversations.toLocaleString()}</b> active chats · <b>{convStats.messages_today.toLocaleString()}</b> today · <b>{convStats.avg_messages_per_hire}</b> avg/hire
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-4 text-xs font-semibold text-ink-soft">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-ink-muted">Job Fill Rate:</span>
+                      <span className="text-ink-muted">Fill Rate:</span>
                       <span className="font-bold text-primary-dark font-numeric">{data?.fill_rate?.value ?? 0}%</span>
                       <HealthStatusBadge type="conversion" value={data?.fill_rate?.value ?? 0} />
                     </div>
@@ -1782,568 +1652,519 @@ export default function AnalyticsDashboard() {
                 </div>
               )}
 
-              {/* Gemini AI Executive Insights Component — Positioned at top for immediate executive briefing */}
-              <div className="bg-gradient-to-r from-primary-soft to-accent-mint/30 backdrop-blur-md p-8 rounded-3xl shadow-sm border border-primary-dark/10 print-chart-container">
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
-                      <i className="lni lni-keyword-research text-xl text-primary-dark" />
+              {/* Gemini AI Executive Briefing Strip (Collapsible) */}
+              <div className="bg-white/85 backdrop-blur-md rounded-xl border border-primary-dark/20 p-3 shadow-2xs print-chart-container">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-primary-soft flex items-center justify-center text-primary-dark">
+                      <i className="lni lni-keyword-research text-xs" />
                     </div>
                     <div>
-                      <h3 className="font-display text-2xl text-ink font-bold">Gemini AI Executive Insights</h3>
-                      <p className="text-xs font-body text-ink-soft">Dynamic pattern recognition & recommendations</p>
+                      <span className="text-xs font-bold text-ink">Gemini AI Executive Briefing</span>
+                      <span className="hidden sm:inline text-[11px] text-ink-muted ml-2">Pattern recognition & actionable municipal labor analysis</span>
                     </div>
                   </div>
-                  <button
-                    onClick={handleGenerateInsights}
-                    disabled={aiLoading}
-                    className="mt-4 md:mt-0 px-6 py-2.5 bg-ink text-white rounded-2xl font-body font-bold text-sm hover:bg-primary-dark hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2 no-print cursor-pointer"
-                  >
-                    {aiLoading ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <i className="lni lni-spinner-arrow mr-1" />
-                        Generate Insights
-                      </>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleGenerateInsights}
+                      disabled={aiLoading}
+                      className="px-3 py-1 bg-ink text-white rounded-lg font-body font-bold text-xs hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer no-print"
+                    >
+                      {aiLoading ? (
+                        <>
+                          <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span>Analyzing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <i className="lni lni-spinner-arrow text-[10px]" />
+                          <span>Generate Insights</span>
+                        </>
+                      )}
+                    </button>
+                    {(aiInsights || aiLoading || aiError) && (
+                      <button
+                        onClick={() => setShowAiBriefing(!showAiBriefing)}
+                        className="px-2.5 py-1 text-xs font-semibold text-ink-soft hover:text-ink rounded-lg border border-ink-faint bg-white cursor-pointer no-print"
+                      >
+                        {showAiBriefing ? 'Collapse' : 'Expand'}
+                      </button>
                     )}
-                  </button>
+                  </div>
                 </div>
 
-                {aiLoading && (
-                  <div className="animate-pulse space-y-4">
-                    <div className="h-4 bg-white/60 rounded-md w-3/4"></div>
-                    <div className="h-4 bg-white/60 rounded-md w-5/6"></div>
-                    <div className="h-4 bg-white/60 rounded-md w-2/3"></div>
-                  </div>
-                )}
+                {showAiBriefing && (
+                  <div className="mt-3 pt-3 border-t border-ink-faint/30">
+                    {aiLoading && (
+                      <div className="animate-pulse space-y-2 py-2">
+                        <div className="h-3 bg-ink-faint/40 rounded w-3/4"></div>
+                        <div className="h-3 bg-ink-faint/40 rounded w-5/6"></div>
+                        <div className="h-3 bg-ink-faint/40 rounded w-2/3"></div>
+                      </div>
+                    )}
 
-                {aiError && (
-                  <div className="p-4 bg-status-error/10 border border-status-error/20 text-status-error rounded-2xl text-sm font-body font-semibold">
-                    {aiError}
-                  </div>
-                )}
+                    {aiError && (
+                      <div className="p-3 bg-status-error/10 border border-status-error/20 text-status-error rounded-xl text-xs font-body font-semibold">
+                        {aiError}
+                      </div>
+                    )}
 
-                {!aiLoading && !aiError && aiInsights && (
-                  <AIInsightsCard data={aiInsights} period={aiPeriod} />
-                )}
-
-                {!aiLoading && !aiInsights && !aiError && (
-                  <div className="text-center py-6 text-ink-soft font-body text-sm">
-                    Click <strong className="text-ink">Generate Insights</strong> to analyze platform user trends, application conversions, compensation metrics, and report delays.
+                    {!aiLoading && !aiError && aiInsights && (
+                      <AIInsightsCard data={aiInsights} period={aiPeriod} />
+                    )}
                   </div>
                 )}
               </div>
 
               {/* Visual Analytics Layer (Overview) */}
               {(viewMode === 'charts' || viewMode === 'split') && (
-                <div className="space-y-8">
-
-              {/* PRIMARY VISUALIZATION (Above the Fold): Platform Activity & Application Flow */}
-              <div className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0 print-chart-container">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                  <div>
-                    <h3 className="font-display text-lg font-bold text-ink">Platform Activity & Application Flow</h3>
-                    <p className="text-xs text-ink-muted mt-0.5">
-                      Volume of worker applications filed compared to active job posts ({globalPreset}, {intervalFilter} grouping).
-                    </p>
-                  </div>
-                  <span className="self-start sm:self-auto px-2.5 py-1 bg-primary/10 text-primary rounded-xl text-[10px] font-body font-bold uppercase tracking-wider">
-                    Core Platform Flow
-                  </span>
-                </div>
-
-                <MetricHeaderStrip
-                  items={[
-                    { label: 'Applications Filed', value: data?.kpis?.applications?.value ?? 0, change: data?.kpis?.applications?.change, highlight: true },
-                    { label: 'Job Posts', value: data?.kpis?.active_jobs?.value ?? 0, change: data?.kpis?.active_jobs?.change },
-                    {
-                      label: 'Avg Throughput',
-                      value: `${(data?.kpis?.active_jobs?.value ?? 0) > 0 ? ((data?.kpis?.applications?.value ?? 0) / (data?.kpis?.active_jobs?.value || 1)).toFixed(1) : (data?.kpis?.applications?.value ?? 0)} apps/post`,
-                    },
-                  ]}
-                />
-
-                {transformedApplicationVolume.length === 0 ? (
-                  <ChartEmptyState
-                    title={`No Application Activity for ${globalPreset}`}
-                    message="Activity will appear here as workers browse and apply to published job posts."
-                  />
-                ) : (
-                  <div className="h-80 w-full min-w-0 font-numeric">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={transformedApplicationVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="colorAppsOverview" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#3E7648" stopOpacity={0.35}/>
-                            <stop offset="95%" stopColor="#3E7648" stopOpacity={0.02}/>
-                          </linearGradient>
-                          <linearGradient id="colorJobsOverview" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#0284C7" stopOpacity={0.4}/>
-                            <stop offset="95%" stopColor="#0284C7" stopOpacity={0.02}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.6} />
-                        <XAxis
-                          dataKey="name"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#8C7B6A', fontSize: 11 }}
-                          tickFormatter={(val) => formatAxisTick(val, intervalFilter)}
-                          dy={10}
-                        />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                        <Tooltip
-                          shared
-                          contentStyle={{
-                            borderRadius: '16px',
-                            border: '1px solid rgba(255,255,255,0.7)',
-                            boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)',
-                            backgroundColor: 'rgba(255, 255, 255, 0.96)',
-                            backdropFilter: 'blur(8px)',
-                          }}
-                          labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
-                        />
-                        <Legend wrapperStyle={{ paddingTop: 10, fontSize: 12 }} />
-                        <Area
-                          type="monotone"
-                          dataKey="applications"
-                          name="Applications Filed"
-                          stroke="#3E7648"
-                          strokeWidth={2.5}
-                          fillOpacity={1}
-                          fill="url(#colorAppsOverview)"
-                          activeDot={{ r: 6, strokeWidth: 0 }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="jobs"
-                          name="Job Posts"
-                          stroke="#0284C7"
-                          strokeWidth={2.5}
-                          fillOpacity={1}
-                          fill="url(#colorJobsOverview)"
-                          activeDot={{ r: 6, strokeWidth: 0 }}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-
-                <ChartInsightBox text={activityInsight} />
-              </div>
-
-              {/* SECONDARY VISUALIZATIONS GRID (2 Columns): Registrations & Regional Demand */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
-                {/* User Registrations Breakdown */}
-                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
-                  <div className="mb-2">
-                    <h3 className="font-display text-lg font-bold text-ink">User Registrations by Role</h3>
-                    <p className="text-xs text-ink-muted mt-0.5">Worker signups vs employer registrations over time.</p>
-                  </div>
-
-                  <MetricHeaderStrip
-                    items={[
-                      { label: 'New Workers', value: data?.user_ratio?.workers ?? 0, highlight: true },
-                      { label: 'New Employers', value: data?.user_ratio?.employers ?? 0 },
-                      { label: 'Verified Ratio', value: `${data?.user_ratio?.verified_pct ?? 0}%` },
-                    ]}
-                  />
-
-                  {transformedUserGrowth.length === 0 ? (
-                    <ChartEmptyState
-                      title={`No Registrations for ${globalPreset}`}
-                      message="New account signups will populate here as workers and employers join."
-                    />
-                  ) : (
-                    <div className="h-72 w-full min-w-0 font-numeric">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                          <XAxis
-                            dataKey="name"
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: '#8C7B6A', fontSize: 11 }}
-                            tickFormatter={(val) => formatAxisTick(val, intervalFilter)}
-                            dy={10}
-                          />
-                          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                          <Tooltip
-                            cursor={{ fill: '#FDF8F0' }}
-                            contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.7)', backgroundColor: 'rgba(255, 255, 255, 0.96)' }}
-                            labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
-                          />
-                          <Legend wrapperStyle={{ paddingTop: 8, fontSize: 11 }} />
-                          <Bar dataKey="workers" name="Workers" fill="#3E7648" radius={[6, 6, 0, 0]} />
-                          <Bar dataKey="employers" name="Employers" fill="#0284C7" radius={[6, 6, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
+                <div className="space-y-4">
+                  {/* PRIMARY VISUALIZATION: Platform Activity & Application Flow */}
+                  <div className="bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0 print-chart-container">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+                      <div>
+                        <h3 className="font-display text-sm sm:text-base font-bold text-ink">Platform Activity & Application Flow</h3>
+                        <p className="text-[11px] text-ink-muted">
+                          Volume of worker applications filed compared to active job posts ({globalPreset}, {intervalFilter} grouping).
+                        </p>
+                      </div>
+                      <span className="self-start sm:self-auto px-2 py-0.5 bg-primary/10 text-primary rounded-md text-[10px] font-body font-bold uppercase tracking-wider">
+                        Core Flow
+                      </span>
                     </div>
-                  )}
 
-                  <ChartInsightBox text={roleInsight} />
-                </div>
-
-                {/* Regional Activity by Municipality */}
-                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
-                  <div className="mb-2">
-                    <h3 className="font-display text-lg font-bold text-ink">Geographic Demand by Municipality</h3>
-                    <p className="text-xs text-ink-muted mt-0.5">Municipalities ranked by total job postings and worker applications.</p>
-                  </div>
-
-                  <MetricHeaderStrip
-                    items={[
-                      { label: 'Top Hub', value: transformedGeographicActivity[0]?.name || 'N/A', highlight: true },
-                      { label: 'Total Job Posts', value: data?.kpis?.active_jobs?.value ?? 0 },
-                      { label: 'Total Applications', value: data?.kpis?.applications?.value ?? 0 },
-                    ]}
-                  />
-
-                  {transformedGeographicActivity.length === 0 ? (
-                    <ChartEmptyState
-                      title="No Geographic Activity"
-                      message="Geographic labor activity will display as job postings and applications are created."
+                    <MetricHeaderStrip
+                      items={[
+                        { label: 'Applications Filed', value: data?.kpis?.applications?.value ?? 0, change: data?.kpis?.applications?.change, highlight: true },
+                        { label: 'Job Posts', value: data?.kpis?.active_jobs?.value ?? 0, change: data?.kpis?.active_jobs?.change },
+                        {
+                          label: 'Avg Throughput',
+                          value: `${(data?.kpis?.active_jobs?.value ?? 0) > 0 ? ((data?.kpis?.applications?.value ?? 0) / (data?.kpis?.active_jobs?.value || 1)).toFixed(1) : (data?.kpis?.applications?.value ?? 0)} apps/post`,
+                        },
+                      ]}
                     />
-                  ) : (
-                    <div className="h-72 w-full min-w-0 font-numeric">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={transformedGeographicActivity.slice(0, 6)} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} dy={10} />
-                          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                          <Tooltip
-                            cursor={{ fill: '#FDF8F0' }}
-                            contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.7)', backgroundColor: 'rgba(255, 255, 255, 0.96)' }}
-                          />
-                          <Legend wrapperStyle={{ paddingTop: 8, fontSize: 11 }} />
-                          <Bar dataKey="jobs" name="Job Posts" fill="#0284C7" radius={[6, 6, 0, 0]} />
-                          <Bar dataKey="applications" name="Applications" fill="#3E7648" radius={[6, 6, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
 
-                  <ChartInsightBox text={geoInsight} />
-                </div>
-              </div>
-
-              {/* THIRD TIER (Job Category Demand Card) */}
-              <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0 print-chart-container">
-                <div className="mb-2">
-                  <h3 className="font-display text-lg font-bold text-ink">In-Demand Job Categories</h3>
-                  <p className="text-xs text-ink-muted mt-0.5">Platform job posts ranked descending by sector category.</p>
-                </div>
-
-                <MetricHeaderStrip
-                  items={[
-                    { label: 'Top Category', value: transformedJobsData[0]?.name || 'N/A', highlight: true },
-                    { label: 'Category Count', value: transformedJobsData.length },
-                    { label: 'Total Job Posts', value: data?.kpis?.active_jobs?.value ?? 0 },
-                  ]}
-                />
-
-                {transformedJobsData.length === 0 ? (
-                  <ChartEmptyState
-                    title="No Category Postings"
-                    message="Job categories will populate here as employers publish new job posts."
-                  />
-                ) : (
-                  <div className="h-72 w-full min-w-0 font-numeric">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={transformedJobsData.slice(0, 6)} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E8DFCE" opacity={0.5} />
-                        <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                        <YAxis
-                          dataKey="name"
-                          type="category"
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#8C7B6A', fontSize: 11 }}
-                          width={110}
-                          tickFormatter={(value) => (value.length > 14 ? `${value.slice(0, 14)}...` : value)}
-                        />
-                        <Tooltip
-                          cursor={{ fill: '#FDF8F0' }}
-                          contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.7)', backgroundColor: 'rgba(255, 255, 255, 0.96)' }}
-                        />
-                        <Bar dataKey="jobs" name="Job Posts" fill="#3E7648" radius={[0, 6, 6, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    {transformedApplicationVolume.length === 0 ? (
+                      <ChartEmptyState
+                        title={`No Application Activity for ${globalPreset}`}
+                        message="Activity will appear here as workers browse and apply to published job posts."
+                      />
+                    ) : (
+                      <div className="h-56 w-full min-w-0 font-numeric">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={transformedApplicationVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id="colorAppsOverview" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#3E7648" stopOpacity={0.35}/>
+                                <stop offset="95%" stopColor="#3E7648" stopOpacity={0.02}/>
+                              </linearGradient>
+                              <linearGradient id="colorJobsOverview" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#0284C7" stopOpacity={0.4}/>
+                                <stop offset="95%" stopColor="#0284C7" stopOpacity={0.02}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.6} />
+                            <XAxis
+                              dataKey="name"
+                              axisLine={false}
+                              tickLine={false}
+                              tick={{ fill: '#8C7B6A', fontSize: 11 }}
+                              tickFormatter={(val) => formatAxisTick(val, intervalFilter)}
+                              dy={6}
+                            />
+                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
+                            <Tooltip
+                              shared
+                              contentStyle={{
+                                borderRadius: '12px',
+                                border: '1px solid rgba(255,255,255,0.7)',
+                                boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)',
+                                backgroundColor: 'rgba(255, 255, 255, 0.96)',
+                                backdropFilter: 'blur(8px)',
+                              }}
+                              labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
+                            />
+                            <Legend wrapperStyle={{ paddingTop: 6, fontSize: 11 }} />
+                            <Area
+                              type="monotone"
+                              dataKey="applications"
+                              name="Applications Filed"
+                              stroke="#3E7648"
+                              strokeWidth={2.2}
+                              fillOpacity={1}
+                              fill="url(#colorAppsOverview)"
+                              activeDot={{ r: 5, strokeWidth: 0 }}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="jobs"
+                              name="Job Posts"
+                              stroke="#0284C7"
+                              strokeWidth={2.2}
+                              fillOpacity={1}
+                              fill="url(#colorJobsOverview)"
+                              activeDot={{ r: 5, strokeWidth: 0 }}
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
                   </div>
-                )}
 
-                <ChartInsightBox text={categoryInsight} />
-              </div>
+                  {/* SECONDARY VISUALIZATIONS GRID (2 Columns): Registrations & Regional Demand */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 print-chart-container">
+                    {/* User Registrations Breakdown */}
+                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
+                      <div className="mb-2">
+                        <h3 className="font-display text-sm font-bold text-ink">User Registrations by Role</h3>
+                        <p className="text-[11px] text-ink-muted">Worker signups vs employer registrations over time.</p>
+                      </div>
 
-              {/* Funnel & Verification Summary section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
-                {/* Application-to-Hire Funnel */}
-                <div className="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col justify-between">
-                  <div>
-                    <h3 className="font-display text-lg font-bold text-ink mb-2">Application-to-Hire Funnel</h3>
-                    <p className="text-xs text-ink-muted mb-6">Pipeline mapping and conversions from submissions to closures.</p>
-                    
-                    <div className="space-y-5">
-                      {funnelSteps.map((step, idx) => (
-                        <div key={idx} className="space-y-1.5">
-                          <div className="flex justify-between text-xs font-body font-semibold text-ink-soft">
-                            <span>{step.label}</span>
-                            <span className="font-bold text-ink">{step.value} <span className="text-[10px] font-normal text-ink-muted">({step.rate})</span></span>
-                          </div>
-                          <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden border border-gray-200/50">
-                            {parseFloat(step.rate) > 0 ? (
-                              <div
-                                className="h-full border-r border-white/50 flex items-center justify-end px-3 transition-all duration-1000"
-                                style={{ width: step.rate, backgroundColor: idx === 0 ? '#3E7648' : idx === 1 ? '#87CEEB' : '#90EE90' }}
-                              >
-                                <span className="text-[8px] font-bold font-numeric text-white">{step.rate}</span>
-                              </div>
-                            ) : (
-                              <div className="h-full w-0 transition-all duration-1000" />
-                            )}
-                          </div>
+                      <MetricHeaderStrip
+                        items={[
+                          { label: 'New Workers', value: data?.user_ratio?.workers ?? 0, highlight: true },
+                          { label: 'New Employers', value: data?.user_ratio?.employers ?? 0 },
+                          { label: 'Verified Ratio', value: `${data?.user_ratio?.verified_pct ?? 0}%` },
+                        ]}
+                      />
+
+                      {transformedUserGrowth.length === 0 ? (
+                        <ChartEmptyState
+                          title={`No Registrations for ${globalPreset}`}
+                          message="New account signups will populate here as workers and employers join."
+                        />
+                      ) : (
+                        <div className="h-48 w-full min-w-0 font-numeric">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
+                              <XAxis
+                                dataKey="name"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#8C7B6A', fontSize: 10 }}
+                                tickFormatter={(val) => formatAxisTick(val, intervalFilter)}
+                                dy={6}
+                              />
+                              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
+                              <Tooltip
+                                cursor={{ fill: '#FDF8F0' }}
+                                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.7)', backgroundColor: 'rgba(255, 255, 255, 0.96)' }}
+                                labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
+                              />
+                              <Legend wrapperStyle={{ paddingTop: 6, fontSize: 11 }} />
+                              <Bar dataKey="workers" name="Workers" fill="#3E7648" radius={[4, 4, 0, 0]} />
+                              <Bar dataKey="employers" name="Employers" fill="#0284C7" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                          </ResponsiveContainer>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <hr className="my-6 border-ink-faint" />
-                    {/* User Ratio Summary */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                      <div className="bg-white/60 p-3 rounded-2xl border border-white/50 shadow-inner">
-                        <span className="text-[10px] font-body font-semibold text-ink-soft uppercase tracking-wider block">Workers</span>
-                        <strong className="text-lg font-numeric text-ink mt-1 block">{data?.user_ratio?.workers ?? 0}</strong>
-                      </div>
-                      <div className="bg-white/60 p-3 rounded-2xl border border-white/50 shadow-inner">
-                        <span className="text-[10px] font-body font-semibold text-ink-soft uppercase tracking-wider block">Employers</span>
-                        <strong className="text-lg font-numeric text-ink mt-1 block">{data?.user_ratio?.employers ?? 0}</strong>
-                      </div>
-                      <div className="bg-white/60 p-3 rounded-2xl border border-white/50 shadow-inner">
-                        <span className="text-[10px] font-body font-semibold text-ink-soft uppercase tracking-wider block">Verified</span>
-                        <strong className="text-lg font-numeric text-status-success mt-1 block">{data?.user_ratio?.verified_users ?? 0}</strong>
-                      </div>
-                      <div className="bg-white/60 p-3 rounded-2xl border border-white/50 shadow-inner">
-                        <span className="text-[10px] font-body font-semibold text-ink-soft uppercase tracking-wider block">Unverified</span>
-                        <strong className="text-lg font-numeric text-status-error mt-1 block">{data?.user_ratio?.unverified_users ?? 0}</strong>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Verification & Retention metrics */}
-                <div className="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-display text-lg font-bold text-ink">Verification & Retention Summary</h3>
-                      {data?.verification?.delayed_verifications > 0 && (
-                        <span className="text-[10px] bg-status-error/10 text-status-error px-2.5 py-0.5 rounded-full font-body font-bold animate-pulse border border-status-error/20 uppercase tracking-wider">
-                          {data.verification.delayed_verifications} Delayed
-                        </span>
                       )}
                     </div>
-                    <p className="text-xs text-ink-muted mb-6">Verification audit times and repeat worker metrics.</p>
 
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="bg-white/60 p-4 rounded-2xl border border-white/50 shadow-inner text-center">
-                        <span className="text-[10px] font-body font-semibold text-ink-soft uppercase tracking-wider block">Avg Turnaround Time</span>
-                        <strong className="text-xl font-numeric text-ink mt-1.5 block">
-                          {data?.verification?.average_turnaround_seconds > 0 
-                            ? `${(data.verification.average_turnaround_seconds / 3600).toFixed(1)} hrs` 
-                            : 'N/A'}
-                        </strong>
-                        <span className="text-[9px] font-body text-ink-muted mt-1 block">From upload to review</span>
+                    {/* Regional Activity by Municipality */}
+                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
+                      <div className="mb-2">
+                        <h3 className="font-display text-sm font-bold text-ink">Geographic Demand by Municipality</h3>
+                        <p className="text-[11px] text-ink-muted">Municipalities ranked by total job postings and worker applications.</p>
                       </div>
-                      <div className="bg-white/60 p-4 rounded-2xl border border-white/50 shadow-inner text-center">
-                        <span className="text-[10px] font-body font-semibold text-ink-soft uppercase tracking-wider block">Job Fill Rate</span>
-                        <strong className="text-xl font-numeric text-primary-dark mt-1.5 block">
-                          {data?.fill_rate?.value ?? 0}%
-                        </strong>
-                        <span className={`text-[9px] font-body font-bold mt-1 block ${data?.fill_rate?.change >= 0 ? 'text-status-success' : 'text-status-error'}`}>
-                          {data?.fill_rate?.change >= 0 ? '↑' : '↓'} {Math.abs(data?.fill_rate?.change ?? 0)}% change PoP
-                        </span>
-                      </div>
+
+                      <MetricHeaderStrip
+                        items={[
+                          { label: 'Top Hub', value: transformedGeographicActivity[0]?.name || 'N/A', highlight: true },
+                          { label: 'Total Job Posts', value: data?.kpis?.active_jobs?.value ?? 0 },
+                          { label: 'Total Applications', value: data?.kpis?.applications?.value ?? 0 },
+                        ]}
+                      />
+
+                      {transformedGeographicActivity.length === 0 ? (
+                        <ChartEmptyState
+                          title="No Geographic Activity"
+                          message="Geographic labor activity will display as job postings and applications are created."
+                        />
+                      ) : (
+                        <div className="h-48 w-full min-w-0 font-numeric">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={transformedGeographicActivity.slice(0, 6)} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
+                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} dy={6} />
+                              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
+                              <Tooltip
+                                cursor={{ fill: '#FDF8F0' }}
+                                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.7)', backgroundColor: 'rgba(255, 255, 255, 0.96)' }}
+                              />
+                              <Legend wrapperStyle={{ paddingTop: 6, fontSize: 11 }} />
+                              <Bar dataKey="jobs" name="Job Posts" fill="#0284C7" radius={[4, 4, 0, 0]} />
+                              <Bar dataKey="applications" name="Applications" fill="#3E7648" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  <div>
-                    <hr className="my-5 border-ink-faint" />
-                    <h4 className="font-display text-xs font-bold uppercase tracking-wider text-ink-soft mb-3">Worker Retention Rate</h4>
-                    <div className="grid grid-cols-3 gap-4 text-center">
+                  {/* Funnel & Verification Summary section */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 print-chart-container">
+                    {/* Application-to-Hire Funnel */}
+                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col justify-between">
                       <div>
-                        <span className="text-[10px] font-body text-ink-soft block">Active Applicants</span>
-                        <strong className="text-lg font-numeric text-ink mt-1 block">{data?.worker_retention?.total_applicants ?? 0}</strong>
+                        <h3 className="font-display text-sm font-bold text-ink mb-1">Application-to-Hire Funnel</h3>
+                        <p className="text-[11px] text-ink-muted mb-3">Pipeline mapping and conversions from submissions to closures.</p>
+                        
+                        <div className="space-y-3">
+                          {funnelSteps.map((step, idx) => (
+                            <div key={idx} className="space-y-1">
+                              <div className="flex justify-between text-xs font-semibold text-ink-soft">
+                                <span>{step.label}</span>
+                                <span className="font-bold text-ink">{step.value} <span className="text-[10px] font-normal text-ink-muted">({step.rate})</span></span>
+                              </div>
+                              <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden border border-gray-200/50">
+                                {parseFloat(step.rate) > 0 ? (
+                                  <div
+                                    className="h-full border-r border-white/50 flex items-center justify-end px-2 transition-all duration-1000"
+                                    style={{ width: step.rate, backgroundColor: idx === 0 ? '#3E7648' : idx === 1 ? '#87CEEB' : '#90EE90' }}
+                                  >
+                                    <span className="text-[8px] font-bold font-numeric text-white">{step.rate}</span>
+                                  </div>
+                                ) : (
+                                  <div className="h-full w-0 transition-all duration-1000" />
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-[10px] font-body text-ink-soft block">Returning Users</span>
-                        <strong className="text-lg font-numeric text-ink mt-1 block">{data?.worker_retention?.returning_applicants ?? 0}</strong>
+
+                      <div className="mt-4 pt-3 border-t border-ink-faint/40">
+                        {/* User Ratio Summary */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                          <div className="bg-white/70 p-2 rounded-lg border border-ink-faint/50">
+                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Workers</span>
+                            <strong className="text-base font-numeric text-ink mt-0.5 block">{data?.user_ratio?.workers ?? 0}</strong>
+                          </div>
+                          <div className="bg-white/70 p-2 rounded-lg border border-ink-faint/50">
+                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Employers</span>
+                            <strong className="text-base font-numeric text-ink mt-0.5 block">{data?.user_ratio?.employers ?? 0}</strong>
+                          </div>
+                          <div className="bg-white/70 p-2 rounded-lg border border-ink-faint/50">
+                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Verified</span>
+                            <strong className="text-base font-numeric text-status-success mt-0.5 block">{data?.user_ratio?.verified_users ?? 0}</strong>
+                          </div>
+                          <div className="bg-white/70 p-2 rounded-lg border border-ink-faint/50">
+                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Unverified</span>
+                            <strong className="text-base font-numeric text-status-error mt-0.5 block">{data?.user_ratio?.unverified_users ?? 0}</strong>
+                          </div>
+                        </div>
                       </div>
+                    </div>
+
+                    {/* Verification & Retention metrics */}
+                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col justify-between">
                       <div>
-                        <span className="text-[10px] font-body text-ink-soft block">Retention Rate</span>
-                        <strong className="text-lg font-numeric text-primary-dark mt-1 block">{data?.worker_retention?.retention_rate ?? 0}%</strong>
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-display text-sm font-bold text-ink">Verification & Retention Summary</h3>
+                          {data?.verification?.delayed_verifications > 0 && (
+                            <span className="text-[10px] bg-status-error/10 text-status-error px-2 py-0.5 rounded-full font-bold border border-status-error/20 uppercase tracking-wider">
+                              {data.verification.delayed_verifications} Delayed
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-ink-muted mb-3">Verification audit times and repeat worker metrics.</p>
+
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="bg-white/70 p-2.5 rounded-lg border border-ink-faint/50 text-center">
+                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Avg Turnaround Time</span>
+                            <strong className="text-lg font-numeric text-ink mt-0.5 block">
+                              {data?.verification?.average_turnaround_seconds > 0 
+                                ? `${(data.verification.average_turnaround_seconds / 3600).toFixed(1)} hrs` 
+                                : 'N/A'}
+                            </strong>
+                            <span className="text-[9px] text-ink-muted block">Upload to review</span>
+                          </div>
+                          <div className="bg-white/70 p-2.5 rounded-lg border border-ink-faint/50 text-center">
+                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Job Fill Rate</span>
+                            <strong className="text-lg font-numeric text-primary-dark mt-0.5 block">
+                              {data?.fill_rate?.value ?? 0}%
+                            </strong>
+                            <span className={`text-[9px] font-bold block ${data?.fill_rate?.change >= 0 ? 'text-status-success' : 'text-status-error'}`}>
+                              {data?.fill_rate?.change >= 0 ? '↑' : '↓'} {Math.abs(data?.fill_rate?.change ?? 0)}% PoP
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 pt-3 border-t border-ink-faint/40">
+                        <h4 className="font-display text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-2">Worker Retention Rate</h4>
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          <div>
+                            <span className="text-[10px] text-ink-muted block">Active Applicants</span>
+                            <strong className="text-base font-numeric text-ink block">{data?.worker_retention?.total_applicants ?? 0}</strong>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-ink-muted block">Returning Users</span>
+                            <strong className="text-base font-numeric text-ink block">{data?.worker_retention?.returning_applicants ?? 0}</strong>
+                          </div>
+                          <div>
+                            <span className="text-[10px] text-ink-muted block">Retention Rate</span>
+                            <strong className="text-base font-numeric text-primary-dark block">{data?.worker_retention?.retention_rate ?? 0}%</strong>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* DETAILED TABULAR REPORT: Complete Platform Activity (Overview Tab) */}
+              {(viewMode === 'table' || viewMode === 'split') && (
+                <div id="detailed-report-section" className="bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-2xs border border-ink-faint/60 space-y-3">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-ink-faint/40 pb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <i className="lni lni-layout text-primary-dark text-base" />
+                        <h3 className="font-display text-sm sm:text-base font-bold text-ink">
+                          Detailed Analytics Report — Complete Platform Activity
+                        </h3>
+                      </div>
+                      <p className="text-[11px] text-ink-muted mt-0.5">
+                        Exact chronological breakdown of user registrations, job posts, applications, and completions for <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong> ({globalPreset}).
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold">
+                        Granularity: <strong className="uppercase text-primary-dark">{intervalFilter}</strong>
+                      </span>
+                      <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1">
+                        <i className="lni lni-checkmark-circle text-xs" />
+                        <span>Reconciled</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto rounded-lg border border-ink-faint/30">
+                    <table className="w-full text-xs font-body text-left">
+                      <thead>
+                        <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-muted tracking-wider">
+                          <th className="py-2 px-3">Time Period</th>
+                          <th className="py-2 px-2.5 text-right">New Workers</th>
+                          <th className="py-2 px-2.5 text-right">New Employers</th>
+                          <th className="py-2 px-2.5 text-right">Total New Users</th>
+                          <th className="py-2 px-2.5 text-right">Job Posts</th>
+                          <th className="py-2 px-2.5 text-right">Applications</th>
+                          <th className="py-2 px-2.5 text-right text-sky-700">Accepted</th>
+                          <th className="py-2 px-2.5 text-right text-emerald-700">Completed Hires</th>
+                          <th className="py-2 px-3 text-right text-rose-600">Reports Filed</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-ink-faint/20">
+                        {transformedDetailedTimeSeries.length === 0 ? (
+                          <tr>
+                            <td colSpan={9} className="py-6 text-center text-ink-muted">
+                              No activity recorded yet for {from} to {to}. Data will display here in real-time as users interact.
+                            </td>
+                          </tr>
+                        ) : (
+                          transformedDetailedTimeSeries.map((row: any, idx: number) => (
+                            <tr key={idx} className="hover:bg-primary-soft/20 transition-colors">
+                              <td className="py-2 px-3 font-semibold text-ink whitespace-nowrap">
+                                {formatPeriodLabel(row.period, intervalFilter)}
+                              </td>
+                              <td className="py-2 px-2.5 text-right font-numeric text-ink-soft">
+                                {(row.new_workers ?? 0).toLocaleString()}
+                              </td>
+                              <td className="py-2 px-2.5 text-right font-numeric text-ink-soft">
+                                {(row.new_employers ?? 0).toLocaleString()}
+                              </td>
+                              <td className="py-2 px-2.5 text-right font-numeric font-bold text-ink">
+                                {(row.total_users ?? 0).toLocaleString()}
+                              </td>
+                              <td className="py-2 px-2.5 text-right font-numeric text-ink">
+                                {(row.job_posts ?? 0).toLocaleString()}
+                              </td>
+                              <td className="py-2 px-2.5 text-right font-numeric text-ink">
+                                {(row.applications ?? 0).toLocaleString()}
+                              </td>
+                              <td className="py-2 px-2.5 text-right font-numeric font-semibold text-sky-700">
+                                {(row.accepted_applications ?? 0).toLocaleString()}
+                              </td>
+                              <td className="py-2 px-2.5 text-right font-numeric font-bold text-emerald-700">
+                                {(row.completed_hires ?? 0).toLocaleString()}
+                              </td>
+                              <td className="py-2 px-3 text-right font-numeric text-rose-600">
+                                {(row.reports ?? 0).toLocaleString()}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                      {transformedDetailedTimeSeries.length > 0 && (
+                        <tfoot>
+                          <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
+                            <td className="py-2 px-3 uppercase tracking-wider text-[10px]">
+                              Total ({transformedDetailedTimeSeries.length} periods)
+                            </td>
+                            <td className="py-2 px-2.5 text-right font-numeric font-bold">
+                              {detailedTotals.new_workers.toLocaleString()}
+                            </td>
+                            <td className="py-2 px-2.5 text-right font-numeric font-bold">
+                              {detailedTotals.new_employers.toLocaleString()}
+                            </td>
+                            <td className="py-2 px-2.5 text-right font-numeric font-bold text-primary-dark">
+                              {detailedTotals.total_users.toLocaleString()}
+                            </td>
+                            <td className="py-2 px-2.5 text-right font-numeric font-bold">
+                              {detailedTotals.job_posts.toLocaleString()}
+                            </td>
+                            <td className="py-2 px-2.5 text-right font-numeric font-bold text-primary-dark">
+                              {detailedTotals.applications.toLocaleString()}
+                            </td>
+                            <td className="py-2 px-2.5 text-right font-numeric font-bold text-sky-700">
+                              {detailedTotals.accepted_applications.toLocaleString()}
+                            </td>
+                            <td className="py-2 px-2.5 text-right font-numeric font-bold text-emerald-700">
+                              {detailedTotals.completed_hires.toLocaleString()}
+                            </td>
+                            <td className="py-2 px-3 text-right font-numeric font-bold text-rose-600">
+                              {detailedTotals.reports.toLocaleString()}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      )}
+                    </table>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-0.5">
+                    <span>Reconciliation check: All column sums reconcile with database KPI metrics.</span>
+                    <button
+                      onClick={handleExportCSV}
+                      className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <i className="lni lni-download text-xs" />
+                      Export Table as CSV
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* DETAILED TABULAR REPORT: Complete Platform Activity (Overview Tab) */}
-          {(viewMode === 'table' || viewMode === 'split') && (
-            <div id="detailed-report-section" className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 space-y-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-ink-faint/40 pb-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <i className="lni lni-layout text-primary-dark text-lg" />
-                    <h3 className="font-display text-lg font-bold text-ink">
-                      Detailed Analytics Report — Complete Platform Activity
-                    </h3>
-                  </div>
-                  <p className="text-xs text-ink-muted mt-1">
-                    Exact chronological breakdown of user registrations, job posts, applications, and completions for <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong> ({globalPreset}).
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-body font-semibold">
-                    Granularity: <strong className="uppercase text-primary-dark">{intervalFilter}</strong>
-                  </span>
-                  <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-body font-bold flex items-center gap-1.5">
-                    <i className="lni lni-checkmark-circle text-xs" />
-                    <span>Reconciled with KPIs</span>
-                  </span>
-                </div>
-              </div>
-
-                <div className="overflow-x-auto rounded-2xl border border-ink-faint/30">
-                  <table className="w-full text-xs font-body text-left">
-                    <thead>
-                      <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-soft tracking-wider">
-                        <th className="py-3 px-4">Time Period</th>
-                        <th className="py-3 px-3 text-right">New Workers</th>
-                        <th className="py-3 px-3 text-right">New Employers</th>
-                        <th className="py-3 px-3 text-right">Total New Users</th>
-                        <th className="py-3 px-3 text-right">Job Posts</th>
-                        <th className="py-3 px-3 text-right">Applications</th>
-                        <th className="py-3 px-3 text-right text-sky-700">Accepted</th>
-                        <th className="py-3 px-3 text-right text-emerald-700">Completed Hires</th>
-                        <th className="py-3 px-4 text-right text-rose-600">Reports Filed</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-ink-faint/20">
-                      {transformedDetailedTimeSeries.length === 0 ? (
-                        <tr>
-                          <td colSpan={9} className="py-8 text-center text-ink-muted">
-                            No activity recorded yet for {from} to {to}. Data will display here in real-time as users interact.
-                          </td>
-                        </tr>
-                      ) : (
-                        transformedDetailedTimeSeries.map((row: any, idx: number) => (
-                          <tr key={idx} className="hover:bg-primary-soft/20 transition-colors">
-                            <td className="py-3 px-4 font-semibold text-ink whitespace-nowrap">
-                              {formatPeriodLabel(row.period, intervalFilter)}
-                            </td>
-                            <td className="py-3 px-3 text-right font-numeric text-ink-soft">
-                              {(row.new_workers ?? 0).toLocaleString()}
-                            </td>
-                            <td className="py-3 px-3 text-right font-numeric text-ink-soft">
-                              {(row.new_employers ?? 0).toLocaleString()}
-                            </td>
-                            <td className="py-3 px-3 text-right font-numeric font-bold text-ink">
-                              {(row.total_users ?? 0).toLocaleString()}
-                            </td>
-                            <td className="py-3 px-3 text-right font-numeric text-ink">
-                              {(row.job_posts ?? 0).toLocaleString()}
-                            </td>
-                            <td className="py-3 px-3 text-right font-numeric text-ink">
-                              {(row.applications ?? 0).toLocaleString()}
-                            </td>
-                            <td className="py-3 px-3 text-right font-numeric font-semibold text-sky-700">
-                              {(row.accepted_applications ?? 0).toLocaleString()}
-                            </td>
-                            <td className="py-3 px-3 text-right font-numeric font-bold text-emerald-700">
-                              {(row.completed_hires ?? 0).toLocaleString()}
-                            </td>
-                            <td className="py-3 px-4 text-right font-numeric text-rose-600">
-                              {(row.reports ?? 0).toLocaleString()}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                    {transformedDetailedTimeSeries.length > 0 && (
-                      <tfoot>
-                        <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
-                          <td className="py-3 px-4 uppercase tracking-wider text-[11px]">
-                            Total ({transformedDetailedTimeSeries.length} periods)
-                          </td>
-                          <td className="py-3 px-3 text-right font-numeric font-bold">
-                            {detailedTotals.new_workers.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-3 text-right font-numeric font-bold">
-                            {detailedTotals.new_employers.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-3 text-right font-numeric font-bold text-primary-dark">
-                            {detailedTotals.total_users.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-3 text-right font-numeric font-bold">
-                            {detailedTotals.job_posts.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-3 text-right font-numeric font-bold text-primary-dark">
-                            {detailedTotals.applications.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-3 text-right font-numeric font-bold text-sky-700">
-                            {detailedTotals.accepted_applications.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-3 text-right font-numeric font-bold text-emerald-700">
-                            {detailedTotals.completed_hires.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-4 text-right font-numeric font-bold text-rose-600">
-                            {detailedTotals.reports.toLocaleString()}
-                          </td>
-                        </tr>
-                      </tfoot>
-                    )}
-                  </table>
-                </div>
-                <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-1">
-                  <span>Reconciliation check: All column sums reconcile with database KPI metrics.</span>
-                  <button
-                    onClick={handleExportCSV}
-                    className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
-                  >
-                    <i className="lni lni-download text-xs" />
-                    Export Table as CSV
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
           {/* TAB 2: ACTIVITY TRENDS / MARKETPLACE & LIQUIDITY */}
           {activeTab === 'trends' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {(viewMode === 'charts' || viewMode === 'split') && (
                 <>
                   {/* Tab-Specific Filters */}
-                  <div className="flex flex-wrap items-center gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border border-white/50 shadow-sm no-print">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-body font-bold text-ink-soft">Target Role:</span>
-                      <div className="flex bg-white/70 p-1 rounded-xl border border-ink-faint shadow-inner">
+                  <div className="flex flex-wrap items-center gap-3 bg-white/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-ink-faint/60 shadow-2xs no-print text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-ink-muted">Target Role:</span>
+                      <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
                         {['all', 'worker', 'employer'].map((role) => (
                           <button
                             key={role}
                             onClick={() => setTrendsRoleFilter(role as any)}
-                            className={`px-3 py-1 rounded-lg text-xs font-body font-semibold transition-all ${
-                              trendsRoleFilter === role ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'
+                            className={`px-2.5 py-0.5 rounded-md text-xs font-semibold transition-all ${
+                              trendsRoleFilter === role ? 'bg-ink text-white shadow-xs' : 'text-ink-soft hover:text-ink'
                             }`}
                           >
                             {role === 'all' ? 'All Roles' : role === 'worker' ? 'Workers' : 'Employers'}
@@ -2352,32 +2173,32 @@ export default function AnalyticsDashboard() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-body font-bold text-ink-soft">Volume Metrics:</span>
-                      <div className="flex bg-white/70 p-1 rounded-xl border border-ink-faint shadow-inner">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-ink-muted">Volume:</span>
+                      <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
                         {['all', 'applications', 'hires'].map((metric) => (
                           <button
                             key={metric}
                             onClick={() => setTrendsVolumeFilter(metric as any)}
-                            className={`px-3 py-1 rounded-lg text-xs font-body font-semibold transition-all ${
-                              trendsVolumeFilter === metric ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'
+                            className={`px-2.5 py-0.5 rounded-md text-xs font-semibold transition-all ${
+                              trendsVolumeFilter === metric ? 'bg-ink text-white shadow-xs' : 'text-ink-soft hover:text-ink'
                             }`}
                           >
-                            {metric === 'all' ? 'All Metrics' : metric === 'applications' ? 'Applications Only' : 'Hires Only'}
+                            {metric === 'all' ? 'All' : metric === 'applications' ? 'Apps Only' : 'Hires Only'}
                           </button>
                         ))}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-body font-bold text-ink-soft">Timeline Order:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-ink-muted">Order:</span>
                       <select
                         aria-label="Timeline sort order"
                         value={trendsSortOrder}
                         onChange={(e) => setTrendsSortOrder(e.target.value as any)}
-                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                        className="bg-white px-2 py-0.5 rounded-lg border border-ink-faint shadow-inner text-xs font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
                       >
-                        <option value="asc">Chronological (Oldest First)</option>
+                        <option value="asc">Chronological</option>
                         <option value="desc">Newest First</option>
                       </select>
                     </div>
@@ -2396,12 +2217,12 @@ export default function AnalyticsDashboard() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 print-chart-container">
                     {/* User Growth */}
-                    <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
-                      <div className="mb-4">
-                        <h3 className="font-display text-lg font-bold text-ink">User Registrations</h3>
-                        <p className="text-xs text-ink-muted mt-1">Registrations compared by workers vs. employers.</p>
+                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
+                      <div className="mb-2">
+                        <h3 className="font-display text-sm font-bold text-ink">User Registrations</h3>
+                        <p className="text-[11px] text-ink-muted">Registrations compared by workers vs. employers.</p>
                       </div>
                       <MetricHeaderStrip
                         items={[
@@ -2410,7 +2231,7 @@ export default function AnalyticsDashboard() {
                           { label: 'Employers', value: detailedTotals.new_employers }
                         ]}
                       />
-                      <div className="h-80 w-full min-w-0 font-numeric">
+                      <div className="h-56 w-full min-w-0 font-numeric">
                         {transformedUserGrowth.length === 0 || transformedUserGrowth.every((i: any) => (i.workers || 0) === 0 && (i.employers || 0) === 0) ? (
                           <ChartEmptyState
                             title="No User Registrations"
@@ -2420,19 +2241,19 @@ export default function AnalyticsDashboard() {
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} tickFormatter={(val) => formatAxisTick(val, intervalFilter)} dy={10} />
+                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} tickFormatter={(val) => formatAxisTick(val, intervalFilter)} dy={6} />
                               <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
                               <Tooltip 
                                 cursor={{ fill: '#FDF8F0' }}
                                 labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
-                                contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
+                                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
                               />
-                              <Legend wrapperStyle={{ paddingTop: 10, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
+                              <Legend wrapperStyle={{ paddingTop: 6, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
                               {(trendsRoleFilter === 'all' || trendsRoleFilter === 'worker') && (
-                                <Bar dataKey="workers" name="Workers" fill="url(#colorWorkers)" radius={[6, 6, 0, 0]} />
+                                <Bar dataKey="workers" name="Workers" fill="url(#colorWorkers)" radius={[4, 4, 0, 0]} />
                               )}
                               {(trendsRoleFilter === 'all' || trendsRoleFilter === 'employer') && (
-                                <Bar dataKey="employers" name="Employers" fill="url(#colorEmployers)" radius={[6, 6, 0, 0]} />
+                                <Bar dataKey="employers" name="Employers" fill="url(#colorEmployers)" radius={[4, 4, 0, 0]} />
                               )}
                               <defs>
                                 <linearGradient id="colorWorkers" x1="0" y1="0" x2="0" y2="1">
@@ -2448,15 +2269,14 @@ export default function AnalyticsDashboard() {
                           </ResponsiveContainer>
                         )}
                       </div>
-                      <ChartInsightBox text={roleInsight} />
                     </div>
 
                     {/* Application-to-Hire Conversion Velocity Area Chart */}
-                    <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
-                      <div className="flex items-center justify-between mb-4">
+                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
+                      <div className="flex items-center justify-between mb-2">
                         <div>
-                          <h3 className="font-display text-lg font-bold text-ink">Application-to-Hire Conversion Velocity</h3>
-                          <p className="text-xs text-ink-muted mt-1">Velocity tracking candidate applications against confirmed employer hires over time.</p>
+                          <h3 className="font-display text-sm font-bold text-ink">Application-to-Hire Conversion Velocity</h3>
+                          <p className="text-[11px] text-ink-muted">Applications against confirmed hires over time.</p>
                         </div>
                         <HealthStatusBadge
                           type="conversion"
@@ -2473,7 +2293,7 @@ export default function AnalyticsDashboard() {
                           }
                         ]}
                       />
-                      <div className="h-80 w-full min-w-0 font-numeric">
+                      <div className="h-56 w-full min-w-0 font-numeric">
                         {transformedConversionVelocity.length === 0 || transformedConversionVelocity.every((i: any) => (i.applications || 0) === 0 && (i.completed_hires || 0) === 0) ? (
                           <ChartEmptyState
                             title="No Conversion Activity"
@@ -2493,25 +2313,24 @@ export default function AnalyticsDashboard() {
                                 </linearGradient>
                               </defs>
                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} tickFormatter={(val) => formatAxisTick(val, intervalFilter)} dy={10} />
+                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} tickFormatter={(val) => formatAxisTick(val, intervalFilter)} dy={6} />
                               <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
                               <Tooltip 
                                 shared
                                 labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
-                                contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
+                                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
                               />
-                              <Legend wrapperStyle={{ paddingTop: 10, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
+                              <Legend wrapperStyle={{ paddingTop: 6, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
                               {(trendsVolumeFilter === 'all' || trendsVolumeFilter === 'applications') && (
-                                <Area type="monotone" dataKey="applications" name="Applications Filed" stroke="#FFB6C1" strokeWidth={3} fillOpacity={1} fill="url(#colorAppsVelocity)" activeDot={{ r: 6, strokeWidth: 0 }} />
+                                <Area type="monotone" dataKey="applications" name="Applications Filed" stroke="#FFB6C1" strokeWidth={2.5} fillOpacity={1} fill="url(#colorAppsVelocity)" activeDot={{ r: 5, strokeWidth: 0 }} />
                               )}
                               {(trendsVolumeFilter === 'all' || trendsVolumeFilter === 'hires') && (
-                                <Area type="monotone" dataKey="completed_hires" name="Completed Hires" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorHiresVelocity)" activeDot={{ r: 6, strokeWidth: 0 }} />
+                                <Area type="monotone" dataKey="completed_hires" name="Completed Hires" stroke="#10B981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorHiresVelocity)" activeDot={{ r: 5, strokeWidth: 0 }} />
                               )}
                             </AreaChart>
                           </ResponsiveContainer>
                         )}
                       </div>
-                      <ChartInsightBox text={conversionInsight} />
                     </div>
                   </div>
                 </>
@@ -2519,47 +2338,47 @@ export default function AnalyticsDashboard() {
 
               {/* DETAILED TABULAR REPORT: Activity Trends & Registration Velocity */}
               {(viewMode === 'table' || viewMode === 'split') && (
-                <div id="detailed-report-section" className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 space-y-4">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-ink-faint/40 pb-4">
+                <div id="detailed-report-section" className="bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-2xs border border-ink-faint/60 space-y-3">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-ink-faint/40 pb-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <i className="lni lni-stats-up text-primary-dark text-lg" />
-                        <h3 className="font-display text-lg font-bold text-ink">
+                        <i className="lni lni-stats-up text-primary-dark text-base" />
+                        <h3 className="font-display text-sm sm:text-base font-bold text-ink">
                           Detailed Analytics Report — Activity Trends & Registration Velocity
                         </h3>
                       </div>
-                      <p className="text-xs text-ink-muted mt-1">
+                      <p className="text-[11px] text-ink-muted mt-0.5">
                         Chronological velocity metrics and application throughput per job post for <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong> ({globalPreset}).
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-body font-semibold">
+                      <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold">
                         Granularity: <strong className="uppercase text-primary-dark">{intervalFilter}</strong>
                       </span>
-                      <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-body font-bold flex items-center gap-1.5">
+                      <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1">
                         <i className="lni lni-checkmark-circle text-xs" />
-                        <span>Reconciled with KPIs</span>
+                        <span>Reconciled</span>
                       </span>
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto rounded-2xl border border-ink-faint/30">
+                  <div className="overflow-x-auto rounded-lg border border-ink-faint/30">
                     <table className="w-full text-xs font-body text-left">
                       <thead>
-                        <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-soft tracking-wider">
-                          <th className="py-3 px-4">Time Period</th>
-                          <th className="py-3 px-3 text-right">Worker Signups</th>
-                          <th className="py-3 px-3 text-right">Employer Signups</th>
-                          <th className="py-3 px-3 text-right">Total Registrations</th>
-                          <th className="py-3 px-3 text-right">Job Posts</th>
-                          <th className="py-3 px-3 text-right">Applications Filed</th>
-                          <th className="py-3 px-4 text-right">Throughput Ratio</th>
+                        <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-muted tracking-wider">
+                          <th className="py-2 px-3">Time Period</th>
+                          <th className="py-2 px-2.5 text-right">Worker Signups</th>
+                          <th className="py-2 px-2.5 text-right">Employer Signups</th>
+                          <th className="py-2 px-2.5 text-right">Total Registrations</th>
+                          <th className="py-2 px-2.5 text-right">Job Posts</th>
+                          <th className="py-2 px-2.5 text-right">Applications Filed</th>
+                          <th className="py-2 px-3 text-right">Throughput Ratio</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-ink-faint/20">
                         {transformedDetailedTimeSeries.length === 0 ? (
                           <tr>
-                            <td colSpan={7} className="py-8 text-center text-ink-muted">
+                            <td colSpan={7} className="py-6 text-center text-ink-muted">
                               No activity recorded yet for {from} to {to}. Data will display here in real-time as users interact.
                             </td>
                           </tr>
@@ -2570,25 +2389,25 @@ export default function AnalyticsDashboard() {
                               : (row.applications > 0 ? `${row.applications} / 0 posts` : '0.0');
                             return (
                               <tr key={idx} className="hover:bg-primary-soft/20 transition-colors">
-                                <td className="py-3 px-4 font-semibold text-ink whitespace-nowrap">
+                                <td className="py-2 px-3 font-semibold text-ink whitespace-nowrap">
                                   {formatPeriodLabel(row.period, intervalFilter)}
                                 </td>
-                                <td className="py-3 px-3 text-right font-numeric text-ink-soft">
+                                <td className="py-2 px-2.5 text-right font-numeric text-ink-soft">
                                   {(row.new_workers ?? 0).toLocaleString()}
                                 </td>
-                                <td className="py-3 px-3 text-right font-numeric text-ink-soft">
+                                <td className="py-2 px-2.5 text-right font-numeric text-ink-soft">
                                   {(row.new_employers ?? 0).toLocaleString()}
                                 </td>
-                                <td className="py-3 px-3 text-right font-numeric font-bold text-ink">
+                                <td className="py-2 px-2.5 text-right font-numeric font-bold text-ink">
                                   {(row.total_users ?? 0).toLocaleString()}
                                 </td>
-                                <td className="py-3 px-3 text-right font-numeric text-ink">
+                                <td className="py-2 px-2.5 text-right font-numeric text-ink">
                                   {(row.job_posts ?? 0).toLocaleString()}
                                 </td>
-                                <td className="py-3 px-3 text-right font-numeric text-ink">
+                                <td className="py-2 px-2.5 text-right font-numeric text-ink">
                                   {(row.applications ?? 0).toLocaleString()}
                                 </td>
-                                <td className="py-3 px-4 text-right font-numeric font-semibold text-primary-dark">
+                                <td className="py-2 px-3 text-right font-numeric font-semibold text-primary-dark">
                                   {ratio}
                                 </td>
                               </tr>
@@ -2599,25 +2418,25 @@ export default function AnalyticsDashboard() {
                       {transformedDetailedTimeSeries.length > 0 && (
                         <tfoot>
                           <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
-                            <td className="py-3 px-4 uppercase tracking-wider text-[11px]">
+                            <td className="py-2 px-3 uppercase tracking-wider text-[10px]">
                               Total ({transformedDetailedTimeSeries.length} periods)
                             </td>
-                            <td className="py-3 px-3 text-right font-numeric font-bold">
+                            <td className="py-2 px-2.5 text-right font-numeric font-bold">
                               {detailedTotals.new_workers.toLocaleString()}
                             </td>
-                            <td className="py-3 px-3 text-right font-numeric font-bold">
+                            <td className="py-2 px-2.5 text-right font-numeric font-bold">
                               {detailedTotals.new_employers.toLocaleString()}
                             </td>
-                            <td className="py-3 px-3 text-right font-numeric font-bold text-primary-dark">
+                            <td className="py-2 px-2.5 text-right font-numeric font-bold text-primary-dark">
                               {detailedTotals.total_users.toLocaleString()}
                             </td>
-                            <td className="py-3 px-3 text-right font-numeric font-bold">
+                            <td className="py-2 px-2.5 text-right font-numeric font-bold">
                               {detailedTotals.job_posts.toLocaleString()}
                             </td>
-                            <td className="py-3 px-3 text-right font-numeric font-bold text-primary-dark">
+                            <td className="py-2 px-2.5 text-right font-numeric font-bold text-primary-dark">
                               {detailedTotals.applications.toLocaleString()}
                             </td>
-                            <td className="py-3 px-4 text-right font-numeric font-bold text-primary-dark">
+                            <td className="py-2 px-3 text-right font-numeric font-bold text-primary-dark">
                               {detailedTotals.job_posts > 0 
                                 ? `${(detailedTotals.applications / detailedTotals.job_posts).toFixed(1)} / post` 
                                 : (detailedTotals.applications > 0 ? `${detailedTotals.applications} / 0 posts` : '0.0')}
@@ -2627,7 +2446,7 @@ export default function AnalyticsDashboard() {
                       )}
                     </table>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-1">
+                  <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-0.5">
                     <span>Reconciliation check: Worker and Employer signups match Total Registrations; Applications match funnel records.</span>
                     <button
                       onClick={handleExportCSV}
@@ -2644,66 +2463,66 @@ export default function AnalyticsDashboard() {
 
           {/* TAB 3: DISTRIBUTION & DEMAND */}
           {activeTab === 'distribution' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {(viewMode === 'charts' || viewMode === 'split') && (
                 <>
                   {/* Tab-Specific Filters */}
-                  <div className="flex flex-wrap items-center gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border border-white/50 shadow-sm no-print">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-body font-bold text-ink-soft">Target Region:</span>
+                  <div className="flex flex-wrap items-center gap-3 bg-white/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-ink-faint/60 shadow-2xs no-print text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-ink-muted">Region:</span>
                       <select
                         aria-label="Filter by municipality"
                         value={distRegionFilter}
                         onChange={(e) => setDistRegionFilter(e.target.value)}
-                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                        className="bg-white px-2 py-0.5 rounded-lg border border-ink-faint shadow-inner text-xs font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
                       >
-                        <option value="all">All Municipalities (Grouped)</option>
+                        <option value="all">All Municipalities</option>
                         {uniqueMunicipalities.map((muni) => (
                           <option key={muni} value={muni}>{muni}</option>
                         ))}
                       </select>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-body font-bold text-ink-soft">Display Limit:</span>
-                      <div className="flex bg-white/70 p-1 rounded-xl border border-ink-faint shadow-inner">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-ink-muted">Limit:</span>
+                      <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
                         {[3, 6, 10].map((limit) => (
                           <button
                             key={limit}
                             onClick={() => setDistLimitFilter(limit)}
-                            className={`px-3 py-1 rounded-lg text-xs font-body font-semibold transition-all ${
-                              distLimitFilter === limit ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'
+                            className={`px-2.5 py-0.5 rounded-md text-xs font-semibold transition-all ${
+                              distLimitFilter === limit ? 'bg-ink text-white shadow-xs' : 'text-ink-soft hover:text-ink'
                             }`}
                           >
-                            {limit === 3 ? 'Top 3' : limit === 6 ? 'Top 6' : 'Show All'}
+                            {limit === 3 ? 'Top 3' : limit === 6 ? 'Top 6' : 'All'}
                           </button>
                         ))}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-body font-bold text-ink-soft">Sort Charts By:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-ink-muted">Sort:</span>
                       <select
                         aria-label="Sort distribution charts by"
                         value={distSortBy}
                         onChange={(e) => setDistSortBy(e.target.value as any)}
-                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                        className="bg-white px-2 py-0.5 rounded-lg border border-ink-faint shadow-inner text-xs font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
                       >
-                        <option value="value">Volume (Highest / Total)</option>
-                        <option value="name">Name (Alphabetical)</option>
+                        <option value="value">Volume</option>
+                        <option value="name">Name</option>
                       </select>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-body font-bold text-ink-soft">Order:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-ink-muted">Order:</span>
                       <select
                         aria-label="Sort distribution order"
                         value={distSortOrder}
                         onChange={(e) => setDistSortOrder(e.target.value as any)}
-                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                        className="bg-white px-2 py-0.5 rounded-lg border border-ink-faint shadow-inner text-xs font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
                       >
-                        <option value="desc">Descending / Highest</option>
-                        <option value="asc">Ascending / Lowest</option>
+                        <option value="desc">Descending</option>
+                        <option value="asc">Ascending</option>
                       </select>
                     </div>
 
@@ -2721,398 +2540,392 @@ export default function AnalyticsDashboard() {
                     )}
                   </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
-                {/* Horizontal Skill Category Demand */}
-                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
-                  <div className="mb-4">
-                    <h3 className="font-display text-lg font-bold text-ink">Skill & Category Demand</h3>
-                    <p className="text-xs text-ink-muted mt-1">Platform job posts ranked descending by sector category.</p>
-                  </div>
-                  <MetricHeaderStrip
-                    items={[
-                      { label: 'Active Sectors', value: transformedJobsData.length, highlight: true },
-                      { label: 'Top In-Demand', value: transformedJobsData[0]?.name || 'None' },
-                      { label: 'Total Job Posts', value: transformedJobsData.reduce((acc: number, cur: any) => acc + (cur.jobs || 0), 0) }
-                    ]}
-                  />
-                  <div className="h-80 w-full min-w-0 font-numeric">
-                    {transformedJobsData.length === 0 || transformedJobsData.every((i: any) => (i.jobs || 0) === 0) ? (
-                      <ChartEmptyState
-                        title="No Category Demand Recorded"
-                        message={`No job posts categorized between ${from} and ${to}.`}
-                      />
-                    ) : (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={transformedJobsData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E8DFCE" opacity={0.5} />
-                          <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                          <YAxis
-                            dataKey="name"
-                            type="category"
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: '#8C7B6A', fontSize: 11 }}
-                            width={100}
-                            tickFormatter={(value) => (value.length > 12 ? `${value.slice(0, 12)}...` : value)}
-                          />
-                          <Tooltip 
-                            contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
-                          />
-                          <Bar dataKey="jobs" name="Job Posts" fill="#3E7648" radius={[0, 6, 6, 0]} barSize={16} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    )}
-                  </div>
-                  <ChartInsightBox text={categoryInsight} />
-                </div>
-
-                {/* Skill Profile Distribution Donut Chart */}
-                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col relative min-w-0">
-                  <div className="mb-4">
-                    <h3 className="font-display text-lg font-bold text-ink">Skill Profile Distribution</h3>
-                    <p className="text-xs text-ink-muted mt-1">Profile breakdown capped at Top 6 skills and grouped others.</p>
-                  </div>
-                  <MetricHeaderStrip
-                    items={[
-                      { label: 'Registered Workers', value: data?.user_ratio?.workers ?? 0, highlight: true },
-                      { label: 'Top Skill', value: transformedSkillDistribution[0]?.name || 'None' },
-                      { label: 'Unique Skills', value: transformedSkillDistribution.length }
-                    ]}
-                  />
-                  <div className="h-64 w-full min-w-0 relative flex items-center justify-center">
-                    {transformedSkillDistribution.length === 0 || transformedSkillDistribution.every((i: any) => (i.value || 0) === 0) ? (
-                      <ChartEmptyState
-                        title="No Skill Profiles"
-                        message="Worker skill profile distribution will appear as workers register on SIKAP."
-                      />
-                    ) : (
-                      <>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <RechartsPie
-                              data={transformedSkillDistribution}
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={65}
-                              outerRadius={95}
-                              paddingAngle={3}
-                              dataKey="value"
-                              label={false}
-                              activeIndex={activePieIndex !== null ? activePieIndex : undefined}
-                              activeShape={renderActiveShape}
-                              onMouseEnter={(_: any, index: number) => setActivePieIndex(index)}
-                              onMouseLeave={() => setActivePieIndex(null)}
-                            >
-                              {transformedSkillDistribution.map((entry: any, index: number) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="cursor-pointer" />
-                              ))}
-                            </RechartsPie>
-                            <Tooltip 
-                              contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
-                            />
-                          </PieChart>
-                        </ResponsiveContainer>
-
-                        {/* Donut Center Display */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-10">
-                          {activePieIndex !== null && transformedSkillDistribution[activePieIndex] ? (
-                            <>
-                              <span className="text-[10px] font-body font-bold text-ink-muted uppercase max-w-[100px] truncate">
-                                {transformedSkillDistribution[activePieIndex].name}
-                              </span>
-                              <strong className="text-xl font-numeric text-ink">
-                                {((transformedSkillDistribution[activePieIndex].value / (data?.user_ratio?.workers || 1)) * 100).toFixed(0)}%
-                              </strong>
-                              <span className="text-[9px] font-body text-ink-muted">
-                                {transformedSkillDistribution[activePieIndex].value} workers
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-[10px] font-body font-semibold text-ink-muted uppercase">Total Workers</span>
-                              <strong className="text-2xl font-numeric text-ink">{data?.user_ratio?.workers ?? 0}</strong>
-                            </>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Clean swatch-only legend underneath */}
-                  <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4 text-xs font-semibold text-ink-soft">
-                    {transformedSkillDistribution.map((entry: any, idx: number) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
-                        onMouseEnter={() => setActivePieIndex(idx)}
-                        onMouseLeave={() => setActivePieIndex(null)}
-                      >
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></span>
-                        <span className={activePieIndex === idx ? 'text-ink font-bold' : ''}>{entry.name}</span>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 print-chart-container">
+                    {/* Horizontal Skill Category Demand */}
+                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
+                      <div className="mb-2">
+                        <h3 className="font-display text-sm font-bold text-ink">Skill & Category Demand</h3>
+                        <p className="text-[11px] text-ink-muted">Platform job posts ranked descending by sector category.</p>
                       </div>
-                    ))}
-                  </div>
-                  <ChartInsightBox
-                    title="Skill Specialization"
-                    text={`Registered labor pool offers verified capability across ${transformedSkillDistribution.length} distinct trade specializations in Bulan and adjacent communities.`}
-                  />
-                </div>
-              </div>
+                      <MetricHeaderStrip
+                        items={[
+                          { label: 'Active Sectors', value: transformedJobsData.length, highlight: true },
+                          { label: 'Top In-Demand', value: transformedJobsData[0]?.name || 'None' },
+                          { label: 'Total Job Posts', value: transformedJobsData.reduce((acc: number, cur: any) => acc + (cur.jobs || 0), 0) }
+                        ]}
+                      />
+                      <div className="h-56 w-full min-w-0 font-numeric">
+                        {transformedJobsData.length === 0 || transformedJobsData.every((i: any) => (i.jobs || 0) === 0) ? (
+                          <ChartEmptyState
+                            title="No Category Demand Recorded"
+                            message={`No job posts categorized between ${from} and ${to}.`}
+                          />
+                        ) : (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={transformedJobsData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E8DFCE" opacity={0.5} />
+                              <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} allowDecimals={false} />
+                              <YAxis
+                                dataKey="name"
+                                type="category"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#8C7B6A', fontSize: 10 }}
+                                width={95}
+                                tickFormatter={(value) => (value.length > 12 ? `${value.slice(0, 12)}...` : value)}
+                              />
+                              <Tooltip 
+                                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
+                              />
+                              <Bar dataKey="jobs" name="Job Posts" fill="#3E7648" radius={[0, 4, 4, 0]} barSize={14} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        )}
+                      </div>
+                    </div>
 
-              {/* Stacked Geographic Activity chart */}
-              <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0 print-chart-container">
-                <div className="mb-4">
-                  <h3 className="font-display text-lg font-bold text-ink">Geographic Activity Breakdown</h3>
-                  <p className="text-xs text-ink-muted mt-1">
-                    {distRegionFilter === 'all' 
-                      ? 'Job Posts and Applications stacked on a single track per municipality.'
-                      : `Job Posts and Applications stacked per barangay in ${distRegionFilter}.`}
-                  </p>
-                </div>
-                <MetricHeaderStrip
-                  items={[
-                    { label: 'Tracked Areas', value: transformedGeographicActivity.length, highlight: true },
-                    { label: 'Lead Area', value: transformedGeographicActivity[0]?.name || 'None' },
-                    { label: 'Job Posts', value: transformedGeographicActivity.reduce((acc: number, c: any) => acc + (c.jobs || 0), 0) },
-                    { label: 'Applications', value: transformedGeographicActivity.reduce((acc: number, c: any) => acc + (c.applications || 0), 0) }
-                  ]}
-                />
-                <div className="h-80 w-full min-w-0 font-numeric">
-                  {transformedGeographicActivity.length === 0 || transformedGeographicActivity.every((i: any) => (i.jobs || 0) === 0 && (i.applications || 0) === 0) ? (
-                    <ChartEmptyState
-                      title="No Regional Activity"
-                      message={`No geographic job posts or applications recorded for ${from} to ${to}.`}
+                    {/* Skill Profile Distribution Donut Chart */}
+                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col relative min-w-0">
+                      <div className="mb-2">
+                        <h3 className="font-display text-sm font-bold text-ink">Skill Profile Distribution</h3>
+                        <p className="text-[11px] text-ink-muted">Profile breakdown capped at Top 6 skills and grouped others.</p>
+                      </div>
+                      <MetricHeaderStrip
+                        items={[
+                          { label: 'Registered Workers', value: data?.user_ratio?.workers ?? 0, highlight: true },
+                          { label: 'Top Skill', value: transformedSkillDistribution[0]?.name || 'None' },
+                          { label: 'Unique Skills', value: transformedSkillDistribution.length }
+                        ]}
+                      />
+                      <div className="h-48 w-full min-w-0 relative flex items-center justify-center">
+                        {transformedSkillDistribution.length === 0 || transformedSkillDistribution.every((i: any) => (i.value || 0) === 0) ? (
+                          <ChartEmptyState
+                            title="No Skill Profiles"
+                            message="Worker skill profile distribution will appear as workers register on SIKAP."
+                          />
+                        ) : (
+                          <>
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <RechartsPie
+                                  data={transformedSkillDistribution}
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={55}
+                                  outerRadius={80}
+                                  paddingAngle={3}
+                                  dataKey="value"
+                                  label={false}
+                                  activeIndex={activePieIndex !== null ? activePieIndex : undefined}
+                                  activeShape={renderActiveShape}
+                                  onMouseEnter={(_: any, index: number) => setActivePieIndex(index)}
+                                  onMouseLeave={() => setActivePieIndex(null)}
+                                >
+                                  {transformedSkillDistribution.map((entry: any, index: number) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="cursor-pointer" />
+                                  ))}
+                                </RechartsPie>
+                                <Tooltip 
+                                  contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
+                                />
+                              </PieChart>
+                            </ResponsiveContainer>
+
+                            {/* Donut Center Display */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-4">
+                              {activePieIndex !== null && transformedSkillDistribution[activePieIndex] ? (
+                                <>
+                                  <span className="text-[10px] font-bold text-ink-muted uppercase max-w-[90px] truncate">
+                                    {transformedSkillDistribution[activePieIndex].name}
+                                  </span>
+                                  <strong className="text-lg font-numeric text-ink">
+                                    {((transformedSkillDistribution[activePieIndex].value / (data?.user_ratio?.workers || 1)) * 100).toFixed(0)}%
+                                  </strong>
+                                  <span className="text-[9px] text-ink-muted">
+                                    {transformedSkillDistribution[activePieIndex].value} workers
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="text-[10px] font-semibold text-ink-muted uppercase">Workers</span>
+                                  <strong className="text-xl font-numeric text-ink">{data?.user_ratio?.workers ?? 0}</strong>
+                                </>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Clean swatch-only legend underneath */}
+                      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 mt-2 text-xs font-semibold text-ink-soft">
+                        {transformedSkillDistribution.map((entry: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
+                            onMouseEnter={() => setActivePieIndex(idx)}
+                            onMouseLeave={() => setActivePieIndex(null)}
+                          >
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></span>
+                            <span className={activePieIndex === idx ? 'text-ink font-bold' : ''}>{entry.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stacked Geographic Activity chart */}
+                  <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0 print-chart-container">
+                    <div className="mb-2">
+                      <h3 className="font-display text-sm font-bold text-ink">Geographic Activity Breakdown</h3>
+                      <p className="text-[11px] text-ink-muted">
+                        {distRegionFilter === 'all' 
+                          ? 'Job Posts and Applications stacked on a single track per municipality.'
+                          : `Job Posts and Applications stacked per barangay in ${distRegionFilter}.`}
+                      </p>
+                    </div>
+                    <MetricHeaderStrip
+                      items={[
+                        { label: 'Tracked Areas', value: transformedGeographicActivity.length, highlight: true },
+                        { label: 'Lead Area', value: transformedGeographicActivity[0]?.name || 'None' },
+                        { label: 'Job Posts', value: transformedGeographicActivity.reduce((acc: number, c: any) => acc + (c.jobs || 0), 0) },
+                        { label: 'Applications', value: transformedGeographicActivity.reduce((acc: number, c: any) => acc + (c.applications || 0), 0) }
+                      ]}
                     />
-                  ) : (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={transformedGeographicActivity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} dy={10} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                        <Tooltip 
-                          cursor={{ fill: '#FDF8F0' }}
-                          contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
+                    <div className="h-56 w-full min-w-0 font-numeric">
+                      {transformedGeographicActivity.length === 0 || transformedGeographicActivity.every((i: any) => (i.jobs || 0) === 0 && (i.applications || 0) === 0) ? (
+                        <ChartEmptyState
+                          title="No Regional Activity"
+                          message={`No geographic job posts or applications recorded for ${from} to ${to}.`}
                         />
-                        <Legend wrapperStyle={{ paddingTop: 10, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
-                        <Bar dataKey="jobs" name="Job Posts" fill="#87CEEB" stackId="a" radius={[0, 0, 0, 0]} />
-                        <Bar dataKey="applications" name="Applications" fill="#90EE90" stackId="a" radius={[6, 6, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                      ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={transformedGeographicActivity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
+                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} dy={6} />
+                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
+                            <Tooltip 
+                              cursor={{ fill: '#FDF8F0' }}
+                              contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
+                            />
+                            <Legend wrapperStyle={{ paddingTop: 6, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
+                            <Bar dataKey="jobs" name="Job Posts" fill="#87CEEB" stackId="a" radius={[0, 0, 0, 0]} />
+                            <Bar dataKey="applications" name="Applications" fill="#90EE90" stackId="a" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* DETAILED TABULAR REPORT: Sector Demand & Regional Distribution */}
+              {(viewMode === 'table' || viewMode === 'split') && (
+                <div id="detailed-report-section" className="bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-2xs border border-ink-faint/60 space-y-3">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-ink-faint/40 pb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <i className="lni lni-pie-chart text-primary-dark text-base" />
+                        <h3 className="font-display text-sm sm:text-base font-bold text-ink">
+                          Detailed Analytics Report — Sector Demand & Regional Distribution
+                        </h3>
+                      </div>
+                      <p className="text-[11px] text-ink-muted mt-0.5">
+                        Comprehensive breakdown of trade sectors and regional activity for <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong> ({globalPreset}).
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                        <button
+                          onClick={() => setDistTableView('categories')}
+                          className={`px-2.5 py-0.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                            distTableView === 'categories' ? 'bg-ink text-white shadow-xs' : 'text-ink-soft hover:text-ink'
+                          }`}
+                        >
+                          Job Categories & Wages
+                        </button>
+                        <button
+                          onClick={() => setDistTableView('geographic')}
+                          className={`px-2.5 py-0.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                            distTableView === 'geographic' ? 'bg-ink text-white shadow-xs' : 'text-ink-soft hover:text-ink'
+                          }`}
+                        >
+                          Geographic Locations
+                        </button>
+                      </div>
+                      <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1">
+                        <i className="lni lni-checkmark-circle text-xs" />
+                        <span>Reconciled</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {distTableView === 'categories' ? (
+                    /* CATEGORY DEMAND TABLE */
+                    <div className="overflow-x-auto rounded-lg border border-ink-faint/30">
+                      <table className="w-full text-xs font-body text-left">
+                        <thead>
+                          <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-muted tracking-wider">
+                            <th className="py-2 px-3 w-14">Rank</th>
+                            <th className="py-2 px-3">Trade Category / Sector</th>
+                            <th className="py-2 px-3 text-right">Job Posts</th>
+                            <th className="py-2 px-3 text-right">Share of Total</th>
+                            <th className="py-2 px-3 text-right">Average Wage (PHP)</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-ink-faint/20">
+                          {transformedJobsData.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="py-6 text-center text-ink-muted">
+                                No sector postings recorded yet for {from} to {to}. Data will display here as employers create job posts.
+                              </td>
+                            </tr>
+                          ) : (
+                            (() => {
+                              const totalCatJobs = transformedJobsData.reduce((sum: number, c: any) => sum + (c.jobs || 0), 0);
+                              return transformedJobsData.map((item: any, idx: number) => {
+                                const wageMatch = data?.compensation?.categories?.find((c: any) => c.category?.toLowerCase() === item.name?.toLowerCase());
+                                const avgComp = wageMatch ? parseFloat(wageMatch.avg_comp || 0).toFixed(2) : '0.00';
+                                const share = totalCatJobs > 0 ? ((item.jobs / totalCatJobs) * 100).toFixed(1) : '0.0';
+                                return (
+                                  <tr key={idx} className="hover:bg-primary-soft/20 transition-colors">
+                                    <td className="py-2 px-3 font-numeric text-ink-muted">#{idx + 1}</td>
+                                    <td className="py-2 px-3 font-semibold text-ink">{item.name}</td>
+                                    <td className="py-2 px-3 text-right font-numeric font-bold text-ink">
+                                      {(item.jobs ?? 0).toLocaleString()}
+                                    </td>
+                                    <td className="py-2 px-3 text-right font-numeric text-ink-soft">
+                                      {share}%
+                                    </td>
+                                    <td className="py-2 px-3 text-right font-numeric font-semibold text-primary-dark">
+                                      PHP {avgComp}
+                                    </td>
+                                  </tr>
+                                );
+                              });
+                            })()
+                          )}
+                        </tbody>
+                        {transformedJobsData.length > 0 && (
+                          <tfoot>
+                            <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
+                              <td colSpan={2} className="py-2 px-3 uppercase tracking-wider text-[10px]">
+                                Total ({transformedJobsData.length} Sectors)
+                              </td>
+                              <td className="py-2 px-3 text-right font-numeric font-bold text-primary-dark">
+                                {transformedJobsData.reduce((sum: number, c: any) => sum + (c.jobs || 0), 0).toLocaleString()}
+                              </td>
+                              <td className="py-2 px-3 text-right font-numeric font-bold">100.0%</td>
+                              <td className="py-2 px-3 text-right font-numeric font-bold text-primary-dark">
+                                PHP {parseFloat(data?.compensation?.avg || 0).toFixed(2)} (Platform Avg)
+                              </td>
+                            </tr>
+                          </tfoot>
+                        )}
+                      </table>
+                    </div>
+                  ) : (
+                    /* GEOGRAPHIC LOCATIONS TABLE */
+                    <div className="overflow-x-auto rounded-lg border border-ink-faint/30">
+                      <table className="w-full text-xs font-body text-left">
+                        <thead>
+                          <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-muted tracking-wider">
+                            <th className="py-2 px-3 w-14">Rank</th>
+                            <th className="py-2 px-3">Location (Municipality / Barangay)</th>
+                            <th className="py-2 px-3 text-right">Job Posts</th>
+                            <th className="py-2 px-3 text-right">Applications Filed</th>
+                            <th className="py-2 px-3 text-right">Total Interactions</th>
+                            <th className="py-2 px-3 text-right">Regional Share</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-ink-faint/20">
+                          {transformedGeographicActivity.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="py-6 text-center text-ink-muted">
+                                No regional activity recorded yet for {from} to {to}. Data will display as users post and apply.
+                              </td>
+                            </tr>
+                          ) : (
+                            (() => {
+                              const totalGeoJobs = transformedGeographicActivity.reduce((sum: number, g: any) => sum + (g.jobs || 0), 0);
+                              const totalGeoApps = transformedGeographicActivity.reduce((sum: number, g: any) => sum + (g.applications || 0), 0);
+                              const totalGeoCombined = totalGeoJobs + totalGeoApps;
+
+                              return transformedGeographicActivity.map((item: any, idx: number) => {
+                                const combined = (item.jobs || 0) + (item.applications || 0);
+                                const share = totalGeoCombined > 0 ? ((combined / totalGeoCombined) * 100).toFixed(1) : '0.0';
+                                return (
+                                  <tr key={idx} className="hover:bg-primary-soft/20 transition-colors">
+                                    <td className="py-2 px-3 font-numeric text-ink-muted">#{idx + 1}</td>
+                                    <td className="py-2 px-3 font-semibold text-ink">{item.name}</td>
+                                    <td className="py-2 px-3 text-right font-numeric text-ink">
+                                      {(item.jobs ?? 0).toLocaleString()}
+                                    </td>
+                                    <td className="py-2 px-3 text-right font-numeric text-ink">
+                                      {(item.applications ?? 0).toLocaleString()}
+                                    </td>
+                                    <td className="py-2 px-3 text-right font-numeric font-bold text-ink">
+                                      {combined.toLocaleString()}
+                                    </td>
+                                    <td className="py-2 px-3 text-right font-numeric font-semibold text-primary-dark">
+                                      {share}%
+                                    </td>
+                                  </tr>
+                                );
+                              });
+                            })()
+                          )}
+                        </tbody>
+                        {transformedGeographicActivity.length > 0 && (
+                          <tfoot>
+                            <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
+                              <td colSpan={2} className="py-2 px-3 uppercase tracking-wider text-[10px]">
+                                Total ({transformedGeographicActivity.length} Locations)
+                              </td>
+                              <td className="py-2 px-3 text-right font-numeric font-bold">
+                                {transformedGeographicActivity.reduce((sum: number, g: any) => sum + (g.jobs || 0), 0).toLocaleString()}
+                              </td>
+                              <td className="py-2 px-3 text-right font-numeric font-bold">
+                                {transformedGeographicActivity.reduce((sum: number, g: any) => sum + (g.applications || 0), 0).toLocaleString()}
+                              </td>
+                              <td className="py-2 px-3 text-right font-numeric font-bold text-primary-dark">
+                                {transformedGeographicActivity.reduce((sum: number, g: any) => sum + (g.jobs || 0) + (g.applications || 0), 0).toLocaleString()}
+                              </td>
+                              <td className="py-2 px-3 text-right font-numeric font-bold text-primary-dark">100.0%</td>
+                            </tr>
+                          </tfoot>
+                        )}
+                      </table>
+                    </div>
                   )}
+                  <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-0.5">
+                    <span>Reconciliation check: Job Posts and Applications reconcile with database totals for this time window.</span>
+                    <button
+                      onClick={handleExportCSV}
+                      className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <i className="lni lni-download text-xs" />
+                      Export Table as CSV
+                    </button>
+                  </div>
                 </div>
-                <ChartInsightBox text={geoInsight} />
-              </div>
-            </>
+              )}
+            </div>
           )}
-
-          {/* DETAILED TABULAR REPORT: Sector Demand & Regional Distribution */}
-          {(viewMode === 'table' || viewMode === 'split') && (
-            <div id="detailed-report-section" className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 space-y-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-ink-faint/40 pb-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <i className="lni lni-pie-chart text-primary-dark text-lg" />
-                      <h3 className="font-display text-lg font-bold text-ink">
-                        Detailed Analytics Report — Sector Demand & Regional Distribution
-                      </h3>
-                    </div>
-                    <p className="text-xs text-ink-muted mt-1">
-                      Comprehensive breakdown of trade sectors and regional activity for <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong> ({globalPreset}).
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
-                      <button
-                        onClick={() => setDistTableView('categories')}
-                        className={`px-3 py-1 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
-                          distTableView === 'categories' ? 'bg-ink text-white shadow-xs' : 'text-ink-soft hover:text-ink'
-                        }`}
-                      >
-                        Job Categories & Wages
-                      </button>
-                      <button
-                        onClick={() => setDistTableView('geographic')}
-                        className={`px-3 py-1 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
-                          distTableView === 'geographic' ? 'bg-ink text-white shadow-xs' : 'text-ink-soft hover:text-ink'
-                        }`}
-                      >
-                        Geographic Locations
-                      </button>
-                    </div>
-                    <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-body font-bold flex items-center gap-1.5">
-                      <i className="lni lni-checkmark-circle text-xs" />
-                      <span>Reconciled</span>
-                    </span>
-                  </div>
-                </div>
-
-                {distTableView === 'categories' ? (
-                  /* CATEGORY DEMAND TABLE */
-                  <div className="overflow-x-auto rounded-2xl border border-ink-faint/30">
-                    <table className="w-full text-xs font-body text-left">
-                      <thead>
-                        <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-soft tracking-wider">
-                          <th className="py-3 px-4 w-16">Rank</th>
-                          <th className="py-3 px-4">Trade Category / Sector</th>
-                          <th className="py-3 px-4 text-right">Job Posts</th>
-                          <th className="py-3 px-4 text-right">Share of Total</th>
-                          <th className="py-3 px-4 text-right">Average Wage (PHP)</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-ink-faint/20">
-                        {transformedJobsData.length === 0 ? (
-                          <tr>
-                            <td colSpan={5} className="py-8 text-center text-ink-muted">
-                              No sector postings recorded yet for {from} to {to}. Data will display here as employers create job posts.
-                            </td>
-                          </tr>
-                        ) : (
-                          (() => {
-                            const totalCatJobs = transformedJobsData.reduce((sum: number, c: any) => sum + (c.jobs || 0), 0);
-                            return transformedJobsData.map((item: any, idx: number) => {
-                              const wageMatch = data?.compensation?.categories?.find((c: any) => c.category?.toLowerCase() === item.name?.toLowerCase());
-                              const avgComp = wageMatch ? parseFloat(wageMatch.avg_comp || 0).toFixed(2) : '0.00';
-                              const share = totalCatJobs > 0 ? ((item.jobs / totalCatJobs) * 100).toFixed(1) : '0.0';
-                              return (
-                                <tr key={idx} className="hover:bg-primary-soft/20 transition-colors">
-                                  <td className="py-3 px-4 font-numeric text-ink-muted">#{idx + 1}</td>
-                                  <td className="py-3 px-4 font-semibold text-ink">{item.name}</td>
-                                  <td className="py-3 px-4 text-right font-numeric font-bold text-ink">
-                                    {(item.jobs ?? 0).toLocaleString()}
-                                  </td>
-                                  <td className="py-3 px-4 text-right font-numeric text-ink-soft">
-                                    {share}%
-                                  </td>
-                                  <td className="py-3 px-4 text-right font-numeric font-semibold text-primary-dark">
-                                    PHP {avgComp}
-                                  </td>
-                                </tr>
-                              );
-                            });
-                          })()
-                        )}
-                      </tbody>
-                      {transformedJobsData.length > 0 && (
-                        <tfoot>
-                          <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
-                            <td colSpan={2} className="py-3 px-4 uppercase tracking-wider text-[11px]">
-                              Total ({transformedJobsData.length} Sectors)
-                            </td>
-                            <td className="py-3 px-4 text-right font-numeric font-bold text-primary-dark">
-                              {transformedJobsData.reduce((sum: number, c: any) => sum + (c.jobs || 0), 0).toLocaleString()}
-                            </td>
-                            <td className="py-3 px-4 text-right font-numeric font-bold">100.0%</td>
-                            <td className="py-3 px-4 text-right font-numeric font-bold text-primary-dark">
-                              PHP {parseFloat(data?.compensation?.avg || 0).toFixed(2)} (Platform Avg)
-                            </td>
-                          </tr>
-                        </tfoot>
-                      )}
-                    </table>
-                  </div>
-                ) : (
-                  /* GEOGRAPHIC LOCATIONS TABLE */
-                  <div className="overflow-x-auto rounded-2xl border border-ink-faint/30">
-                    <table className="w-full text-xs font-body text-left">
-                      <thead>
-                        <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-soft tracking-wider">
-                          <th className="py-3 px-4 w-16">Rank</th>
-                          <th className="py-3 px-4">Location (Municipality / Barangay)</th>
-                          <th className="py-3 px-4 text-right">Job Posts</th>
-                          <th className="py-3 px-4 text-right">Applications Filed</th>
-                          <th className="py-3 px-4 text-right">Total Interactions</th>
-                          <th className="py-3 px-4 text-right">Regional Share</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-ink-faint/20">
-                        {transformedGeographicActivity.length === 0 ? (
-                          <tr>
-                            <td colSpan={6} className="py-8 text-center text-ink-muted">
-                              No regional activity recorded yet for {from} to {to}. Data will display as users post and apply.
-                            </td>
-                          </tr>
-                        ) : (
-                          (() => {
-                            const totalGeoJobs = transformedGeographicActivity.reduce((sum: number, g: any) => sum + (g.jobs || 0), 0);
-                            const totalGeoApps = transformedGeographicActivity.reduce((sum: number, g: any) => sum + (g.applications || 0), 0);
-                            const totalGeoCombined = totalGeoJobs + totalGeoApps;
-
-                            return transformedGeographicActivity.map((item: any, idx: number) => {
-                              const combined = (item.jobs || 0) + (item.applications || 0);
-                              const share = totalGeoCombined > 0 ? ((combined / totalGeoCombined) * 100).toFixed(1) : '0.0';
-                              return (
-                                <tr key={idx} className="hover:bg-primary-soft/20 transition-colors">
-                                  <td className="py-3 px-4 font-numeric text-ink-muted">#{idx + 1}</td>
-                                  <td className="py-3 px-4 font-semibold text-ink">{item.name}</td>
-                                  <td className="py-3 px-4 text-right font-numeric text-ink">
-                                    {(item.jobs ?? 0).toLocaleString()}
-                                  </td>
-                                  <td className="py-3 px-4 text-right font-numeric text-ink">
-                                    {(item.applications ?? 0).toLocaleString()}
-                                  </td>
-                                  <td className="py-3 px-4 text-right font-numeric font-bold text-ink">
-                                    {combined.toLocaleString()}
-                                  </td>
-                                  <td className="py-3 px-4 text-right font-numeric font-semibold text-primary-dark">
-                                    {share}%
-                                  </td>
-                                </tr>
-                              );
-                            });
-                          })()
-                        )}
-                      </tbody>
-                      {transformedGeographicActivity.length > 0 && (
-                        <tfoot>
-                          <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
-                            <td colSpan={2} className="py-3 px-4 uppercase tracking-wider text-[11px]">
-                              Total ({transformedGeographicActivity.length} Locations)
-                            </td>
-                            <td className="py-3 px-4 text-right font-numeric font-bold">
-                              {transformedGeographicActivity.reduce((sum: number, g: any) => sum + (g.jobs || 0), 0).toLocaleString()}
-                            </td>
-                            <td className="py-3 px-4 text-right font-numeric font-bold">
-                              {transformedGeographicActivity.reduce((sum: number, g: any) => sum + (g.applications || 0), 0).toLocaleString()}
-                            </td>
-                            <td className="py-3 px-4 text-right font-numeric font-bold text-primary-dark">
-                              {transformedGeographicActivity.reduce((sum: number, g: any) => sum + (g.jobs || 0) + (g.applications || 0), 0).toLocaleString()}
-                            </td>
-                            <td className="py-3 px-4 text-right font-numeric font-bold text-primary-dark">100.0%</td>
-                          </tr>
-                        </tfoot>
-                      )}
-                    </table>
-                  </div>
-                )}
-                <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-1">
-                  <span>Reconciliation check: Job Posts and Applications reconcile with database totals for this time window.</span>
-                  <button
-                    onClick={handleExportCSV}
-                    className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
-                  >
-                    <i className="lni lni-download text-xs" />
-                    Export Table as CSV
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
           {/* TAB 4: PLATFORM HEALTH & TRUST */}
           {activeTab === 'health' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {(viewMode === 'charts' || viewMode === 'split') && (
                 <>
                   {/* Tab-Specific Filters */}
-                  <div className="flex flex-wrap items-center gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border border-white/50 shadow-sm no-print">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-body font-bold text-ink-soft">Wage Pay Bracket:</span>
+                  <div className="flex flex-wrap items-center gap-3 bg-white/70 backdrop-blur-md px-3.5 py-2 rounded-xl border border-ink-faint/40 shadow-xs no-print text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] font-semibold text-ink-soft">Wage Bracket:</span>
                       <select
                         aria-label="Filter by wage bracket"
                         value={healthWageFilter}
                         onChange={(e) => setHealthWageFilter(e.target.value as any)}
-                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                        className="bg-white px-2.5 py-1 rounded-lg border border-ink-faint/60 text-xs font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
                       >
                         <option value="all">All Wages</option>
                         <option value="low">Under PHP 500 / day</option>
@@ -3121,13 +2934,13 @@ export default function AnalyticsDashboard() {
                       </select>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-body font-bold text-ink-soft">Moderation Issue:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] font-semibold text-ink-soft">Moderation Issue:</span>
                       <select
                         aria-label="Filter by violation category"
                         value={healthReportFilter}
                         onChange={(e) => setHealthReportFilter(e.target.value as any)}
-                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                        className="bg-white px-2.5 py-1 rounded-lg border border-ink-faint/60 text-xs font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
                       >
                         <option value="all">All Violations</option>
                         <option value="fake_account">Fake Account / Scam</option>
@@ -3137,29 +2950,29 @@ export default function AnalyticsDashboard() {
                       </select>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-body font-bold text-ink-soft">Sort Tables By:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] font-semibold text-ink-soft">Sort By:</span>
                       <select
                         aria-label="Sort health tables by"
                         value={healthSortBy}
                         onChange={(e) => setHealthSortBy(e.target.value as any)}
-                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                        className="bg-white px-2.5 py-1 rounded-lg border border-ink-faint/60 text-xs font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
                       >
                         <option value="value">Count / Average Wage</option>
                         <option value="name">Name (Alphabetical)</option>
                       </select>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-body font-bold text-ink-soft">Order:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] font-semibold text-ink-soft">Order:</span>
                       <select
                         aria-label="Sort health order"
                         value={healthSortOrder}
                         onChange={(e) => setHealthSortOrder(e.target.value as any)}
-                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                        className="bg-white px-2.5 py-1 rounded-lg border border-ink-faint/60 text-xs font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
                       >
-                        <option value="desc">Descending / Highest</option>
-                        <option value="asc">Ascending / Lowest</option>
+                        <option value="desc">Descending</option>
+                        <option value="asc">Ascending</option>
                       </select>
                     </div>
 
@@ -3177,35 +2990,35 @@ export default function AnalyticsDashboard() {
                     )}
                   </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print-chart-container">
                 {/* Two-Way Rating System */}
-                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col justify-between">
+                <div className="bg-white/90 p-4 rounded-xl shadow-xs border border-ink-faint/30 flex flex-col justify-between">
                   <div>
-                    <div className="mb-5">
-                      <h3 className="font-display text-lg font-bold text-ink">Two-Way Star Ratings</h3>
-                      <p className="text-xs text-ink-muted mt-1">Average user ratings and feedback score distribution.</p>
+                    <div className="mb-3">
+                      <h3 className="font-display text-sm font-bold text-ink">Two-Way Star Ratings</h3>
+                      <p className="text-[11px] text-ink-muted">Average user ratings and feedback score distribution.</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="bg-white/60 p-4 rounded-2xl border border-white/50 shadow-inner flex items-center justify-between">
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-slate-50/70 p-2.5 rounded-lg border border-ink-faint/30 flex items-center justify-between">
                         <div>
-                          <span className="text-[10px] font-body font-semibold text-ink-soft uppercase tracking-wider">Worker Average</span>
-                          <strong className="text-xl font-numeric text-ink block mt-1">{data?.ratings?.average_worker_rating ?? 'N/A'}</strong>
+                          <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider">Worker Avg</span>
+                          <strong className="text-lg font-numeric text-ink block mt-0.5">{data?.ratings?.average_worker_rating ?? 'N/A'}</strong>
                         </div>
-                        <div className="text-2xl text-yellow-400">★</div>
+                        <div className="text-xl text-yellow-400">★</div>
                       </div>
-                      <div className="bg-white/60 p-4 rounded-2xl border border-white/50 shadow-inner flex items-center justify-between">
+                      <div className="bg-slate-50/70 p-2.5 rounded-lg border border-ink-faint/30 flex items-center justify-between">
                         <div>
-                          <span className="text-[10px] font-body font-semibold text-ink-soft uppercase tracking-wider">Employer Average</span>
-                          <strong className="text-xl font-numeric text-ink block mt-1">{data?.ratings?.average_employer_rating ?? 'N/A'}</strong>
+                          <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider">Employer Avg</span>
+                          <strong className="text-lg font-numeric text-ink block mt-0.5">{data?.ratings?.average_employer_rating ?? 'N/A'}</strong>
                         </div>
-                        <div className="text-2xl text-yellow-400">★</div>
+                        <div className="text-xl text-yellow-400">★</div>
                       </div>
                     </div>
 
-                    <hr className="my-5 border-ink-faint" />
-                    <h4 className="font-display text-xs font-bold uppercase tracking-wider text-ink-soft mb-3">Rating Star Distribution</h4>
-                    <div className="space-y-2">
+                    <hr className="my-3 border-ink-faint/30" />
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-soft mb-2">Rating Star Distribution</h4>
+                    <div className="space-y-1.5">
                       {[5, 4, 3, 2, 1].map((stars) => {
                         const matches = data?.ratings?.distribution?.find((d: any) => Math.round(d.rating) === stars);
                         const count = matches ? matches.count : 0;
@@ -3213,74 +3026,69 @@ export default function AnalyticsDashboard() {
                         const barWidth = `${Math.round((count / totalReviews) * 100)}%`;
 
                         return (
-                          <div key={stars} className="flex items-center gap-3 text-xs font-body">
-                            <span className="w-10 text-right text-ink font-bold font-numeric">{stars} Stars</span>
-                            <div className="h-2.5 flex-1 bg-gray-100 rounded-full overflow-hidden border border-gray-200/50">
+                          <div key={stars} className="flex items-center gap-2 text-xs font-body">
+                            <span className="w-10 text-right text-ink font-semibold font-numeric text-[11px]">{stars}★</span>
+                            <div className="h-2 flex-1 bg-gray-100 rounded-full overflow-hidden border border-gray-200/50">
                               <div className="h-full bg-yellow-400 rounded-full transition-all duration-1000" style={{ width: barWidth }}></div>
                             </div>
-                            <span className="w-8 text-ink-muted text-right font-numeric">{count}</span>
+                            <span className="w-7 text-ink-muted text-right font-numeric text-[11px]">{count}</span>
                           </div>
                         );
                       })}
                     </div>
                   </div>
-                  <ChartInsightBox
-                    icon="⭐"
-                    title="Rating System Health"
-                    text={`Platform maintains a high-trust bilateral rating benchmark: Worker satisfaction average is ${data?.ratings?.average_worker_rating ?? '5.0'} / 5.0 and Employer satisfaction average is ${data?.ratings?.average_employer_rating ?? '5.0'} / 5.0 across confirmed engagements.`}
-                  />
                 </div>
 
                 {/* Wages Analytics with expandable details */}
-                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col justify-between">
+                <div className="bg-white/90 p-4 rounded-xl shadow-xs border border-ink-faint/30 flex flex-col justify-between">
                   <div>
-                    <div className="mb-5">
-                      <h3 className="font-display text-lg font-bold text-ink">Compensation & Wage Analytics</h3>
-                      <p className="text-xs text-ink-muted mt-1">Platform payment statistics and category wage guides.</p>
+                    <div className="mb-3">
+                      <h3 className="font-display text-sm font-bold text-ink">Compensation & Wage Analytics</h3>
+                      <p className="text-[11px] text-ink-muted">Platform payment statistics and category wage guides.</p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 text-center mb-6">
-                      <div className="bg-white/60 p-3 rounded-2xl border border-white/50 shadow-inner">
-                        <span className="text-[10px] font-body text-ink-soft block">Min Wage</span>
-                        <strong className="text-sm font-numeric text-ink mt-1 block">PHP {data?.compensation?.min ?? 0}</strong>
+                    <div className="grid grid-cols-3 gap-2.5 text-center mb-4">
+                      <div className="bg-slate-50/70 p-2 rounded-lg border border-ink-faint/30">
+                        <span className="text-[10px] text-ink-muted block">Min Wage</span>
+                        <strong className="text-xs font-numeric text-ink mt-0.5 block">PHP {data?.compensation?.min ?? 0}</strong>
                       </div>
-                      <div className="bg-white/60 p-3 rounded-2xl border border-white/50 shadow-inner">
-                        <span className="text-[10px] font-body text-ink-soft block">Avg Wage</span>
-                        <strong className="text-sm font-numeric text-primary-dark mt-1 block">PHP {data?.compensation?.avg ?? 0}</strong>
+                      <div className="bg-slate-50/70 p-2 rounded-lg border border-ink-faint/30">
+                        <span className="text-[10px] text-ink-muted block">Avg Wage</span>
+                        <strong className="text-xs font-numeric text-primary-dark mt-0.5 block font-bold">PHP {data?.compensation?.avg ?? 0}</strong>
                       </div>
-                      <div className="bg-white/60 p-3 rounded-2xl border border-white/50 shadow-inner">
-                        <span className="text-[10px] font-body text-ink-soft block">Max Wage</span>
-                        <strong className="text-sm font-numeric text-ink mt-1 block">PHP {data?.compensation?.max ?? 0}</strong>
+                      <div className="bg-slate-50/70 p-2 rounded-lg border border-ink-faint/30">
+                        <span className="text-[10px] text-ink-muted block">Max Wage</span>
+                        <strong className="text-xs font-numeric text-ink mt-0.5 block">PHP {data?.compensation?.max ?? 0}</strong>
                       </div>
                     </div>
 
                     {showWagesBreakdown && (
                       <div className="animate-fade-in">
-                        <div className="flex justify-between items-center mb-3">
-                          <h4 className="font-display text-xs font-bold uppercase tracking-wider text-ink-soft">Average Wage by Job Category</h4>
+                        <div className="flex justify-between items-center mb-2">
+                          <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">Average Wage by Category</h4>
                           {healthWageFilter !== 'all' && (
-                            <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded font-body font-bold uppercase">Filtered</span>
+                            <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold uppercase">Filtered</span>
                           )}
                         </div>
-                        <div className="max-h-48 overflow-y-auto border border-gray-100 rounded-2xl bg-white/50 p-2 shadow-inner">
+                        <div className="max-h-40 overflow-y-auto border border-ink-faint/30 rounded-xl bg-white/50 p-1 shadow-inner">
                           <table className="w-full text-xs font-body text-left">
                             <thead>
                               <tr className="border-b border-gray-200/60 text-ink-muted uppercase text-[9px]">
-                                <th className="py-2 px-3 font-semibold">Category</th>
-                                <th className="py-2 px-3 text-right font-semibold">Average Compensation</th>
+                                <th className="py-1.5 px-2 font-semibold">Category</th>
+                                <th className="py-1.5 px-2 text-right font-semibold">Avg Compensation</th>
                               </tr>
                             </thead>
                             <tbody>
                               {filteredCompensationCategories.length > 0 ? (
                                 filteredCompensationCategories.map((c: any, idx: number) => (
-                                  <tr key={idx} className="border-b border-gray-100/50 hover:bg-white/30 last:border-none">
-                                    <td className="py-2.5 px-3 text-ink font-semibold">{c.category}</td>
-                                    <td className="py-2.5 px-3 text-right font-numeric text-ink-soft font-bold">PHP {parseFloat(c.avg_comp).toFixed(2)}</td>
+                                  <tr key={idx} className="border-b border-gray-100/50 hover:bg-slate-50/50 last:border-none">
+                                    <td className="py-1.5 px-2 text-ink font-semibold">{c.category}</td>
+                                    <td className="py-1.5 px-2 text-right font-numeric text-ink-soft font-bold">PHP {parseFloat(c.avg_comp).toFixed(2)}</td>
                                   </tr>
                                 ))
                               ) : (
                                 <tr>
-                                  <td colSpan={2} className="py-4 text-center text-ink-muted">No wages matching the selected bracket.</td>
+                                  <td colSpan={2} className="py-3 text-center text-ink-muted text-xs">No wages matching the selected bracket.</td>
                                 </tr>
                               )}
                             </tbody>
@@ -3290,47 +3098,40 @@ export default function AnalyticsDashboard() {
                     )}
                   </div>
 
-                  <div>
-                    <div className="mt-4 flex justify-center no-print">
-                      <button
-                        onClick={() => setShowWagesBreakdown(!showWagesBreakdown)}
-                        className="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded-xl transition-all cursor-pointer"
-                      >
-                        {showWagesBreakdown ? 'Hide Category Breakdown' : 'View Category Breakdown'}
-                      </button>
-                    </div>
-                    <ChartInsightBox
-                      icon="💼"
-                      title="Wage Distribution Insight"
-                      text={`Platform wage offers span from PHP ${(data?.compensation?.min ?? 0).toLocaleString()} to PHP ${(data?.compensation?.max ?? 0).toLocaleString()} / day, with an overall average of PHP ${(data?.compensation?.avg ?? 0).toLocaleString()} across listed job posts.`}
-                    />
+                  <div className="mt-3 flex justify-center no-print">
+                    <button
+                      onClick={() => setShowWagesBreakdown(!showWagesBreakdown)}
+                      className="px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary text-[11px] font-semibold rounded-lg transition-all cursor-pointer"
+                    >
+                      {showWagesBreakdown ? 'Hide Breakdown' : 'View Category Breakdown'}
+                    </button>
                   </div>
                 </div>
               </div>
 
               {/* Reports Breakdown with collapsable table */}
-              <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col justify-between print-chart-container">
+              <div className="bg-white/90 p-4 rounded-xl shadow-xs border border-ink-faint/30 flex flex-col justify-between print-chart-container">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-display text-lg font-bold text-ink">Reports & Moderation Insights</h3>
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-display text-sm font-bold text-ink">Reports & Moderation Insights</h3>
                     {data?.reports?.open_reports > 0 && (
-                      <span className="text-[10px] bg-status-error/10 text-status-error px-2.5 py-0.5 rounded-full font-body font-bold border border-status-error/20 uppercase tracking-wider">
+                      <span className="text-[10px] bg-status-error/10 text-status-error px-2 py-0.5 rounded-full font-bold border border-status-error/20 uppercase tracking-wider">
                         {data.reports.open_reports} Open
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-ink-muted mb-5">Security violations and average moderation action times.</p>
+                  <p className="text-[11px] text-ink-muted mb-3">Security violations and average moderation action times.</p>
 
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-white/60 p-4 rounded-2xl border border-white/50 shadow-inner text-center">
-                      <span className="text-[10px] font-body font-semibold text-ink-soft uppercase tracking-wider block">Most Common Reason</span>
-                      <strong className="text-sm font-display text-ink mt-2 block truncate">
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="bg-slate-50/70 p-2.5 rounded-lg border border-ink-faint/30 text-center">
+                      <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Most Common Reason</span>
+                      <strong className="text-xs font-semibold text-ink mt-1 block truncate">
                         {data?.reports?.most_common_type || 'None'}
                       </strong>
                     </div>
-                    <div className="bg-white/60 p-4 rounded-2xl border border-white/50 shadow-inner text-center">
-                      <span className="text-[10px] font-body font-semibold text-ink-soft uppercase tracking-wider block">Avg Resolution Time</span>
-                      <strong className="text-sm font-numeric text-ink mt-2 block">
+                    <div className="bg-slate-50/70 p-2.5 rounded-lg border border-ink-faint/30 text-center">
+                      <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Avg Resolution Time</span>
+                      <strong className="text-xs font-numeric text-ink mt-1 block">
                         {data?.reports?.average_resolution_seconds > 0 
                           ? `${(data.reports.average_resolution_seconds / 3600).toFixed(1)} hrs` 
                           : 'N/A'}
@@ -3338,49 +3139,49 @@ export default function AnalyticsDashboard() {
                     </div>
                   </div>
 
-                  <h4 className="font-display text-xs font-bold uppercase tracking-wider text-ink-soft mb-3">Top violation Categories</h4>
-                  <div className="space-y-2 mb-6">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-soft mb-2">Top Violation Categories</h4>
+                  <div className="space-y-1.5 mb-3">
                     {[...filteredReportsBreakdown]
                       .sort((a: any, b: any) => b.count - a.count)
                       .slice(0, 3)
                       .map((r: any, idx: number) => (
-                        <div key={idx} className="flex justify-between items-center text-xs font-body bg-white/40 p-2.5 rounded-xl border border-white/50 animate-fade-in">
-                          <span className="font-semibold text-ink capitalize">{r.type.replace(/_/g, ' ')}</span>
-                          <span className="font-bold text-status-error">{r.count} reports</span>
+                        <div key={idx} className="flex justify-between items-center text-xs font-body bg-slate-50/70 px-2.5 py-1.5 rounded-lg border border-ink-faint/20">
+                          <span className="font-semibold text-ink capitalize text-xs">{r.type.replace(/_/g, ' ')}</span>
+                          <span className="font-bold text-status-error text-xs">{r.count} reports</span>
                         </div>
                       ))}
                     {filteredReportsBreakdown.length === 0 && (
-                      <div className="text-xs text-ink-muted text-center py-2">No violations matching the filter.</div>
+                      <div className="text-xs text-ink-muted text-center py-1.5">No violations matching the filter.</div>
                     )}
                   </div>
 
                   {showReportsBreakdown && (
                     <div className="animate-fade-in">
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-display text-xs font-bold uppercase tracking-wider text-ink-soft">Complete Violations Breakdown</h4>
+                      <div className="flex justify-between items-center mb-2">
+                        <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-soft">Complete Violations Breakdown</h4>
                         {healthReportFilter !== 'all' && (
-                          <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded font-body font-bold uppercase">Filtered</span>
+                          <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold uppercase">Filtered</span>
                         )}
                       </div>
-                      <div className="max-h-48 overflow-y-auto border border-gray-100 rounded-2xl bg-white/50 p-2 shadow-inner">
+                      <div className="max-h-40 overflow-y-auto border border-ink-faint/30 rounded-xl bg-white/50 p-1 shadow-inner">
                         <table className="w-full text-xs font-body text-left">
                           <thead>
                             <tr className="border-b border-gray-200/60 text-ink-muted uppercase text-[9px]">
-                              <th className="py-2 px-3 font-semibold">Violation Type</th>
-                              <th className="py-2 px-3 text-right font-semibold">Total Reports</th>
+                              <th className="py-1.5 px-2 font-semibold">Violation Type</th>
+                              <th className="py-1.5 px-2 text-right font-semibold">Total Reports</th>
                             </tr>
                           </thead>
                           <tbody>
                             {filteredReportsBreakdown.length > 0 ? (
                               filteredReportsBreakdown.map((r: any, idx: number) => (
-                                <tr key={idx} className="border-b border-gray-100/50 hover:bg-white/30 last:border-none">
-                                  <td className="py-2.5 px-3 text-ink font-semibold capitalize">{r.type.replace(/_/g, ' ')}</td>
-                                  <td className="py-2.5 px-3 text-right font-numeric text-ink-soft font-bold">{r.count}</td>
+                                <tr key={idx} className="border-b border-gray-100/50 hover:bg-slate-50/50 last:border-none">
+                                  <td className="py-1.5 px-2 text-ink font-semibold capitalize">{r.type.replace(/_/g, ' ')}</td>
+                                  <td className="py-1.5 px-2 text-right font-numeric text-ink-soft font-bold">{r.count}</td>
                                 </tr>
                               ))
                             ) : (
                               <tr>
-                                <td colSpan={2} className="py-4 text-center text-ink-muted">No reports matching the selected category.</td>
+                                <td colSpan={2} className="py-3 text-center text-ink-muted text-xs">No reports matching the selected category.</td>
                               </tr>
                             )}
                           </tbody>
@@ -3390,16 +3191,13 @@ export default function AnalyticsDashboard() {
                   )}
                 </div>
 
-                <div>
-                  <div className="mt-4 flex justify-center no-print">
-                    <button
-                      onClick={() => setShowReportsBreakdown(!showReportsBreakdown)}
-                      className="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded-xl transition-all cursor-pointer"
-                    >
-                      {showReportsBreakdown ? 'Hide Breakdown Details' : 'View Complete Breakdown'}
-                    </button>
-                  </div>
-                  <ChartInsightBox text={healthInsight} />
+                <div className="mt-3 flex justify-center no-print">
+                  <button
+                    onClick={() => setShowReportsBreakdown(!showReportsBreakdown)}
+                    className="px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary text-[11px] font-semibold rounded-lg transition-all cursor-pointer"
+                  >
+                    {showReportsBreakdown ? 'Hide Breakdown' : 'View Complete Breakdown'}
+                  </button>
                 </div>
               </div>
             </>
@@ -3407,46 +3205,46 @@ export default function AnalyticsDashboard() {
 
           {/* DETAILED TABULAR REPORT: Platform Health & Moderation Audit */}
           {(viewMode === 'table' || viewMode === 'split') && (
-            <div id="detailed-report-section" className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 space-y-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-ink-faint/40 pb-4">
+            <div id="detailed-report-section" className="bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-xs border border-ink-faint/30 space-y-3">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-ink-faint/30 pb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <i className="lni lni-shield text-primary-dark text-lg" />
-                      <h3 className="font-display text-lg font-bold text-ink">
+                      <i className="lni lni-shield text-primary-dark text-sm" />
+                      <h3 className="font-display text-sm font-bold text-ink">
                         Detailed Analytics Report — Platform Trust & Moderation Audit
                       </h3>
                     </div>
-                    <p className="text-xs text-ink-muted mt-1">
-                      Full audit log of incident categories, resolution velocity, and trust benchmarks for <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong> ({globalPreset}).
+                    <p className="text-[11px] text-ink-muted mt-0.5">
+                      Audit log of incident categories, resolution velocity, and trust benchmarks for <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong> ({globalPreset}).
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-3 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-xs font-body font-bold">
+                    <span className="px-2.5 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg text-[11px] font-bold">
                       Open Reports: <strong>{data?.reports?.open_reports ?? 0}</strong>
                     </span>
-                    <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-body font-bold flex items-center gap-1.5">
-                      <i className="lni lni-checkmark-circle text-xs" />
+                    <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-[11px] font-bold flex items-center gap-1">
+                      <i className="lni lni-checkmark-circle text-[10px]" />
                       <span>Audit Synchronized</span>
                     </span>
                   </div>
                 </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-ink-faint/30">
+                <div className="overflow-x-auto rounded-xl border border-ink-faint/30">
                   <table className="w-full text-xs font-body text-left">
                     <thead>
-                      <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-soft tracking-wider">
-                        <th className="py-3 px-4 w-16">Rank</th>
-                        <th className="py-3 px-4">Violation Type / Category</th>
-                        <th className="py-3 px-4 text-right">Incident Reports</th>
-                        <th className="py-3 px-4 text-right">Share of Total</th>
-                        <th className="py-3 px-4 text-right">Avg Resolution Latency</th>
-                        <th className="py-3 px-4 text-right">Status Compliance</th>
+                      <tr className="bg-slate-50/80 border-b border-ink-faint/30 text-[10px] uppercase font-bold text-ink-muted tracking-wider">
+                        <th className="py-2 px-3 w-12">Rank</th>
+                        <th className="py-2 px-3">Violation Type / Category</th>
+                        <th className="py-2 px-3 text-right">Incident Reports</th>
+                        <th className="py-2 px-3 text-right">Share of Total</th>
+                        <th className="py-2 px-3 text-right">Avg Resolution Latency</th>
+                        <th className="py-2 px-3 text-right">Status Compliance</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-ink-faint/20">
                       {(!data?.reports?.breakdown || data.reports.breakdown.length === 0) ? (
                         <tr>
-                          <td colSpan={6} className="py-8 text-center text-ink-muted">
+                          <td colSpan={6} className="py-6 text-center text-ink-muted">
                             Zero safety violations or incident reports recorded for {from} to {to}. Community standards are operating smoothly.
                           </td>
                         </tr>
@@ -3463,18 +3261,18 @@ export default function AnalyticsDashboard() {
 
                             return (
                               <tr key={idx} className="hover:bg-primary-soft/20 transition-colors">
-                                <td className="py-3 px-4 font-numeric text-ink-muted">#{idx + 1}</td>
-                                <td className="py-3 px-4 font-semibold text-ink capitalize">{label}</td>
-                                <td className="py-3 px-4 text-right font-numeric font-bold text-rose-600">
+                                <td className="py-2 px-3 font-numeric text-ink-muted">#{idx + 1}</td>
+                                <td className="py-2 px-3 font-semibold text-ink capitalize">{label}</td>
+                                <td className="py-2 px-3 text-right font-numeric font-bold text-rose-600">
                                   {count.toLocaleString()}
                                 </td>
-                                <td className="py-3 px-4 text-right font-numeric text-ink-soft">
+                                <td className="py-2 px-3 text-right font-numeric text-ink-soft">
                                   {share}%
                                 </td>
-                                <td className="py-3 px-4 text-right font-numeric text-ink">
+                                <td className="py-2 px-3 text-right font-numeric text-ink">
                                   {avgHrs}
                                 </td>
-                                <td className="py-3 px-4 text-right font-numeric font-bold text-emerald-700">
+                                <td className="py-2 px-3 text-right font-numeric font-bold text-emerald-700">
                                   100% Audited
                                 </td>
                               </tr>
@@ -3486,19 +3284,19 @@ export default function AnalyticsDashboard() {
                     {data?.reports?.breakdown && data.reports.breakdown.length > 0 && (
                       <tfoot>
                         <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
-                          <td colSpan={2} className="py-3 px-4 uppercase tracking-wider text-[11px]">
+                          <td colSpan={2} className="py-2 px-3 uppercase tracking-wider text-[10px]">
                             Total ({data.reports.breakdown.length} Categories)
                           </td>
-                          <td className="py-3 px-4 text-right font-numeric font-bold text-rose-600">
+                          <td className="py-2 px-3 text-right font-numeric font-bold text-rose-600">
                             {data.reports.breakdown.reduce((sum: number, r: any) => sum + (parseInt(r.count, 10) || 0), 0).toLocaleString()}
                           </td>
-                          <td className="py-3 px-4 text-right font-numeric font-bold">100.0%</td>
-                          <td className="py-3 px-4 text-right font-numeric font-bold text-ink">
+                          <td className="py-2 px-3 text-right font-numeric font-bold">100.0%</td>
+                          <td className="py-2 px-3 text-right font-numeric font-bold text-ink">
                             {data.reports.average_resolution_seconds > 0 
                               ? `${(data.reports.average_resolution_seconds / 3600).toFixed(1)} hrs (Avg)` 
                               : 'Immediate'}
                           </td>
-                          <td className="py-3 px-4 text-right font-numeric font-bold text-emerald-700">
+                          <td className="py-2 px-3 text-right font-numeric font-bold text-emerald-700">
                             {data.reports.open_reports > 0 ? `${data.reports.open_reports} Open Action Item(s)` : 'All Resolved'}
                           </td>
                         </tr>
@@ -3506,7 +3304,7 @@ export default function AnalyticsDashboard() {
                     )}
                   </table>
                 </div>
-                <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-1">
+                <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-0.5">
                   <span>Reconciliation check: Report counts synchronize with the Platform Reports queue and Audit logs.</span>
                   <button
                     onClick={handleExportCSV}

@@ -175,16 +175,16 @@ function VerificationsPageContent() {
 
   return (
     <div className="animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
         <div>
-          <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">ID Verifications</h1>
-          <p className="text-ink-soft font-body mt-2 text-lg">
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">ID Verifications</h1>
+          <p className="text-xs text-ink-muted mt-0.5">
             Review and approve user-submitted government IDs to grant platform access.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 mt-6 md:mt-0">
-          <div className="relative w-full md:w-64 group">
+        <div className="flex flex-wrap items-center gap-2 mt-3 md:mt-0 text-xs">
+          <div className="relative w-full md:w-60 group">
             <input
               type="text"
               aria-label="Search pending users"
@@ -194,9 +194,9 @@ function VerificationsPageContent() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-4 py-2 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary transition text-sm font-body"
+              className="w-full pl-8 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white focus:border-ink/50 outline-none text-xs font-body transition"
             />
-            <i className="lni lni-search text-ink-muted absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+            <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
           </div>
 
           <div className="relative">
@@ -207,18 +207,18 @@ function VerificationsPageContent() {
                 setSortOrder(e.target.value as any);
                 setCurrentPage(1);
               }}
-              className="appearance-none pl-4 pr-10 py-2.5 rounded-xl font-body font-semibold text-sm transition-colors bg-white/70 backdrop-blur-md border border-white/50 text-ink-soft focus:bg-white outline-none shadow-sm cursor-pointer"
+              className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer"
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
             </select>
-            <i className="lni lni-chevron-down absolute right-3.5 top-1/2 transform -translate-y-1/2 text-ink-muted pointer-events-none" />
+            <i className="lni lni-chevron-down absolute right-2.5 top-1/2 transform -translate-y-1/2 text-ink-muted text-[10px] pointer-events-none" />
           </div>
 
           <button
             onClick={handleExportCSV}
             aria-label="Export verifications as CSV"
-            className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
             title="Export verifications list as CSV"
           >
             <i className="lni lni-download text-xs" />
@@ -228,90 +228,90 @@ function VerificationsPageContent() {
           <button
             onClick={() => fetchVerifications(false)}
             aria-label="Refresh verifications list"
-            className="p-2.5 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm hover:bg-white text-ink-soft hover:text-primary transition flex items-center justify-center cursor-pointer"
+            className="p-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-white text-ink-soft hover:text-primary transition flex items-center justify-center cursor-pointer"
             title="Refresh list"
           >
-            <i className={`lni lni-reload text-sm ${loading ? 'animate-spin' : ''}`} />
+            <i className={`lni lni-reload text-xs ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
 
-      <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-sm border border-white/50 overflow-hidden transition-all hover:shadow-lg">
+      <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
         {loading ? (
-          <div className="p-8 space-y-4">
+          <div className="p-6 space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-ink-faint/30 rounded-2xl animate-pulse flex items-center justify-between px-6">
-                <div className="w-1/3 h-6 bg-ink-faint/50 rounded-lg"></div>
-                <div className="w-1/6 h-6 bg-ink-faint/50 rounded-lg"></div>
-                <div className="w-1/4 h-8 bg-ink-faint/50 rounded-lg"></div>
+              <div key={i} className="h-12 bg-ink-faint/20 rounded-xl animate-pulse flex items-center justify-between px-4">
+                <div className="w-1/3 h-4 bg-ink-faint/40 rounded-lg"></div>
+                <div className="w-1/6 h-4 bg-ink-faint/40 rounded-lg"></div>
+                <div className="w-1/4 h-6 bg-ink-faint/40 rounded-lg"></div>
               </div>
             ))}
           </div>
         ) : pendingUsers.length === 0 ? (
-          <div className="p-16 flex flex-col items-center justify-center text-center">
-            <div className="w-24 h-24 bg-status-success/10 rounded-full flex items-center justify-center mb-6 shadow-inner animate-pulse-slow">
-              <i className="lni lni-checkmark-circle text-5xl text-status-success" />
+          <div className="p-10 flex flex-col items-center justify-center text-center">
+            <div className="w-14 h-14 bg-status-success/10 rounded-full flex items-center justify-center mb-3 shadow-inner">
+              <i className="lni lni-checkmark-circle text-2xl text-status-success" />
             </div>
-            <h3 className="font-display text-2xl text-ink">All caught up!</h3>
-            <p className="font-body text-ink-soft mt-3 text-lg">There are no pending ID verifications at the moment.</p>
+            <h3 className="font-display text-lg font-bold text-ink">All caught up!</h3>
+            <p className="font-body text-ink-muted mt-1 text-xs">There are no pending ID verifications at the moment.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left font-body table-fixed border-collapse">
-              <thead className="bg-white/50 border-b border-ink-faint/50">
+              <thead className="bg-slate-50/70 border-b border-ink-faint/30">
                 <tr>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[12%]">User ID</th>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[40%]">User Details</th>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[18%]">Role</th>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[18%]">Submitted At</th>
-                  <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[12%] text-right">Action</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[12%]">User ID</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[40%]">User Details</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[18%]">Role</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[18%]">Submitted At</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[12%] text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-faint/30">
+              <tbody className="divide-y divide-ink-faint/20">
                 {paginatedUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-white/60 transition-colors duration-200">
-                    <td className="px-8 py-5 text-sm font-numeric font-bold text-ink-muted">
+                  <tr key={user.id} className="hover:bg-slate-50/70 transition-colors duration-150">
+                    <td className="px-4 py-3 text-xs font-numeric font-bold text-ink-muted">
                       #{user.id}
                     </td>
-                    <td className="px-8 py-5">
+                    <td className="px-4 py-3">
                       <div className="flex items-center">
                         <Avatar name={user.name} url={user.avatar_url} />
-                        <div className="ml-5 truncate">
-                          <div className="font-body font-bold text-ink text-sm truncate">{user.name}</div>
-                          <div className="text-xs text-ink-muted mt-0.5 truncate">{user.email}</div>
+                        <div className="ml-3 truncate">
+                          <div className="font-body font-bold text-ink text-xs truncate">{user.name}</div>
+                          <div className="text-[11px] text-ink-muted truncate">{user.email}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-8 py-5">
-                      <div className="flex flex-col gap-1.5 items-start">
-                        <span className={`px-3 py-1 rounded-full text-xs font-body font-bold tracking-wide uppercase shadow-sm ${
-                          user.role === 'employer' ? 'bg-accent-peach border border-accent-peachBright/50 text-primary-dark' : 'bg-accent-mint border border-accent-mintDeep/30 text-accent-mintDeep'
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-1 items-start">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-body font-bold tracking-wide uppercase ${
+                          user.role === 'employer' ? 'bg-accent-peach text-primary-dark border border-accent-peachBright/50' : 'bg-accent-mint text-accent-mintDeep border border-accent-mintDeep/30'
                         }`}>
                           {user.role}
                         </span>
                         {user.role === 'employer' && (user.business_documents && (Array.isArray(user.business_documents) ? user.business_documents.length > 0 : !!user.business_documents)) ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
                             <i className="lni lni-files text-[10px]" />
-                            {Array.isArray(user.business_documents) ? `${user.business_documents.length} Business Doc(s)` : 'Business Doc'}
+                            {Array.isArray(user.business_documents) ? `${user.business_documents.length} Doc(s)` : 'Business Doc'}
                           </span>
                         ) : user.document_url ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-ink-soft bg-paper px-2 py-0.5 rounded-md border border-ink-faint">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-ink-soft bg-paper px-1.5 py-0.5 rounded border border-ink-faint">
                             <i className="lni lni-postcard text-[10px]" /> Govt ID
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
                             <i className="lni lni-timer text-[10px]" /> Pending ID
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-sm font-body font-medium text-ink-soft">
+                    <td className="px-4 py-3 text-xs font-body font-medium text-ink-soft">
                       {new Date(user.updated_at || user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                     </td>
-                    <td className="px-8 py-5 text-right">
+                    <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => setReviewUser(user)}
-                        className="bg-ink text-white px-4 py-2 rounded-lg text-sm font-body font-medium hover:bg-ink-soft transition-colors"
+                        className="bg-ink text-white px-3 py-1.5 rounded-lg text-xs font-body font-semibold hover:bg-ink-soft transition-colors cursor-pointer"
                       >
                         Review
                       </button>

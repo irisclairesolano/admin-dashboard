@@ -120,7 +120,7 @@ export default function UserDetailDrawer({
   const setLogsPage = externalSetLogsPage ?? setInternalLogsPage;
   return (
     <div
-      className="fixed inset-0 z-40 flex justify-end"
+      className="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="user-drawer-title"
@@ -129,14 +129,14 @@ export default function UserDetailDrawer({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-ink/40 backdrop-blur-sm transition-opacity duration-300"
+        className="fixed inset-0 bg-ink/50 backdrop-blur-md transition-opacity duration-300"
         onClick={onClose}
       />
 
-      {/* Drawer Body */}
-      <div className="relative w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col z-50 animate-slide-in overflow-hidden">
+      {/* Centered Modal Body - covers sizeable ~80% width of screen */}
+      <div className="relative w-full max-w-5xl lg:w-4/5 h-[88vh] bg-white rounded-3xl shadow-2xl flex flex-col z-50 animate-fade-in border border-white/60 overflow-hidden">
         {/* Header / Top Summary */}
-        <div className="p-6 bg-paper-cream border-b border-ink-faint flex flex-col gap-4 relative">
+        <div className="p-6 bg-paper-cream border-b border-ink-faint flex flex-col gap-4 relative shrink-0">
           <button
             onClick={onClose}
             className="absolute top-6 right-6 p-2 rounded-full hover:bg-ink-faint/50 text-ink-muted hover:text-ink transition-colors"
@@ -270,7 +270,7 @@ export default function UserDetailDrawer({
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <h4 className="text-xs font-bold text-ink-soft uppercase tracking-wider mb-1">Email Address</h4>
                       <div className="flex items-center gap-2 text-sm text-ink font-semibold">
@@ -345,7 +345,7 @@ export default function UserDetailDrawer({
                     <div>
                       <h4 className="text-xs font-bold text-ink-soft uppercase tracking-wider mb-2">Uploaded Business Documents</h4>
                       {userDetailData.user.business_documents && Array.isArray(userDetailData.user.business_documents) && userDetailData.user.business_documents.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                           {userDetailData.user.business_documents.map((docUrl: string, idx: number) => {
                             const isPdf = typeof docUrl === 'string' && (docUrl.toLowerCase().endsWith('.pdf') || docUrl.includes('.pdf?'));
                             return (

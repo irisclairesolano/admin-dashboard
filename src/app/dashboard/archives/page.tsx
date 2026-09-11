@@ -200,37 +200,37 @@ function ArchivesPageContent() {
 
   return (
     <div className="animate-fade-in">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold">Archives</h1>
-          <p className="text-ink-soft font-body mt-2 text-lg">
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">Archives</h1>
+          <p className="text-xs text-ink-muted mt-0.5">
             Manage soft-deleted accounts and job postings.
           </p>
         </div>
         <button 
           onClick={() => fetchArchives(true)}
-          className="flex items-center px-4 py-2 bg-paper rounded-xl text-ink font-body font-semibold hover:bg-ink-faint border border-ink-faint/55 transition-colors text-sm"
+          className="flex items-center px-3 py-1.5 bg-white rounded-lg text-ink-soft hover:text-ink font-body font-semibold hover:bg-slate-50 border border-ink-faint/40 shadow-2xs transition-colors text-xs cursor-pointer"
         >
-          <i className="lni lni-reload mr-2" />
+          <i className="lni lni-reload mr-1.5 text-xs" />
           Refresh
         </button>
       </div>
 
       {/* 2 Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
         <StatCard title="Deleted Users" value={users.length} iconClass="lni lni-user text-primary" />
         <StatCard title="Deleted Jobs" value={jobs.length} iconClass="lni lni-briefcase text-primary" />
       </div>
 
       {/* Tab Switcher & Search Bar */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div className="mb-4 flex flex-col md:flex-row gap-3 justify-between items-center">
         <StatusTabs
           options={[`Deleted Users (${users.length})`, `Deleted Jobs (${jobs.length})`]}
           activeKey={activeTab.startsWith('Deleted Users') ? `Deleted Users (${users.length})` : `Deleted Jobs (${jobs.length})`}
           onSelect={(tab) => setActiveTab(tab.startsWith('Deleted Users') ? 'Deleted Users' : 'Deleted Jobs')}
         />
 
-        <div className="relative w-full md:w-80 group">
+        <div className="relative w-full md:w-72 group">
           {activeTab === 'Deleted Users' ? (
             <>
               <input
@@ -239,9 +239,9 @@ function ArchivesPageContent() {
                 aria-label="Search deleted users"
                 value={userSearch}
                 onChange={e => setUserSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white/80 backdrop-blur-md border border-ink-faint/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition text-sm font-body"
+                className="w-full pl-8 pr-3 py-1.5 bg-white/90 border border-ink-faint/40 rounded-xl focus:outline-none focus:border-ink/50 transition text-xs font-body shadow-xs"
               />
-              <i className="lni lni-search text-ink-muted absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+              <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
             </>
           ) : (
             <>
@@ -251,41 +251,41 @@ function ArchivesPageContent() {
                 aria-label="Search deleted jobs"
                 value={jobSearch}
                 onChange={e => setJobSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white/80 backdrop-blur-md border border-ink-faint/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition text-sm font-body"
+                className="w-full pl-8 pr-3 py-1.5 bg-white/90 border border-ink-faint/40 rounded-xl focus:outline-none focus:border-ink/50 transition text-xs font-body shadow-xs"
               />
-              <i className="lni lni-search text-ink-muted absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+              <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
             </>
           )}
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-white/50 overflow-hidden transition-all hover:shadow-lg">
+      <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
         {activeTab === 'Deleted Users' ? (
           <div>
-            <div className="px-6 py-4 border-b border-ink-faint/30 bg-paper/20 flex items-center">
-              <i className="lni lni-user text-primary mr-3 text-lg" />
-              <h2 className="font-display text-lg text-ink font-bold">Deleted Users List</h2>
+            <div className="px-4 py-2.5 border-b border-ink-faint/30 bg-slate-50/60 flex items-center">
+              <i className="lni lni-user text-primary mr-2 text-sm" />
+              <h2 className="font-display text-sm text-ink font-bold">Deleted Users List</h2>
             </div>
             {filteredUsers.length === 0 ? (
-              <div className="p-8 text-center text-ink-muted font-body">No deleted users found.</div>
+              <div className="p-6 text-center text-ink-muted font-body text-xs">No deleted users found.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left font-body table-fixed border-collapse">
-                  <thead className="bg-white/50 border-b border-ink-faint/50">
+                  <thead className="bg-slate-50/70 border-b border-ink-faint/30">
                     <tr>
-                      <th className="px-6 py-3.5 text-xs font-semibold text-ink-soft uppercase tracking-wider w-[12%]">User ID</th>
-                      <th className="px-6 py-3.5 text-xs font-semibold text-ink-soft uppercase tracking-wider w-[38%]">User Details</th>
-                      <th className="px-6 py-3.5 text-xs font-semibold text-ink-soft uppercase tracking-wider w-[18%]">Role</th>
-                      <th className="px-6 py-3.5 text-xs font-semibold text-ink-soft uppercase tracking-wider w-[17%]">Deleted At</th>
-                      <th className="px-6 py-3.5 text-xs font-semibold text-ink-soft uppercase tracking-wider w-[15%] text-right">Actions</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[12%]">User ID</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[38%]">User Details</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[18%]">Role</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[17%]">Deleted At</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[15%] text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-ink-faint/30">
+                  <tbody className="divide-y divide-ink-faint/20">
                     {filteredUsers.map(user => (
-                      <tr key={user.id} className="hover:bg-white/60 transition-colors duration-200">
-                        <td className="px-6 py-4 text-xs font-numeric font-bold text-ink-muted">#{user.id}</td>
-                        <td className="px-6 py-4">
+                      <tr key={user.id} className="hover:bg-slate-50/70 transition-colors duration-150">
+                        <td className="px-4 py-3 text-xs font-numeric font-bold text-ink-muted">#{user.id}</td>
+                        <td className="px-4 py-3">
                           <div className="flex items-center">
                             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-ink-faint to-ink-muted/30 flex items-center justify-center text-ink font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
                               {(user.name || 'U').charAt(0).toUpperCase()}
@@ -296,22 +296,22 @@ function ArchivesPageContent() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                             user.role === 'employer' ? 'bg-accent-peach text-primary-dark border border-accent-peachBright/50' : 'bg-accent-mint text-accent-mintDeep border border-accent-mintDeep/20'
                           }`}>
                             {user.role}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-xs text-status-error font-numeric">
+                        <td className="px-4 py-3 text-xs text-status-error font-numeric">
                           {formatDate(user.deleted_at)}
                         </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex justify-end space-x-2">
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex justify-end space-x-1.5">
                             <button
                               disabled={actionLoading === `user-${user.id}`}
                               onClick={() => handleRestoreUser(user.id)}
-                              className="p-1.5 rounded-lg bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border border-status-success/20 transition-all"
+                              className="p-1.5 rounded-lg bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border border-status-success/20 transition-all cursor-pointer"
                               title="Restore User"
                               aria-label="Restore User"
                             >
@@ -320,7 +320,7 @@ function ArchivesPageContent() {
                             <button
                               disabled={actionLoading === `user-force-${user.id}`}
                               onClick={() => handlePermanentDeleteUser(user.id, user.name)}
-                              className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all"
+                              className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all cursor-pointer"
                               title="Permanently Delete User"
                               aria-label="Permanently Delete User"
                             >
@@ -337,44 +337,44 @@ function ArchivesPageContent() {
           </div>
         ) : (
           <div>
-            <div className="px-6 py-4 border-b border-ink-faint/30 bg-paper/20 flex items-center">
-              <i className="lni lni-briefcase text-primary mr-3 text-lg" />
-              <h2 className="font-display text-lg text-ink font-bold">Deleted Jobs List</h2>
+            <div className="px-4 py-2.5 border-b border-ink-faint/30 bg-slate-50/60 flex items-center">
+              <i className="lni lni-briefcase text-primary mr-2 text-sm" />
+              <h2 className="font-display text-sm text-ink font-bold">Deleted Jobs List</h2>
             </div>
             {filteredJobs.length === 0 ? (
-              <div className="p-8 text-center text-ink-muted font-body">No deleted jobs found.</div>
+              <div className="p-6 text-center text-ink-muted font-body text-xs">No deleted jobs found.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left font-body table-fixed border-collapse">
-                  <thead className="bg-white/50 border-b border-ink-faint/50">
+                  <thead className="bg-slate-50/70 border-b border-ink-faint/30">
                     <tr>
-                      <th className="px-6 py-3.5 text-xs font-semibold text-ink-soft uppercase tracking-wider w-[12%]">Job ID</th>
-                      <th className="px-6 py-3.5 text-xs font-semibold text-ink-soft uppercase tracking-wider w-[35%]">Job Details</th>
-                      <th className="px-6 py-3.5 text-xs font-semibold text-ink-soft uppercase tracking-wider w-[21%]">Employer</th>
-                      <th className="px-6 py-3.5 text-xs font-semibold text-ink-soft uppercase tracking-wider w-[17%]">Deleted At</th>
-                      <th className="px-6 py-3.5 text-xs font-semibold text-ink-soft uppercase tracking-wider w-[15%] text-right">Actions</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[12%]">Job ID</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[35%]">Job Details</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[21%]">Employer</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[17%]">Deleted At</th>
+                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[15%] text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-ink-faint/30">
+                  <tbody className="divide-y divide-ink-faint/20">
                     {filteredJobs.map(job => (
-                      <tr key={job.id} className="hover:bg-white/60 transition-colors duration-200">
-                        <td className="px-6 py-4 text-xs font-numeric font-bold text-ink-muted">#{job.id}</td>
-                        <td className="px-6 py-4">
+                      <tr key={job.id} className="hover:bg-slate-50/70 transition-colors duration-150">
+                        <td className="px-4 py-3 text-xs font-numeric font-bold text-ink-muted">#{job.id}</td>
+                        <td className="px-4 py-3">
                           <div className="font-bold text-ink text-xs truncate">{job.title}</div>
-                          <span className="inline-block px-2 py-0.5 rounded bg-accent-sky text-primary-dark text-[9px] font-bold border border-white/50 mt-1">{job.category}</span>
+                          <span className="inline-block px-1.5 py-0.5 rounded bg-accent-sky text-primary-dark text-[9px] font-bold border border-white/50 mt-0.5">{job.category}</span>
                         </td>
-                        <td className="px-6 py-4 text-xs text-ink font-bold truncate">
+                        <td className="px-4 py-3 text-xs text-ink font-bold truncate">
                           {job.employer?.name || 'Unknown'}
                         </td>
-                        <td className="px-6 py-4 text-xs text-status-error font-numeric">
+                        <td className="px-4 py-3 text-xs text-status-error font-numeric">
                           {formatDate(job.deleted_at)}
                         </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex justify-end space-x-2">
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex justify-end space-x-1.5">
                             <button
                               disabled={actionLoading === `job-${job.id}`}
                               onClick={() => handleRestoreJob(job.id)}
-                              className="p-1.5 rounded-lg bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border border-status-success/20 transition-all"
+                              className="p-1.5 rounded-lg bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border border-status-success/20 transition-all cursor-pointer"
                               title="Restore Job Post"
                               aria-label="Restore Job Post"
                             >
@@ -383,7 +383,7 @@ function ArchivesPageContent() {
                             <button
                               disabled={actionLoading === `job-force-${job.id}`}
                               onClick={() => handlePermanentDeleteJob(job.id, job.title)}
-                              className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all"
+                              className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all cursor-pointer"
                               title="Permanently Delete Job Post"
                               aria-label="Permanently Delete Job Post"
                             >

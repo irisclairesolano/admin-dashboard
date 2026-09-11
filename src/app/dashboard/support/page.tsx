@@ -170,35 +170,35 @@ function SupportTicketsPageContent() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/70 backdrop-blur-xl p-6 rounded-xl border border-white/50 shadow-glass">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
         <div>
-          <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-ink to-primary-dark font-bold mb-1 tracking-tight">Support Tickets</h1>
-          <p className="text-ink-soft font-body mt-2 text-lg">Manage and reply to user inquiries.</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">Support Tickets</h1>
+          <p className="text-xs text-ink-muted mt-0.5">Manage and reply to user inquiries.</p>
         </div>
         <button 
           onClick={() => fetchTickets(false)}
           disabled={loading}
-          className="flex items-center px-4 py-2 bg-paper text-ink font-body font-semibold rounded-xl hover:bg-ink hover:text-white transition-all border border-ink-faint shadow-sm group"
+          className="flex items-center px-3 py-1.5 bg-white text-ink-soft hover:text-ink text-xs font-body font-semibold rounded-lg hover:bg-slate-50 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer"
         >
-          <i className={`lni lni-reload mr-2 ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+          <i className={`lni lni-reload mr-1.5 text-xs ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
           Refresh
         </button>
       </div>
 
       {/* Filters */}
-      <div className="bg-white/70 backdrop-blur-xl p-4 rounded-xl border border-white/50 shadow-glass flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+      <div className="bg-white/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-ink-faint/30 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-1.5 w-full md:w-auto">
           {['all', 'open', 'processing', 'resolved'].map(status => (
             <button
               key={status}
               aria-label={status}
               onClick={() => { setStatusFilter(status as any); setCurrentPage(1); }}
-              className={`px-4 py-2 text-sm font-body font-semibold rounded-xl capitalize transition-all ${
+              className={`px-3 py-1 text-xs font-body font-semibold rounded-lg capitalize transition-all cursor-pointer ${
                 statusFilter === status 
-                  ? 'bg-ink text-white shadow-md' 
-                  : 'text-ink-soft hover:text-ink bg-white/40 border border-ink-faint/30'
+                  ? 'bg-ink text-white shadow-2xs' 
+                  : 'text-ink-soft hover:text-ink bg-white border border-ink-faint/40'
               }`}
             >
               {status}
@@ -206,7 +206,7 @@ function SupportTicketsPageContent() {
           ))}
         </div>
         
-        <div className="relative w-full md:w-64 group">
+        <div className="relative w-full md:w-60 group">
           <input
             type="text"
             aria-label="Search tickets"
@@ -215,67 +215,69 @@ function SupportTicketsPageContent() {
             onChange={(e) => {
               setSearchTerm(e.target.value);
             }}
-            className="w-full pl-10 pr-4 py-2 bg-white/70 backdrop-blur-md rounded-xl border border-white/50 shadow-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary transition text-sm font-body"
+            className="w-full pl-8 pr-3 py-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-xs focus:bg-white focus:border-ink/50 outline-none text-xs font-body transition"
           />
-          <i className="lni lni-search text-ink-muted absolute left-3.5 top-1/2 transform -translate-y-1/2" />
+          <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
         </div>
       </div>
 
       {/* Tickets Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {loading && tickets.length === 0 ? (
           [1, 2, 3].map(i => (
-            <div key={i} className="bg-white/40 p-6 rounded-xl border border-white/30 h-64 animate-pulse flex flex-col gap-4">
-              <div className="w-1/4 h-6 bg-ink-faint/50 rounded-lg"></div>
-              <div className="w-3/4 h-8 bg-ink-faint/50 rounded-xl"></div>
-              <div className="w-full h-12 bg-ink-faint/50 rounded-xl mt-2"></div>
+            <div key={i} className="bg-white/40 p-4 rounded-xl border border-ink-faint/20 h-48 animate-pulse flex flex-col gap-3">
+              <div className="w-1/4 h-4 bg-ink-faint/40 rounded-lg"></div>
+              <div className="w-3/4 h-6 bg-ink-faint/40 rounded-lg"></div>
+              <div className="w-full h-8 bg-ink-faint/40 rounded-lg mt-1"></div>
             </div>
           ))
         ) : error ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-16 h-16 bg-status-error/10 rounded-full flex items-center justify-center mb-4">
-              <i className="lni lni-warning text-2xl text-status-error" />
+          <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-12 h-12 bg-status-error/10 rounded-full flex items-center justify-center mb-3">
+              <i className="lni lni-warning text-xl text-status-error" />
             </div>
-            <h2 className="text-lg font-body font-bold text-ink mb-2">Failed to load support tickets</h2>
-            <p className="text-ink-soft font-body text-sm mb-6">{error}</p>
+            <h2 className="text-base font-body font-bold text-ink mb-1">Failed to load support tickets</h2>
+            <p className="text-ink-muted font-body text-xs mb-4">{error}</p>
             <button
               onClick={() => { setError(''); fetchTickets(); }}
-              className="px-5 py-2.5 bg-ink text-white font-body font-semibold rounded-xl hover:bg-ink-soft transition-colors text-sm"
+              className="px-4 py-2 bg-ink text-white font-body font-semibold rounded-lg hover:bg-ink-soft transition-colors text-xs cursor-pointer"
             >
               Retry
             </button>
           </div>
         ) : filteredTickets.length === 0 ? (
-          <div className="col-span-full bg-white/50 backdrop-blur-md p-16 rounded-xl border border-white/50 shadow-inner flex flex-col items-center justify-center text-ink-soft">
-            <i className="lni lni-comments text-4xl mb-4 text-ink-faint" />
-            <p className="font-body font-semibold text-lg">No tickets found</p>
+          <div className="col-span-full bg-white/70 backdrop-blur-md p-10 rounded-xl border border-ink-faint/30 shadow-inner flex flex-col items-center justify-center text-ink-muted">
+            <i className="lni lni-comments text-3xl mb-2 text-ink-faint" />
+            <p className="font-body font-semibold text-sm">No tickets found</p>
           </div>
         ) : (
           paginatedTickets.map(ticket => (
             <div 
               key={ticket.id} 
               onClick={() => setSelectedTicket(ticket)}
-              className="bg-white/70 backdrop-blur-xl p-6 rounded-xl border border-white/50 shadow-glass cursor-pointer hover:shadow-lg hover:border-primary/30 transition-all group flex flex-col"
+              className="bg-white/90 backdrop-blur-md p-4 rounded-xl border border-ink-faint/30 shadow-xs cursor-pointer hover:shadow-md transition-all group flex flex-col justify-between"
             >
-              <div className="flex justify-between items-start mb-4">
-                <span className={`px-3 py-1 rounded-full text-xs font-body font-bold ${
-                  ticket.status === 'open' 
-                    ? 'bg-status-warning/20 text-status-warning' 
-                    : ticket.status === 'processing'
-                    ? 'bg-accent-sky/20 text-accent-skyDeep'
-                    : 'bg-status-success/20 text-status-success'
-                }`}>
-                  {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
-                </span>
-                <span className="text-xs text-ink-muted font-body font-semibold">
-                  {formatDate(ticket.created_at)}
-                </span>
+              <div>
+                <div className="flex justify-between items-start mb-2.5">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-body font-bold ${
+                    ticket.status === 'open' 
+                      ? 'bg-status-warning/20 text-status-warning' 
+                      : ticket.status === 'processing'
+                      ? 'bg-accent-sky/20 text-accent-skyDeep'
+                      : 'bg-status-success/20 text-status-success'
+                  }`}>
+                    {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+                  </span>
+                  <span className="text-[11px] text-ink-muted font-body font-semibold">
+                    {formatDate(ticket.created_at)}
+                  </span>
+                </div>
+                
+                <h3 className="font-display font-bold text-sm text-ink mb-1 line-clamp-1">{ticket.subject}</h3>
+                <p className="text-xs text-ink-muted font-body mb-3 line-clamp-2">{ticket.message}</p>
               </div>
               
-              <h3 className="font-display font-bold text-lg text-ink mb-2 line-clamp-1">{ticket.subject}</h3>
-              <p className="text-sm text-ink-soft font-body mb-4 line-clamp-2 flex-1">{ticket.message}</p>
-              
-              <div className="flex items-center gap-3 pt-4 border-t border-ink-faint/20 mt-auto">
+              <div className="flex items-center gap-2.5 pt-2.5 border-t border-ink-faint/20 mt-auto">
                 <Avatar name={ticket.user.name} url={ticket.user.avatar_url} size="sm" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-body font-bold text-ink truncate">{ticket.user.name}</p>
