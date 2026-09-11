@@ -6,6 +6,7 @@ import { adminApi } from '@/lib/api';
 import StatCard from '@/components/StatCard';
 import StatusTabs from '@/components/StatusTabs';
 import { AlertDialog } from '@/components/AlertDialog';
+import { ReAuthModal } from '@/components/ReAuthModal';
 import { formatDate } from '@/lib/date';
 
 function ArchivesPageContent() {
@@ -20,6 +21,11 @@ function ArchivesPageContent() {
   const [userSearch, setUserSearch] = useState('');
   const [jobSearch, setJobSearch] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [reAuthTarget, setReAuthTarget] = useState<{
+    type: 'user' | 'job';
+    id: number;
+    name: string;
+  } | null>(null);
 
   const [alertConfig, setAlertConfig] = useState<{
     isOpen: boolean;
@@ -108,25 +114,12 @@ function ArchivesPageContent() {
     );
   };
 
-  const handlePermanentDeleteUser = (id: number) => {
-    confirmAction(
-      'Permanently Delete User',
-      'Are you sure you want to PERMANENTLY delete this user? This cannot be undone. All data will be permanently erased.',
-      async () => {
-        const previousUsers = [...users];
-        setUsers((prev) => prev.filter((u) => u.id !== id));
-        try {
-          setActionLoading(`user-force-${id}`);
-          await adminApi.permanentDeleteUser(id);
-          await fetchArchives(true);
-        } catch (err: any) {
-          setUsers(previousUsers);
-          showAlert('Error', 'Failed to permanently delete user: ' + (err.response?.data?.message || err.message));
-        } finally {
-          setActionLoading(null);
-        }
-      }
-    );
+  const handlePermanentDeleteUser = (id: number, name: string) => {
+    setReAuthTarget({
+      type: 'user',
+      id,
+      name,
+    });
   };
 
   const handleRestoreJob = (id: number) => {
@@ -150,25 +143,46 @@ function ArchivesPageContent() {
     );
   };
 
-  const handlePermanentDeleteJob = (id: number) => {
-    confirmAction(
-      'Permanently Delete Job Post',
-      'Are you sure you want to PERMANENTLY delete this job post? This cannot be undone. All data will be permanently erased.',
-      async () => {
-        const previousJobs = [...jobs];
-        setJobs((prev) => prev.filter((j) => j.id !== id));
-        try {
-          setActionLoading(`job-force-${id}`);
-          await adminApi.permanentDeleteJob(id);
-          await fetchArchives(true);
-        } catch (err: any) {
-          setJobs(previousJobs);
-          showAlert('Error', 'Failed to permanently delete job: ' + (err.response?.data?.message || err.message));
-        } finally {
-          setActionLoading(null);
-        }
+  const handlePermanentDeleteJob = (id: number, title: string) => {
+    setReAuthTarget({
+      type: 'job',
+      id,
+      name: title,
+    });
+  };
+
+  const handleReAuthSuccess = async () => {
+    if (!reAuthTarget) return;
+    const { type, id } = reAuthTarget;
+    setReAuthTarget(null);
+
+    if (type === 'user') {
+      const previousUsers = [...users];
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+      try {
+        setActionLoading(`user-force-${id}`);
+        await adminApi.permanentDeleteUser(id);
+        await fetchArchives(true);
+      } catch (err: any) {
+        setUsers(previousUsers);
+        showAlert('Error', 'Failed to permanently delete user: ' + (err.response?.data?.message || err.message));
+      } finally {
+        setActionLoading(null);
       }
-    );
+    } else {
+      const previousJobs = [...jobs];
+      setJobs((prev) => prev.filter((j) => j.id !== id));
+      try {
+        setActionLoading(`job-force-${id}`);
+        await adminApi.permanentDeleteJob(id);
+        await fetchArchives(true);
+      } catch (err: any) {
+        setJobs(previousJobs);
+        showAlert('Error', 'Failed to permanently delete job: ' + (err.response?.data?.message || err.message));
+      } finally {
+        setActionLoading(null);
+      }
+    }
   };
 
   const filteredUsers = users.filter(user =>
@@ -305,7 +319,7 @@ function ArchivesPageContent() {
                             </button>
                             <button
                               disabled={actionLoading === `user-force-${user.id}`}
-                              onClick={() => handlePermanentDeleteUser(user.id)}
+                              onClick={() => handlePermanentDeleteUser(user.id, user.name)}
                               className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all"
                               title="Permanently Delete User"
                               aria-label="Permanently Delete User"
@@ -368,7 +382,7 @@ function ArchivesPageContent() {
                             </button>
                             <button
                               disabled={actionLoading === `job-force-${job.id}`}
-                              onClick={() => handlePermanentDeleteJob(job.id)}
+                              onClick={() => handlePermanentDeleteJob(job.id, job.title)}
                               className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all"
                               title="Permanently Delete Job Post"
                               aria-label="Permanently Delete Job Post"
@@ -397,6 +411,13 @@ function ArchivesPageContent() {
           alertConfig.onConfirm();
         }}
         onCancel={() => setAlertConfig((prev) => ({ ...prev, isOpen: false }))}
+      />
+      <ReAuthModal
+        isOpen={!!reAuthTarget}
+        title={reAuthTarget?.type === 'user' ? 'Permanently Delete User' : 'Permanently Delete Job Post'}
+        description={`This action will PERMANENTLY erase "${reAuthTarget?.name}" and all associated platform records. This cannot be undone. Enter your admin credentials to proceed.`}
+        onSuccess={handleReAuthSuccess}
+        onCancel={() => setReAuthTarget(null)}
       />
     </div>
   );

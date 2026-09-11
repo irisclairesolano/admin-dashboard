@@ -15,7 +15,31 @@ export function usePolling(fn: () => void, intervalMs: number, enabled = true) {
 
   useEffect(() => {
     if (!enabled) return;
-    const id = setInterval(() => savedFn.current(), intervalMs);
-    return () => clearInterval(id);
+
+    const tick = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        return;
+      }
+      savedFn.current();
+    };
+
+    const id = setInterval(tick, intervalMs);
+
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        savedFn.current();
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    return () => {
+      clearInterval(id);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+    };
   }, [intervalMs, enabled]);
 }

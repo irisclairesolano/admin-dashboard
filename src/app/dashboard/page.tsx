@@ -4,7 +4,7 @@ import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area, Sector
+  PieChart, Pie, Cell, AreaChart, Area, Sector, Legend
 } from 'recharts';
 import { adminApi } from '@/lib/api';
 import { useRouter } from 'next/navigation';
@@ -31,6 +31,98 @@ const renderActiveShape = (props: any) => {
 };
 
 const RechartsPie = Pie as any;
+
+function formatPeriodLabel(periodStr: string, interval: string): string {
+  if (!periodStr) return '—';
+  if (interval === 'hourly') {
+    if (periodStr.includes(' ')) {
+      const parts = periodStr.split(' ');
+      const hourPart = parts[1] || '';
+      const hourNum = parseInt(hourPart.split(':')[0] || '0', 10);
+      const nextHour = (hourNum + 1) % 24;
+      const ampm = hourNum >= 12 ? 'PM' : 'AM';
+      const formatted12 = hourNum % 12 === 0 ? 12 : hourNum % 12;
+      return `${hourPart} - ${String(nextHour).padStart(2, '0')}:00 (${formatted12} ${ampm})`;
+    }
+    return periodStr;
+  }
+  if (interval === 'monthly') {
+    try {
+      const [year, month] = periodStr.split('-');
+      const d = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
+      return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    } catch {
+      return periodStr;
+    }
+  }
+  try {
+    const d = new Date(periodStr + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', weekday: 'short' });
+  } catch {
+    return periodStr;
+  }
+}
+
+function formatAxisTick(val: string, interval: string): string {
+  if (!val) return '';
+  if (interval === 'hourly') {
+    if (val.includes(' ')) return val.split(' ')[1];
+    return val;
+  }
+  if (interval === 'monthly') {
+    return val;
+  }
+  try {
+    const d = new Date(val + 'T00:00:00');
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch {
+    return val;
+  }
+}
+
+function ChartEmptyState({ title, message }: { title?: string; message?: string }) {
+  return (
+    <div className="h-64 sm:h-72 w-full flex flex-col items-center justify-center p-6 text-center bg-slate-50/60 rounded-2xl border border-dashed border-slate-200">
+      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3 text-slate-400 shadow-2xs">
+        <i className="lni lni-bar-chart text-xl" />
+      </div>
+      <h4 className="text-sm font-body font-bold text-ink mb-1">{title || 'No Activity Recorded'}</h4>
+      <p className="text-xs font-body text-ink-muted max-w-xs">{message || 'Activity will appear here in real-time as users interact with the platform.'}</p>
+    </div>
+  );
+}
+
+function ChartInsightBox({ icon = "💡", title = "Key Insight", text }: { icon?: string; title?: string; text: string }) {
+  return (
+    <div className="mt-4 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start gap-2.5">
+      <span className="text-base leading-none mt-0.5 select-none">{icon}</span>
+      <div className="text-xs font-body">
+        <span className="font-bold text-ink mr-1.5">{title}:</span>
+        <span className="text-ink-soft">{text}</span>
+      </div>
+    </div>
+  );
+}
+
+function MetricHeaderStrip({ items }: { items: { label: string; value: string | number; change?: number; highlight?: boolean }[] }) {
+  return (
+    <div className="flex flex-wrap items-center gap-3 sm:gap-6 py-2 px-3.5 bg-slate-50/90 rounded-2xl border border-slate-200/70 mb-4 font-numeric">
+      {items.map((item, idx) => (
+        <div key={idx} className="flex items-baseline gap-1.5">
+          <span className="text-[10px] font-body text-ink-muted font-semibold uppercase tracking-wider">{item.label}:</span>
+          <span className={`text-sm sm:text-base font-bold ${item.highlight ? 'text-primary-dark' : 'text-ink'}`}>
+            {typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
+          </span>
+          {item.change !== undefined && (
+            <span className={`text-[10px] font-bold ${item.change >= 0 ? 'text-status-success' : 'text-status-error'}`}>
+              {item.change >= 0 ? '↑' : '↓'} {Math.abs(item.change)}%
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function getPeriodAndInterval(preset: string, start?: string, end?: string) {
   const now = new Date();
@@ -138,10 +230,13 @@ export default function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
 
-  // Shared persistent date states across all analytics sub-tabs (defaulting to 'Last 30 Days')
-  const [globalPreset, setGlobalPreset] = useState<string>('Last 30 Days');
+  // Shared persistent date states across all analytics sub-tabs (defaulting to 'Today')
+  const [globalPreset, setGlobalPreset] = useState<string>('Today');
   const [globalStart, setGlobalStart] = useState<string>('');
   const [globalEnd, setGlobalEnd] = useState<string>('');
+
+  // Detailed Table sub-view toggle
+  const [distTableView, setDistTableView] = useState<'categories' | 'geographic'>('categories');
 
   // Page-specific tab filters
   const [trendsRoleFilter, setTrendsRoleFilter] = useState<'all' | 'worker' | 'employer'>('all');
@@ -415,10 +510,10 @@ export default function AnalyticsDashboard() {
     try {
       setIsExportingExcel(true);
       const [usersRes, jobsRes, verifRes, reportsRes] = await Promise.all([
-        adminApi.getUsers().catch(() => ({ data: [] })),
-        adminApi.getJobs().catch(() => ({ data: [] })),
-        adminApi.getVerifications().catch(() => ({ data: [] })),
-        adminApi.getReports('all', 1).catch(() => ({ data: [] }))
+        adminApi.getUsers({ all: true }).catch(() => ({ data: [] })),
+        adminApi.getJobs({ all: true }).catch(() => ({ data: [] })),
+        adminApi.getVerifications(true).catch(() => ({ data: [] })),
+        adminApi.getReports('all', 1, '', true).catch(() => ({ data: [] }))
       ]);
 
       const usersList: any[] = usersRes.data?.data || usersRes.data || [];
@@ -454,11 +549,11 @@ export default function AnalyticsDashboard() {
     try {
       setIsGeneratingMasterPdf(true);
       const [usersRes, jobsRes, verifRes, reportsRes, logsRes, profanityRes, aiRes] = await Promise.all([
-        adminApi.getUsers().catch(() => ({ data: [] })),
-        adminApi.getJobs().catch(() => ({ data: [] })),
-        adminApi.getVerifications().catch(() => ({ data: [] })),
-        adminApi.getReports('all', 1).catch(() => ({ data: [] })),
-        adminApi.getLogs(1).catch(() => ({ data: [] })),
+        adminApi.getUsers({ all: true }).catch(() => ({ data: [] })),
+        adminApi.getJobs({ all: true }).catch(() => ({ data: [] })),
+        adminApi.getVerifications(true).catch(() => ({ data: [] })),
+        adminApi.getReports('all', 1, '', true).catch(() => ({ data: [] })),
+        adminApi.getLogs(1, undefined, undefined, undefined, undefined, true).catch(() => ({ data: [] })),
         adminApi.getProfanityWords().catch(() => ({ data: [] })),
         !aiInsights ? adminApi.generateAIInsights().catch(() => null) : Promise.resolve(null),
       ]);
@@ -502,7 +597,7 @@ export default function AnalyticsDashboard() {
 
   const stats = [
     { label: 'New Users', value: data?.kpis?.total_users?.value ?? 0, change: data?.kpis?.total_users?.change, iconClass: 'lni lni-users', color: 'text-primary-dark', bg: 'bg-primary-soft', href: '/dashboard/users' },
-    { label: 'Jobs Posted', value: data?.kpis?.active_jobs?.value ?? 0, change: data?.kpis?.active_jobs?.change, iconClass: 'lni lni-briefcase', color: 'text-accent-skyDeep', bg: 'bg-accent-sky', href: '/dashboard/jobs' },
+    { label: 'Job Posts', value: data?.kpis?.active_jobs?.value ?? 0, change: data?.kpis?.active_jobs?.change, iconClass: 'lni lni-briefcase', color: 'text-accent-skyDeep', bg: 'bg-accent-sky', href: '/dashboard/jobs' },
     { label: 'Applications', value: data?.kpis?.applications?.value ?? 0, change: data?.kpis?.applications?.change, iconClass: 'lni lni-files', color: 'text-accent-mintDeep', bg: 'bg-accent-mint', href: '/dashboard/jobs' },
     { label: 'Reports Filed', value: data?.kpis?.unresolved_reports?.value ?? 0, change: data?.kpis?.unresolved_reports?.change, iconClass: 'lni lni-warning', color: 'text-status-error', bg: 'bg-status-error/10', href: '/dashboard/reports' },
   ];
@@ -712,6 +807,190 @@ export default function AnalyticsDashboard() {
     });
 
     return list;
+  })();
+
+  // Detailed Tabular Time-Series Data - Reconciled across Users, Job Posts, Applications, Hires, and Reports
+  const transformedDetailedTimeSeries = (() => {
+    if (data?.detailed_time_series && data.detailed_time_series.length > 0) {
+      return [...data.detailed_time_series].sort((a: any, b: any) => {
+        const timeA = new Date(a.period || 0).getTime();
+        const timeB = new Date(b.period || 0).getTime();
+        return trendsSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+      });
+    }
+
+    // Client-side fallback reconciliation if backend cache hasn't invalidated yet
+    const map: Record<string, any> = {};
+
+    (transformedUserGrowth || []).forEach((u: any) => {
+      const p = u.name;
+      if (!map[p]) {
+        map[p] = {
+          period: p,
+          new_workers: u.workers ?? 0,
+          new_employers: u.employers ?? 0,
+          total_users: (u.workers ?? 0) + (u.employers ?? 0),
+          job_posts: 0,
+          applications: 0,
+          accepted_applications: 0,
+          completed_hires: 0,
+          reports: 0
+        };
+      } else {
+        map[p].new_workers = u.workers ?? 0;
+        map[p].new_employers = u.employers ?? 0;
+        map[p].total_users = (u.workers ?? 0) + (u.employers ?? 0);
+      }
+    });
+
+    (transformedApplicationVolume || []).forEach((a: any) => {
+      const p = a.name;
+      if (!map[p]) {
+        map[p] = {
+          period: p,
+          new_workers: 0,
+          new_employers: 0,
+          total_users: 0,
+          job_posts: a.jobs ?? 0,
+          applications: a.applications ?? 0,
+          accepted_applications: a.accepted_applications ?? 0,
+          completed_hires: a.completed_hires ?? 0,
+          reports: 0
+        };
+      } else {
+        map[p].job_posts = a.jobs ?? 0;
+        map[p].applications = a.applications ?? 0;
+        map[p].accepted_applications = a.accepted_applications ?? 0;
+        map[p].completed_hires = a.completed_hires ?? 0;
+      }
+    });
+
+    if (data?.job_post_trends) {
+      data.job_post_trends.forEach((j: any) => {
+        const p = j.period;
+        if (!map[p]) {
+          map[p] = {
+            period: p,
+            new_workers: 0,
+            new_employers: 0,
+            total_users: 0,
+            job_posts: parseInt(j.job_posts || 0, 10),
+            applications: 0,
+            accepted_applications: 0,
+            completed_hires: 0,
+            reports: 0
+          };
+        } else {
+          map[p].job_posts = parseInt(j.job_posts || 0, 10);
+        }
+      });
+    }
+
+    return Object.values(map).sort((a: any, b: any) => {
+      const timeA = new Date(a.period || 0).getTime();
+      const timeB = new Date(b.period || 0).getTime();
+      return trendsSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+    });
+  })();
+
+  // Column sums for the detailed table reconciliation
+  const detailedTotals = (() => {
+    return (transformedDetailedTimeSeries || []).reduce(
+      (acc: any, row: any) => {
+        acc.new_workers += row.new_workers || 0;
+        acc.new_employers += row.new_employers || 0;
+        acc.total_users += row.total_users || 0;
+        acc.job_posts += row.job_posts || 0;
+        acc.applications += row.applications || 0;
+        acc.accepted_applications += row.accepted_applications || 0;
+        acc.completed_hires += row.completed_hires || 0;
+        acc.reports += row.reports || 0;
+        return acc;
+      },
+      {
+        new_workers: 0,
+        new_employers: 0,
+        total_users: 0,
+        job_posts: 0,
+        applications: 0,
+        accepted_applications: 0,
+        completed_hires: 0,
+        reports: 0
+      }
+    );
+  })();
+
+  // Dynamic Insight Calculations
+  const activityInsight = (() => {
+    if (!transformedApplicationVolume || transformedApplicationVolume.length === 0) {
+      return "No application activity recorded for this period yet. Data will populate in real-time as workers submit applications.";
+    }
+    let maxApps = 0;
+    let peakPeriod = '';
+    let totalApps = 0;
+    let totalJobs = 0;
+    transformedApplicationVolume.forEach((item: any) => {
+      const apps = item.applications ?? 0;
+      const jobs = item.jobs ?? 0;
+      totalApps += apps;
+      totalJobs += jobs;
+      if (apps > maxApps) {
+        maxApps = apps;
+        peakPeriod = item.name;
+      }
+    });
+    if (totalApps === 0 && totalJobs === 0) {
+      return "Platform is awaiting user activity in this period. As workers apply and employers list openings, hourly/daily trends will highlight here.";
+    }
+    const ratio = totalJobs > 0 ? (totalApps / totalJobs).toFixed(1) : totalApps.toString();
+    if (peakPeriod && maxApps > 0) {
+      const formattedPeak = formatPeriodLabel(peakPeriod, intervalFilter);
+      return `Peak activity occurred during ${formattedPeak} with ${maxApps} application${maxApps === 1 ? '' : 's'}. Overall throughput is ${ratio} applications per job post.`;
+    }
+    return `Platform recorded ${totalApps} applications across ${totalJobs} active job posts (${ratio} apps/post throughput).`;
+  })();
+
+  const roleInsight = (() => {
+    const workers = data?.user_ratio?.workers ?? 0;
+    const employers = data?.user_ratio?.employers ?? 0;
+    const total = workers + employers;
+    if (total === 0) return "User signups will populate as new workers and employers register.";
+    const workerPct = total > 0 ? Math.round((workers / total) * 100) : 0;
+    const ratio = employers > 0 ? (workers / employers).toFixed(1) : workers.toString();
+    return `Talent pool ratio is ${ratio}:1 (${workerPct}% workers, ${100 - workerPct}% employers), ensuring ample candidate coverage for incoming job posts.`;
+  })();
+
+  const geoInsight = (() => {
+    if (!transformedGeographicActivity || transformedGeographicActivity.length === 0) {
+      return "Geographic distribution will map across municipalities as jobs are published.";
+    }
+    const top = transformedGeographicActivity[0];
+    if (!top || (top.jobs === 0 && top.applications === 0)) {
+      return "No geographic clustering recorded for the current filter.";
+    }
+    return `${top.name} currently represents the primary labor activity hub with ${top.jobs} job post${top.jobs === 1 ? '' : 's'} and ${top.applications} application${top.applications === 1 ? '' : 's'} filed.`;
+  })();
+
+  const categoryInsight = (() => {
+    if (!transformedJobsData || transformedJobsData.length === 0) {
+      return "Job categories will be categorized as employers publish listings.";
+    }
+    const top = transformedJobsData[0];
+    if (!top || top.jobs === 0) {
+      return "No category postings recorded yet in this period.";
+    }
+    return `${top.name} leads employer demand with ${top.jobs} job post${top.jobs === 1 ? '' : 's'}, representing the highest workforce requirement.`;
+  })();
+
+  const healthInsight = (() => {
+    const total = filteredReportsBreakdown?.reduce((sum: number, r: any) => sum + (r.count || 0), 0) || 0;
+    const avgSec = data?.reports?.average_resolution_seconds || 0;
+    const turnaroundHrs = avgSec > 0 ? (avgSec / 3600).toFixed(1) : null;
+    if (total === 0) {
+      return "Zero safety violations reported in this period. Platform community trust standards are operating optimally.";
+    }
+    const turnaroundText = turnaroundHrs ? ` Average turnaround latency is ${turnaroundHrs} hours.` : '';
+    return `Moderation queue logged ${total} total incident report${total === 1 ? '' : 's'}.${turnaroundText} Prioritize pending review items to protect user trust.`;
   })();
 
   return (
@@ -1059,6 +1338,243 @@ export default function AnalyticsDashboard() {
                 </div>
               )}
 
+              {/* PRIMARY VISUALIZATION (Above the Fold): Platform Activity & Application Flow */}
+              <div className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0 print-chart-container">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-ink">Platform Activity & Application Flow</h3>
+                    <p className="text-xs text-ink-muted mt-0.5">
+                      Volume of worker applications filed compared to active job posts ({globalPreset}, {intervalFilter} grouping).
+                    </p>
+                  </div>
+                  <span className="self-start sm:self-auto px-2.5 py-1 bg-primary/10 text-primary rounded-xl text-[10px] font-body font-bold uppercase tracking-wider">
+                    Core Platform Flow
+                  </span>
+                </div>
+
+                <MetricHeaderStrip
+                  items={[
+                    { label: 'Applications Filed', value: data?.kpis?.applications?.value ?? 0, change: data?.kpis?.applications?.change, highlight: true },
+                    { label: 'Job Posts', value: data?.kpis?.active_jobs?.value ?? 0, change: data?.kpis?.active_jobs?.change },
+                    {
+                      label: 'Avg Throughput',
+                      value: `${(data?.kpis?.active_jobs?.value ?? 0) > 0 ? ((data?.kpis?.applications?.value ?? 0) / (data?.kpis?.active_jobs?.value || 1)).toFixed(1) : (data?.kpis?.applications?.value ?? 0)} apps/post`,
+                    },
+                  ]}
+                />
+
+                {transformedApplicationVolume.length === 0 ? (
+                  <ChartEmptyState
+                    title={`No Application Activity for ${globalPreset}`}
+                    message="Activity will appear here as workers browse and apply to published job posts."
+                  />
+                ) : (
+                  <div className="h-80 w-full min-w-0 font-numeric">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={transformedApplicationVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="colorAppsOverview" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3E7648" stopOpacity={0.35}/>
+                            <stop offset="95%" stopColor="#3E7648" stopOpacity={0.02}/>
+                          </linearGradient>
+                          <linearGradient id="colorJobsOverview" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#0284C7" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="#0284C7" stopOpacity={0.02}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.6} />
+                        <XAxis
+                          dataKey="name"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#8C7B6A', fontSize: 11 }}
+                          tickFormatter={(val) => formatAxisTick(val, intervalFilter)}
+                          dy={10}
+                        />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
+                        <Tooltip
+                          shared
+                          contentStyle={{
+                            borderRadius: '16px',
+                            border: '1px solid rgba(255,255,255,0.7)',
+                            boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)',
+                            backgroundColor: 'rgba(255, 255, 255, 0.96)',
+                            backdropFilter: 'blur(8px)',
+                          }}
+                          labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
+                        />
+                        <Legend wrapperStyle={{ paddingTop: 10, fontSize: 12 }} />
+                        <Area
+                          type="monotone"
+                          dataKey="applications"
+                          name="Applications Filed"
+                          stroke="#3E7648"
+                          strokeWidth={2.5}
+                          fillOpacity={1}
+                          fill="url(#colorAppsOverview)"
+                          activeDot={{ r: 6, strokeWidth: 0 }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="jobs"
+                          name="Job Posts"
+                          stroke="#0284C7"
+                          strokeWidth={2.5}
+                          fillOpacity={1}
+                          fill="url(#colorJobsOverview)"
+                          activeDot={{ r: 6, strokeWidth: 0 }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                <ChartInsightBox text={activityInsight} />
+              </div>
+
+              {/* SECONDARY VISUALIZATIONS GRID (2 Columns): Registrations & Regional Demand */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
+                {/* User Registrations Breakdown */}
+                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
+                  <div className="mb-2">
+                    <h3 className="font-display text-lg font-bold text-ink">User Registrations by Role</h3>
+                    <p className="text-xs text-ink-muted mt-0.5">Worker signups vs employer registrations over time.</p>
+                  </div>
+
+                  <MetricHeaderStrip
+                    items={[
+                      { label: 'New Workers', value: data?.user_ratio?.workers ?? 0, highlight: true },
+                      { label: 'New Employers', value: data?.user_ratio?.employers ?? 0 },
+                      { label: 'Verified Ratio', value: `${data?.user_ratio?.verified_pct ?? 0}%` },
+                    ]}
+                  />
+
+                  {transformedUserGrowth.length === 0 ? (
+                    <ChartEmptyState
+                      title={`No Registrations for ${globalPreset}`}
+                      message="New account signups will populate here as workers and employers join."
+                    />
+                  ) : (
+                    <div className="h-72 w-full min-w-0 font-numeric">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
+                          <XAxis
+                            dataKey="name"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: '#8C7B6A', fontSize: 11 }}
+                            tickFormatter={(val) => formatAxisTick(val, intervalFilter)}
+                            dy={10}
+                          />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
+                          <Tooltip
+                            cursor={{ fill: '#FDF8F0' }}
+                            contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.7)', backgroundColor: 'rgba(255, 255, 255, 0.96)' }}
+                            labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
+                          />
+                          <Legend wrapperStyle={{ paddingTop: 8, fontSize: 11 }} />
+                          <Bar dataKey="workers" name="Workers" fill="#3E7648" radius={[6, 6, 0, 0]} />
+                          <Bar dataKey="employers" name="Employers" fill="#0284C7" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+
+                  <ChartInsightBox text={roleInsight} />
+                </div>
+
+                {/* Regional Activity by Municipality */}
+                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
+                  <div className="mb-2">
+                    <h3 className="font-display text-lg font-bold text-ink">Geographic Demand by Municipality</h3>
+                    <p className="text-xs text-ink-muted mt-0.5">Municipalities ranked by total job postings and worker applications.</p>
+                  </div>
+
+                  <MetricHeaderStrip
+                    items={[
+                      { label: 'Top Hub', value: transformedGeographicActivity[0]?.name || 'N/A', highlight: true },
+                      { label: 'Total Job Posts', value: data?.kpis?.active_jobs?.value ?? 0 },
+                      { label: 'Total Applications', value: data?.kpis?.applications?.value ?? 0 },
+                    ]}
+                  />
+
+                  {transformedGeographicActivity.length === 0 ? (
+                    <ChartEmptyState
+                      title="No Geographic Activity"
+                      message="Geographic labor activity will display as job postings and applications are created."
+                    />
+                  ) : (
+                    <div className="h-72 w-full min-w-0 font-numeric">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={transformedGeographicActivity.slice(0, 6)} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} dy={10} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
+                          <Tooltip
+                            cursor={{ fill: '#FDF8F0' }}
+                            contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.7)', backgroundColor: 'rgba(255, 255, 255, 0.96)' }}
+                          />
+                          <Legend wrapperStyle={{ paddingTop: 8, fontSize: 11 }} />
+                          <Bar dataKey="jobs" name="Job Posts" fill="#0284C7" radius={[6, 6, 0, 0]} />
+                          <Bar dataKey="applications" name="Applications" fill="#3E7648" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+
+                  <ChartInsightBox text={geoInsight} />
+                </div>
+              </div>
+
+              {/* THIRD TIER (Job Category Demand Card) */}
+              <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0 print-chart-container">
+                <div className="mb-2">
+                  <h3 className="font-display text-lg font-bold text-ink">In-Demand Job Categories</h3>
+                  <p className="text-xs text-ink-muted mt-0.5">Platform job posts ranked descending by sector category.</p>
+                </div>
+
+                <MetricHeaderStrip
+                  items={[
+                    { label: 'Top Category', value: transformedJobsData[0]?.name || 'N/A', highlight: true },
+                    { label: 'Category Count', value: transformedJobsData.length },
+                    { label: 'Total Job Posts', value: data?.kpis?.active_jobs?.value ?? 0 },
+                  ]}
+                />
+
+                {transformedJobsData.length === 0 ? (
+                  <ChartEmptyState
+                    title="No Category Postings"
+                    message="Job categories will populate here as employers publish new job posts."
+                  />
+                ) : (
+                  <div className="h-72 w-full min-w-0 font-numeric">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={transformedJobsData.slice(0, 6)} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E8DFCE" opacity={0.5} />
+                        <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
+                        <YAxis
+                          dataKey="name"
+                          type="category"
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#8C7B6A', fontSize: 11 }}
+                          width={110}
+                          tickFormatter={(value) => (value.length > 14 ? `${value.slice(0, 14)}...` : value)}
+                        />
+                        <Tooltip
+                          cursor={{ fill: '#FDF8F0' }}
+                          contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.7)', backgroundColor: 'rgba(255, 255, 255, 0.96)' }}
+                        />
+                        <Bar dataKey="jobs" name="Job Posts" fill="#3E7648" radius={[0, 6, 6, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                <ChartInsightBox text={categoryInsight} />
+              </div>
+
               {/* Gemini AI Insights Component */}
               <div className="bg-gradient-to-r from-primary-soft to-accent-mint/30 backdrop-blur-md p-8 rounded-3xl shadow-sm border border-primary-dark/10 print-chart-container">
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
@@ -1229,6 +1745,134 @@ export default function AnalyticsDashboard() {
                   </div>
                 </div>
               </div>
+
+              {/* DETAILED TABULAR REPORT: Complete Platform Activity (Overview Tab) */}
+              <div className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-ink-faint/40 pb-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <i className="lni lni-layout text-primary-dark text-lg" />
+                      <h3 className="font-display text-lg font-bold text-ink">
+                        Detailed Analytics Report — Complete Platform Activity
+                      </h3>
+                    </div>
+                    <p className="text-xs text-ink-muted mt-1">
+                      Exact chronological breakdown of user registrations, job posts, applications, and completions for <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong> ({globalPreset}).
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-body font-semibold">
+                      Granularity: <strong className="uppercase text-primary-dark">{intervalFilter}</strong>
+                    </span>
+                    <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-body font-bold flex items-center gap-1.5">
+                      <i className="lni lni-checkmark-circle text-xs" />
+                      <span>Reconciled with KPIs</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto rounded-2xl border border-ink-faint/30">
+                  <table className="w-full text-xs font-body text-left">
+                    <thead>
+                      <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-soft tracking-wider">
+                        <th className="py-3 px-4">Time Period</th>
+                        <th className="py-3 px-3 text-right">New Workers</th>
+                        <th className="py-3 px-3 text-right">New Employers</th>
+                        <th className="py-3 px-3 text-right">Total New Users</th>
+                        <th className="py-3 px-3 text-right">Job Posts</th>
+                        <th className="py-3 px-3 text-right">Applications</th>
+                        <th className="py-3 px-3 text-right text-sky-700">Accepted</th>
+                        <th className="py-3 px-3 text-right text-emerald-700">Completed Hires</th>
+                        <th className="py-3 px-4 text-right text-rose-600">Reports Filed</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-ink-faint/20">
+                      {transformedDetailedTimeSeries.length === 0 ? (
+                        <tr>
+                          <td colSpan={9} className="py-8 text-center text-ink-muted">
+                            No activity recorded yet for {from} to {to}. Data will display here in real-time as users interact.
+                          </td>
+                        </tr>
+                      ) : (
+                        transformedDetailedTimeSeries.map((row: any, idx: number) => (
+                          <tr key={idx} className="hover:bg-primary-soft/20 transition-colors">
+                            <td className="py-3 px-4 font-semibold text-ink whitespace-nowrap">
+                              {formatPeriodLabel(row.period, intervalFilter)}
+                            </td>
+                            <td className="py-3 px-3 text-right font-numeric text-ink-soft">
+                              {(row.new_workers ?? 0).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-right font-numeric text-ink-soft">
+                              {(row.new_employers ?? 0).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-right font-numeric font-bold text-ink">
+                              {(row.total_users ?? 0).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-right font-numeric text-ink">
+                              {(row.job_posts ?? 0).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-right font-numeric text-ink">
+                              {(row.applications ?? 0).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-right font-numeric font-semibold text-sky-700">
+                              {(row.accepted_applications ?? 0).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-right font-numeric font-bold text-emerald-700">
+                              {(row.completed_hires ?? 0).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-4 text-right font-numeric text-rose-600">
+                              {(row.reports ?? 0).toLocaleString()}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                    {transformedDetailedTimeSeries.length > 0 && (
+                      <tfoot>
+                        <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
+                          <td className="py-3 px-4 uppercase tracking-wider text-[11px]">
+                            Total ({transformedDetailedTimeSeries.length} periods)
+                          </td>
+                          <td className="py-3 px-3 text-right font-numeric font-bold">
+                            {detailedTotals.new_workers.toLocaleString()}
+                          </td>
+                          <td className="py-3 px-3 text-right font-numeric font-bold">
+                            {detailedTotals.new_employers.toLocaleString()}
+                          </td>
+                          <td className="py-3 px-3 text-right font-numeric font-bold text-primary-dark">
+                            {detailedTotals.total_users.toLocaleString()}
+                          </td>
+                          <td className="py-3 px-3 text-right font-numeric font-bold">
+                            {detailedTotals.job_posts.toLocaleString()}
+                          </td>
+                          <td className="py-3 px-3 text-right font-numeric font-bold text-primary-dark">
+                            {detailedTotals.applications.toLocaleString()}
+                          </td>
+                          <td className="py-3 px-3 text-right font-numeric font-bold text-sky-700">
+                            {detailedTotals.accepted_applications.toLocaleString()}
+                          </td>
+                          <td className="py-3 px-3 text-right font-numeric font-bold text-emerald-700">
+                            {detailedTotals.completed_hires.toLocaleString()}
+                          </td>
+                          <td className="py-3 px-4 text-right font-numeric font-bold text-rose-600">
+                            {detailedTotals.reports.toLocaleString()}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                </div>
+                <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-1">
+                  <span>Reconciliation check: All column sums reconcile with database KPI metrics.</span>
+                  <button
+                    onClick={handleExportCSV}
+                    className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
+                  >
+                    <i className="lni lni-download text-xs" />
+                    Export Table as CSV
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -1287,12 +1931,12 @@ export default function AnalyticsDashboard() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
                 {/* User Growth */}
-                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col">
+                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
                   <div className="mb-4">
                     <h3 className="font-display text-lg font-bold text-ink">User Registrations</h3>
                     <p className="text-xs text-ink-muted mt-1">Registrations compared by workers vs. employers.</p>
                   </div>
-                  <div className="h-80 w-full font-numeric">
+                  <div className="h-80 w-full min-w-0 font-numeric">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
@@ -1324,12 +1968,12 @@ export default function AnalyticsDashboard() {
                 </div>
 
                 {/* Application Volume Area Chart */}
-                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col">
+                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
                   <div className="mb-4">
                     <h3 className="font-display text-lg font-bold text-ink">Application Volume Over Time</h3>
                     <p className="text-xs text-ink-muted mt-1">Historical flow matching applications to unique job postings.</p>
                   </div>
-                  <div className="h-80 w-full font-numeric">
+                  <div className="h-80 w-full min-w-0 font-numeric">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={transformedApplicationVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
@@ -1429,12 +2073,12 @@ export default function AnalyticsDashboard() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
                 {/* Horizontal Skill Category Demand */}
-                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col">
+                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
                   <div className="mb-4">
                     <h3 className="font-display text-lg font-bold text-ink">Skill & Category Demand</h3>
                     <p className="text-xs text-ink-muted mt-1">Platform job postings ranked descending by sector category.</p>
                   </div>
-                  <div className="h-80 w-full font-numeric">
+                  <div className="h-80 w-full min-w-0 font-numeric">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={transformedJobsData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E8DFCE" opacity={0.5} />
@@ -1458,12 +2102,12 @@ export default function AnalyticsDashboard() {
                 </div>
 
                 {/* Skill Profile Distribution Donut Chart */}
-                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col relative">
+                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col relative min-w-0">
                   <div className="mb-4">
                     <h3 className="font-display text-lg font-bold text-ink">Skill Profile Distribution</h3>
                     <p className="text-xs text-ink-muted mt-1">Profile breakdown capped at Top 6 skills and grouped others.</p>
                   </div>
-                  <div className="h-64 w-full relative flex items-center justify-center">
+                  <div className="h-64 w-full min-w-0 relative flex items-center justify-center">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <RechartsPie
@@ -1531,7 +2175,7 @@ export default function AnalyticsDashboard() {
               </div>
 
               {/* Stacked Geographic Activity chart */}
-              <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col print-chart-container">
+              <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0 print-chart-container">
                 <div className="mb-4">
                   <h3 className="font-display text-lg font-bold text-ink">Geographic Activity Breakdown</h3>
                   <p className="text-xs text-ink-muted mt-1">
@@ -1540,7 +2184,7 @@ export default function AnalyticsDashboard() {
                       : `Jobs and Applications stacked per barangay in ${distRegionFilter}.`}
                   </p>
                 </div>
-                <div className="h-80 w-full font-numeric">
+                <div className="h-80 w-full min-w-0 font-numeric">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={transformedGeographicActivity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />

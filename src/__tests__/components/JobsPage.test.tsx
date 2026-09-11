@@ -57,7 +57,10 @@ describe('JobsPage Component', () => {
   it('fetches and displays jobs on render', async () => {
     render(<JobsPage />);
 
-    expect(adminApi.getJobs).toHaveBeenCalledWith(false);
+    expect(adminApi.getJobs).toHaveBeenCalledWith(expect.objectContaining({
+      trashed: false,
+      all: true,
+    }));
 
     await waitFor(() => {
       expect(screen.getByText('Senior House Painter')).toBeInTheDocument();

@@ -719,12 +719,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── Two-Factor Authentication Setup Modal ─────────────── */}
       <TwoFactorSetupModal
         isOpen={show2faModal}
+        isCurrentlyEnabled={is2faEnabled}
         onClose={() => setShow2faModal(false)}
         onSuccess={() => {
           setIs2faEnabled(true);
           try {
             const user = JSON.parse(localStorage.getItem('admin_user') || '{}');
             user.two_factor_enabled = true;
+            localStorage.setItem('admin_user', JSON.stringify(user));
+          } catch {}
+        }}
+        onDisableSuccess={() => {
+          setIs2faEnabled(false);
+          try {
+            const user = JSON.parse(localStorage.getItem('admin_user') || '{}');
+            user.two_factor_enabled = false;
             localStorage.setItem('admin_user', JSON.stringify(user));
           } catch {}
         }}

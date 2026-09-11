@@ -4,17 +4,22 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ArchivesPage from '@/app/dashboard/archives/page';
 import { adminApi } from '@/lib/api';
 
-// Mock the adminApi methods
-vi.mock('@/lib/api', () => ({
-  adminApi: {
-    getUsers: vi.fn(),
-    getJobs: vi.fn(),
-    restoreUser: vi.fn(),
-    restoreJob: vi.fn(),
-    permanentDeleteUser: vi.fn(),
-    permanentDeleteJob: vi.fn(),
-  },
-}));
+const { mockAdminApi } = vi.hoisted(() => {
+  return {
+    mockAdminApi: {
+      getUsers: vi.fn(),
+      getJobs: vi.fn(),
+      restoreUser: vi.fn(),
+      restoreJob: vi.fn(),
+      permanentDeleteUser: vi.fn(),
+      permanentDeleteJob: vi.fn(),
+      reauth: vi.fn(),
+    },
+  };
+});
+
+vi.mock('@/lib/api', () => ({ adminApi: mockAdminApi }));
+vi.mock('@/api/admin', () => ({ adminApi: mockAdminApi }));
 
 describe('ArchivesPage Component', () => {
   const mockDeletedUsers = [
@@ -45,6 +50,9 @@ describe('ArchivesPage Component', () => {
     } as any);
     vi.mocked(adminApi.getJobs).mockResolvedValue({
       data: { success: true, data: mockDeletedJobs },
+    } as any);
+    vi.mocked(adminApi.reauth).mockResolvedValue({
+      data: { success: true, reauth_token: 'test-reauth-token' },
     } as any);
   });
 
@@ -101,15 +109,20 @@ describe('ArchivesPage Component', () => {
       expect(screen.getByText('Deleted User One')).toBeInTheDocument();
     });
 
-    // Click Permanently Delete User button
+    // Click Permanently Delete User button (triggers ReAuthModal)
     const deleteBtn = screen.getByRole('button', { name: /Permanently Delete User/i });
     fireEvent.click(deleteBtn);
 
-    // Click Confirm in custom AlertDialog
-    const confirmBtn = screen.getByRole('button', { name: /Confirm/i });
-    fireEvent.click(confirmBtn);
+    // ReAuthModal requires admin password
+    const passwordInput = screen.getByPlaceholderText(/Enter your password/i);
+    fireEvent.change(passwordInput, { target: { value: 'SecretPassword123' } });
 
-    expect(adminApi.permanentDeleteUser).toHaveBeenCalledWith(10);
+    const authBtn = screen.getByRole('button', { name: /Confirm Action/i });
+    fireEvent.click(authBtn);
+
+    await waitFor(() => {
+      expect(adminApi.permanentDeleteUser).toHaveBeenCalledWith(10);
+    });
   });
 
   it('handles restoring a job successfully', async () => {
@@ -161,14 +174,19 @@ describe('ArchivesPage Component', () => {
       expect(screen.getByText('Deleted Painter Job')).toBeInTheDocument();
     });
 
-    // Click Permanently Delete Job Post button
+    // Click Permanently Delete Job Post button (triggers ReAuthModal)
     const deleteBtn = screen.getByRole('button', { name: /Permanently Delete Job Post/i });
     fireEvent.click(deleteBtn);
 
-    // Click Confirm in custom AlertDialog
-    const confirmBtn = screen.getByRole('button', { name: /Confirm/i });
-    fireEvent.click(confirmBtn);
+    // ReAuthModal requires admin password
+    const passwordInput = screen.getByPlaceholderText(/Enter your password/i);
+    fireEvent.change(passwordInput, { target: { value: 'SecretPassword123' } });
 
-    expect(adminApi.permanentDeleteJob).toHaveBeenCalledWith(20);
+    const authBtn = screen.getByRole('button', { name: /Confirm Action/i });
+    fireEvent.click(authBtn);
+
+    await waitFor(() => {
+      expect(adminApi.permanentDeleteJob).toHaveBeenCalledWith(20);
+    });
   });
 });

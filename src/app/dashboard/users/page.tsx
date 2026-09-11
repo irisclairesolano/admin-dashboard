@@ -85,10 +85,14 @@ function UsersContent() {
 
   const itemsPerPage = 10;
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async (forceRefresh: boolean = false) => {
     try {
       setLoading(true);
-      const res = await adminApi.getUsers(showArchived);
+      const res = await adminApi.getUsers({
+        trashed: showArchived,
+        all: true,
+        forceRefresh,
+      });
       setUsers(res.data.data || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load users');
@@ -274,7 +278,7 @@ function UsersContent() {
         try {
           setActionLoading(id);
           await adminApi.deleteUser(id);
-          await fetchUsers(); // Refresh list
+          await fetchUsers(true); // Refresh list
         } catch (err: any) {
           setUsers(previousUsers);
           setAlertState({ open: true, title: 'Error', message: 'Failed to delete user: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
@@ -298,7 +302,7 @@ function UsersContent() {
         try {
           setActionLoading(id);
           await adminApi.restoreUser(id);
-          await fetchUsers(); // Refresh list
+          await fetchUsers(true); // Refresh list
         } catch (err: any) {
           setUsers(previousUsers);
           setAlertState({ open: true, title: 'Error', message: 'Failed to restore user: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
@@ -312,7 +316,7 @@ function UsersContent() {
     try {
       setActionLoading(id);
       await adminApi.verifyUser(id, status, reason);
-      await fetchUsers(); // Refresh list
+      await fetchUsers(true); // Refresh list
       if (selectedDetailUser && selectedDetailUser.id === id) {
         fetchUserDetails(id); // Refresh drawer
       }

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, MapPin, Calendar } from 'lucide-react';
 
 interface JobPreviewModalProps {
@@ -9,18 +9,37 @@ interface JobPreviewModalProps {
 }
 
 export default function JobPreviewModal({ selectedJob, onClose }: JobPreviewModalProps) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  if (!selectedJob) return null;
+
   return (
-    <div className="fixed inset-0 bg-ink/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 bg-ink/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Job Preview"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
         <div className="p-6 border-b border-ink-faint flex justify-between items-center bg-paper-cream">
           <div>
             <span className="text-xs font-mono font-semibold text-primary uppercase bg-primary/10 px-2.5 py-1 rounded-md">
-              {selectedJob.reference_number}
+              {selectedJob.reference_number || `#${selectedJob.id}`}
             </span>
             <h2 className="font-display text-2xl text-ink mt-2">{selectedJob.title}</h2>
           </div>
           <button
             onClick={onClose}
+            aria-label="Close job preview"
             className="p-2 hover:bg-paper rounded-full text-ink-muted hover:text-ink transition-colors"
           >
             <X className="w-5 h-5" />
@@ -39,7 +58,7 @@ export default function JobPreviewModal({ selectedJob, onClose }: JobPreviewModa
             <span className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">Location (Privacy Protected)</span>
             <div className="flex items-center gap-1.5 mt-1 text-sm font-medium text-ink font-semibold">
               <MapPin className="w-4 h-4 text-primary" />
-              <span>Brgy. {selectedJob.barangay}, {selectedJob.municipality}</span>
+              <span>Brgy. {selectedJob.barangay || 'N/A'}, {selectedJob.municipality || 'Bulan'}</span>
             </div>
           </div>
 
@@ -47,13 +66,13 @@ export default function JobPreviewModal({ selectedJob, onClose }: JobPreviewModa
             <div>
               <span className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">Compensation</span>
               <span className="text-sm font-bold text-status-success mt-1 block">
-                ₱{Number(selectedJob.compensation).toLocaleString()}
+                ₱{(Number(selectedJob.compensation) || 0).toLocaleString()}
               </span>
             </div>
             <div>
               <span className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">Slots Available</span>
               <span className="text-sm font-bold text-ink mt-1 block">
-                {selectedJob.accepted_count} / {selectedJob.slots} filled
+                {selectedJob.accepted_count ?? 0} / {selectedJob.slots ?? 1} filled
               </span>
             </div>
           </div>
@@ -62,7 +81,7 @@ export default function JobPreviewModal({ selectedJob, onClose }: JobPreviewModa
             <span className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">Schedule Date</span>
             <div className="flex items-center gap-1.5 mt-1 text-sm font-medium text-ink font-semibold">
               <Calendar className="w-4 h-4 text-ink-muted" />
-              <span>{new Date(selectedJob.schedule_date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+              <span>{selectedJob.schedule_date ? new Date(selectedJob.schedule_date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</span>
             </div>
           </div>
 

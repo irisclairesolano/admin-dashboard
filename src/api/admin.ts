@@ -76,10 +76,11 @@ const cachedGet = async (url: string) => {
   }
 
   const fetchPromise = apiClient.get(url).then(response => {
-    apiCache.set(url, { data: response, timestamp: Date.now() });
+    const payload = { data: response.data, status: response.status };
+    apiCache.set(url, { data: payload, timestamp: Date.now() });
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem('api_cache_' + url, JSON.stringify(response));
+        localStorage.setItem('api_cache_' + url, JSON.stringify(payload));
         localStorage.setItem('api_cache_time_' + url, Date.now().toString());
       } catch {
         console.warn('Cache storage full, clearing old entries');
@@ -143,8 +144,8 @@ export const adminApi = {
     } catch {}
   },
   
-  getVerifications: async () => {
-    return cachedGet('/admin/verifications');
+  getVerifications: async (all: boolean = false) => {
+    return cachedGet(`/admin/verifications${all ? '?all=1' : ''}`);
   },
   
   verifyUser: async (id: number, status: 'approved' | 'rejected', rejection_reason?: string) => {
@@ -152,9 +153,35 @@ export const adminApi = {
     return apiClient.patch(`/admin/users/${id}/verify`, { status, rejection_reason });
   },
   
-  getUsers: async (trashed: boolean = false, forceRefresh: boolean = false) => {
-    const url = `/admin/users${trashed ? '?trashed=1' : ''}`;
-    if (forceRefresh) {
+  getUsers: async (
+    trashedOrOptions?: boolean | {
+      trashed?: boolean;
+      page?: number;
+      search?: string;
+      role?: string;
+      all?: boolean;
+      forceRefresh?: boolean;
+    },
+    forceRefresh: boolean = false
+  ) => {
+    let url = '/admin/users';
+    let shouldForce = forceRefresh;
+
+    if (typeof trashedOrOptions === 'boolean') {
+      url = `/admin/users${trashedOrOptions ? '?trashed=1' : ''}`;
+    } else if (typeof trashedOrOptions === 'object' && trashedOrOptions !== null) {
+      const params = new URLSearchParams();
+      if (trashedOrOptions.trashed) params.append('trashed', '1');
+      if (trashedOrOptions.page) params.append('page', trashedOrOptions.page.toString());
+      if (trashedOrOptions.search) params.append('search', trashedOrOptions.search);
+      if (trashedOrOptions.role && trashedOrOptions.role !== 'all') params.append('role', trashedOrOptions.role);
+      if (trashedOrOptions.all) params.append('all', '1');
+      const qs = params.toString();
+      url = `/admin/users${qs ? `?${qs}` : ''}`;
+      if (trashedOrOptions.forceRefresh) shouldForce = true;
+    }
+
+    if (shouldForce) {
       clearApiCache();
       return apiClient.get(url);
     }
@@ -215,9 +242,37 @@ export const adminApi = {
     return apiClient.patch(`/admin/users/${id}/restore`);
   },
 
-  getJobs: async (trashed: boolean = false, forceRefresh: boolean = false) => {
-    const url = `/admin/jobs${trashed ? '?trashed=1' : ''}`;
-    if (forceRefresh) {
+  getJobs: async (
+    trashedOrOptions?: boolean | {
+      trashed?: boolean;
+      page?: number;
+      search?: string;
+      status?: string;
+      all?: boolean;
+      forceRefresh?: boolean;
+    },
+    forceRefresh: boolean = false
+  ) => {
+    let url = '/admin/jobs';
+    let shouldForce = forceRefresh;
+
+    if (typeof trashedOrOptions === 'boolean') {
+      url = `/admin/jobs${trashedOrOptions ? '?trashed=1' : ''}`;
+    } else if (typeof trashedOrOptions === 'object' && trashedOrOptions !== null) {
+      const params = new URLSearchParams();
+      if (trashedOrOptions.trashed) params.append('trashed', '1');
+      if (trashedOrOptions.page) params.append('page', trashedOrOptions.page.toString());
+      if (trashedOrOptions.search) params.append('search', trashedOrOptions.search);
+      if (trashedOrOptions.status && trashedOrOptions.status !== 'All' && trashedOrOptions.status !== 'all') {
+        params.append('status', trashedOrOptions.status.toLowerCase());
+      }
+      if (trashedOrOptions.all) params.append('all', '1');
+      const qs = params.toString();
+      url = `/admin/jobs${qs ? `?${qs}` : ''}`;
+      if (trashedOrOptions.forceRefresh) shouldForce = true;
+    }
+
+    if (shouldForce) {
       clearApiCache();
       return apiClient.get(url);
     }
@@ -239,10 +294,14 @@ export const adminApi = {
     return apiClient.patch(`/admin/jobs/${id}/restore`);
   },
 
-  getReports: async (status: string = 'open', page: number = 1, search: string = '') => {
+  getReports: async (status: string = 'open', page: number = 1, search: string = '', all: boolean = false) => {
     const params = new URLSearchParams();
     if (status) params.append('status', status);
-    if (page) params.append('page', page.toString());
+    if (all) {
+      params.append('all', '1');
+    } else if (page) {
+      params.append('page', page.toString());
+    }
     if (search) params.append('search', search);
     return cachedGet(`/admin/reports?${params.toString()}`);
   },
@@ -280,9 +339,13 @@ export const adminApi = {
     return apiClient.patch(`/admin/support/${id}/status`, { status });
   },
 
-  getLogs: async (page: number = 1, search?: string, action?: string, dateFrom?: string, dateTo?: string) => {
+  getLogs: async (page: number = 1, search?: string, action?: string, dateFrom?: string, dateTo?: string, all: boolean = false) => {
     const params = new URLSearchParams();
-    params.append('page', page.toString());
+    if (all) {
+      params.append('all', '1');
+    } else {
+      params.append('page', page.toString());
+    }
     if (search) params.append('search', search);
     if (action) params.append('action', action);
     if (dateFrom) params.append('date_from', dateFrom);

@@ -20,8 +20,14 @@ export function useInactivityTimer({
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
 
-  const resetTimer = () => {
-    lastActivityRef.current = Date.now();
+  const resetTimer = (skipStorage = false) => {
+    const now = Date.now();
+    lastActivityRef.current = now;
+    if (!skipStorage && typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('admin_last_activity', now.toString());
+      } catch {}
+    }
     setShowWarning(false);
     setSecondsRemaining(Math.floor(warningMs / 1000));
 
@@ -31,6 +37,19 @@ export function useInactivityTimer({
     // Schedule warning before final timeout
     const warningDelay = Math.max(0, timeoutMs - warningMs);
     timerRef.current = setTimeout(() => {
+      // Re-check cross-tab last activity before opening warning
+      if (typeof window !== 'undefined') {
+        const storedLast = localStorage.getItem('admin_last_activity');
+        if (storedLast) {
+          const diff = Date.now() - parseInt(storedLast, 10);
+          if (diff < timeoutMs - warningMs) {
+            // User was active in another tab! Reschedule
+            resetTimer(true);
+            return;
+          }
+        }
+      }
+
       setShowWarning(true);
       const startCount = Math.floor(warningMs / 1000);
       setSecondsRemaining(startCount);
@@ -57,9 +76,17 @@ export function useInactivityTimer({
       }
     };
 
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'admin_last_activity') {
+        // User was active in another tab, reset timer locally
+        resetTimer(true);
+      }
+    };
+
     events.forEach((event) => {
       window.addEventListener(event, handleActivity, { passive: true });
     });
+    window.addEventListener('storage', handleStorageChange);
 
     resetTimer();
 
@@ -67,6 +94,7 @@ export function useInactivityTimer({
       events.forEach((event) => {
         window.removeEventListener(event, handleActivity);
       });
+      window.removeEventListener('storage', handleStorageChange);
       if (timerRef.current) clearTimeout(timerRef.current);
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     };

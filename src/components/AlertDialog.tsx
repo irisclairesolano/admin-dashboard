@@ -41,8 +41,6 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
         } else {
           onConfirm?.();
         }
-      } else if (e.key === 'Enter') {
-        onConfirm?.();
       }
     };
 

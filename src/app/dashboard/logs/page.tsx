@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import { Download } from 'lucide-react';
 import Avatar from '@/components/Avatar';
@@ -12,11 +12,14 @@ import { ACTION_TYPES, DEFAULT_ACTION_BADGE } from '@/lib/constants';
 import { exportTableToCSV, formatCSVDate } from '@/lib/export/csv';
 
 function LogsPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
 
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [actionFilter, setActionFilter] = useState('');
@@ -35,6 +38,23 @@ function LogsPageContent() {
   });
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  // Client-side role guard: Super Admin only
+  useEffect(() => {
+    try {
+      const userStr = localStorage.getItem('admin_user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      if (!user || user.admin_role !== 'superadmin') {
+        setIsAuthorized(false);
+        router.replace('/dashboard');
+        return;
+      }
+      setIsAuthorized(true);
+    } catch {
+      setIsAuthorized(false);
+      router.replace('/dashboard');
+    }
+  }, [router]);
 
   // Sync search query from URL query parameter
   useEffect(() => {
@@ -62,8 +82,10 @@ function LogsPageContent() {
   }, [currentPage, debouncedSearchTerm, actionFilter, dateFrom, dateTo]);
 
   useEffect(() => {
-    fetchLogs();
-  }, [fetchLogs]);
+    if (isAuthorized) {
+      fetchLogs();
+    }
+  }, [fetchLogs, isAuthorized]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,45 +103,81 @@ function LogsPageContent() {
       .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-  // Convert current logs list to CSV and trigger browser download
-  const handleExportCSV = () => {
-    if (logs.length === 0) {
+  // Convert current or all matching logs list to CSV and trigger browser download
+  const handleExportCSV = async () => {
+    try {
+      setExporting(true);
+      const res = await adminApi.getLogs(
+        1,
+        debouncedSearchTerm,
+        actionFilter,
+        dateFrom || undefined,
+        dateTo || undefined,
+        true // all matching logs
+      );
+      const exportLogs = res.data?.data || logs;
+      if (exportLogs.length === 0) {
+        setAlertState({
+          isOpen: true,
+          title: 'Export Failed',
+          message: 'No logs available to export.',
+        });
+        return;
+      }
+
+      const headers = [
+        'Log ID',
+        'Timestamp',
+        'Administrator Name',
+        'Administrator Email',
+        'Action Code',
+        'Target Entity',
+        'Target ID',
+        'Activity Description'
+      ];
+
+      const rows = exportLogs.map((log: any) => [
+        log.id,
+        formatCSVDate(log.created_at),
+        log.admin?.name || 'System Admin',
+        log.admin?.email || 'N/A',
+        formatActionName(log.action),
+        log.target_type || log.target_name || '-',
+        log.target_id || '',
+        log.description || ''
+      ]);
+
+      exportTableToCSV(
+        `sikap_audit_logs_${new Date().toISOString().slice(0, 10)}`,
+        headers,
+        rows
+      );
+    } catch (err: any) {
       setAlertState({
         isOpen: true,
-        title: 'Export Failed',
-        message: 'No logs available to export.',
+        title: 'Export Error',
+        message: err.message || 'Failed to export audit logs.',
       });
-      return;
+    } finally {
+      setExporting(false);
     }
-
-    const headers = [
-      'Log ID',
-      'Timestamp',
-      'Administrator Name',
-      'Administrator Email',
-      'Action Code',
-      'Target Entity',
-      'Target ID',
-      'Activity Description'
-    ];
-
-    const rows = logs.map(log => [
-      log.id,
-      formatCSVDate(log.created_at),
-      log.admin?.name || 'System Admin',
-      log.admin?.email || 'N/A',
-      formatActionName(log.action),
-      log.target_type || log.target_name || '-',
-      log.target_id || '',
-      log.description || ''
-    ]);
-
-    exportTableToCSV(
-      `sikap_audit_logs_${new Date().toISOString().slice(0, 10)}`,
-      headers,
-      rows
-    );
   };
+
+  if (isAuthorized === false) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center animate-fade-in">
+        <div className="w-16 h-16 bg-status-error/10 rounded-full flex items-center justify-center mb-4">
+          <i className="lni lni-shield text-2xl text-status-error" />
+        </div>
+        <h2 className="text-lg font-body font-bold text-ink mb-2">Access Denied</h2>
+        <p className="text-ink-soft font-body text-sm mb-6">Super Admin privileges are required to access Audit Logs. Redirecting to dashboard...</p>
+      </div>
+    );
+  }
+
+  if (isAuthorized === null) {
+    return null;
+  }
 
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
@@ -136,10 +194,11 @@ function LogsPageContent() {
         <div className="flex flex-wrap items-center gap-3 mt-6 md:mt-0">
           <button
             onClick={handleExportCSV}
-            className="flex items-center px-4 py-2 bg-primary text-white rounded-xl font-body font-semibold hover:bg-primary-dark transition-colors shadow-sm text-sm"
+            disabled={exporting}
+            className="flex items-center px-4 py-2 bg-primary text-white rounded-xl font-body font-semibold hover:bg-primary-dark transition-colors shadow-sm text-sm disabled:opacity-50"
           >
             <Download className="w-4 h-4 mr-2" />
-            Export CSV
+            {exporting ? 'Exporting...' : 'Export CSV'}
           </button>
           
           <form onSubmit={handleSearchSubmit} className="relative w-full md:w-64 group">

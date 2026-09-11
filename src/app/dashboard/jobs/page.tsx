@@ -80,10 +80,14 @@ function JobsPageContent() {
     setSearchTerm(urlSearch);
   }, [urlSearch]);
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (forceRefresh: boolean = false) => {
     try {
       setLoading(true);
-      const res = await adminApi.getJobs(false);
+      const res = await adminApi.getJobs({
+        trashed: false,
+        all: true,
+        forceRefresh,
+      });
       setJobs(res.data.data || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load jobs');
@@ -123,7 +127,7 @@ function JobsPageContent() {
         try {
           setActionLoading(id);
           await adminApi.deleteJob(id);
-          await fetchJobs();
+          await fetchJobs(true);
         } catch (err: any) {
           setJobs(previousJobs);
           setAlertState({
@@ -146,11 +150,13 @@ function JobsPageContent() {
 
     setAlertState({
       open: true,
-      title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} Job Post`,
+      title: `${isSuspended ? 'Unsuspend' : 'Suspend'} Job Post`,
       message: `Are you sure you want to ${actionText} this job post?`,
       onConfirm: async () => {
         const previousJobs = [...jobs];
-        setJobs(prev => prev.map(j => j.id === id ? { ...j, status: newStatus } : j));
+        setJobs(prev =>
+          prev.map(j => (j.id === id ? { ...j, status: newStatus } : j))
+        );
         if (selectedDetailJob?.id === id) {
           setSelectedDetailJob((prev: any) => prev ? { ...prev, status: newStatus } : null);
         }
@@ -158,7 +164,7 @@ function JobsPageContent() {
         try {
           setActionLoading(id);
           await adminApi.updateJobStatus(id, newStatus);
-          await fetchJobs();
+          await fetchJobs(true);
         } catch (err: any) {
           setJobs(previousJobs);
           if (selectedDetailJob?.id === id) {
@@ -245,7 +251,7 @@ function JobsPageContent() {
       <h2 className="text-lg font-body font-bold text-ink mb-2">Failed to load jobs</h2>
       <p className="text-ink-soft font-body text-sm mb-6">{error}</p>
       <button
-        onClick={fetchJobs}
+        onClick={() => fetchJobs()}
         className="px-5 py-2.5 bg-ink text-white font-body font-semibold rounded-xl hover:bg-ink-soft transition-colors text-sm"
       >
         Retry

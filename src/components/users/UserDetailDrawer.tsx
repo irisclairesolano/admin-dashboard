@@ -5,6 +5,7 @@ import { X, ShieldAlert, CheckCircle2, AlertCircle, MapPin, Star, RefreshCw, Mai
 import Avatar from '@/components/Avatar';
 import Image from 'next/image';
 import { User } from '@/types/models';
+import { formatBirthDate } from '@/lib/date';
 
 interface UserDetailDrawerProps {
   selectedDetailUser: User;
@@ -299,9 +300,7 @@ export default function UserDetailDrawer({
                       <div className="flex items-center gap-2 text-sm text-ink font-semibold">
                         <Calendar className="w-4 h-4 text-ink-muted" />
                         <span>
-                          {userDetailData.user.date_of_birth
-                            ? new Date(userDetailData.user.date_of_birth).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
-                            : 'Not set'}
+                          {formatBirthDate(userDetailData.user.date_of_birth)}
                         </span>
                       </div>
                     </div>
