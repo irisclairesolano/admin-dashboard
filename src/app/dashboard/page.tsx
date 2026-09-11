@@ -124,6 +124,85 @@ function MetricHeaderStrip({ items }: { items: { label: string; value: string | 
   );
 }
 
+function HealthStatusBadge({ type, value }: { type: 'throughput' | 'conversion' | 'reports'; value: number }) {
+  if (type === 'throughput') {
+    if (value >= 3) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          Healthy Liquidity
+        </span>
+      );
+    }
+    if (value >= 1) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
+          <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+          Moderate Flow
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+        Under-subscribed
+      </span>
+    );
+  }
+
+  if (type === 'conversion') {
+    if (value >= 20) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          Strong Match Rate (≥20%)
+        </span>
+      );
+    }
+    if (value >= 10) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
+          <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+          Average Match Rate
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+        Low Match Rate (&lt;10%)
+      </span>
+    );
+  }
+
+  if (type === 'reports') {
+    if (value === 0) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          Zero Incidents
+        </span>
+      );
+    }
+    if (value <= 3) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
+          <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+          Normal Variance
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+        Requires Attention
+      </span>
+    );
+  }
+
+  return null;
+}
+
 function getPeriodAndInterval(preset: string, start?: string, end?: string) {
   const now = new Date();
   let from = '';
@@ -240,13 +319,14 @@ export default function AnalyticsDashboard() {
 
   // Page-specific tab filters
   const [trendsRoleFilter, setTrendsRoleFilter] = useState<'all' | 'worker' | 'employer'>('all');
-  const [trendsVolumeFilter, setTrendsVolumeFilter] = useState<'all' | 'applications' | 'jobs'>('all');
+  const [trendsVolumeFilter, setTrendsVolumeFilter] = useState<'all' | 'applications' | 'hires'>('all');
   const [distRegionFilter, setDistRegionFilter] = useState<string>('all');
   const [distLimitFilter, setDistLimitFilter] = useState<number>(6);
   const [healthWageFilter, setHealthWageFilter] = useState<'all' | 'low' | 'mid' | 'high'>('all');
   const [healthReportFilter, setHealthReportFilter] = useState<'all' | 'pending' | 'resolved'>('all');
   // Tab State
   const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'distribution' | 'health'>('overview');
+  const [viewMode, setViewMode] = useState<'split' | 'charts' | 'table'>('split');
 
   // Interactive Pie State
   const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
@@ -620,19 +700,7 @@ export default function AnalyticsDashboard() {
     }
   };
 
-  const stats = [
-    { label: 'New Users', value: data?.kpis?.total_users?.value ?? 0, change: data?.kpis?.total_users?.change, iconClass: 'lni lni-users', color: 'text-primary-dark', bg: 'bg-primary-soft', href: '/dashboard/users' },
-    { label: 'Job Posts', value: data?.kpis?.active_jobs?.value ?? 0, change: data?.kpis?.active_jobs?.change, iconClass: 'lni lni-briefcase', color: 'text-accent-skyDeep', bg: 'bg-accent-sky', href: '/dashboard/jobs' },
-    { label: 'Applications', value: data?.kpis?.applications?.value ?? 0, change: data?.kpis?.applications?.change, iconClass: 'lni lni-files', color: 'text-accent-mintDeep', bg: 'bg-accent-mint', href: '/dashboard/jobs' },
-    { label: 'Reports Filed', value: data?.kpis?.unresolved_reports?.value ?? 0, change: data?.kpis?.unresolved_reports?.change, iconClass: 'lni lni-warning', color: 'text-status-error', bg: 'bg-status-error/10', href: '/dashboard/reports' },
-  ];
 
-  const messagingStats = convStats ? [
-    { label: 'Total Conversations', value: convStats.total_conversations, icon: '💬', color: 'text-accent-skyDeep', bg: 'bg-accent-sky/20' },
-    { label: 'Active Chats', value: convStats.active_conversations, icon: '🟢', color: 'text-status-success', bg: 'bg-accent-mint/20' },
-    { label: 'Messages Today', value: convStats.messages_today, icon: '📨', color: 'text-primary-dark', bg: 'bg-primary-tint' },
-    { label: 'Avg Msgs / Hire', value: convStats.avg_messages_per_hire, icon: '📊', color: 'text-accent-mintDeep', bg: 'bg-accent-mint/20' },
-  ] : null;
 
   // User growth Recharts format
   const transformedUserGrowth = (() => {
@@ -945,6 +1013,35 @@ export default function AnalyticsDashboard() {
     );
   })();
 
+  // Application-to-Hire Conversion Velocity Data for Trends Tab
+  const transformedConversionVelocity = (() => {
+    return (transformedDetailedTimeSeries || []).map((row: any) => ({
+      name: row.period || 'Unknown',
+      applications: row.applications ?? 0,
+      completed_hires: row.completed_hires ?? 0,
+      accepted_applications: row.accepted_applications ?? 0,
+    }));
+  })();
+
+  const conversionInsight = (() => {
+    const apps = detailedTotals.applications || 0;
+    const hires = detailedTotals.completed_hires || 0;
+    if (apps === 0) {
+      return "No application activity recorded for this period yet to measure hiring conversion velocity.";
+    }
+    const rate = ((hires / apps) * 100).toFixed(1);
+    if (hires === 0) {
+      return `${apps.toLocaleString()} application(s) submitted with 0 confirmed hires recorded so far. Monitor employer response times to prevent candidate attrition.`;
+    }
+    return `${apps.toLocaleString()} applications resulted in ${hires.toLocaleString()} verified hires (${rate}% conversion rate). ${
+      Number(rate) >= 20
+        ? 'Conversion velocity indicates strong market liquidity and rapid worker placement.'
+        : Number(rate) >= 10
+        ? 'Steady conversion flow with typical evaluation turnaround.'
+        : 'Low conversion velocity suggests opportunities to assist employers in candidate evaluation.'
+    }`;
+  })();
+
   // Dynamic Insight Calculations
   const activityInsight = (() => {
     if (!transformedApplicationVolume || transformedApplicationVolume.length === 0) {
@@ -1214,30 +1311,70 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
 
-        {/* Tab System Controls */}
-        <div role="tablist" aria-label="Analytics sections" className="flex border-b border-ink-faint/50 overflow-x-auto pb-1 gap-2 mt-2">
-          {[
-            { id: 'overview', label: 'Overview' },
-            { id: 'trends', label: 'Activity Trends' },
-            { id: 'distribution', label: 'Distribution & Demand' },
-            { id: 'health', label: 'Platform Health & Trust' },
-          ].map((tab) => (
+        {/* Tab System Controls & View Mode Switcher */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-ink-faint/50 mt-2 pb-1">
+          <div role="tablist" aria-label="Analytics sections" className="flex overflow-x-auto gap-1">
+            {[
+              { id: 'overview', label: 'Executive Pulse', subtitle: 'Platform Vitals & AI Briefing' },
+              { id: 'trends', label: 'Marketplace & Liquidity', subtitle: 'Application & Match Velocity' },
+              { id: 'distribution', label: 'Regional & Sector Demand', subtitle: 'Skills, Categories & Wages' },
+              { id: 'health', label: 'Trust, Safety & Compliance', subtitle: 'Ratings, Reports & Moderation' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                aria-controls={`panel-${tab.id}`}
+                id={`tab-${tab.id}`}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`py-2 px-3 sm:px-4 font-body text-xs border-b-2 transition-all whitespace-nowrap text-left cursor-pointer ${
+                  activeTab === tab.id
+                    ? 'border-ink text-ink font-bold'
+                    : 'border-transparent text-ink-muted hover:text-ink font-semibold'
+                }`}
+              >
+                <span className="block text-xs">{tab.label}</span>
+                <span className="block text-[10px] text-ink-muted font-normal hidden md:block">{tab.subtitle}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* View Mode Switcher: Charts | Table | Split */}
+          <div className="flex items-center gap-1 self-start sm:self-auto bg-white/80 backdrop-blur-md p-1 rounded-xl border border-slate-200/80 shadow-2xs no-print">
             <button
-              key={tab.id}
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              aria-controls={`panel-${tab.id}`}
-              id={`tab-${tab.id}`}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`py-2.5 px-4 font-body font-bold text-xs border-b-2 transition-all whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'border-ink text-ink'
-                  : 'border-transparent text-ink-muted hover:text-ink'
+              type="button"
+              onClick={() => setViewMode('charts')}
+              title="View Visual Charts & Insights only"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                viewMode === 'charts' ? 'bg-ink text-white shadow-xs' : 'text-ink-muted hover:text-ink hover:bg-white/60'
               }`}
             >
-              {tab.label}
+              <i className="lni lni-pie-chart text-xs" />
+              <span>Charts</span>
             </button>
-          ))}
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              title="View Detailed Tabular Report only"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                viewMode === 'table' ? 'bg-ink text-white shadow-xs' : 'text-ink-muted hover:text-ink hover:bg-white/60'
+              }`}
+            >
+              <i className="lni lni-table text-xs" />
+              <span>Table</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('split')}
+              title="Split View: Visual charts above, tabular report below"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                viewMode === 'split' ? 'bg-ink text-white shadow-xs' : 'text-ink-muted hover:text-ink hover:bg-white/60'
+              }`}
+            >
+              <i className="lni lni-layers text-xs" />
+              <span>Split View</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1311,57 +1448,249 @@ export default function AnalyticsDashboard() {
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="space-y-8">
-              {/* KPI Cards section */}
+              {/* Thematic Operational Clusters (Executive Vitals) */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 print-card-grid">
-                {stats.map((stat, i) => (
-                  <div
-                    key={i}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`${stat.label}: ${stat.value}`}
-                    onClick={() => router.push(stat.href)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(stat.href); }}
-                    className={`cursor-pointer group relative p-6 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white/50 hover:-translate-y-1 overflow-hidden ${stat.bg} backdrop-blur-md`}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="relative flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mr-4 shadow-inner bg-white/60">
-                          <i className={`${stat.iconClass} text-xl ${stat.color}`} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-body font-semibold text-ink-soft uppercase tracking-wider">{stat.label}</p>
-                          <h3 className="text-2xl font-numeric font-bold text-ink mt-0.5">{stat.value}</h3>
-                        </div>
+                {/* Card 1: Ecosystem Growth */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push('/dashboard/users')}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/users'); }}
+                  className="cursor-pointer group relative p-6 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white/60 hover:-translate-y-1 overflow-hidden bg-white/80 backdrop-blur-md flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-[10px] font-body font-bold text-primary-dark uppercase tracking-wider bg-primary-soft/60 px-2.5 py-1 rounded-lg">
+                        Ecosystem Growth
+                      </span>
+                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-primary-soft shadow-inner">
+                        <i className="lni lni-users text-lg text-primary-dark" />
                       </div>
                     </div>
-                    {stat.change !== undefined && (
-                      <div className={`mt-3 flex items-center text-xs font-semibold ${stat.change >= 0 ? 'text-status-success' : 'text-status-error'}`}>
-                        <i className={`lni ${stat.change >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-1 font-bold`} />
-                        <span>{Math.abs(stat.change)}% from previous period</span>
+                    <p className="text-xs font-body font-semibold text-ink-soft uppercase tracking-wider">New Registrations</p>
+                    <h3 className="text-3xl font-numeric font-bold text-ink mt-1">{(data?.kpis?.total_users?.value ?? 0).toLocaleString()}</h3>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-ink-faint/30">
+                    <div className="flex items-center justify-between text-xs font-semibold text-ink-muted mb-1.5">
+                      <span>{detailedTotals.new_workers.toLocaleString()} Workers</span>
+                      <span>·</span>
+                      <span>{detailedTotals.new_employers.toLocaleString()} Employers</span>
+                    </div>
+                    {data?.kpis?.total_users?.change !== undefined && (
+                      <div className={`flex items-center text-xs font-bold ${(data.kpis.total_users.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
+                        <i className={`lni ${(data.kpis.total_users.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-1 font-bold`} />
+                        <span>{Math.abs(data.kpis.total_users.change ?? 0)}% PoP change</span>
                       </div>
                     )}
                   </div>
-                ))}
+                </div>
+
+                {/* Card 2: Job Posts */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push('/dashboard/jobs')}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/jobs'); }}
+                  className="cursor-pointer group relative p-6 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white/60 hover:-translate-y-1 overflow-hidden bg-white/80 backdrop-blur-md flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-[10px] font-body font-bold text-sky-800 uppercase tracking-wider bg-sky-100 px-2.5 py-1 rounded-lg">
+                        Labor Demand
+                      </span>
+                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-sky-100 shadow-inner">
+                        <i className="lni lni-briefcase text-lg text-sky-700" />
+                      </div>
+                    </div>
+                    <p className="text-xs font-body font-semibold text-ink-soft uppercase tracking-wider">Job Posts</p>
+                    <h3 className="text-3xl font-numeric font-bold text-ink mt-1">{(data?.kpis?.active_jobs?.value ?? 0).toLocaleString()}</h3>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-ink-faint/30">
+                    <div className="flex items-center justify-between text-xs font-semibold text-ink-muted mb-1.5">
+                      <span>Active listings</span>
+                      <span>·</span>
+                      <span>Municipal trades</span>
+                    </div>
+                    {data?.kpis?.active_jobs?.change !== undefined && (
+                      <div className={`flex items-center text-xs font-bold ${(data.kpis.active_jobs.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
+                        <i className={`lni ${(data.kpis.active_jobs.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-1 font-bold`} />
+                        <span>{Math.abs(data.kpis.active_jobs.change ?? 0)}% PoP change</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Card 3: Applications & Liquidity */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push('/dashboard/jobs')}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/jobs'); }}
+                  className="cursor-pointer group relative p-6 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white/60 hover:-translate-y-1 overflow-hidden bg-white/80 backdrop-blur-md flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-[10px] font-body font-bold text-emerald-800 uppercase tracking-wider bg-emerald-100 px-2.5 py-1 rounded-lg">
+                        Marketplace Flow
+                      </span>
+                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-emerald-100 shadow-inner">
+                        <i className="lni lni-files text-lg text-emerald-700" />
+                      </div>
+                    </div>
+                    <p className="text-xs font-body font-semibold text-ink-soft uppercase tracking-wider">Applications Filed</p>
+                    <h3 className="text-3xl font-numeric font-bold text-ink mt-1">{(data?.kpis?.applications?.value ?? 0).toLocaleString()}</h3>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-ink-faint/30">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-semibold text-ink-muted font-numeric">
+                        {((data?.kpis?.active_jobs?.value ?? 0) > 0 ? ((data?.kpis?.applications?.value ?? 0) / (data?.kpis?.active_jobs?.value || 1)).toFixed(1) : 0)} apps/post
+                      </span>
+                      <HealthStatusBadge type="throughput" value={(data?.kpis?.active_jobs?.value ?? 0) > 0 ? ((data?.kpis?.applications?.value ?? 0) / (data?.kpis?.active_jobs?.value || 1)) : 0} />
+                    </div>
+                    {data?.kpis?.applications?.change !== undefined && (
+                      <div className={`flex items-center text-xs font-bold ${(data.kpis.applications.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
+                        <i className={`lni ${(data.kpis.applications.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-1 font-bold`} />
+                        <span>{Math.abs(data.kpis.applications.change ?? 0)}% PoP change</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Card 4: Trust & Reports */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push('/dashboard/reports')}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/reports'); }}
+                  className="cursor-pointer group relative p-6 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-white/60 hover:-translate-y-1 overflow-hidden bg-white/80 backdrop-blur-md flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-[10px] font-body font-bold text-rose-800 uppercase tracking-wider bg-rose-100 px-2.5 py-1 rounded-lg">
+                        Trust & Safety
+                      </span>
+                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-rose-100 shadow-inner">
+                        <i className="lni lni-shield text-lg text-rose-700" />
+                      </div>
+                    </div>
+                    <p className="text-xs font-body font-semibold text-ink-soft uppercase tracking-wider">Reports Filed</p>
+                    <h3 className="text-3xl font-numeric font-bold text-ink mt-1">{(data?.kpis?.unresolved_reports?.value ?? 0).toLocaleString()}</h3>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-ink-faint/30">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-semibold text-ink-muted">Active Moderation</span>
+                      <HealthStatusBadge type="reports" value={data?.kpis?.unresolved_reports?.value ?? 0} />
+                    </div>
+                    <div className="text-[11px] font-semibold text-ink-muted">
+                      {data?.verification?.delayed_verifications ? `${data.verification.delayed_verifications} pending reviews` : 'Verification queue cleared'}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* In-App Messaging Stats — aggregate counts only, no message content */}
-              {messagingStats && (
-                <div className="space-y-2">
-                  <p className="text-xs font-body font-bold text-ink-soft uppercase tracking-wider px-1">💬 Messaging Activity</p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {messagingStats.map((s, i) => (
-                      <div key={i} className={`p-4 rounded-2xl border border-white/50 shadow-sm ${s.bg}`}>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-lg">{s.icon}</span>
-                          <p className="text-xs font-body font-semibold text-ink-soft uppercase tracking-wider">{s.label}</p>
-                        </div>
-                        <h3 className={`text-xl font-numeric font-bold ${s.color}`}>{s.value}</h3>
+              {/* Compact Platform Vitals & Messaging Pulse Strip */}
+              {convStats && (
+                <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white/70 backdrop-blur-md rounded-2xl border border-white/60 shadow-2xs">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm shadow-inner">
+                      <i className="lni lni-comments" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-body font-bold uppercase tracking-wider text-ink-muted block">Direct In-App Messaging Activity</span>
+                      <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-ink font-numeric mt-0.5">
+                        <span>{convStats.active_conversations.toLocaleString()} active chats</span>
+                        <span className="text-ink-faint">·</span>
+                        <span>{convStats.messages_today.toLocaleString()} messages today</span>
+                        <span className="text-ink-faint">·</span>
+                        <span>Avg {convStats.avg_messages_per_hire} msgs per hire</span>
                       </div>
-                    ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-xs font-semibold text-ink-soft">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-ink-muted">Job Fill Rate:</span>
+                      <span className="font-bold text-primary-dark font-numeric">{data?.fill_rate?.value ?? 0}%</span>
+                      <HealthStatusBadge type="conversion" value={data?.fill_rate?.value ?? 0} />
+                    </div>
+                    {viewMode === 'split' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const el = document.getElementById('detailed-report-section');
+                          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
+                        className="flex items-center gap-1 text-primary-dark hover:underline cursor-pointer text-xs font-bold"
+                      >
+                        Jump to Table <i className="lni lni-arrow-down text-[10px]" />
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
+
+              {/* Gemini AI Executive Insights Component — Positioned at top for immediate executive briefing */}
+              <div className="bg-gradient-to-r from-primary-soft to-accent-mint/30 backdrop-blur-md p-8 rounded-3xl shadow-sm border border-primary-dark/10 print-chart-container">
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
+                      <i className="lni lni-keyword-research text-xl text-primary-dark" />
+                    </div>
+                    <div>
+                      <h3 className="font-display text-2xl text-ink font-bold">Gemini AI Executive Insights</h3>
+                      <p className="text-xs font-body text-ink-soft">Dynamic pattern recognition & recommendations</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleGenerateInsights}
+                    disabled={aiLoading}
+                    className="mt-4 md:mt-0 px-6 py-2.5 bg-ink text-white rounded-2xl font-body font-bold text-sm hover:bg-primary-dark hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2 no-print cursor-pointer"
+                  >
+                    {aiLoading ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <i className="lni lni-spinner-arrow mr-1" />
+                        Generate Insights
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {aiLoading && (
+                  <div className="animate-pulse space-y-4">
+                    <div className="h-4 bg-white/60 rounded-md w-3/4"></div>
+                    <div className="h-4 bg-white/60 rounded-md w-5/6"></div>
+                    <div className="h-4 bg-white/60 rounded-md w-2/3"></div>
+                  </div>
+                )}
+
+                {aiError && (
+                  <div className="p-4 bg-status-error/10 border border-status-error/20 text-status-error rounded-2xl text-sm font-body font-semibold">
+                    {aiError}
+                  </div>
+                )}
+
+                {!aiLoading && !aiError && aiInsights && (
+                  <AIInsightsCard data={aiInsights} period={aiPeriod} />
+                )}
+
+                {!aiLoading && !aiInsights && !aiError && (
+                  <div className="text-center py-6 text-ink-soft font-body text-sm">
+                    Click <strong className="text-ink">Generate Insights</strong> to analyze platform user trends, application conversions, compensation metrics, and report delays.
+                  </div>
+                )}
+              </div>
+
+              {/* Visual Analytics Layer (Overview) */}
+              {(viewMode === 'charts' || viewMode === 'split') && (
+                <div className="space-y-8">
 
               {/* PRIMARY VISUALIZATION (Above the Fold): Platform Activity & Application Flow */}
               <div className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0 print-chart-container">
@@ -1600,65 +1929,6 @@ export default function AnalyticsDashboard() {
                 <ChartInsightBox text={categoryInsight} />
               </div>
 
-              {/* Gemini AI Insights Component */}
-              <div className="bg-gradient-to-r from-primary-soft to-accent-mint/30 backdrop-blur-md p-8 rounded-3xl shadow-sm border border-primary-dark/10 print-chart-container">
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
-                      <i className="lni lni-keyword-research text-xl text-primary-dark" />
-                    </div>
-                    <div>
-                      <h3 className="font-display text-2xl text-ink font-bold">Gemini AI Executive Insights</h3>
-                      <p className="text-xs font-body text-ink-soft">Dynamic pattern recognition & recommendations</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleGenerateInsights}
-                    disabled={aiLoading}
-                    className="mt-4 md:mt-0 px-6 py-2.5 bg-ink text-white rounded-2xl font-body font-bold text-sm hover:bg-primary-dark hover:scale-105 active:scale-95 transition-all shadow-md disabled:opacity-50 flex items-center gap-2 no-print cursor-pointer"
-                  >
-                    {aiLoading ? (
-                      <>
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <i className="lni lni-spinner-arrow mr-1" />
-                        Generate Insights
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {aiLoading && (
-                  <div className="animate-pulse space-y-4">
-                    <div className="h-4 bg-white/60 rounded-md w-3/4"></div>
-                    <div className="h-4 bg-white/60 rounded-md w-5/6"></div>
-                    <div className="h-4 bg-white/60 rounded-md w-2/3"></div>
-                  </div>
-                )}
-
-                {aiError && (
-                  <div className="p-4 bg-status-error/10 border border-status-error/20 text-status-error rounded-2xl text-sm font-body font-semibold">
-                    {aiError}
-                  </div>
-                )}
-
-                {!aiLoading && !aiError && aiInsights && (
-                  <AIInsightsCard data={aiInsights} period={aiPeriod} />
-                )}
-
-                {!aiLoading && !aiInsights && !aiError && (
-                  <div className="text-center py-6 text-ink-soft font-body text-sm">
-                    Click <strong className="text-ink">Generate Insights</strong> to analyze platform user trends, application conversions, compensation metrics, and report delays.
-                  </div>
-                )}
-              </div>
-
               {/* Funnel & Verification Summary section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
                 {/* Application-to-Hire Funnel */}
@@ -1770,31 +2040,34 @@ export default function AnalyticsDashboard() {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* DETAILED TABULAR REPORT: Complete Platform Activity (Overview Tab) */}
-              <div className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 space-y-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-ink-faint/40 pb-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <i className="lni lni-layout text-primary-dark text-lg" />
-                      <h3 className="font-display text-lg font-bold text-ink">
-                        Detailed Analytics Report — Complete Platform Activity
-                      </h3>
-                    </div>
-                    <p className="text-xs text-ink-muted mt-1">
-                      Exact chronological breakdown of user registrations, job posts, applications, and completions for <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong> ({globalPreset}).
-                    </p>
+          {/* DETAILED TABULAR REPORT: Complete Platform Activity (Overview Tab) */}
+          {(viewMode === 'table' || viewMode === 'split') && (
+            <div id="detailed-report-section" className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-ink-faint/40 pb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <i className="lni lni-layout text-primary-dark text-lg" />
+                    <h3 className="font-display text-lg font-bold text-ink">
+                      Detailed Analytics Report — Complete Platform Activity
+                    </h3>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-body font-semibold">
-                      Granularity: <strong className="uppercase text-primary-dark">{intervalFilter}</strong>
-                    </span>
-                    <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-body font-bold flex items-center gap-1.5">
-                      <i className="lni lni-checkmark-circle text-xs" />
-                      <span>Reconciled with KPIs</span>
-                    </span>
-                  </div>
+                  <p className="text-xs text-ink-muted mt-1">
+                    Exact chronological breakdown of user registrations, job posts, applications, and completions for <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong> ({globalPreset}).
+                  </p>
                 </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-body font-semibold">
+                    Granularity: <strong className="uppercase text-primary-dark">{intervalFilter}</strong>
+                  </span>
+                  <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-body font-bold flex items-center gap-1.5">
+                    <i className="lni lni-checkmark-circle text-xs" />
+                    <span>Reconciled with KPIs</span>
+                  </span>
+                </div>
+              </div>
 
                 <div className="overflow-x-auto rounded-2xl border border-ink-faint/30">
                   <table className="w-full text-xs font-body text-left">
@@ -1898,363 +2171,402 @@ export default function AnalyticsDashboard() {
                   </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+        )}
 
-          {/* TAB 2: ACTIVITY TRENDS */}
+          {/* TAB 2: ACTIVITY TRENDS / MARKETPLACE & LIQUIDITY */}
           {activeTab === 'trends' && (
             <div className="space-y-6">
-              {/* Tab-Specific Filters */}
-              <div className="flex flex-wrap items-center gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border border-white/50 shadow-sm no-print">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-body font-bold text-ink-soft">Target Role:</span>
-                  <div className="flex bg-white/70 p-1 rounded-xl border border-ink-faint shadow-inner">
-                    {['all', 'worker', 'employer'].map((role) => (
-                      <button
-                        key={role}
-                        onClick={() => setTrendsRoleFilter(role as any)}
-                        className={`px-3 py-1 rounded-lg text-xs font-body font-semibold transition-all ${
-                          trendsRoleFilter === role ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'
-                        }`}
+              {(viewMode === 'charts' || viewMode === 'split') && (
+                <>
+                  {/* Tab-Specific Filters */}
+                  <div className="flex flex-wrap items-center gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border border-white/50 shadow-sm no-print">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-body font-bold text-ink-soft">Target Role:</span>
+                      <div className="flex bg-white/70 p-1 rounded-xl border border-ink-faint shadow-inner">
+                        {['all', 'worker', 'employer'].map((role) => (
+                          <button
+                            key={role}
+                            onClick={() => setTrendsRoleFilter(role as any)}
+                            className={`px-3 py-1 rounded-lg text-xs font-body font-semibold transition-all ${
+                              trendsRoleFilter === role ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'
+                            }`}
+                          >
+                            {role === 'all' ? 'All Roles' : role === 'worker' ? 'Workers' : 'Employers'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-body font-bold text-ink-soft">Volume Metrics:</span>
+                      <div className="flex bg-white/70 p-1 rounded-xl border border-ink-faint shadow-inner">
+                        {['all', 'applications', 'hires'].map((metric) => (
+                          <button
+                            key={metric}
+                            onClick={() => setTrendsVolumeFilter(metric as any)}
+                            className={`px-3 py-1 rounded-lg text-xs font-body font-semibold transition-all ${
+                              trendsVolumeFilter === metric ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'
+                            }`}
+                          >
+                            {metric === 'all' ? 'All Metrics' : metric === 'applications' ? 'Applications Only' : 'Hires Only'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-body font-bold text-ink-soft">Timeline Order:</span>
+                      <select
+                        aria-label="Timeline sort order"
+                        value={trendsSortOrder}
+                        onChange={(e) => setTrendsSortOrder(e.target.value as any)}
+                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
                       >
-                        {role === 'all' ? 'All Roles' : role === 'worker' ? 'Workers' : 'Employers'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                        <option value="asc">Chronological (Oldest First)</option>
+                        <option value="desc">Newest First</option>
+                      </select>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-body font-bold text-ink-soft">Volume Metrics:</span>
-                  <div className="flex bg-white/70 p-1 rounded-xl border border-ink-faint shadow-inner">
-                    {['all', 'applications', 'jobs'].map((metric) => (
+                    {viewMode === 'split' && (
                       <button
-                        key={metric}
-                        onClick={() => setTrendsVolumeFilter(metric as any)}
-                        className={`px-3 py-1 rounded-lg text-xs font-body font-semibold transition-all ${
-                          trendsVolumeFilter === metric ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'
-                        }`}
+                        type="button"
+                        onClick={() => {
+                          const el = document.getElementById('detailed-report-section');
+                          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
+                        className="ml-auto flex items-center gap-1 text-primary-dark hover:underline cursor-pointer text-xs font-bold"
                       >
-                        {metric === 'all' ? 'All Metrics' : metric === 'applications' ? 'Applications Only' : 'Jobs Only'}
+                        Jump to Table <i className="lni lni-arrow-down text-[10px]" />
                       </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-body font-bold text-ink-soft">Timeline Order:</span>
-                  <select
-                    aria-label="Timeline sort order"
-                    value={trendsSortOrder}
-                    onChange={(e) => setTrendsSortOrder(e.target.value as any)}
-                    className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
-                  >
-                    <option value="asc">Chronological (Oldest First)</option>
-                    <option value="desc">Newest First</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
-                {/* User Growth */}
-                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
-                  <div className="mb-4">
-                    <h3 className="font-display text-lg font-bold text-ink">User Registrations</h3>
-                    <p className="text-xs text-ink-muted mt-1">Registrations compared by workers vs. employers.</p>
-                  </div>
-                  <MetricHeaderStrip
-                    items={[
-                      { label: 'Total Signups', value: detailedTotals.total_users, highlight: true },
-                      { label: 'Workers', value: detailedTotals.new_workers },
-                      { label: 'Employers', value: detailedTotals.new_employers }
-                    ]}
-                  />
-                  <div className="h-80 w-full min-w-0 font-numeric">
-                    {transformedUserGrowth.length === 0 || transformedUserGrowth.every((i: any) => (i.workers || 0) === 0 && (i.employers || 0) === 0) ? (
-                      <ChartEmptyState
-                        title="No User Registrations"
-                        message={`No new user registrations recorded between ${from} and ${to}.`}
-                      />
-                    ) : (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} tickFormatter={(val) => formatAxisTick(val, intervalFilter)} dy={10} />
-                          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                          <Tooltip 
-                            cursor={{ fill: '#FDF8F0' }}
-                            labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
-                            contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
-                          />
-                          <Legend wrapperStyle={{ paddingTop: 10, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
-                          {(trendsRoleFilter === 'all' || trendsRoleFilter === 'worker') && (
-                            <Bar dataKey="workers" name="Workers" fill="url(#colorWorkers)" radius={[6, 6, 0, 0]} />
-                          )}
-                          {(trendsRoleFilter === 'all' || trendsRoleFilter === 'employer') && (
-                            <Bar dataKey="employers" name="Employers" fill="url(#colorEmployers)" radius={[6, 6, 0, 0]} />
-                          )}
-                          <defs>
-                            <linearGradient id="colorWorkers" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#FFB6C1" stopOpacity={1}/>
-                              <stop offset="100%" stopColor="#FFB6C1" stopOpacity={0.7}/>
-                            </linearGradient>
-                            <linearGradient id="colorEmployers" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#87CEEB" stopOpacity={1}/>
-                              <stop offset="100%" stopColor="#87CEEB" stopOpacity={0.7}/>
-                            </linearGradient>
-                          </defs>
-                        </BarChart>
-                      </ResponsiveContainer>
                     )}
                   </div>
-                  <ChartInsightBox text={roleInsight} />
-                </div>
 
-                {/* Application Volume Area Chart */}
-                <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
-                  <div className="mb-4">
-                    <h3 className="font-display text-lg font-bold text-ink">Application Volume Over Time</h3>
-                    <p className="text-xs text-ink-muted mt-1">Historical flow matching applications to active job posts.</p>
-                  </div>
-                  <MetricHeaderStrip
-                    items={[
-                      { label: 'Applications', value: detailedTotals.applications, highlight: true },
-                      { label: 'Job Posts', value: detailedTotals.job_posts },
-                      {
-                        label: 'Throughput',
-                        value: detailedTotals.job_posts > 0 
-                          ? `${(detailedTotals.applications / detailedTotals.job_posts).toFixed(1)} apps/post` 
-                          : `${detailedTotals.applications} apps`
-                      }
-                    ]}
-                  />
-                  <div className="h-80 w-full min-w-0 font-numeric">
-                    {transformedApplicationVolume.length === 0 || transformedApplicationVolume.every((i: any) => (i.applications || 0) === 0 && (i.jobs || 0) === 0) ? (
-                      <ChartEmptyState
-                        title="No Applications Recorded"
-                        message={`No job application activity submitted between ${from} and ${to}.`}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
+                    {/* User Growth */}
+                    <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
+                      <div className="mb-4">
+                        <h3 className="font-display text-lg font-bold text-ink">User Registrations</h3>
+                        <p className="text-xs text-ink-muted mt-1">Registrations compared by workers vs. employers.</p>
+                      </div>
+                      <MetricHeaderStrip
+                        items={[
+                          { label: 'Total Signups', value: detailedTotals.total_users, highlight: true },
+                          { label: 'Workers', value: detailedTotals.new_workers },
+                          { label: 'Employers', value: detailedTotals.new_employers }
+                        ]}
                       />
-                    ) : (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={transformedApplicationVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                          <defs>
-                            <linearGradient id="colorApps" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#FFB6C1" stopOpacity={0.3}/>
-                              <stop offset="95%" stopColor="#FFB6C1" stopOpacity={0}/>
-                            </linearGradient>
-                            <linearGradient id="colorAppJobs" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#87CEEB" stopOpacity={0.3}/>
-                              <stop offset="95%" stopColor="#87CEEB" stopOpacity={0}/>
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} tickFormatter={(val) => formatAxisTick(val, intervalFilter)} dy={10} />
-                          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                          <Tooltip 
-                            shared
-                            labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
-                            contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
+                      <div className="h-80 w-full min-w-0 font-numeric">
+                        {transformedUserGrowth.length === 0 || transformedUserGrowth.every((i: any) => (i.workers || 0) === 0 && (i.employers || 0) === 0) ? (
+                          <ChartEmptyState
+                            title="No User Registrations"
+                            message={`No new user registrations recorded between ${from} and ${to}.`}
                           />
-                          <Legend wrapperStyle={{ paddingTop: 10, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
-                          {(trendsVolumeFilter === 'all' || trendsVolumeFilter === 'applications') && (
-                            <Area type="monotone" dataKey="applications" name="Applications" stroke="#FFB6C1" strokeWidth={3} fillOpacity={1} fill="url(#colorApps)" activeDot={{ r: 6, strokeWidth: 0 }} />
-                          )}
-                          {(trendsVolumeFilter === 'all' || trendsVolumeFilter === 'jobs') && (
-                            <Area type="monotone" dataKey="jobs" name="Job Posts" stroke="#87CEEB" strokeWidth={3} fillOpacity={1} fill="url(#colorAppJobs)" activeDot={{ r: 6, strokeWidth: 0 }} />
-                          )}
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    )}
+                        ) : (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
+                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} tickFormatter={(val) => formatAxisTick(val, intervalFilter)} dy={10} />
+                              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
+                              <Tooltip 
+                                cursor={{ fill: '#FDF8F0' }}
+                                labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
+                                contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
+                              />
+                              <Legend wrapperStyle={{ paddingTop: 10, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
+                              {(trendsRoleFilter === 'all' || trendsRoleFilter === 'worker') && (
+                                <Bar dataKey="workers" name="Workers" fill="url(#colorWorkers)" radius={[6, 6, 0, 0]} />
+                              )}
+                              {(trendsRoleFilter === 'all' || trendsRoleFilter === 'employer') && (
+                                <Bar dataKey="employers" name="Employers" fill="url(#colorEmployers)" radius={[6, 6, 0, 0]} />
+                              )}
+                              <defs>
+                                <linearGradient id="colorWorkers" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#FFB6C1" stopOpacity={1}/>
+                                  <stop offset="100%" stopColor="#FFB6C1" stopOpacity={0.7}/>
+                                </linearGradient>
+                                <linearGradient id="colorEmployers" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#87CEEB" stopOpacity={1}/>
+                                  <stop offset="100%" stopColor="#87CEEB" stopOpacity={0.7}/>
+                                </linearGradient>
+                              </defs>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        )}
+                      </div>
+                      <ChartInsightBox text={roleInsight} />
+                    </div>
+
+                    {/* Application-to-Hire Conversion Velocity Area Chart */}
+                    <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl shadow-sm border border-white/50 transition-all hover:shadow-lg flex flex-col min-w-0">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="font-display text-lg font-bold text-ink">Application-to-Hire Conversion Velocity</h3>
+                          <p className="text-xs text-ink-muted mt-1">Velocity tracking candidate applications against confirmed employer hires over time.</p>
+                        </div>
+                        <HealthStatusBadge
+                          type="conversion"
+                          value={detailedTotals.applications > 0 ? (detailedTotals.completed_hires / detailedTotals.applications) * 100 : 0}
+                        />
+                      </div>
+                      <MetricHeaderStrip
+                        items={[
+                          { label: 'Applications Filed', value: detailedTotals.applications, highlight: true },
+                          { label: 'Completed Hires', value: detailedTotals.completed_hires },
+                          {
+                            label: 'Conversion Rate',
+                            value: `${detailedTotals.applications > 0 ? ((detailedTotals.completed_hires / detailedTotals.applications) * 100).toFixed(1) : '0.0'}%`
+                          }
+                        ]}
+                      />
+                      <div className="h-80 w-full min-w-0 font-numeric">
+                        {transformedConversionVelocity.length === 0 || transformedConversionVelocity.every((i: any) => (i.applications || 0) === 0 && (i.completed_hires || 0) === 0) ? (
+                          <ChartEmptyState
+                            title="No Conversion Activity"
+                            message={`No applications or completed hires recorded between ${from} and ${to}.`}
+                          />
+                        ) : (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={transformedConversionVelocity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                              <defs>
+                                <linearGradient id="colorAppsVelocity" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#FFB6C1" stopOpacity={0.35}/>
+                                  <stop offset="95%" stopColor="#FFB6C1" stopOpacity={0}/>
+                                </linearGradient>
+                                <linearGradient id="colorHiresVelocity" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.35}/>
+                                  <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
+                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} tickFormatter={(val) => formatAxisTick(val, intervalFilter)} dy={10} />
+                              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
+                              <Tooltip 
+                                shared
+                                labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
+                                contentStyle={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
+                              />
+                              <Legend wrapperStyle={{ paddingTop: 10, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
+                              {(trendsVolumeFilter === 'all' || trendsVolumeFilter === 'applications') && (
+                                <Area type="monotone" dataKey="applications" name="Applications Filed" stroke="#FFB6C1" strokeWidth={3} fillOpacity={1} fill="url(#colorAppsVelocity)" activeDot={{ r: 6, strokeWidth: 0 }} />
+                              )}
+                              {(trendsVolumeFilter === 'all' || trendsVolumeFilter === 'hires') && (
+                                <Area type="monotone" dataKey="completed_hires" name="Completed Hires" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorHiresVelocity)" activeDot={{ r: 6, strokeWidth: 0 }} />
+                              )}
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        )}
+                      </div>
+                      <ChartInsightBox text={conversionInsight} />
+                    </div>
                   </div>
-                  <ChartInsightBox text={activityInsight} />
-                </div>
-              </div>
+                </>
+              )}
 
               {/* DETAILED TABULAR REPORT: Activity Trends & Registration Velocity */}
-              <div className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 space-y-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-ink-faint/40 pb-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <i className="lni lni-stats-up text-primary-dark text-lg" />
-                      <h3 className="font-display text-lg font-bold text-ink">
-                        Detailed Analytics Report — Activity Trends & Registration Velocity
-                      </h3>
+              {(viewMode === 'table' || viewMode === 'split') && (
+                <div id="detailed-report-section" className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 space-y-4">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-ink-faint/40 pb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <i className="lni lni-stats-up text-primary-dark text-lg" />
+                        <h3 className="font-display text-lg font-bold text-ink">
+                          Detailed Analytics Report — Activity Trends & Registration Velocity
+                        </h3>
+                      </div>
+                      <p className="text-xs text-ink-muted mt-1">
+                        Chronological velocity metrics and application throughput per job post for <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong> ({globalPreset}).
+                      </p>
                     </div>
-                    <p className="text-xs text-ink-muted mt-1">
-                      Chronological velocity metrics and application throughput per job post for <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong> ({globalPreset}).
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-body font-semibold">
+                        Granularity: <strong className="uppercase text-primary-dark">{intervalFilter}</strong>
+                      </span>
+                      <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-body font-bold flex items-center gap-1.5">
+                        <i className="lni lni-checkmark-circle text-xs" />
+                        <span>Reconciled with KPIs</span>
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-body font-semibold">
-                      Granularity: <strong className="uppercase text-primary-dark">{intervalFilter}</strong>
-                    </span>
-                    <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-body font-bold flex items-center gap-1.5">
-                      <i className="lni lni-checkmark-circle text-xs" />
-                      <span>Reconciled with KPIs</span>
-                    </span>
-                  </div>
-                </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-ink-faint/30">
-                  <table className="w-full text-xs font-body text-left">
-                    <thead>
-                      <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-soft tracking-wider">
-                        <th className="py-3 px-4">Time Period</th>
-                        <th className="py-3 px-3 text-right">Worker Signups</th>
-                        <th className="py-3 px-3 text-right">Employer Signups</th>
-                        <th className="py-3 px-3 text-right">Total Registrations</th>
-                        <th className="py-3 px-3 text-right">Job Posts</th>
-                        <th className="py-3 px-3 text-right">Applications Filed</th>
-                        <th className="py-3 px-4 text-right">Throughput Ratio</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-ink-faint/20">
-                      {transformedDetailedTimeSeries.length === 0 ? (
-                        <tr>
-                          <td colSpan={7} className="py-8 text-center text-ink-muted">
-                            No activity recorded yet for {from} to {to}. Data will display here in real-time as users interact.
-                          </td>
+                  <div className="overflow-x-auto rounded-2xl border border-ink-faint/30">
+                    <table className="w-full text-xs font-body text-left">
+                      <thead>
+                        <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-soft tracking-wider">
+                          <th className="py-3 px-4">Time Period</th>
+                          <th className="py-3 px-3 text-right">Worker Signups</th>
+                          <th className="py-3 px-3 text-right">Employer Signups</th>
+                          <th className="py-3 px-3 text-right">Total Registrations</th>
+                          <th className="py-3 px-3 text-right">Job Posts</th>
+                          <th className="py-3 px-3 text-right">Applications Filed</th>
+                          <th className="py-3 px-4 text-right">Throughput Ratio</th>
                         </tr>
-                      ) : (
-                        transformedDetailedTimeSeries.map((row: any, idx: number) => {
-                          const ratio = row.job_posts > 0 
-                            ? `${(row.applications / row.job_posts).toFixed(1)} / post` 
-                            : (row.applications > 0 ? `${row.applications} / 0 posts` : '0.0');
-                          return (
-                            <tr key={idx} className="hover:bg-primary-soft/20 transition-colors">
-                              <td className="py-3 px-4 font-semibold text-ink whitespace-nowrap">
-                                {formatPeriodLabel(row.period, intervalFilter)}
-                              </td>
-                              <td className="py-3 px-3 text-right font-numeric text-ink-soft">
-                                {(row.new_workers ?? 0).toLocaleString()}
-                              </td>
-                              <td className="py-3 px-3 text-right font-numeric text-ink-soft">
-                                {(row.new_employers ?? 0).toLocaleString()}
-                              </td>
-                              <td className="py-3 px-3 text-right font-numeric font-bold text-ink">
-                                {(row.total_users ?? 0).toLocaleString()}
-                              </td>
-                              <td className="py-3 px-3 text-right font-numeric text-ink">
-                                {(row.job_posts ?? 0).toLocaleString()}
-                              </td>
-                              <td className="py-3 px-3 text-right font-numeric text-ink">
-                                {(row.applications ?? 0).toLocaleString()}
-                              </td>
-                              <td className="py-3 px-4 text-right font-numeric font-semibold text-primary-dark">
-                                {ratio}
-                              </td>
-                            </tr>
-                          );
-                        })
+                      </thead>
+                      <tbody className="divide-y divide-ink-faint/20">
+                        {transformedDetailedTimeSeries.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="py-8 text-center text-ink-muted">
+                              No activity recorded yet for {from} to {to}. Data will display here in real-time as users interact.
+                            </td>
+                          </tr>
+                        ) : (
+                          transformedDetailedTimeSeries.map((row: any, idx: number) => {
+                            const ratio = row.job_posts > 0 
+                              ? `${(row.applications / row.job_posts).toFixed(1)} / post` 
+                              : (row.applications > 0 ? `${row.applications} / 0 posts` : '0.0');
+                            return (
+                              <tr key={idx} className="hover:bg-primary-soft/20 transition-colors">
+                                <td className="py-3 px-4 font-semibold text-ink whitespace-nowrap">
+                                  {formatPeriodLabel(row.period, intervalFilter)}
+                                </td>
+                                <td className="py-3 px-3 text-right font-numeric text-ink-soft">
+                                  {(row.new_workers ?? 0).toLocaleString()}
+                                </td>
+                                <td className="py-3 px-3 text-right font-numeric text-ink-soft">
+                                  {(row.new_employers ?? 0).toLocaleString()}
+                                </td>
+                                <td className="py-3 px-3 text-right font-numeric font-bold text-ink">
+                                  {(row.total_users ?? 0).toLocaleString()}
+                                </td>
+                                <td className="py-3 px-3 text-right font-numeric text-ink">
+                                  {(row.job_posts ?? 0).toLocaleString()}
+                                </td>
+                                <td className="py-3 px-3 text-right font-numeric text-ink">
+                                  {(row.applications ?? 0).toLocaleString()}
+                                </td>
+                                <td className="py-3 px-4 text-right font-numeric font-semibold text-primary-dark">
+                                  {ratio}
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                      {transformedDetailedTimeSeries.length > 0 && (
+                        <tfoot>
+                          <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
+                            <td className="py-3 px-4 uppercase tracking-wider text-[11px]">
+                              Total ({transformedDetailedTimeSeries.length} periods)
+                            </td>
+                            <td className="py-3 px-3 text-right font-numeric font-bold">
+                              {detailedTotals.new_workers.toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-right font-numeric font-bold">
+                              {detailedTotals.new_employers.toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-right font-numeric font-bold text-primary-dark">
+                              {detailedTotals.total_users.toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-right font-numeric font-bold">
+                              {detailedTotals.job_posts.toLocaleString()}
+                            </td>
+                            <td className="py-3 px-3 text-right font-numeric font-bold text-primary-dark">
+                              {detailedTotals.applications.toLocaleString()}
+                            </td>
+                            <td className="py-3 px-4 text-right font-numeric font-bold text-primary-dark">
+                              {detailedTotals.job_posts > 0 
+                                ? `${(detailedTotals.applications / detailedTotals.job_posts).toFixed(1)} / post` 
+                                : (detailedTotals.applications > 0 ? `${detailedTotals.applications} / 0 posts` : '0.0')}
+                            </td>
+                          </tr>
+                        </tfoot>
                       )}
-                    </tbody>
-                    {transformedDetailedTimeSeries.length > 0 && (
-                      <tfoot>
-                        <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
-                          <td className="py-3 px-4 uppercase tracking-wider text-[11px]">
-                            Total ({transformedDetailedTimeSeries.length} periods)
-                          </td>
-                          <td className="py-3 px-3 text-right font-numeric font-bold">
-                            {detailedTotals.new_workers.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-3 text-right font-numeric font-bold">
-                            {detailedTotals.new_employers.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-3 text-right font-numeric font-bold text-primary-dark">
-                            {detailedTotals.total_users.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-3 text-right font-numeric font-bold">
-                            {detailedTotals.job_posts.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-3 text-right font-numeric font-bold text-primary-dark">
-                            {detailedTotals.applications.toLocaleString()}
-                          </td>
-                          <td className="py-3 px-4 text-right font-numeric font-bold text-primary-dark">
-                            {detailedTotals.job_posts > 0 
-                              ? `${(detailedTotals.applications / detailedTotals.job_posts).toFixed(1)} / post` 
-                              : (detailedTotals.applications > 0 ? `${detailedTotals.applications} / 0 posts` : '0.0')}
-                          </td>
-                        </tr>
-                      </tfoot>
-                    )}
-                  </table>
+                    </table>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-1">
+                    <span>Reconciliation check: Worker and Employer signups match Total Registrations; Applications match funnel records.</span>
+                    <button
+                      onClick={handleExportCSV}
+                      className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <i className="lni lni-download text-xs" />
+                      Export Table as CSV
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-1">
-                  <span>Reconciliation check: Worker and Employer signups match Total Registrations; Applications match funnel records.</span>
-                  <button
-                    onClick={handleExportCSV}
-                    className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
-                  >
-                    <i className="lni lni-download text-xs" />
-                    Export Table as CSV
-                  </button>
-                </div>
-              </div>
+              )}
             </div>
           )}
 
           {/* TAB 3: DISTRIBUTION & DEMAND */}
           {activeTab === 'distribution' && (
             <div className="space-y-6">
-              {/* Tab-Specific Filters */}
-              <div className="flex flex-wrap items-center gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border border-white/50 shadow-sm no-print">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-body font-bold text-ink-soft">Target Region:</span>
-                  <select
-                    aria-label="Filter by municipality"
-                    value={distRegionFilter}
-                    onChange={(e) => setDistRegionFilter(e.target.value)}
-                    className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
-                  >
-                    <option value="all">All Municipalities (Grouped)</option>
-                    {uniqueMunicipalities.map((muni) => (
-                      <option key={muni} value={muni}>{muni}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-body font-bold text-ink-soft">Display Limit:</span>
-                  <div className="flex bg-white/70 p-1 rounded-xl border border-ink-faint shadow-inner">
-                    {[3, 6, 10].map((limit) => (
-                      <button
-                        key={limit}
-                        onClick={() => setDistLimitFilter(limit)}
-                        className={`px-3 py-1 rounded-lg text-xs font-body font-semibold transition-all ${
-                          distLimitFilter === limit ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'
-                        }`}
+              {(viewMode === 'charts' || viewMode === 'split') && (
+                <>
+                  {/* Tab-Specific Filters */}
+                  <div className="flex flex-wrap items-center gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border border-white/50 shadow-sm no-print">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-body font-bold text-ink-soft">Target Region:</span>
+                      <select
+                        aria-label="Filter by municipality"
+                        value={distRegionFilter}
+                        onChange={(e) => setDistRegionFilter(e.target.value)}
+                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
                       >
-                        {limit === 3 ? 'Top 3' : limit === 6 ? 'Top 6' : 'Show All'}
+                        <option value="all">All Municipalities (Grouped)</option>
+                        {uniqueMunicipalities.map((muni) => (
+                          <option key={muni} value={muni}>{muni}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-body font-bold text-ink-soft">Display Limit:</span>
+                      <div className="flex bg-white/70 p-1 rounded-xl border border-ink-faint shadow-inner">
+                        {[3, 6, 10].map((limit) => (
+                          <button
+                            key={limit}
+                            onClick={() => setDistLimitFilter(limit)}
+                            className={`px-3 py-1 rounded-lg text-xs font-body font-semibold transition-all ${
+                              distLimitFilter === limit ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'
+                            }`}
+                          >
+                            {limit === 3 ? 'Top 3' : limit === 6 ? 'Top 6' : 'Show All'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-body font-bold text-ink-soft">Sort Charts By:</span>
+                      <select
+                        aria-label="Sort distribution charts by"
+                        value={distSortBy}
+                        onChange={(e) => setDistSortBy(e.target.value as any)}
+                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                      >
+                        <option value="value">Volume (Highest / Total)</option>
+                        <option value="name">Name (Alphabetical)</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-body font-bold text-ink-soft">Order:</span>
+                      <select
+                        aria-label="Sort distribution order"
+                        value={distSortOrder}
+                        onChange={(e) => setDistSortOrder(e.target.value as any)}
+                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                      >
+                        <option value="desc">Descending / Highest</option>
+                        <option value="asc">Ascending / Lowest</option>
+                      </select>
+                    </div>
+
+                    {viewMode === 'split' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const el = document.getElementById('detailed-report-section');
+                          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
+                        className="ml-auto flex items-center gap-1 text-primary-dark hover:underline cursor-pointer text-xs font-bold"
+                      >
+                        Jump to Table <i className="lni lni-arrow-down text-[10px]" />
                       </button>
-                    ))}
+                    )}
                   </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-body font-bold text-ink-soft">Sort Charts By:</span>
-                  <select
-                    aria-label="Sort distribution charts by"
-                    value={distSortBy}
-                    onChange={(e) => setDistSortBy(e.target.value as any)}
-                    className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
-                  >
-                    <option value="value">Volume (Highest / Total)</option>
-                    <option value="name">Name (Alphabetical)</option>
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-body font-bold text-ink-soft">Order:</span>
-                  <select
-                    aria-label="Sort distribution order"
-                    value={distSortOrder}
-                    onChange={(e) => setDistSortOrder(e.target.value as any)}
-                    className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
-                  >
-                    <option value="desc">Descending / Highest</option>
-                    <option value="asc">Ascending / Lowest</option>
-                  </select>
-                </div>
-              </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
                 {/* Horizontal Skill Category Demand */}
@@ -2437,9 +2749,12 @@ export default function AnalyticsDashboard() {
                 </div>
                 <ChartInsightBox text={geoInsight} />
               </div>
+            </>
+          )}
 
-              {/* DETAILED TABULAR REPORT: Sector Demand & Regional Distribution */}
-              <div className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 space-y-4">
+          {/* DETAILED TABULAR REPORT: Sector Demand & Regional Distribution */}
+          {(viewMode === 'table' || viewMode === 'split') && (
+            <div id="detailed-report-section" className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-ink-faint/40 pb-4">
                   <div>
                     <div className="flex items-center gap-2">
@@ -2627,71 +2942,87 @@ export default function AnalyticsDashboard() {
                   </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+        )}
 
           {/* TAB 4: PLATFORM HEALTH & TRUST */}
           {activeTab === 'health' && (
             <div className="space-y-6">
-              {/* Tab-Specific Filters */}
-              <div className="flex flex-wrap items-center gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border border-white/50 shadow-sm no-print">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-body font-bold text-ink-soft">Wage Pay Bracket:</span>
-                  <select
-                    aria-label="Filter by wage bracket"
-                    value={healthWageFilter}
-                    onChange={(e) => setHealthWageFilter(e.target.value as any)}
-                    className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
-                  >
-                    <option value="all">All Wages</option>
-                    <option value="low">Under PHP 500 / day</option>
-                    <option value="mid">PHP 500 - 1,000 / day</option>
-                    <option value="high">Over PHP 1,000 / day</option>
-                  </select>
-                </div>
+              {(viewMode === 'charts' || viewMode === 'split') && (
+                <>
+                  {/* Tab-Specific Filters */}
+                  <div className="flex flex-wrap items-center gap-4 bg-white/50 backdrop-blur-md p-4 rounded-2xl border border-white/50 shadow-sm no-print">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-body font-bold text-ink-soft">Wage Pay Bracket:</span>
+                      <select
+                        aria-label="Filter by wage bracket"
+                        value={healthWageFilter}
+                        onChange={(e) => setHealthWageFilter(e.target.value as any)}
+                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                      >
+                        <option value="all">All Wages</option>
+                        <option value="low">Under PHP 500 / day</option>
+                        <option value="mid">PHP 500 - 1,000 / day</option>
+                        <option value="high">Over PHP 1,000 / day</option>
+                      </select>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-body font-bold text-ink-soft">Moderation Issue:</span>
-                  <select
-                    aria-label="Filter by violation category"
-                    value={healthReportFilter}
-                    onChange={(e) => setHealthReportFilter(e.target.value as any)}
-                    className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
-                  >
-                    <option value="all">All Violations</option>
-                    <option value="fake_account">Fake Account / Scam</option>
-                    <option value="inappropriate_job">Inappropriate Content</option>
-                    <option value="harassment">Harassment</option>
-                    <option value="other">Other Issues</option>
-                  </select>
-                </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-body font-bold text-ink-soft">Moderation Issue:</span>
+                      <select
+                        aria-label="Filter by violation category"
+                        value={healthReportFilter}
+                        onChange={(e) => setHealthReportFilter(e.target.value as any)}
+                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                      >
+                        <option value="all">All Violations</option>
+                        <option value="fake_account">Fake Account / Scam</option>
+                        <option value="inappropriate_job">Inappropriate Content</option>
+                        <option value="harassment">Harassment</option>
+                        <option value="other">Other Issues</option>
+                      </select>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-body font-bold text-ink-soft">Sort Tables By:</span>
-                  <select
-                    aria-label="Sort health tables by"
-                    value={healthSortBy}
-                    onChange={(e) => setHealthSortBy(e.target.value as any)}
-                    className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
-                  >
-                    <option value="value">Count / Average Wage</option>
-                    <option value="name">Name (Alphabetical)</option>
-                  </select>
-                </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-body font-bold text-ink-soft">Sort Tables By:</span>
+                      <select
+                        aria-label="Sort health tables by"
+                        value={healthSortBy}
+                        onChange={(e) => setHealthSortBy(e.target.value as any)}
+                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                      >
+                        <option value="value">Count / Average Wage</option>
+                        <option value="name">Name (Alphabetical)</option>
+                      </select>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-body font-bold text-ink-soft">Order:</span>
-                  <select
-                    aria-label="Sort health order"
-                    value={healthSortOrder}
-                    onChange={(e) => setHealthSortOrder(e.target.value as any)}
-                    className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
-                  >
-                    <option value="desc">Descending / Highest</option>
-                    <option value="asc">Ascending / Lowest</option>
-                  </select>
-                </div>
-              </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-body font-bold text-ink-soft">Order:</span>
+                      <select
+                        aria-label="Sort health order"
+                        value={healthSortOrder}
+                        onChange={(e) => setHealthSortOrder(e.target.value as any)}
+                        className="bg-white/70 px-3 py-1.5 rounded-xl border border-ink-faint shadow-inner text-xs font-body font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                      >
+                        <option value="desc">Descending / Highest</option>
+                        <option value="asc">Ascending / Lowest</option>
+                      </select>
+                    </div>
+
+                    {viewMode === 'split' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const el = document.getElementById('detailed-report-section');
+                          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
+                        className="ml-auto flex items-center gap-1 text-primary-dark hover:underline cursor-pointer text-xs font-bold"
+                      >
+                        Jump to Table <i className="lni lni-arrow-down text-[10px]" />
+                      </button>
+                    )}
+                  </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print-chart-container">
                 {/* Two-Way Rating System */}
@@ -2918,9 +3249,12 @@ export default function AnalyticsDashboard() {
                   <ChartInsightBox text={healthInsight} />
                 </div>
               </div>
+            </>
+          )}
 
-              {/* DETAILED TABULAR REPORT: Platform Health & Moderation Audit */}
-              <div className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 space-y-4">
+          {/* DETAILED TABULAR REPORT: Platform Health & Moderation Audit */}
+          {(viewMode === 'table' || viewMode === 'split') && (
+            <div id="detailed-report-section" className="bg-white/80 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-sm border border-white/50 space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-ink-faint/40 pb-4">
                   <div>
                     <div className="flex items-center gap-2">
@@ -3030,8 +3364,9 @@ export default function AnalyticsDashboard() {
                   </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+        )}
         </div>
       )}
       </div> {/* screen-only closing */}
