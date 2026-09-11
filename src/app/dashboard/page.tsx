@@ -851,7 +851,7 @@ export default function AnalyticsDashboard() {
 
       <div className="screen-only">
         {/* Sticky Top Filter & Header Bar */}
-        <div className="sticky top-[-24px] md:top-[-40px] z-30 bg-paper/95 backdrop-blur-md border-b border-ink-faint -mt-6 md:-mt-10 pt-6 md:pt-10 pb-4 mb-8 -mx-6 md:-mx-10 px-6 md:px-10 no-print shadow-sm flex flex-col gap-4">
+        <div className="sticky top-[-12px] sm:top-[-24px] md:top-[-40px] z-30 bg-paper/95 backdrop-blur-md border-b border-ink-faint -mt-3 sm:-mt-6 md:-mt-10 pt-3 sm:pt-6 md:pt-10 pb-4 mb-8 -mx-3 sm:-mx-6 md:-mx-10 px-3 sm:px-6 md:px-10 no-print shadow-sm flex flex-col gap-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-display font-bold text-ink">Dashboard Overview</h1>
@@ -861,7 +861,7 @@ export default function AnalyticsDashboard() {
           {/* Date Filter & Aggregation Components */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Export & Presentation Actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={handleExportCSV}
                 title="Export descriptive analytics report as CSV"

@@ -290,7 +290,7 @@ export default function VerificationModal({
               data-testid="rejection-reason-input"
               required
             />
-            <div className="flex justify-end space-x-3">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3">
               <Tooltip text="Go back without rejecting" position="top">
                 <button
                   onClick={() => {
@@ -308,7 +308,7 @@ export default function VerificationModal({
                   disabled={!rejectionReason.trim() || !!actionLoading}
                   onClick={handleRejectConfirm}
                   data-testid="confirm-reject-btn"
-                  className="px-6 py-2 bg-status-error text-white font-body font-semibold rounded-xl hover:bg-status-error/90 transition-colors disabled:opacity-50 flex items-center"
+                  className="px-6 py-2 bg-status-error text-white font-body font-semibold rounded-xl hover:bg-status-error/90 transition-colors disabled:opacity-50 flex items-center justify-center"
                 >
                   {actionLoading === 'rejected' && (
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
@@ -319,13 +319,13 @@ export default function VerificationModal({
             </div>
           </div>
         ) : (
-          <div className="p-6 border-t border-ink-faint bg-white flex justify-end space-x-4" data-testid="actions-section">
+          <div className="p-4 sm:p-6 border-t border-ink-faint bg-white flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-4" data-testid="actions-section">
             <Tooltip text="Reject ID — user will be asked to re-upload" position="top" variant="danger">
               <button
                 disabled={!!actionLoading}
                 onClick={() => setIsRejecting(true)}
                 data-testid="reject-btn"
-                className="px-6 py-3 border border-status-error text-status-error font-body font-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50 flex items-center"
+                className="px-6 py-3 border border-status-error text-status-error font-body font-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50 flex items-center justify-center"
               >
                 Reject ID
               </button>
@@ -335,7 +335,7 @@ export default function VerificationModal({
                 disabled={!!actionLoading}
                 onClick={handleApprove}
                 data-testid="approve-btn"
-                className="px-6 py-3 bg-status-success text-white font-body font-semibold rounded-xl hover:bg-status-success/90 transition-colors disabled:opacity-50 flex items-center"
+                className="px-6 py-3 bg-status-success text-white font-body font-semibold rounded-xl hover:bg-status-success/90 transition-colors disabled:opacity-50 flex items-center justify-center"
               >
                 {actionLoading === 'approved' && (
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>

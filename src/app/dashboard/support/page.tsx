@@ -189,7 +189,7 @@ function SupportTicketsPageContent() {
 
       {/* Filters */}
       <div className="bg-white/70 backdrop-blur-xl p-4 rounded-xl border border-white/50 shadow-glass flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
           {['all', 'open', 'processing', 'resolved'].map(status => (
             <button
               key={status}

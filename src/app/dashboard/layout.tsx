@@ -710,7 +710,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         <main className="flex-1 w-full mx-auto relative overflow-y-auto pt-20 lg:pt-0">
-          <div className="p-6 md:p-10 animate-fade-in max-w-[1400px] mx-auto">
+          <div className="p-3 sm:p-6 md:p-10 animate-fade-in max-w-[1400px] mx-auto">
             {children}
           </div>
         </main>

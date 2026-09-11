@@ -211,7 +211,7 @@ function JobsPageContent() {
       </div>
       <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-white/50 overflow-hidden mt-6">
         <div className="overflow-x-auto">
-          <table className="w-full text-left font-body table-fixed border-collapse">
+          <table className="w-full min-w-[760px] text-left font-body table-fixed border-collapse">
             <thead className="bg-white/50 border-b border-ink-faint/50">
               <tr>
                 {['Job Details', 'Employer', 'Applicants', 'Posted Date', 'Status', ''].map((h) => (
@@ -306,7 +306,7 @@ function JobsPageContent() {
         {/* Table layout (fixed w-full to prevent shifts) */}
         <div className="bg-white/80 backdrop-blur-md rounded-xl shadow-sm border border-white/50 overflow-hidden transition-all hover:shadow-lg mt-6">
           <div className="overflow-x-auto">
-            <table className="w-full text-left font-body table-fixed border-collapse">
+            <table className="w-full min-w-[760px] text-left font-body table-fixed border-collapse">
               <thead className="bg-white/50 border-b border-ink-faint/50">
                 <tr>
                   <th className="px-6 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[32%]">Job Details</th>

@@ -254,7 +254,7 @@ function ReportsPageContent() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left font-body table-fixed border-collapse">
+            <table className="w-full min-w-[850px] text-left font-body table-fixed border-collapse">
               <thead className="bg-white/50 border-b border-ink-faint/50">
                 <tr>
                   <th className="px-8 py-5 font-body font-semibold text-ink-soft text-sm uppercase tracking-wider w-[15%]">Target / Type</th>
