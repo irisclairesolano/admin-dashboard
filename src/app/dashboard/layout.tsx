@@ -40,7 +40,9 @@ const getRelativeTime = (timestamp?: string) => {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationFilter, setNotificationFilter] = useState<'all' | 'unread' | 'reports' | 'verifications' | 'support'>('all');
   const [adminName, setAdminName] = useState('');
   const [adminRole, setAdminRole] = useState<'superadmin' | 'moderator'>('moderator');
@@ -514,6 +516,107 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </div>
   );
 
+  // ── Admin Profile Dropdown Menu in Top Navbar ─────────────────────────────
+  const AdminProfileMenu = () => (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+        className="flex items-center gap-2.5 p-1.5 pl-2 pr-2.5 bg-white/70 hover:bg-white text-ink border border-white/60 hover:border-primary/30 rounded-2xl shadow-sm transition-all cursor-pointer focus:outline-none"
+        aria-label="Admin Profile Menu"
+        aria-expanded={profileDropdownOpen}
+      >
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-peach to-accent-peachBright flex items-center justify-center shadow-inner flex-shrink-0">
+          <span className="font-body font-bold text-primary-dark text-sm">{adminName ? adminName.charAt(0).toUpperCase() : 'A'}</span>
+        </div>
+        <div className="hidden sm:flex flex-col text-left">
+          <span className="text-xs font-body font-bold text-ink leading-tight truncate max-w-[110px] md:max-w-[130px]">{adminName || 'Admin'}</span>
+          <span className="text-[10px] text-ink-muted leading-tight capitalize">{adminRole === 'superadmin' ? 'Super Admin' : 'Moderator'}</span>
+        </div>
+        <i className={`lni lni-chevron-down text-[10px] text-ink-muted transition-transform duration-200 ${profileDropdownOpen ? 'rotate-180 text-ink' : ''}`} />
+      </button>
+
+      {/* Floating Dropdown Popover */}
+      {profileDropdownOpen && (
+        <>
+          {/* Invisible click-away backdrop */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setProfileDropdownOpen(false)}
+          />
+
+          <div
+            className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-xl rounded-2xl border border-white/60 shadow-xl z-50 py-2 animate-fade-in divide-y divide-ink-faint/30"
+            style={{ boxShadow: '0 12px 36px -4px rgba(0,0,0,0.12), 0 4px 12px -2px rgba(0,0,0,0.06)' }}
+          >
+            {/* User Info Header */}
+            <div className="px-4 py-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-peach to-accent-peachBright flex items-center justify-center shadow-inner flex-shrink-0">
+                  <span className="font-body font-bold text-primary-dark text-base">{adminName ? adminName.charAt(0).toUpperCase() : 'A'}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-body font-bold text-ink truncate">{adminName}</p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className={`text-[10px] font-body font-bold px-1.5 py-0.2 rounded-md ${
+                      adminRole === 'superadmin' 
+                        ? 'bg-purple-100 text-purple-800 border border-purple-200' 
+                        : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                    }`}>
+                      {adminRole === 'superadmin' ? 'Super Admin' : 'Moderator'}
+                    </span>
+                    {is2faEnabled && (
+                      <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.2 rounded-md flex items-center gap-0.5">
+                        <ShieldCheck className="w-2.5 h-2.5" /> 2FA
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 2FA Setup trigger */}
+            <div className="py-1 px-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileDropdownOpen(false);
+                  setShow2faModal(true);
+                }}
+                className="w-full text-left py-2 px-3 text-xs font-semibold text-ink-soft hover:text-primary hover:bg-paper rounded-xl transition-colors flex items-center justify-between cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <KeyRound className="w-4 h-4 text-primary" />
+                  {is2faEnabled ? 'Manage 2FA' : 'Enable 2FA (TOTP)'}
+                </span>
+                {!is2faEnabled ? (
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                ) : (
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                )}
+              </button>
+            </div>
+
+            {/* Sign Out action */}
+            <div className="py-1 px-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileDropdownOpen(false);
+                  handleLogout();
+                }}
+                className="group flex items-center w-full px-3 py-2 text-xs font-body font-semibold text-status-error hover:bg-status-error/10 rounded-xl transition-all duration-200 cursor-pointer"
+              >
+                <i className="lni lni-exit text-sm mr-2.5 transition-transform duration-200 group-hover:-translate-x-0.5" />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   return (
     <div className="h-screen bg-paper flex relative overflow-hidden">
       {/* Decorative background blobs */}
@@ -529,6 +632,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         <div className="flex items-center gap-2">
           <NotificationButton />
+          <AdminProfileMenu />
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-ink hover:bg-paper rounded-full transition-colors flex items-center justify-center cursor-pointer" aria-label="Toggle sidebar">
             {sidebarOpen ? <i className="lni lni-close text-lg" /> : <i className="lni lni-menu text-lg" />}
           </button>
@@ -538,19 +642,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Sidebar */}
       <div className={`
         fixed inset-y-0 left-0 z-30 w-72 bg-white/70 backdrop-blur-xl border-r border-white/50 shadow-glass
-        transform transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
-        lg:translate-x-0 lg:static lg:flex-shrink-0 h-screen flex flex-col
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
+        lg:static lg:flex-shrink-0 h-screen flex flex-col
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${sidebarCollapsed ? 'lg:-ml-72 lg:opacity-0 lg:pointer-events-none' : 'lg:ml-0 lg:opacity-100'}
       `}>
         <div className="h-20 flex items-center justify-between px-5 border-b border-ink-faint/30 flex-shrink-0">
           <div className="flex items-center">
             <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain" />
             <span className="text-[10px] font-body font-semibold text-ink-muted ml-1.5 bg-ink-faint/30 px-1.5 py-0.5 rounded border border-ink-faint/50">Admin</span>
           </div>
+          {/* Desktop minimize sidebar button */}
+          <button
+            type="button"
+            onClick={() => setSidebarCollapsed(true)}
+            title="Minimize sidebar"
+            aria-label="Minimize sidebar"
+            className="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-ink-muted hover:text-ink hover:bg-paper border border-transparent hover:border-ink-faint/40 transition-colors cursor-pointer"
+          >
+            <i className="lni lni-chevron-left text-sm" />
+          </button>
         </div>
 
         <div className="p-5 flex flex-col flex-1 min-h-0 justify-between">
-          <nav className="flex-1 space-y-2 mt-4 lg:mt-0 overflow-y-auto pr-1">
+          <nav className="flex-1 space-y-2 mt-4 lg:mt-0 overflow-y-auto no-scrollbar pr-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               const hasBadge = item.badge > 0;
@@ -590,55 +705,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             })}
           </nav>
 
-          <div className="pt-4 border-t border-ink-faint/30 mt-4 relative flex-shrink-0">
-            <div className="absolute -top-[1px] left-1/2 transform -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-ink-faint to-transparent" />
-            
-            {/* User Profile Card */}
-            <div className="p-3 mb-2 bg-white/50 rounded-2xl border border-white/60 shadow-sm">
-              <div className="flex items-center mb-2">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent-peach to-accent-peachBright flex items-center justify-center mr-2.5 shadow-inner flex-shrink-0">
-                  <span className="font-body font-bold text-primary-dark text-base">{adminName.charAt(0)}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-body font-bold text-ink truncate">{adminName}</p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className={`text-[10px] font-body font-bold px-1.5 py-0.2 rounded-md ${
-                      adminRole === 'superadmin' 
-                        ? 'bg-purple-100 text-purple-800 border border-purple-200' 
-                        : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                    }`}>
-                      {adminRole === 'superadmin' ? 'Super Admin' : 'Moderator'}
-                    </span>
-                    {is2faEnabled && (
-                      <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.2 rounded-md flex items-center gap-0.5">
-                        <ShieldCheck className="w-2.5 h-2.5" /> 2FA
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* 2FA Setup trigger */}
-              <button
-                type="button"
-                onClick={() => setShow2faModal(true)}
-                className="w-full text-left py-1.5 px-2 text-xs font-semibold text-primary hover:bg-primary/5 rounded-lg transition-colors flex items-center justify-between"
-              >
-                <span className="flex items-center gap-1.5">
-                  <KeyRound className="w-3.5 h-3.5" />
-                  {is2faEnabled ? 'Manage 2FA' : 'Enable 2FA (TOTP)'}
-                </span>
-                {!is2faEnabled && <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />}
-              </button>
-            </div>
-
-            <button
-              onClick={handleLogout}
-              className="group flex items-center w-full px-4 py-2.5 text-sm font-body font-semibold text-status-error hover:bg-status-error/10 rounded-2xl transition-all duration-300 hover:shadow-sm border border-transparent hover:border-status-error/20"
-            >
-              <i className="lni lni-exit text-lg mr-3 transition-transform duration-300 group-hover:-translate-x-1" />
-              Sign Out
-            </button>
+          <div className="pt-4 border-t border-ink-faint/30 mt-auto flex items-center justify-between px-2 text-[11px] text-ink-muted flex-shrink-0">
+            <span className="font-body font-semibold">SIKAP Admin</span>
+            <span className="font-mono text-[10px] bg-paper px-1.5 py-0.5 rounded border border-ink-faint/40">v1.2</span>
           </div>
         </div>
       </div>
@@ -694,18 +763,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── Persistent Content Wrapper (Main) ──────────────────── */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {/* Desktop Top Header (Content Page Side) */}
-        <header className="hidden lg:flex items-center justify-between h-20 px-10 bg-white/70 backdrop-blur-xl border-b border-white/50 z-20 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-body uppercase tracking-wider text-ink-muted">Admin Dashboard</span>
-            <span className="text-ink-faint">/</span>
-            <span className="text-sm font-display font-bold text-ink capitalize">
-              {pathname.replace('/dashboard', '').replace('/', '') || 'Analytics Overview'}
-            </span>
+        <header className="hidden lg:flex items-center justify-between h-20 px-8 bg-white/70 backdrop-blur-xl border-b border-white/50 z-20 flex-shrink-0">
+          <div className="flex items-center gap-4">
+            {/* Sidebar toggle button */}
+            <button
+              type="button"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              title={sidebarCollapsed ? "Expand sidebar" : "Minimize sidebar"}
+              aria-label={sidebarCollapsed ? "Expand sidebar" : "Minimize sidebar"}
+              className="w-9 h-9 rounded-xl bg-white/80 hover:bg-white border border-ink-faint/50 hover:border-ink-faint text-ink-muted hover:text-ink shadow-sm flex items-center justify-center transition-all cursor-pointer group"
+            >
+              <i className={`text-base transition-transform duration-300 group-hover:scale-110 ${
+                sidebarCollapsed ? 'lni lni-menu' : 'lni lni-chevron-left'
+              }`} />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-body uppercase tracking-wider text-ink-muted">Admin Dashboard</span>
+              <span className="text-ink-faint">/</span>
+              <span className="text-sm font-display font-bold text-ink capitalize">
+                {pathname.replace('/dashboard', '').replace('/', '') || 'Analytics Overview'}
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {/* Action Center / Notifications Button on Content Side */}
             <NotificationButton />
+            {/* Admin Profile Menu */}
+            <AdminProfileMenu />
           </div>
         </header>
 
