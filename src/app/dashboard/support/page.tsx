@@ -190,18 +190,34 @@ function SupportTicketsPageContent() {
       {/* Filters */}
       <div className="bg-white/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-ink-faint/30 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="flex flex-wrap gap-1.5 w-full md:w-auto">
-          {['all', 'open', 'processing', 'resolved'].map(status => (
+          {[
+            { id: 'all', label: 'All', count: tickets.length, highlight: false },
+            { id: 'open', label: 'Open', count: tickets.filter(t => t.status === 'open').length, highlight: true },
+            { id: 'processing', label: 'Processing', count: tickets.filter(t => t.status === 'processing').length, highlight: false },
+            { id: 'resolved', label: 'Resolved', count: tickets.filter(t => t.status === 'resolved').length, highlight: false },
+          ].map(({ id, label, count, highlight }) => (
             <button
-              key={status}
-              aria-label={status}
-              onClick={() => { setStatusFilter(status as any); setCurrentPage(1); }}
-              className={`px-3 py-1 text-xs font-body font-semibold rounded-lg capitalize transition-all cursor-pointer ${
-                statusFilter === status 
+              key={id}
+              aria-label={id}
+              onClick={() => { setStatusFilter(id as any); setCurrentPage(1); }}
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-body font-semibold rounded-lg capitalize transition-all cursor-pointer ${
+                statusFilter === id 
                   ? 'bg-ink text-white shadow-2xs' 
                   : 'text-ink-soft hover:text-ink bg-white border border-ink-faint/40'
               }`}
             >
-              {status}
+              <span>{label}</span>
+              {count > 0 && (
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  statusFilter === id
+                    ? 'bg-white/20 text-white'
+                    : highlight
+                    ? 'bg-status-warning/20 text-status-warning border border-status-warning/30 font-bold'
+                    : 'bg-ink-faint/60 text-ink-muted'
+                }`}>
+                  {count}
+                </span>
+              )}
             </button>
           ))}
         </div>

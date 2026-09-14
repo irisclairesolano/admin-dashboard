@@ -116,4 +116,30 @@ describe('VerificationModal Component', () => {
     fireEvent.click(screen.getByTestId('modal-close-btn'));
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
+
+  it('renders images correctly when using fallback property names', () => {
+    const userWithFallbackProps: User = {
+      id: 103,
+      name: 'Fallback User',
+      email: 'fallback@example.com',
+      role: 'worker',
+      document_front_url: 'https://example.com/fallback-front.jpg',
+      id_back_url: 'https://example.com/fallback-back.jpg',
+      id_selfie_url: 'https://example.com/fallback-selfie.jpg',
+    };
+
+    render(<VerificationModal user={userWithFallbackProps} onClose={vi.fn()} />);
+
+    const frontImg = screen.getByTestId('id-front-img') as HTMLImageElement;
+    expect(frontImg).toBeInTheDocument();
+    expect(frontImg.getAttribute('src')).toBe('https://example.com/fallback-front.jpg');
+
+    const backImg = screen.getByTestId('id-back-img') as HTMLImageElement;
+    expect(backImg).toBeInTheDocument();
+    expect(backImg.getAttribute('src')).toBe('https://example.com/fallback-back.jpg');
+
+    const selfieImg = screen.getByTestId('selfie-id-img') as HTMLImageElement;
+    expect(selfieImg).toBeInTheDocument();
+    expect(selfieImg.getAttribute('src')).toBe('https://example.com/fallback-selfie.jpg');
+  });
 });

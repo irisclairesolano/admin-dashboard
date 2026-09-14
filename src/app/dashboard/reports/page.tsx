@@ -19,6 +19,7 @@ function ReportsPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState<'open' | 'resolved' | 'dismissed'>('open');
+  const [openCount, setOpenCount] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -89,9 +90,18 @@ function ReportsPageContent() {
   const fetchReports = useCallback(async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const res = await adminApi.getReports(statusFilter, currentPage, searchTerm);
+      const [res, openRes] = await Promise.all([
+        adminApi.getReports(statusFilter, currentPage, searchTerm),
+        // Fetch open reports count if not already filtering by open
+        statusFilter === 'open' ? Promise.resolve(null) : adminApi.getReports('open', 1, '', true).catch(() => null),
+      ]);
       setReports(res.data.data || []);
       setTotalPages(res.data.last_page || 1);
+      if (statusFilter === 'open') {
+        setOpenCount(res.data.total ?? (res.data.data || []).length);
+      } else if (openRes?.data) {
+        setOpenCount(openRes.data.total ?? (openRes.data.data || []).length);
+      }
     } catch (err: any) {
       if (!silent) setError(err.message || 'Failed to load reports');
     } finally {
@@ -188,7 +198,42 @@ function ReportsPageContent() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mt-3 md:mt-0 text-xs">
-          <div className="relative w-full md:w-60 group">
+          {/* Status Tabs with Badges */}
+          <div className="flex items-center gap-1.5 bg-white/90 p-1 rounded-xl border border-ink-faint/40 shadow-2xs">
+            {([
+              { id: 'open', label: 'Open', count: openCount, highlight: true },
+              { id: 'resolved', label: 'Resolved', count: statusFilter === 'resolved' ? (reports.length) : null, highlight: false },
+              { id: 'dismissed', label: 'Dismissed', count: statusFilter === 'dismissed' ? (reports.length) : null, highlight: false },
+            ] as const).map(({ id, label, count, highlight }) => (
+              <button
+                key={id}
+                onClick={() => {
+                  setStatusFilter(id as any);
+                  setCurrentPage(1);
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1 text-xs font-body font-semibold rounded-lg capitalize transition-all cursor-pointer ${
+                  statusFilter === id
+                    ? 'bg-ink text-white shadow-2xs'
+                    : 'text-ink-soft hover:text-ink hover:bg-slate-100/60'
+                }`}
+              >
+                <span>{label}</span>
+                {typeof count === 'number' && count > 0 && (
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                    statusFilter === id
+                      ? 'bg-white/20 text-white'
+                      : highlight
+                      ? 'bg-status-error/15 text-status-error border border-status-error/30'
+                      : 'bg-ink-faint/60 text-ink-muted'
+                  }`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative w-full md:w-52 group">
             <input
               type="text"
               aria-label="Search reports"
@@ -201,23 +246,6 @@ function ReportsPageContent() {
               className="w-full pl-8 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white focus:border-ink/50 outline-none text-xs font-body transition"
             />
             <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
-          </div>
-
-          <div className="relative">
-            <select
-              aria-label="Filter by status"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value as any);
-                setCurrentPage(1);
-              }}
-              className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer"
-            >
-              <option value="open">Open Reports</option>
-              <option value="resolved">Resolved</option>
-              <option value="dismissed">Dismissed</option>
-            </select>
-            <i className="lni lni-chevron-down absolute right-2.5 top-1/2 transform -translate-y-1/2 text-ink-muted text-[10px] pointer-events-none" />
           </div>
 
           <button

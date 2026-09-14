@@ -430,6 +430,15 @@ export default function AnalyticsDashboard() {
       } catch (e) {
         console.error("Failed to parse AI insights JSON", e);
       }
+      if (parsed) {
+        parsed = {
+          dataSufficiency: parsed.dataSufficiency || { isLowVolume: false, note: null },
+          keyInsights: Array.isArray(parsed.keyInsights) ? parsed.keyInsights : [],
+          trends: Array.isArray(parsed.trends) ? parsed.trends : [],
+          areasOfConcern: Array.isArray(parsed.areasOfConcern) ? parsed.areasOfConcern : [],
+          recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations : [],
+        };
+      }
       setAiInsights(parsed);
       setAiPeriod(res.data.period);
     } catch (err: any) {
@@ -1653,22 +1662,29 @@ export default function AnalyticsDashboard() {
               )}
 
               {/* Gemini AI Executive Briefing Strip (Collapsible) */}
-              <div className="bg-white/85 backdrop-blur-md rounded-xl border border-primary-dark/20 p-3 shadow-2xs print-chart-container">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-primary-soft flex items-center justify-center text-primary-dark">
-                      <i className="lni lni-keyword-research text-xs" />
+              <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-primary/20 p-3.5 sm:p-4 shadow-2xs print-chart-container transition-all">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary-soft flex items-center justify-center text-amber-300 shadow-sm flex-shrink-0">
+                      <i className="lni lni-keyword-research text-sm" />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-ink">Gemini AI Executive Briefing</span>
-                      <span className="hidden sm:inline text-[11px] text-ink-muted ml-2">Pattern recognition & actionable municipal labor analysis</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-display font-bold text-ink">Gemini AI Executive Briefing</span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary/10 text-primary uppercase tracking-wider">
+                          Strategic Intel
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-ink-muted mt-0.5">
+                        Pattern recognition, labor shifts & actionable municipal labor intelligence
+                      </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
                     <button
                       onClick={handleGenerateInsights}
                       disabled={aiLoading}
-                      className="px-3 py-1 bg-ink text-white rounded-lg font-body font-bold text-xs hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer no-print"
+                      className="px-3.5 py-1.5 bg-ink text-white rounded-xl font-body font-bold text-xs hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-2xs hover:shadow-xs no-print"
                     >
                       {aiLoading ? (
                         <>
@@ -1676,19 +1692,19 @@ export default function AnalyticsDashboard() {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          <span>Analyzing...</span>
+                          <span>Analyzing Telemetry...</span>
                         </>
                       ) : (
                         <>
-                          <i className="lni lni-spinner-arrow text-[10px]" />
-                          <span>Generate Insights</span>
+                          <i className="lni lni-spinner-arrow text-[11px]" />
+                          <span>Generate Briefing</span>
                         </>
                       )}
                     </button>
                     {(aiInsights || aiLoading || aiError) && (
                       <button
                         onClick={() => setShowAiBriefing(!showAiBriefing)}
-                        className="px-2.5 py-1 text-xs font-semibold text-ink-soft hover:text-ink rounded-lg border border-ink-faint bg-white cursor-pointer no-print"
+                        className="px-3 py-1.5 text-xs font-semibold text-ink-soft hover:text-ink rounded-xl border border-ink-faint/60 bg-white hover:bg-slate-50 transition-colors cursor-pointer no-print shadow-2xs"
                       >
                         {showAiBriefing ? 'Collapse' : 'Expand'}
                       </button>

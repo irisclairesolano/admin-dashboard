@@ -252,11 +252,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const rawNavItems = [
     { name: 'Analytics',     href: '/dashboard',              iconClass: 'lni lni-grid-alt',  badge: 0 },
-    { name: 'Verifications', href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: pendingVerificationsCount },
+    { name: 'Verifications', href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: pendingVerificationsCount, badgeColor: 'bg-primary text-white' },
     { name: 'Users',         href: '/dashboard/users',         iconClass: 'lni lni-users',     badge: 0 },
     { name: 'Jobs',          href: '/dashboard/jobs',          iconClass: 'lni lni-briefcase', badge: 0 },
-    { name: 'Support',       href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: openTicketsCount },
-    { name: 'Reports',       href: '/dashboard/reports',       iconClass: 'lni lni-flag',      badge: openReportsCount },
+    { name: 'Support',       href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: openTicketsCount, badgeColor: 'bg-status-warning text-white' },
+    { name: 'Reports',       href: '/dashboard/reports',       iconClass: 'lni lni-flag',      badge: openReportsCount, badgeColor: 'bg-status-error text-white' },
     { name: 'Word Filter',   href: '/dashboard/profanity',     iconClass: 'lni lni-ban',       badge: 0 },
     { name: 'Archives',      href: '/dashboard/archives',      iconClass: 'lni lni-archive',   badge: 0 },
     { name: 'Audit Logs',    href: '/dashboard/logs',          iconClass: 'lni lni-shield',    badge: 0, superAdminOnly: true },
@@ -687,11 +687,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <i className={`${item.iconClass} text-lg mr-3 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-white' : 'text-ink-muted group-hover:text-primary-dark'}`} />
                   {item.name}
                   <span className="ml-auto flex items-center gap-1.5">
-                    {/* SSE live badge (Reports nav item) */}
+                    {/* Dynamic counter badge for items with pending work */}
                     {hasBadge && (
-                      <span className={`min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm animate-pulse ${
-                        isActive ? 'bg-status-error text-white' : 'bg-status-error text-white'
-                      }`}>
+                      <span className={`min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${
+                        item.badgeColor || (isActive ? 'bg-status-error text-white' : 'bg-status-error text-white')
+                      } ${item.name === 'Reports' ? 'animate-pulse' : ''}`}>
                         {item.badge > 99 ? '99+' : item.badge}
                       </span>
                     )}

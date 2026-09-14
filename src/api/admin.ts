@@ -144,8 +144,26 @@ export const adminApi = {
     } catch {}
   },
   
-  getVerifications: async (all: boolean = false) => {
-    return cachedGet(`/admin/verifications${all ? '?all=1' : ''}`);
+  getVerifications: async (all: boolean = false, forceRefresh: boolean = false) => {
+    const url = `/admin/verifications${all ? '?all=1' : ''}`;
+    if (forceRefresh) {
+      apiCache.delete(url);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('api_cache_' + url);
+        localStorage.removeItem('api_cache_time_' + url);
+      }
+      const response = await apiClient.get(url);
+      const payload = { data: response.data, status: response.status };
+      apiCache.set(url, { data: payload, timestamp: Date.now() });
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('api_cache_' + url, JSON.stringify(payload));
+          localStorage.setItem('api_cache_time_' + url, Date.now().toString());
+        } catch {}
+      }
+      return response;
+    }
+    return cachedGet(url);
   },
   
   verifyUser: async (id: number, status: 'approved' | 'rejected', rejection_reason?: string) => {

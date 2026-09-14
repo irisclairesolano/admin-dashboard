@@ -330,7 +330,11 @@ function UsersContent() {
   };
 
   const handleVerify = (user?: any) => {
-    const userToVerify = user || userDetailData?.user || selectedDetailUser;
+    // If the active drawer already loaded full user details with signed document URLs, prefer that object
+    let userToVerify = user || selectedDetailUser;
+    if (userDetailData?.user && userToVerify && userDetailData.user.id === userToVerify.id) {
+      userToVerify = { ...userToVerify, ...userDetailData.user };
+    }
     if (userToVerify) {
       setSelectedIdUser(userToVerify);
       setShowIdModal(true);
