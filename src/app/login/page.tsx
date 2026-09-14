@@ -135,71 +135,10 @@ export default function LoginPage() {
       </header>
 
       {/* ── Main Hero & Content Canvas ────────────────────────────────────── */}
-      <main className="relative z-20 flex-1 max-w-7xl mx-auto w-full px-6 sm:px-10 lg:px-16 py-12 lg:py-16 flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-14">
+      <main className="relative z-20 flex-1 max-w-7xl mx-auto w-full px-4 sm:px-10 lg:px-16 py-8 sm:py-12 lg:py-16 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-14">
         
-        {/* Left Column: Vision, Value Prop & Live App Preview */}
-        <div className="flex-1 max-w-xl text-center lg:text-left space-y-6 animate-slide-up">
-          
-          {/* Tag Pill */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/5 border border-primary/15 text-primary text-xs font-bold tracking-wide uppercase shadow-xs">
-            <FileCheck className="w-3.5 h-3.5 text-primary" />
-            Capstone Research Project
-          </div>
-
-          <h1 className="font-display text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight text-slate-900 leading-[1.2]">
-            Local Skills & Labor<br />
-            <span className="text-primary bg-gradient-to-r from-primary via-slate-800 to-primary-soft bg-clip-text text-transparent">
-              Workforce Management.
-            </span>
-          </h1>
-
-          <p className="font-body text-sm sm:text-base text-slate-600 leading-relaxed max-w-lg">
-            An administrative management portal for the SIKAP mobile job platform—overseeing user identity verification, job post moderation, application tracking, and community safety in Bulan, Sorsogon.
-          </p>
-
-          {/* Three Feature Highlight Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-left">
-            <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
-              <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <p className="text-xs font-bold text-slate-900">ID Verification</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Credential & ID review</p>
-            </div>
-
-            <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
-              <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center mb-2">
-                <Briefcase className="w-4 h-4" />
-              </div>
-              <p className="text-xs font-bold text-slate-900">Job Listings</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Post & application oversight</p>
-            </div>
-
-            <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
-              <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center mb-2">
-                <Shield className="w-4 h-4" />
-              </div>
-              <p className="text-xs font-bold text-slate-900">Safety & Moderation</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Reports & profanity filter</p>
-            </div>
-          </div>
-
-          {/* Platform Note */}
-          <div className="bg-white/90 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/90 shadow-xs flex items-center gap-3.5 max-w-md mx-auto lg:mx-0 text-left">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-              <Building2 className="w-5 h-5 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-slate-900">SIKAP Platform</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Skills & Job Matching Platform · Administrative Console
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Prominent, Clean, Elevated Admin Sign-In Card */}
-        <div className="w-full sm:w-[420px] bg-white rounded-3xl border border-slate-200 shadow-xl p-8 sm:p-9 relative z-20 animate-slide-up flex-shrink-0">
+        {/* Right Column (Ordered first on mobile for immediate access to login): Prominent Admin Sign-In Card */}
+        <div className="w-full max-w-md sm:w-[420px] bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-9 relative z-20 animate-slide-up flex-shrink-0 order-1 lg:order-2">
           
           {/* Card Header */}
           <div className="mb-6 text-left">
@@ -358,6 +297,67 @@ export default function LoginPage() {
               </button>
             </form>
           )}
+        </div>
+
+        {/* Left Column: Vision, Value Prop & Info (Order 2 on mobile, Order 1 on desktop) */}
+        <div className="flex-1 max-w-xl text-center lg:text-left space-y-6 animate-slide-up order-2 lg:order-1">
+          
+          {/* Tag Pill */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/5 border border-primary/15 text-primary text-xs font-bold tracking-wide uppercase shadow-xs">
+            <FileCheck className="w-3.5 h-3.5 text-primary" />
+            Capstone Research Project
+          </div>
+
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight text-slate-900 leading-[1.2]">
+            Local Skills & Labor<br />
+            <span className="text-primary bg-gradient-to-r from-primary via-slate-800 to-primary-soft bg-clip-text text-transparent">
+              Workforce Management.
+            </span>
+          </h1>
+
+          <p className="font-body text-sm sm:text-base text-slate-600 leading-relaxed max-w-lg mx-auto lg:mx-0">
+            An administrative management portal for the SIKAP mobile job platform—overseeing user identity verification, job post moderation, application tracking, and community safety in Bulan, Sorsogon.
+          </p>
+
+          {/* Three Feature Highlight Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-left">
+            <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+              <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <p className="text-xs font-bold text-slate-900">ID Verification</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Credential & ID review</p>
+            </div>
+
+            <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center mb-2">
+                <Briefcase className="w-4 h-4" />
+              </div>
+              <p className="text-xs font-bold text-slate-900">Job Listings</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Post & application oversight</p>
+            </div>
+
+            <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+              <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center mb-2">
+                <Shield className="w-4 h-4" />
+              </div>
+              <p className="text-xs font-bold text-slate-900">Safety & Moderation</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Reports & profanity filter</p>
+            </div>
+          </div>
+
+          {/* Platform Note */}
+          <div className="bg-white/90 backdrop-blur-sm p-4 rounded-2xl border border-slate-200/90 shadow-xs flex items-center gap-3.5 max-w-md mx-auto lg:mx-0 text-left">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-slate-900">SIKAP Platform</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Skills & Job Matching Platform · Administrative Console
+              </p>
+            </div>
+          </div>
         </div>
       </main>
 

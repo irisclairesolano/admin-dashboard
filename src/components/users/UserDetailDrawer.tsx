@@ -120,7 +120,7 @@ export default function UserDetailDrawer({
   const setLogsPage = externalSetLogsPage ?? setInternalLogsPage;
   return (
     <div
-      className="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-6"
+      className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="user-drawer-title"
@@ -134,7 +134,7 @@ export default function UserDetailDrawer({
       />
 
       {/* Centered Modal Body - covers sizeable ~80% width of screen */}
-      <div className="relative w-full max-w-5xl lg:w-4/5 h-[88vh] bg-white rounded-3xl shadow-2xl flex flex-col z-50 animate-fade-in border border-white/60 overflow-hidden">
+      <div className="relative w-full max-w-5xl lg:w-4/5 h-[88vh] bg-white rounded-3xl shadow-2xl flex flex-col z-10 animate-fade-in border border-white/60 overflow-hidden">
         {/* Header / Top Summary */}
         <div className="p-6 bg-paper-cream border-b border-ink-faint flex flex-col gap-4 relative shrink-0">
           <button

@@ -77,7 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [router]);
 
-  // ── 15-Minute Inactivity Auto-Lockout ─────────────────────────────────────
+  // ── 10-Minute Inactivity Auto-Lockout ─────────────────────────────────────
   const handleInactivityLogout = () => {
     localStorage.removeItem('admin_token');
     localStorage.removeItem('admin_user');
@@ -85,7 +85,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const { showWarning, secondsRemaining, stayLoggedIn } = useInactivityTimer({
-    timeoutMs: 15 * 60 * 1000, // 15 minutes
+    timeoutMs: 10 * 60 * 1000, // 10 minutes
     warningMs: 60 * 1000,      // 60-second warning countdown
     onTimeout: handleInactivityLogout,
   });
@@ -825,7 +825,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }}
       />
 
-      {/* ── 15-Minute Inactivity Warning Modal ─────────────────── */}
+      {/* ── 10-Minute Inactivity Warning Modal ─────────────────── */}
       {showWarning && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in" role="dialog" aria-modal="true">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-amber-200 text-center">
@@ -834,7 +834,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             <h3 className="font-display font-bold text-xl text-ink mb-2">Session Inactivity Warning</h3>
             <p className="text-sm text-ink-soft mb-6 leading-relaxed">
-              You have been inactive for nearly 15 minutes. For security compliance, your session will automatically lock out in:
+              You have been inactive for nearly 10 minutes. For security compliance, your session will automatically lock out in:
             </p>
             <div className="text-4xl font-mono font-black text-amber-600 mb-6 tracking-wider">
               {secondsRemaining}s
