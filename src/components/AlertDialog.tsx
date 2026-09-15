@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { sanitizeErrorMessage } from '@/lib/errorSanitizer';
 
 export interface AlertState {
   isOpen?: boolean;
@@ -27,6 +28,8 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
   onCancel,
 }) => {
   const visible = isOpen ?? open ?? false;
+  const cleanTitle = sanitizeErrorMessage(title);
+  const cleanMessage = sanitizeErrorMessage(message);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -81,10 +84,10 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
         className="bg-white/95 backdrop-blur-xl border border-white/50 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 transform scale-100 transition-all duration-300 animate-fade-in"
       >
         <h3 id="alert-title" className="text-xl font-display font-bold text-ink mb-2">
-          {title}
+          {cleanTitle}
         </h3>
         <p id="alert-msg" className="text-sm font-body text-ink-soft leading-relaxed mb-6">
-          {message}
+          {cleanMessage}
         </p>
 
         <div className="flex items-center justify-end gap-3">
