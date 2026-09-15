@@ -251,13 +251,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const openTicketsCount = notifications.filter(n => n.category === 'support').length;
 
   const rawNavItems = [
-    { name: 'Analytics',     href: '/dashboard',              iconClass: 'lni lni-grid-alt',  badge: 0 },
-    { name: 'Verifications', href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: pendingVerificationsCount, badgeColor: 'bg-primary text-white' },
-    { name: 'Users',         href: '/dashboard/users',         iconClass: 'lni lni-users',     badge: 0 },
-    { name: 'Jobs',          href: '/dashboard/jobs',          iconClass: 'lni lni-briefcase', badge: 0 },
-    { name: 'Support',       href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: openTicketsCount, badgeColor: 'bg-status-warning text-white' },
-    { name: 'Reports',       href: '/dashboard/reports',       iconClass: 'lni lni-flag',      badge: openReportsCount, badgeColor: 'bg-status-error text-white' },
-    { name: 'Word Filter',   href: '/dashboard/profanity',     iconClass: 'lni lni-ban',       badge: 0 },
+    { name: 'Analytics',        href: '/dashboard',              iconClass: 'lni lni-grid-alt',  badge: 0 },
+    { name: 'Verifications',    href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: pendingVerificationsCount, badgeColor: 'bg-primary text-white' },
+    { name: 'Users',            href: '/dashboard/users',         iconClass: 'lni lni-users',     badge: 0 },
+    { name: 'Jobs',             href: '/dashboard/jobs',          iconClass: 'lni lni-briefcase', badge: 0 },
+    { name: 'Reports & Export', href: '/dashboard/export-reports', iconClass: 'lni lni-printer',  badge: 0 },
+    { name: 'Support',          href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: openTicketsCount, badgeColor: 'bg-status-warning text-white' },
+    { name: 'Moderation',       href: '/dashboard/reports',       iconClass: 'lni lni-flag',      badge: openReportsCount, badgeColor: 'bg-status-error text-white' },
+    { name: 'Word Filter',      href: '/dashboard/profanity',     iconClass: 'lni lni-ban',       badge: 0 },
     { name: 'Archives',      href: '/dashboard/archives',      iconClass: 'lni lni-archive',   badge: 0 },
     { name: 'Audit Logs',    href: '/dashboard/logs',          iconClass: 'lni lni-shield',    badge: 0, superAdminOnly: true },
   ];
@@ -625,7 +626,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="absolute bottom-[-10%] left-[20%] w-80 h-80 bg-accent-mint/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse-slow" style={{ animationDelay: '2s' }} />
 
       {/* Mobile header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-white/50 z-20 flex items-center justify-between px-4 shadow-sm flex-shrink-0">
+      <div className="no-print lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-white/50 z-20 flex items-center justify-between px-4 shadow-sm flex-shrink-0">
         <div className="flex items-center">
           <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={120} height={32} className="h-8 object-contain" />
           <span className="text-xs font-body font-semibold text-ink-muted ml-2 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
@@ -640,7 +641,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Sidebar */}
-      <div className={`
+      <div className={`no-print
         fixed inset-y-0 left-0 z-30 w-72 bg-white/70 backdrop-blur-xl border-r border-white/50 shadow-glass
         transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
         lg:static lg:flex-shrink-0 h-screen flex flex-col
@@ -763,7 +764,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── Persistent Content Wrapper (Main) ──────────────────── */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {/* Desktop Top Header (Content Page Side) */}
-        <header className="hidden lg:flex items-center justify-between h-14 px-6 bg-white/70 backdrop-blur-xl border-b border-white/50 z-20 flex-shrink-0">
+        <header className="no-print hidden lg:flex items-center justify-between h-14 px-6 bg-white/70 backdrop-blur-xl border-b border-white/50 z-20 flex-shrink-0">
           <div className="flex items-center gap-4">
             {/* Sidebar toggle button */}
             <button

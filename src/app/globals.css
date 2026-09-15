@@ -26,3 +26,28 @@
     scrollbar-width: none;
   }
 }
+
+@media print {
+  body, html {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .h-screen {
+    height: auto !important;
+  }
+  .overflow-hidden {
+    overflow: visible !important;
+  }
+  .overflow-y-auto {
+    overflow: visible !important;
+  }
+}
