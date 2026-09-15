@@ -338,7 +338,7 @@ function JobsPageContent() {
           <StatCard title="Open" value={activeJobs.filter(j => j.status === 'open').length} iconClass="lni lni-play" onClick={() => setStatusFilter('Open')} />
           <StatCard title="In Progress" value={activeJobs.filter(j => j.status === 'in_progress' || j.status === 'in progress').length} iconClass="lni lni-pause" onClick={() => setStatusFilter('In Progress')} />
           <StatCard title="Suspended" value={activeJobs.filter(j => j.status === 'suspended').length} iconClass="lni lni-warning" onClick={() => setStatusFilter('Suspended')} />
-          <StatCard title="Archived" value={archivedJobs.length} iconClass="lni lni-trash-can" onClick={() => setStatusFilter('Archived')} />
+          <StatCard title="Archived & Deleted" value={archivedJobs.length} iconClass="lni lni-trash-can" onClick={() => setStatusFilter('Archived')} />
         </div>
 
         {/* Status Switcher & Search Bar */}
