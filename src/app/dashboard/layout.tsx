@@ -648,21 +648,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         ${sidebarCollapsed ? 'lg:-ml-72 lg:opacity-0 lg:pointer-events-none' : 'lg:ml-0 lg:opacity-100'}
       `}>
-        <div className="h-20 flex items-center justify-between px-5 border-b border-ink-faint/30 flex-shrink-0">
+        <div className="h-20 flex items-center px-5 border-b border-ink-faint/30 flex-shrink-0">
           <div className="flex items-center">
             <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain" />
             <span className="text-[10px] font-body font-semibold text-ink-muted ml-1.5 bg-ink-faint/30 px-1.5 py-0.5 rounded border border-ink-faint/50">Admin</span>
           </div>
-          {/* Desktop minimize sidebar button */}
-          <button
-            type="button"
-            onClick={() => setSidebarCollapsed(true)}
-            title="Minimize sidebar"
-            aria-label="Minimize sidebar"
-            className="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-ink-muted hover:text-ink hover:bg-paper border border-transparent hover:border-ink-faint/40 transition-colors cursor-pointer"
-          >
-            <i className="lni lni-chevron-left text-sm" />
-          </button>
         </div>
 
         <div className="p-5 flex flex-col flex-1 min-h-0 justify-between">

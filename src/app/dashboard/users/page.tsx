@@ -502,7 +502,7 @@ function UsersContent() {
           onClick={() => router.push('/dashboard/verifications')}
         />
         <StatCard
-          title="Archived"
+          title="Archived & Deleted"
           value={archivedUsers.length}
           iconClass="lni lni-trash-can"
           onClick={() => { setShowArchived(true); setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }}
