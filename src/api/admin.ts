@@ -26,7 +26,10 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      if (typeof window !== 'undefined') {
+      const url = error.config?.url || '';
+      const isAuthEndpoint = url.includes('/admin/auth/reauth') || url.includes('/admin/auth/login');
+
+      if (!isAuthEndpoint && typeof window !== 'undefined') {
         localStorage.removeItem('admin_token');
         localStorage.removeItem('admin_user');
         window.location.href = '/login';

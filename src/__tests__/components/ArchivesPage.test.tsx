@@ -113,6 +113,10 @@ describe('ArchivesPage Component', () => {
     const deleteBtn = screen.getByRole('button', { name: /Permanently Delete User/i });
     fireEvent.click(deleteBtn);
 
+    // ReAuthModal requires typing the user's name to confirm
+    const confirmNameInput = screen.getByPlaceholderText('Deleted User One');
+    fireEvent.change(confirmNameInput, { target: { value: 'Deleted User One' } });
+
     // ReAuthModal requires admin password
     const passwordInput = screen.getByPlaceholderText(/Enter your password/i);
     fireEvent.change(passwordInput, { target: { value: 'SecretPassword123' } });
@@ -178,6 +182,10 @@ describe('ArchivesPage Component', () => {
     const deleteBtn = screen.getByRole('button', { name: /Permanently Delete Job Post/i });
     fireEvent.click(deleteBtn);
 
+    // ReAuthModal requires typing the job title to confirm
+    const confirmTitleInput = screen.getByPlaceholderText('Deleted Painter Job');
+    fireEvent.change(confirmTitleInput, { target: { value: 'Deleted Painter Job' } });
+
     // ReAuthModal requires admin password
     const passwordInput = screen.getByPlaceholderText(/Enter your password/i);
     fireEvent.change(passwordInput, { target: { value: 'SecretPassword123' } });
@@ -188,5 +196,36 @@ describe('ArchivesPage Component', () => {
     await waitFor(() => {
       expect(adminApi.permanentDeleteJob).toHaveBeenCalledWith(20);
     });
+  });
+
+  it('displays error message on failed reauth without logging out', async () => {
+    vi.mocked(adminApi.reauth).mockRejectedValueOnce({
+      response: { data: { message: 'Invalid authenticator or password' }, status: 401 },
+    });
+
+    render(<ArchivesPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Deleted User One')).toBeInTheDocument();
+    });
+
+    const deleteBtn = screen.getByRole('button', { name: /Permanently Delete User/i });
+    fireEvent.click(deleteBtn);
+
+    const confirmNameInput = screen.getByPlaceholderText('Deleted User One');
+    fireEvent.change(confirmNameInput, { target: { value: 'Deleted User One' } });
+
+    const passwordInput = screen.getByPlaceholderText(/Enter your password/i);
+    fireEvent.change(passwordInput, { target: { value: 'WrongPassword' } });
+
+    const authBtn = screen.getByRole('button', { name: /Confirm Action/i });
+    fireEvent.click(authBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Invalid authenticator or password')).toBeInTheDocument();
+    });
+
+    // Verify permanentDeleteUser was NOT called
+    expect(adminApi.permanentDeleteUser).not.toHaveBeenCalled();
   });
 });

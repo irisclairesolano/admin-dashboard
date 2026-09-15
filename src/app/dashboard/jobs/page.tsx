@@ -14,7 +14,8 @@ function JobsPageContent() {
   const searchParams = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
 
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [activeJobs, setActiveJobs] = useState<any[]>([]);
+  const [archivedJobs, setArchivedJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,6 +23,10 @@ function JobsPageContent() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedDetailJob, setSelectedDetailJob] = useState<any | null>(null);
   const [alertState, setAlertState] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void }>({ open: false, title: '', message: '', onConfirm: () => {} });
+
+  const isArchivedView = statusFilter === 'Archived';
+  const currentJobList = isArchivedView ? archivedJobs : activeJobs;
+  const jobs = currentJobList;
 
   const handleExportCSV = () => {
     if (!jobs || jobs.length === 0) {
@@ -63,7 +68,7 @@ function JobsPageContent() {
       j.accepted_count ?? 0,
       j.municipality || 'Bulan',
       j.barangay || '',
-      formatCSVStatus(j.status),
+      formatCSVStatus(j.deleted_at ? 'archived' : j.status),
       j.applications_count ?? 0,
       formatCSVDate(j.created_at)
     ]);
@@ -83,12 +88,20 @@ function JobsPageContent() {
   const fetchJobs = async (forceRefresh: boolean = false) => {
     try {
       setLoading(true);
-      const res = await adminApi.getJobs({
-        trashed: false,
-        all: true,
-        forceRefresh,
-      });
-      setJobs(res.data.data || []);
+      const [activeRes, archivedRes] = await Promise.all([
+        adminApi.getJobs({
+          trashed: false,
+          all: true,
+          forceRefresh,
+        }),
+        adminApi.getJobs({
+          trashed: true,
+          all: true,
+          forceRefresh,
+        }),
+      ]);
+      setActiveJobs(activeRes.data?.data || []);
+      setArchivedJobs(archivedRes.data?.data || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load jobs');
     } finally {
@@ -118,8 +131,13 @@ function JobsPageContent() {
       title: 'Delete Job Post',
       message: 'Are you sure you want to soft delete this job post? It will be removed from public view.',
       onConfirm: async () => {
-        const previousJobs = [...jobs];
-        setJobs(prev => prev.filter(j => j.id !== id));
+        const previousActive = [...activeJobs];
+        const previousArchived = [...archivedJobs];
+        const target = activeJobs.find(j => j.id === id);
+        setActiveJobs(prev => prev.filter(j => j.id !== id));
+        if (target) {
+          setArchivedJobs(prev => [{ ...target, deleted_at: new Date().toISOString() }, ...prev]);
+        }
         if (selectedDetailJob?.id === id) {
           setSelectedDetailJob(null);
         }
@@ -129,11 +147,49 @@ function JobsPageContent() {
           await adminApi.deleteJob(id);
           await fetchJobs(true);
         } catch (err: any) {
-          setJobs(previousJobs);
+          setActiveJobs(previousActive);
+          setArchivedJobs(previousArchived);
           setAlertState({
             open: true,
             title: 'Error',
             message: 'Failed to delete job: ' + (err.response?.data?.message || err.message),
+            onConfirm: () => {},
+          });
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
+  };
+
+  const handleRestore = (id: number) => {
+    setAlertState({
+      open: true,
+      title: 'Restore Job Post',
+      message: 'Are you sure you want to restore this job post? It will become visible again on the platform.',
+      onConfirm: async () => {
+        const previousArchived = [...archivedJobs];
+        const previousActive = [...activeJobs];
+        const target = archivedJobs.find(j => j.id === id);
+        setArchivedJobs(prev => prev.filter(j => j.id !== id));
+        if (target) {
+          setActiveJobs(prev => [{ ...target, deleted_at: null }, ...prev]);
+        }
+        if (selectedDetailJob?.id === id) {
+          setSelectedDetailJob(null);
+        }
+
+        try {
+          setActionLoading(id);
+          await adminApi.restoreJob(id);
+          await fetchJobs(true);
+        } catch (err: any) {
+          setArchivedJobs(previousArchived);
+          setActiveJobs(previousActive);
+          setAlertState({
+            open: true,
+            title: 'Error',
+            message: 'Failed to restore job: ' + (err.response?.data?.message || err.message),
             onConfirm: () => {},
           });
         } finally {
@@ -153,8 +209,8 @@ function JobsPageContent() {
       title: `${isSuspended ? 'Unsuspend' : 'Suspend'} Job Post`,
       message: `Are you sure you want to ${actionText} this job post?`,
       onConfirm: async () => {
-        const previousJobs = [...jobs];
-        setJobs(prev =>
+        const previousActive = [...activeJobs];
+        setActiveJobs(prev =>
           prev.map(j => (j.id === id ? { ...j, status: newStatus } : j))
         );
         if (selectedDetailJob?.id === id) {
@@ -166,7 +222,7 @@ function JobsPageContent() {
           await adminApi.updateJobStatus(id, newStatus);
           await fetchJobs(true);
         } catch (err: any) {
-          setJobs(previousJobs);
+          setActiveJobs(previousActive);
           if (selectedDetailJob?.id === id) {
             setSelectedDetailJob((prev: any) => prev ? { ...prev, status: currentStatus } : null);
           }
@@ -183,14 +239,19 @@ function JobsPageContent() {
     });
   };
 
-  const filteredJobs = jobs.filter(j => {
+  const filteredJobs = currentJobList.filter(j => {
     const matchesSearch =
-      j.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (j.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (j.employer?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (j.category || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === 'All' || j.status.toLowerCase() === statusFilter.toLowerCase();
-    return matchesSearch && matchesStatus;
+    
+    if (statusFilter === 'All' || statusFilter === 'Archived') {
+      return matchesSearch;
+    }
+
+    const normalizedFilter = statusFilter.toLowerCase().replace(/\s+/g, '_');
+    const normalizedStatus = (j.status || '').toLowerCase().replace(/\s+/g, '_');
+    return matchesSearch && normalizedStatus === normalizedFilter;
   });
 
   // Pagination state
@@ -271,18 +332,19 @@ function JobsPageContent() {
           </div>
         </div>
 
-        {/* 4 Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-          <StatCard title="Total Posts" value={jobs.length} iconClass="lni lni-briefcase" onClick={() => setStatusFilter('All')} />
-          <StatCard title="Open" value={jobs.filter(j => j.status === 'open').length} iconClass="lni lni-play" onClick={() => setStatusFilter('Open')} />
-          <StatCard title="In Progress" value={jobs.filter(j => j.status === 'in_progress' || j.status === 'in progress').length} iconClass="lni lni-pause" onClick={() => setStatusFilter('In Progress')} />
-          <StatCard title="Suspended" value={jobs.filter(j => j.status === 'suspended').length} iconClass="lni lni-warning" onClick={() => setStatusFilter('Suspended')} />
+        {/* 5 Stat Cards: Total, Open, In Progress, Suspended, Archived */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+          <StatCard title="Total Posts" value={activeJobs.length + archivedJobs.length} iconClass="lni lni-briefcase" onClick={() => setStatusFilter('All')} />
+          <StatCard title="Open" value={activeJobs.filter(j => j.status === 'open').length} iconClass="lni lni-play" onClick={() => setStatusFilter('Open')} />
+          <StatCard title="In Progress" value={activeJobs.filter(j => j.status === 'in_progress' || j.status === 'in progress').length} iconClass="lni lni-pause" onClick={() => setStatusFilter('In Progress')} />
+          <StatCard title="Suspended" value={activeJobs.filter(j => j.status === 'suspended').length} iconClass="lni lni-warning" onClick={() => setStatusFilter('Suspended')} />
+          <StatCard title="Archived" value={archivedJobs.length} iconClass="lni lni-trash-can" onClick={() => setStatusFilter('Archived')} />
         </div>
 
         {/* Status Switcher & Search Bar */}
         <div className="mb-4 flex flex-col md:flex-row gap-3 items-center">
           <StatusTabs
-            options={["All", "Open", "In Progress", "Completed", "Cancelled", "Suspended"]}
+            options={["All", "Open", "In Progress", "Completed", "Cancelled", "Suspended", "Archived"]}
             activeKey={statusFilter}
             onSelect={setStatusFilter}
           />
@@ -383,32 +445,49 @@ function JobsPageContent() {
                         {formatDate(job.created_at)}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-body font-bold uppercase tracking-wide inline-block ${STATUS_BADGE_MAP[job.status] ?? DEFAULT_BADGE_CLASS}`}>
-                          {job.status}
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-body font-bold uppercase tracking-wide inline-block ${
+                          job.deleted_at
+                            ? 'bg-status-error/15 text-status-error border border-status-error/20'
+                            : (STATUS_BADGE_MAP[job.status] ?? DEFAULT_BADGE_CLASS)
+                        }`}>
+                          {job.deleted_at ? 'Archived' : job.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end space-x-1.5">
-                          <button
-                            disabled={actionLoading === job.id}
-                            onClick={() => handleSuspendToggle(job.id, job.status)}
-                            className={`p-1.5 rounded-lg border transition-all shadow-xs group cursor-pointer ${
-                              job.status === 'suspended'
-                                ? 'bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border-status-success/30'
-                                : 'bg-status-warning/10 text-status-warning hover:bg-status-warning hover:text-white border-status-warning/30'
-                            }`}
-                            title={job.status === 'suspended' ? "Unsuspend Job Post" : "Suspend Job Post"}
-                          >
-                            <i className={`${job.status === 'suspended' ? 'lni lni-play' : 'lni lni-pause'} text-xs`} />
-                          </button>
-                          <button
-                            disabled={actionLoading === job.id}
-                            onClick={() => handleDelete(job.id)}
-                            className="p-1.5 rounded-lg bg-white border border-ink-faint/40 text-status-error hover:bg-status-error hover:text-white hover:border-status-error transition-all shadow-xs cursor-pointer"
-                            title="Soft Delete Job Post"
-                          >
-                            <i className="lni lni-trash-can text-xs" />
-                          </button>
+                          {job.deleted_at ? (
+                            <button
+                              disabled={actionLoading === job.id}
+                              onClick={() => handleRestore(job.id)}
+                              className="p-1.5 rounded-lg bg-white border border-ink-faint/40 text-status-success hover:bg-status-success hover:text-white hover:border-status-success transition-all shadow-xs cursor-pointer"
+                              title="Restore Job Post"
+                            >
+                              <i className="lni lni-reload text-xs" />
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                disabled={actionLoading === job.id}
+                                onClick={() => handleSuspendToggle(job.id, job.status)}
+                                className={`p-1.5 rounded-lg border transition-all shadow-xs group cursor-pointer ${
+                                  job.status === 'suspended'
+                                    ? 'bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border-status-success/30'
+                                    : 'bg-status-warning/10 text-status-warning hover:bg-status-warning hover:text-white border-status-warning/30'
+                                }`}
+                                title={job.status === 'suspended' ? "Unsuspend Job Post" : "Suspend Job Post"}
+                              >
+                                <i className={`${job.status === 'suspended' ? 'lni lni-play' : 'lni lni-pause'} text-xs`} />
+                              </button>
+                              <button
+                                disabled={actionLoading === job.id}
+                                onClick={() => handleDelete(job.id)}
+                                className="p-1.5 rounded-lg bg-white border border-ink-faint/40 text-status-error hover:bg-status-error hover:text-white hover:border-status-error transition-all shadow-xs cursor-pointer"
+                                title="Soft Delete Job Post"
+                              >
+                                <i className="lni lni-trash-can text-xs" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -556,6 +635,43 @@ function JobsPageContent() {
                   </p>
                 </div>
               )}
+
+              {/* Drawer Actions */}
+              <div className="pt-3 border-t border-ink-faint/30 flex gap-2">
+                {selectedDetailJob.deleted_at ? (
+                  <button
+                    disabled={actionLoading === selectedDetailJob.id}
+                    onClick={() => handleRestore(selectedDetailJob.id)}
+                    className="flex-1 py-2 px-3 rounded-xl bg-status-success text-white font-body font-bold text-xs hover:bg-status-success/90 transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                  >
+                    <i className="lni lni-reload text-xs" />
+                    Restore Job Post
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      disabled={actionLoading === selectedDetailJob.id}
+                      onClick={() => handleSuspendToggle(selectedDetailJob.id, selectedDetailJob.status)}
+                      className={`flex-1 py-2 px-3 rounded-xl font-body font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer ${
+                        selectedDetailJob.status === 'suspended'
+                          ? 'bg-status-success text-white hover:bg-status-success/90'
+                          : 'bg-status-warning text-white hover:bg-status-warning/90'
+                      }`}
+                    >
+                      <i className={`${selectedDetailJob.status === 'suspended' ? 'lni lni-play' : 'lni lni-pause'} text-xs`} />
+                      {selectedDetailJob.status === 'suspended' ? 'Unsuspend' : 'Suspend'}
+                    </button>
+                    <button
+                      disabled={actionLoading === selectedDetailJob.id}
+                      onClick={() => handleDelete(selectedDetailJob.id)}
+                      className="py-2 px-3 rounded-xl bg-status-error/10 text-status-error border border-status-error/20 hover:bg-status-error hover:text-white font-body font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <i className="lni lni-trash-can text-xs" />
+                      Delete
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </>

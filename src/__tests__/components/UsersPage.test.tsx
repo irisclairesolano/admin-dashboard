@@ -57,7 +57,14 @@ describe('UsersPage Component', () => {
   it('fetches and renders user management table on load', async () => {
     render(<UsersPage />);
 
-    expect(adminApi.getUsers).toHaveBeenCalledTimes(1);
+    expect(adminApi.getUsers).toHaveBeenCalledWith(expect.objectContaining({
+      trashed: false,
+      all: true,
+    }));
+    expect(adminApi.getUsers).toHaveBeenCalledWith(expect.objectContaining({
+      trashed: true,
+      all: true,
+    }));
 
     await waitFor(() => {
       expect(screen.getByText('Nena Cruz')).toBeInTheDocument();

@@ -12,6 +12,7 @@ interface UserTableProps {
   onVerify: (user: User) => void;
   onSuspend: (id: number, isSuspended: boolean) => void;
   onDelete: (id: number) => void;
+  onRestore?: (id: number) => void;
 }
 
 export default function UserTable({
@@ -22,6 +23,7 @@ export default function UserTable({
   onVerify,
   onSuspend,
   onDelete,
+  onRestore,
 }: UserTableProps) {
   if (loading) {
     return (
@@ -102,34 +104,42 @@ export default function UserTable({
                       }`}>
                       {user.role}
                     </span>
-                    {user.verification_status === 'approved' ? (
-                      <span className="flex items-center text-xs font-body font-semibold text-status-success bg-status-success/10 px-3 py-1 rounded-full border border-status-success/20">
-                        <i className="lni lni-checkmark-circle mr-1.5 text-xs" /> Verified
+                    {user.deleted_at ? (
+                      <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
+                        <i className="lni lni-trash-can mr-1.5 text-xs text-status-error" /> Archived
                       </span>
-                    ) : user.verification_status === 'pending' ? (
-                      <span className="flex items-center text-xs font-body font-semibold text-status-gold bg-status-gold/10 px-3 py-1 rounded-full border border-status-gold/20">
-                        <i className="lni lni-warning mr-1.5 text-xs text-status-warning" /> Pending Review
-                      </span>
-                    ) : user.verification_status === 'rejected' || user.registration_status === 'rejected' ? (
-                      <div className="flex flex-col gap-1">
-                        <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
-                          <i className="lni lni-close mr-1.5 text-xs" /> Rejected
-                        </span>
-                        {(user as any).rejection_reason && (
-                          <span className="text-xs text-status-error mt-1 max-w-[200px]">
-                            Reason: {(user as any).rejection_reason}
+                    ) : (
+                      <>
+                        {user.verification_status === 'approved' ? (
+                          <span className="flex items-center text-xs font-body font-semibold text-status-success bg-status-success/10 px-3 py-1 rounded-full border border-status-success/20">
+                            <i className="lni lni-checkmark-circle mr-1.5 text-xs" /> Verified
+                          </span>
+                        ) : user.verification_status === 'pending' ? (
+                          <span className="flex items-center text-xs font-body font-semibold text-status-gold bg-status-gold/10 px-3 py-1 rounded-full border border-status-gold/20">
+                            <i className="lni lni-warning mr-1.5 text-xs text-status-warning" /> Pending Review
+                          </span>
+                        ) : user.verification_status === 'rejected' || user.registration_status === 'rejected' ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
+                              <i className="lni lni-close mr-1.5 text-xs" /> Rejected
+                            </span>
+                            {(user as any).rejection_reason && (
+                              <span className="text-xs text-status-error mt-1 max-w-[200px]">
+                                Reason: {(user as any).rejection_reason}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="flex items-center text-xs font-body font-semibold text-ink-muted bg-paper px-3 py-1 rounded-full border border-ink-faint">
+                            Unverified
                           </span>
                         )}
-                      </div>
-                    ) : (
-                      <span className="flex items-center text-xs font-body font-semibold text-ink-muted bg-paper px-3 py-1 rounded-full border border-ink-faint">
-                        Unverified
-                      </span>
-                    )}
-                    {user.is_suspended && (
-                      <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
-                        <i className="lni lni-shield mr-1.5 text-xs" /> Suspended
-                      </span>
+                        {user.is_suspended && (
+                          <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
+                            <i className="lni lni-shield mr-1.5 text-xs" /> Suspended
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                 </td>
@@ -149,33 +159,47 @@ export default function UserTable({
                 <td className="px-4 py-3.5 text-right">
                   {user.role !== 'admin' && (
                     <div className="flex flex-col gap-1.5 items-end justify-center">
-                      {user.role === 'worker' && user.verification_status !== 'approved' && (
-                        <button
-                          disabled={actionLoading === user.id}
-                          onClick={() => onVerify(user)}
-                          className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-status-success/15 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all text-center"
-                        >
-                          Verify
-                        </button>
+                      {user.deleted_at ? (
+                        onRestore && (
+                          <button
+                            disabled={actionLoading === user.id}
+                            onClick={() => onRestore(user.id)}
+                            className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-status-success/15 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all text-center cursor-pointer"
+                          >
+                            Restore
+                          </button>
+                        )
+                      ) : (
+                        <>
+                          {user.role === 'worker' && user.verification_status !== 'approved' && (
+                            <button
+                              disabled={actionLoading === user.id}
+                              onClick={() => onVerify(user)}
+                              className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-status-success/15 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all text-center cursor-pointer"
+                            >
+                              Verify
+                            </button>
+                          )}
+                          <button
+                            disabled={actionLoading === user.id}
+                            onClick={() => onSuspend(user.id, user.is_suspended)}
+                            className={`w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg border transition-all text-center cursor-pointer ${
+                              user.is_suspended
+                                ? 'bg-status-warning/15 border-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
+                                : 'bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white'
+                            }`}
+                          >
+                            {user.is_suspended ? 'Unsuspend' : 'Suspend'}
+                          </button>
+                          <button
+                            disabled={actionLoading === user.id}
+                            onClick={() => onDelete(user.id)}
+                            className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-status-error/15 border border-status-error/20 text-status-error hover:bg-status-error hover:text-white transition-all text-center cursor-pointer"
+                          >
+                            Delete
+                          </button>
+                        </>
                       )}
-                      <button
-                        disabled={actionLoading === user.id}
-                        onClick={() => onSuspend(user.id, user.is_suspended)}
-                        className={`w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg border transition-all text-center ${
-                          user.is_suspended
-                            ? 'bg-status-warning/15 border-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
-                            : 'bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white'
-                        }`}
-                      >
-                        {user.is_suspended ? 'Unsuspend' : 'Suspend'}
-                      </button>
-                      <button
-                        disabled={actionLoading === user.id}
-                        onClick={() => onDelete(user.id)}
-                        className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-status-error/15 border border-status-error/20 text-status-error hover:bg-status-error hover:text-white transition-all text-center"
-                      >
-                        Delete
-                      </button>
                     </div>
                   )}
                   {user.role === 'admin' && (

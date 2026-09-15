@@ -416,6 +416,8 @@ function ArchivesPageContent() {
         isOpen={!!reAuthTarget}
         title={reAuthTarget?.type === 'user' ? 'Permanently Delete User' : 'Permanently Delete Job Post'}
         description={`This action will PERMANENTLY erase "${reAuthTarget?.name}" and all associated platform records. This cannot be undone. Enter your admin credentials to proceed.`}
+        confirmText={reAuthTarget?.name}
+        confirmLabel={reAuthTarget?.type === 'user' ? `Type the user's name "${reAuthTarget?.name}" to confirm:` : `Type the job title "${reAuthTarget?.name}" to confirm:`}
         onSuccess={handleReAuthSuccess}
         onCancel={() => setReAuthTarget(null)}
       />

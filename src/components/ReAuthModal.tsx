@@ -8,6 +8,8 @@ interface ReAuthModalProps {
   isOpen: boolean;
   title?: string;
   description?: string;
+  confirmText?: string;
+  confirmLabel?: string;
   onSuccess: (reauthToken: string) => void;
   onCancel: () => void;
 }
@@ -16,20 +18,33 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
   isOpen,
   title = 'Re-Authentication Required',
   description = 'For your security, please confirm your administrator credentials before executing this sensitive action.',
+  confirmText,
+  confirmLabel,
   onSuccess,
   onCancel,
 }) => {
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
+  const [confirmInput, setConfirmInput] = useState('');
   const [useOtp, setUseOtp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
+  const isNameConfirmed = !confirmText || confirmInput.trim().toLowerCase() === confirmText.trim().toLowerCase();
+  const isCredentialProvided = useOtp ? code.length > 0 : password.length > 0;
+  const isSubmitDisabled = loading || !isCredentialProvided || !isNameConfirmed;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (confirmText && !isNameConfirmed) {
+      setError(`Please type "${confirmText}" to confirm.`);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -38,6 +53,7 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
       const token = res.data.reauth_token;
       setPassword('');
       setCode('');
+      setConfirmInput('');
       onSuccess(token);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Authentication failed. Please check your credentials.');
@@ -78,6 +94,21 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {confirmText && (
+            <div className="p-3 bg-red-50/70 border border-red-200/80 rounded-xl space-y-1.5">
+              <label className="block text-xs font-bold text-red-900">
+                {confirmLabel || `Type "${confirmText}" to confirm:`}
+              </label>
+              <input
+                type="text"
+                value={confirmInput}
+                onChange={(e) => setConfirmInput(e.target.value)}
+                placeholder={confirmText}
+                className="w-full px-3 py-2 bg-white border border-red-200 rounded-lg text-xs font-mono text-ink focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+          )}
+
           {!useOtp ? (
             <div>
               <label className="block text-xs font-bold text-ink mb-1.5">
@@ -90,7 +121,7 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
-                  autoFocus
+                  autoFocus={!confirmText}
                   className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white text-ink"
                 />
                 <KeyRound className="w-4 h-4 text-gray-400 absolute right-3.5 top-3" />
@@ -108,7 +139,7 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                 placeholder="123456"
                 required
-                autoFocus
+                autoFocus={!confirmText}
                 className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white text-ink"
               />
             </div>
@@ -134,8 +165,8 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={loading || (!password && !code)}
-              className="flex-1 py-2.5 px-4 bg-primary hover:bg-primary-dark text-white font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-primary/20 disabled:opacity-50"
+              disabled={isSubmitDisabled}
+              className="flex-1 py-2.5 px-4 bg-primary hover:bg-primary-dark text-white font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-primary/20 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Confirm Action
