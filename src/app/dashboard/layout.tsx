@@ -143,7 +143,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           description: `${r.reporter?.name ? `Reported by ${r.reporter.name}: ` : ''}${r.description || r.reason || 'Flagged content review needed.'}`,
           timestamp: r.created_at || new Date().toISOString(),
           priority: 'critical',
-          link: `/dashboard/reports?search=${encodeURIComponent(r.reason || '')}`,
+          link: `/dashboard/moderation?search=${encodeURIComponent(r.reason || '')}`,
           targetId: r.id,
         });
       });
@@ -178,9 +178,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
         if (openReports.length > prevReports.current) {
           triggerBrowserNotification(
-            'New Report Filed',
+            'New Moderation Alert',
             `There are ${openReports.length} content reports requiring moderation.`,
-            '/dashboard/reports'
+            '/dashboard/moderation'
           );
         }
         if (openTickets.length > prevTickets.current) {
@@ -223,9 +223,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       });
   }, [fetchNotifications]);
 
-  // When visiting the reports page, automatically clear the SSE new reports alert counter
+  // When visiting the moderation page, automatically clear the SSE new reports alert counter
   useEffect(() => {
-    if (pathname === '/dashboard/reports' && newReportCount > 0) {
+    if ((pathname === '/dashboard/moderation' || pathname === '/dashboard/reports') && newReportCount > 0) {
       clearSSECount();
     }
   }, [pathname, newReportCount, clearSSECount]);
@@ -251,16 +251,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const openTicketsCount = notifications.filter(n => n.category === 'support').length;
 
   const rawNavItems = [
-    { name: 'Analytics',        href: '/dashboard',              iconClass: 'lni lni-grid-alt',  badge: 0 },
-    { name: 'Verifications',    href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: pendingVerificationsCount, badgeColor: 'bg-primary text-white' },
-    { name: 'Users',            href: '/dashboard/users',         iconClass: 'lni lni-users',     badge: 0 },
-    { name: 'Jobs',             href: '/dashboard/jobs',          iconClass: 'lni lni-briefcase', badge: 0 },
-    { name: 'Reports & Export', href: '/dashboard/export-reports', iconClass: 'lni lni-printer',  badge: 0 },
-    { name: 'Support',          href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: openTicketsCount, badgeColor: 'bg-status-warning text-white' },
-    { name: 'Moderation',       href: '/dashboard/reports',       iconClass: 'lni lni-flag',      badge: openReportsCount, badgeColor: 'bg-status-error text-white' },
-    { name: 'Word Filter',      href: '/dashboard/profanity',     iconClass: 'lni lni-ban',       badge: 0 },
-    { name: 'Archives',      href: '/dashboard/archives',      iconClass: 'lni lni-archive',   badge: 0 },
-    { name: 'Audit Logs',    href: '/dashboard/logs',          iconClass: 'lni lni-shield',    badge: 0, superAdminOnly: true },
+    { name: 'Analytics',             href: '/dashboard',              iconClass: 'lni lni-grid-alt',  badge: 0 },
+    { name: 'Verifications',         href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: pendingVerificationsCount, badgeColor: 'bg-primary text-white' },
+    { name: 'Users',                 href: '/dashboard/users',         iconClass: 'lni lni-users',     badge: 0 },
+    { name: 'Jobs',                  href: '/dashboard/jobs',          iconClass: 'lni lni-briefcase', badge: 0 },
+    { name: 'Institutional Reports', href: '/dashboard/export-reports', iconClass: 'lni lni-printer',  badge: 0 },
+    { name: 'Support',               href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: openTicketsCount, badgeColor: 'bg-status-warning text-white' },
+    { name: 'Moderation',            href: '/dashboard/moderation',    iconClass: 'lni lni-flag',      badge: openReportsCount, badgeColor: 'bg-status-error text-white' },
+    { name: 'Word Filter',           href: '/dashboard/profanity',     iconClass: 'lni lni-ban',       badge: 0 },
+    { name: 'Archives',              href: '/dashboard/archives',      iconClass: 'lni lni-archive',   badge: 0 },
+    { name: 'Audit Logs',            href: '/dashboard/logs',          iconClass: 'lni lni-shield',    badge: 0, superAdminOnly: true },
   ];
 
   const navItems = rawNavItems.filter(item => !item.superAdminOnly || adminRole === 'superadmin');
@@ -740,11 +740,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onClick={() => {
                   setReportToastDismissed(true);
                   clearSSECount();
-                  router.push('/dashboard/reports');
+                  router.push('/dashboard/moderation');
                 }}
                 className="mt-2.5 text-xs font-body font-semibold text-status-error hover:underline flex items-center gap-1"
               >
-                View Reports <i className="lni lni-arrow-right text-[10px]" />
+                Review Moderation Queue <i className="lni lni-arrow-right text-[10px]" />
               </button>
             </div>
           </div>

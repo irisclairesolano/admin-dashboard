@@ -42,6 +42,8 @@ describe('ReportsPage Component', () => {
     expect(adminApi.getReports).toHaveBeenCalledWith('open', 1, expect.any(String));
 
     await waitFor(() => {
+      expect(screen.getByText('Content Moderation & Safety')).toBeInTheDocument();
+      expect(screen.getByText('Violation & Abuse Queue')).toBeInTheDocument();
       expect(screen.getByText('John Doe')).toBeInTheDocument();
       expect(screen.getByText('inappropriate content')).toBeInTheDocument();
       expect(screen.getByText('The job posting contains spam links.')).toBeInTheDocument();

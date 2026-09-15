@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { adminApi } from '@/lib/api';
 import { formatDate } from '@/lib/date';
 import StatCard from '@/components/StatCard';
+import { generateMasterExcelWorkbook, downloadExcelBlob } from '@/lib/export/excel';
 
 type ReportType = 'users' | 'jobs' | 'demographics' | 'verifications';
 type DatePreset = 'all' | 'today' | '7days' | '30days' | 'year' | 'custom';
@@ -201,6 +202,30 @@ export default function ExportReportsPage() {
 
   // ── EXPORT ACTIONS ──────────────────────────────────────────────────────────
 
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
+
+  const handleExportMasterExcel = async () => {
+    try {
+      setIsExportingExcel(true);
+      const reportsRes = await adminApi.getReports('all', 1, '', true).catch(() => ({ data: [] }));
+      const reportsList: any[] = reportsRes.data?.data || reportsRes.data || [];
+
+      const blob = await generateMasterExcelWorkbook({
+        users,
+        jobs,
+        verifications,
+        reports: reportsList,
+      });
+
+      const filename = `SIKAP-Platform-Master-Report.xlsx`;
+      downloadExcelBlob(blob, filename);
+    } catch (err) {
+      console.error('Failed to export master Excel report', err);
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -295,21 +320,21 @@ export default function ExportReportsPage() {
       <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-display font-bold text-ink">Reports & Data Export</h1>
+            <h1 className="text-3xl font-display font-bold text-ink">Institutional & LGU Compliance Reports</h1>
             <span className="bg-primary/10 text-primary-dark font-body font-bold text-xs px-2.5 py-0.5 rounded-full border border-primary/20">
-              Official Tabular View
+              Official Certified Documents
             </span>
           </div>
           <p className="text-ink-soft font-body text-sm mt-1">
-            Generate and export institutional accomplishment reports with certified signatories for academic defense and LGU submission.
+            Generate and export institutional accomplishment reports with Republic of the Philippines letterheads and certified signatories for academic defense and LGU submission.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={fetchData}
             disabled={loading}
-            className="px-4 py-2.5 bg-white border border-ink-faint text-ink hover:bg-paper font-body text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="px-3.5 py-2 bg-white border border-ink-faint text-ink hover:bg-paper font-body text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             title="Reload latest records"
           >
             <i className={`lni lni-reload text-xs ${loading ? 'animate-spin' : ''}`} />
@@ -317,20 +342,32 @@ export default function ExportReportsPage() {
           </button>
 
           <button
+            onClick={handleExportMasterExcel}
+            disabled={loading || isExportingExcel}
+            className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            title="Download complete multi-sheet platform master workbook"
+          >
+            <i className={`lni ${isExportingExcel ? 'lni-spinner animate-spin' : 'lni-download'} text-xs`} />
+            <span>{isExportingExcel ? 'Generating...' : 'Master Excel (.xlsx)'}</span>
+          </button>
+
+          <button
             onClick={handleExportCSV}
             disabled={loading}
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="px-3.5 py-2 bg-slate-700 hover:bg-slate-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            title="Export filtered records of current tab as CSV"
           >
             <i className="lni lni-download text-xs" />
-            Export CSV
+            Tabular CSV
           </button>
 
           <button
             onClick={handlePrint}
             disabled={loading}
-            className="px-5 py-2.5 bg-ink hover:bg-primary-dark text-white font-body text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            className="px-4 py-2 bg-ink hover:bg-primary-dark text-white font-body text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            title="Print official letterhead report with signatories"
           >
-            <i className="lni lni-printer text-sm" />
+            <i className="lni lni-printer text-xs" />
             Print / Export PDF
           </button>
         </div>
