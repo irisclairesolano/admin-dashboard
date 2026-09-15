@@ -77,7 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [router]);
 
-  // ── 15-Minute Inactivity Auto-Lockout ─────────────────────────────────────
+  // ── 10-Minute Inactivity Auto-Lockout ─────────────────────────────────────
   const handleInactivityLogout = () => {
     localStorage.removeItem('admin_token');
     localStorage.removeItem('admin_user');
@@ -85,7 +85,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const { showWarning, secondsRemaining, stayLoggedIn } = useInactivityTimer({
-    timeoutMs: 15 * 60 * 1000, // 15 minutes
+    timeoutMs: 10 * 60 * 1000, // 10 minutes
     warningMs: 60 * 1000,      // 60-second warning countdown
     onTimeout: handleInactivityLogout,
   });
@@ -143,7 +143,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           description: `${r.reporter?.name ? `Reported by ${r.reporter.name}: ` : ''}${r.description || r.reason || 'Flagged content review needed.'}`,
           timestamp: r.created_at || new Date().toISOString(),
           priority: 'critical',
-          link: `/dashboard/reports?search=${encodeURIComponent(r.reason || '')}`,
+          link: `/dashboard/moderation?search=${encodeURIComponent(r.reason || '')}`,
           targetId: r.id,
         });
       });
@@ -178,9 +178,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
         if (openReports.length > prevReports.current) {
           triggerBrowserNotification(
-            'New Report Filed',
+            'New Moderation Alert',
             `There are ${openReports.length} content reports requiring moderation.`,
-            '/dashboard/reports'
+            '/dashboard/moderation'
           );
         }
         if (openTickets.length > prevTickets.current) {
@@ -223,9 +223,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       });
   }, [fetchNotifications]);
 
-  // When visiting the reports page, automatically clear the SSE new reports alert counter
+  // When visiting the moderation page, automatically clear the SSE new reports alert counter
   useEffect(() => {
-    if (pathname === '/dashboard/reports' && newReportCount > 0) {
+    if ((pathname === '/dashboard/moderation' || pathname === '/dashboard/reports') && newReportCount > 0) {
       clearSSECount();
     }
   }, [pathname, newReportCount, clearSSECount]);
@@ -251,15 +251,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const openTicketsCount = notifications.filter(n => n.category === 'support').length;
 
   const rawNavItems = [
-    { name: 'Analytics',     href: '/dashboard',              iconClass: 'lni lni-grid-alt',  badge: 0 },
-    { name: 'Verifications', href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: pendingVerificationsCount },
-    { name: 'Users',         href: '/dashboard/users',         iconClass: 'lni lni-users',     badge: 0 },
-    { name: 'Jobs',          href: '/dashboard/jobs',          iconClass: 'lni lni-briefcase', badge: 0 },
-    { name: 'Support',       href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: openTicketsCount },
-    { name: 'Reports',       href: '/dashboard/reports',       iconClass: 'lni lni-flag',      badge: openReportsCount },
-    { name: 'Word Filter',   href: '/dashboard/profanity',     iconClass: 'lni lni-ban',       badge: 0 },
-    { name: 'Archives',      href: '/dashboard/archives',      iconClass: 'lni lni-archive',   badge: 0 },
-    { name: 'Audit Logs',    href: '/dashboard/logs',          iconClass: 'lni lni-shield',    badge: 0, superAdminOnly: true },
+    { name: 'Analytics',             href: '/dashboard',              iconClass: 'lni lni-grid-alt',  badge: 0 },
+    { name: 'Verifications',         href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: pendingVerificationsCount, badgeColor: 'bg-primary text-white' },
+    { name: 'Users',                 href: '/dashboard/users',         iconClass: 'lni lni-users',     badge: 0 },
+    { name: 'Jobs',                  href: '/dashboard/jobs',          iconClass: 'lni lni-briefcase', badge: 0 },
+    { name: 'Institutional Reports', href: '/dashboard/export-reports', iconClass: 'lni lni-printer',  badge: 0 },
+    { name: 'Support',               href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: openTicketsCount, badgeColor: 'bg-status-warning text-white' },
+    { name: 'Moderation',            href: '/dashboard/moderation',    iconClass: 'lni lni-flag',      badge: openReportsCount, badgeColor: 'bg-status-error text-white' },
+    { name: 'Word Filter',           href: '/dashboard/profanity',     iconClass: 'lni lni-ban',       badge: 0 },
+    { name: 'Archives',              href: '/dashboard/archives',      iconClass: 'lni lni-archive',   badge: 0 },
+    { name: 'Audit Logs',            href: '/dashboard/logs',          iconClass: 'lni lni-shield',    badge: 0, superAdminOnly: true },
   ];
 
   const navItems = rawNavItems.filter(item => !item.superAdminOnly || adminRole === 'superadmin');
@@ -625,7 +626,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="absolute bottom-[-10%] left-[20%] w-80 h-80 bg-accent-mint/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse-slow" style={{ animationDelay: '2s' }} />
 
       {/* Mobile header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-white/50 z-20 flex items-center justify-between px-4 shadow-sm flex-shrink-0">
+      <div className="no-print lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-white/50 z-20 flex items-center justify-between px-4 shadow-sm flex-shrink-0">
         <div className="flex items-center">
           <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={120} height={32} className="h-8 object-contain" />
           <span className="text-xs font-body font-semibold text-ink-muted ml-2 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
@@ -640,28 +641,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Sidebar */}
-      <div className={`
+      <div className={`no-print
         fixed inset-y-0 left-0 z-30 w-72 bg-white/70 backdrop-blur-xl border-r border-white/50 shadow-glass
         transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
         lg:static lg:flex-shrink-0 h-screen flex flex-col
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         ${sidebarCollapsed ? 'lg:-ml-72 lg:opacity-0 lg:pointer-events-none' : 'lg:ml-0 lg:opacity-100'}
       `}>
-        <div className="h-20 flex items-center justify-between px-5 border-b border-ink-faint/30 flex-shrink-0">
+        <div className="h-20 flex items-center px-5 border-b border-ink-faint/30 flex-shrink-0">
           <div className="flex items-center">
             <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain" />
             <span className="text-[10px] font-body font-semibold text-ink-muted ml-1.5 bg-ink-faint/30 px-1.5 py-0.5 rounded border border-ink-faint/50">Admin</span>
           </div>
-          {/* Desktop minimize sidebar button */}
-          <button
-            type="button"
-            onClick={() => setSidebarCollapsed(true)}
-            title="Minimize sidebar"
-            aria-label="Minimize sidebar"
-            className="hidden lg:flex w-8 h-8 rounded-lg items-center justify-center text-ink-muted hover:text-ink hover:bg-paper border border-transparent hover:border-ink-faint/40 transition-colors cursor-pointer"
-          >
-            <i className="lni lni-chevron-left text-sm" />
-          </button>
         </div>
 
         <div className="p-5 flex flex-col flex-1 min-h-0 justify-between">
@@ -687,11 +678,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <i className={`${item.iconClass} text-lg mr-3 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-white' : 'text-ink-muted group-hover:text-primary-dark'}`} />
                   {item.name}
                   <span className="ml-auto flex items-center gap-1.5">
-                    {/* SSE live badge (Reports nav item) */}
+                    {/* Dynamic counter badge for items with pending work */}
                     {hasBadge && (
-                      <span className={`min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm animate-pulse ${
-                        isActive ? 'bg-status-error text-white' : 'bg-status-error text-white'
-                      }`}>
+                      <span className={`min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${
+                        item.badgeColor || (isActive ? 'bg-status-error text-white' : 'bg-status-error text-white')
+                      } ${item.name === 'Reports' ? 'animate-pulse' : ''}`}>
                         {item.badge > 99 ? '99+' : item.badge}
                       </span>
                     )}
@@ -749,11 +740,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onClick={() => {
                   setReportToastDismissed(true);
                   clearSSECount();
-                  router.push('/dashboard/reports');
+                  router.push('/dashboard/moderation');
                 }}
                 className="mt-2.5 text-xs font-body font-semibold text-status-error hover:underline flex items-center gap-1"
               >
-                View Reports <i className="lni lni-arrow-right text-[10px]" />
+                Review Moderation Queue <i className="lni lni-arrow-right text-[10px]" />
               </button>
             </div>
           </div>
@@ -763,7 +754,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── Persistent Content Wrapper (Main) ──────────────────── */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {/* Desktop Top Header (Content Page Side) */}
-        <header className="hidden lg:flex items-center justify-between h-14 px-6 bg-white/70 backdrop-blur-xl border-b border-white/50 z-20 flex-shrink-0">
+        <header className="no-print hidden lg:flex items-center justify-between h-14 px-6 bg-white/70 backdrop-blur-xl border-b border-white/50 z-20 flex-shrink-0">
           <div className="flex items-center gap-4">
             {/* Sidebar toggle button */}
             <button
@@ -825,7 +816,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }}
       />
 
-      {/* ── 15-Minute Inactivity Warning Modal ─────────────────── */}
+      {/* ── 10-Minute Inactivity Warning Modal ─────────────────── */}
       {showWarning && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in" role="dialog" aria-modal="true">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-amber-200 text-center">
@@ -834,7 +825,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             <h3 className="font-display font-bold text-xl text-ink mb-2">Session Inactivity Warning</h3>
             <p className="text-sm text-ink-soft mb-6 leading-relaxed">
-              You have been inactive for nearly 15 minutes. For security compliance, your session will automatically lock out in:
+              You have been inactive for nearly 10 minutes. For security compliance, your session will automatically lock out in:
             </p>
             <div className="text-4xl font-mono font-black text-amber-600 mb-6 tracking-wider">
               {secondsRemaining}s

@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
-import { XCircle } from 'lucide-react';
+import { XCircle, ExternalLink, RefreshCw, AlertCircle } from 'lucide-react';
 import Tooltip from '@/components/Tooltip';
+import { adminApi } from '@/api/admin';
 
 export interface User {
   id: number;
@@ -12,8 +13,12 @@ export interface User {
   email: string;
   role: string;
   document_url?: string | null;
+  document_front_url?: string | null;
+  id_front_url?: string | null;
   document_back_url?: string | null;
+  id_back_url?: string | null;
   selfie_url?: string | null;
+  id_selfie_url?: string | null;
   business_documents?: string[] | string | null;
   updated_at?: string;
   registration_status?: string;
@@ -36,10 +41,56 @@ export default function VerificationModal({
   onVerify,
   actionLoading = null,
 }: VerificationModalProps) {
+  const [currentUser, setCurrentUser] = useState<User>(user);
+  const [fetchingDetails, setFetchingDetails] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [isRejecting, setIsRejecting] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
   const [mounted, setMounted] = useState(false);
+
+  // Sync state if user prop changes
+  useEffect(() => {
+    setCurrentUser(user);
+  }, [user]);
+
+  // If document_url is missing or potentially stale, fetch fresh details from API
+  useEffect(() => {
+    let isCancelled = false;
+    const loadFreshUser = async () => {
+      const frontDoc = user.document_url || user.document_front_url || user.id_front_url;
+      if (!frontDoc && user.id) {
+        try {
+          setFetchingDetails(true);
+          const res = await adminApi.getUserDetails(user.id);
+          const freshUser = res.data?.user || res.data;
+          if (!isCancelled && freshUser && freshUser.id === user.id) {
+            setCurrentUser(freshUser);
+          }
+        } catch {
+          // Keep current state if fetch fails
+        } finally {
+          if (!isCancelled) setFetchingDetails(false);
+        }
+      }
+    };
+    loadFreshUser();
+    return () => {
+      isCancelled = true;
+    };
+  }, [user.id, user.document_url, user.document_front_url, user.id_front_url]);
+
+  const frontUrl = currentUser.document_url || currentUser.document_front_url || currentUser.id_front_url || null;
+  const backUrl = currentUser.document_back_url || currentUser.id_back_url || null;
+  const selfieUrl = currentUser.selfie_url || currentUser.id_selfie_url || null;
+
+  const handleImageError = (key: string) => {
+    setImageErrors(prev => ({ ...prev, [key]: true }));
+  };
+
+  const handleRetryImage = (key: string) => {
+    setImageErrors(prev => ({ ...prev, [key]: false }));
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -124,14 +175,21 @@ export default function VerificationModal({
 
         {/* Content */}
         <div className="p-6 flex-1 overflow-y-auto">
-          <div className="flex justify-between mb-6">
+          <div className="flex justify-between items-start mb-6">
             <div>
-              <h3 className="font-body font-bold text-ink text-lg" data-testid="user-name">{user.name}</h3>
-              <p className="text-ink-soft font-body" data-testid="user-email">{user.email}</p>
+              <div className="flex items-center gap-2">
+                <h3 className="font-body font-bold text-ink text-lg" data-testid="user-name">{currentUser.name || user.name}</h3>
+                {fetchingDetails && (
+                  <span className="inline-flex items-center text-[10px] text-ink-muted bg-paper px-2 py-0.5 rounded-full animate-pulse border border-ink-faint">
+                    <RefreshCw className="w-2.5 h-2.5 animate-spin mr-1 text-primary" /> Updating details...
+                  </span>
+                )}
+              </div>
+              <p className="text-ink-soft font-body text-sm" data-testid="user-email">{currentUser.email || user.email}</p>
             </div>
             <div className="text-right">
               <span className="capitalize font-body font-medium text-ink-muted bg-paper px-3 py-1 rounded-lg border border-ink-faint" data-testid="user-role">
-                Role: {user.role}
+                Role: {currentUser.role || user.role}
               </span>
             </div>
           </div>
@@ -139,19 +197,58 @@ export default function VerificationModal({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* Front ID */}
             <div>
-              <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Front)</span>
-              <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
-                {user.document_url ? (
-                  <Image
-                    src={user.document_url}
-                    alt="ID Front"
-                    width={400}
-                    height={300}
-                    unoptimized
-                    data-testid="id-front-img"
-                    onClick={() => setLightboxImage({ url: user.document_url!, title: 'Government ID (Front)' })}
-                    className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
-                  />
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-body font-semibold text-ink-soft text-sm">Government ID (Front)</span>
+                {frontUrl && !imageErrors['front'] && (
+                  <a
+                    href={frontUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    Open <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+              <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden relative">
+                {frontUrl ? (
+                  imageErrors['front'] ? (
+                    <div className="flex flex-col items-center justify-center text-center p-4">
+                      <AlertCircle className="w-8 h-8 text-status-warning mb-2" />
+                      <p className="text-xs font-semibold text-ink mb-1">Image preview failed</p>
+                      <p className="text-[11px] text-ink-muted mb-3 max-w-[180px] truncate">{frontUrl}</p>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={frontUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
+                        >
+                          View Direct <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleRetryImage('front')}
+                          className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
+                          title="Retry preview"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Image
+                      src={frontUrl}
+                      alt="ID Front"
+                      width={400}
+                      height={300}
+                      unoptimized
+                      data-testid="id-front-img"
+                      onError={() => handleImageError('front')}
+                      onClick={() => setLightboxImage({ url: frontUrl, title: 'Government ID (Front)' })}
+                      className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
+                    />
+                  )
                 ) : (
                   <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-id-front">No Front ID uploaded</p>
                 )}
@@ -160,19 +257,58 @@ export default function VerificationModal({
 
             {/* Back ID */}
             <div>
-              <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Government ID (Back)</span>
-              <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
-                {user.document_back_url ? (
-                  <Image
-                    src={user.document_back_url}
-                    alt="ID Back"
-                    width={400}
-                    height={300}
-                    unoptimized
-                    data-testid="id-back-img"
-                    onClick={() => setLightboxImage({ url: user.document_back_url!, title: 'Government ID (Back)' })}
-                    className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
-                  />
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-body font-semibold text-ink-soft text-sm">Government ID (Back)</span>
+                {backUrl && !imageErrors['back'] && (
+                  <a
+                    href={backUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    Open <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+              <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden relative">
+                {backUrl ? (
+                  imageErrors['back'] ? (
+                    <div className="flex flex-col items-center justify-center text-center p-4">
+                      <AlertCircle className="w-8 h-8 text-status-warning mb-2" />
+                      <p className="text-xs font-semibold text-ink mb-1">Image preview failed</p>
+                      <p className="text-[11px] text-ink-muted mb-3 max-w-[180px] truncate">{backUrl}</p>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={backUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
+                        >
+                          View Direct <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleRetryImage('back')}
+                          className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
+                          title="Retry preview"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Image
+                      src={backUrl}
+                      alt="ID Back"
+                      width={400}
+                      height={300}
+                      unoptimized
+                      data-testid="id-back-img"
+                      onError={() => handleImageError('back')}
+                      onClick={() => setLightboxImage({ url: backUrl, title: 'Government ID (Back)' })}
+                      className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
+                    />
+                  )
                 ) : (
                   <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-id-back">No Back ID uploaded</p>
                 )}
@@ -181,22 +317,61 @@ export default function VerificationModal({
 
             {/* Selfie ID */}
             <div>
-              <span className="block font-body font-semibold text-ink-soft text-sm mb-2">Selfie holding ID</span>
-              <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden">
-                {user.selfie_url ? (
-                  <Image
-                    src={user.selfie_url}
-                    alt="Selfie holding ID"
-                    width={400}
-                    height={300}
-                    unoptimized
-                    data-testid="selfie-id-img"
-                    onClick={() => setLightboxImage({ url: user.selfie_url!, title: 'Selfie holding ID' })}
-                    className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
-                  />
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-body font-semibold text-ink-soft text-sm">Selfie holding ID</span>
+                {selfieUrl && !imageErrors['selfie'] && (
+                  <a
+                    href={selfieUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    Open <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+              <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden relative">
+                {selfieUrl ? (
+                  imageErrors['selfie'] ? (
+                    <div className="flex flex-col items-center justify-center text-center p-4">
+                      <AlertCircle className="w-8 h-8 text-status-warning mb-2" />
+                      <p className="text-xs font-semibold text-ink mb-1">Image preview failed</p>
+                      <p className="text-[11px] text-ink-muted mb-3 max-w-[180px] truncate">{selfieUrl}</p>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={selfieUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
+                        >
+                          View Direct <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleRetryImage('selfie')}
+                          className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
+                          title="Retry preview"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Image
+                      src={selfieUrl}
+                      alt="Selfie holding ID"
+                      width={400}
+                      height={300}
+                      unoptimized
+                      data-testid="selfie-id-img"
+                      onError={() => handleImageError('selfie')}
+                      onClick={() => setLightboxImage({ url: selfieUrl, title: 'Selfie holding ID' })}
+                      className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
+                    />
+                  )
                 ) : (
                   <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-selfie-id">
-                    {user.role === 'employer' ? 'Selfie not required for employers' : 'No selfie uploaded'}
+                    {(currentUser.role || user.role) === 'employer' ? 'Selfie not required for employers' : 'No selfie uploaded'}
                   </p>
                 )}
               </div>
@@ -204,33 +379,30 @@ export default function VerificationModal({
           </div>
 
           {/* Business Documents for Employers */}
-          {user.role === 'employer' && (
-            <div className="mt-6 border-t border-ink-faint pt-6">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-body font-bold text-ink text-sm">Uploaded Business Documents</h4>
-                {user.business_documents && (Array.isArray(user.business_documents) ? user.business_documents.length > 0 : !!user.business_documents) && (
-                  <span className="text-xs text-ink-muted font-body">
-                    {Array.isArray(user.business_documents) ? `${user.business_documents.length} document(s)` : '1 document'}
-                  </span>
-                )}
-              </div>
+          {(currentUser.role || user.role) === 'employer' && (() => {
+            const docsSource = currentUser.business_documents || user.business_documents;
+            const docs: string[] = Array.isArray(docsSource)
+              ? docsSource
+              : typeof docsSource === 'string' && docsSource.trim()
+              ? [docsSource]
+              : [];
 
-              {(() => {
-                const docs: string[] = Array.isArray(user.business_documents)
-                  ? user.business_documents
-                  : typeof user.business_documents === 'string' && user.business_documents.trim()
-                  ? [user.business_documents]
-                  : [];
+            return (
+              <div className="mt-6 border-t border-ink-faint pt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-body font-bold text-ink text-sm">Uploaded Business Documents</h4>
+                  {docs.length > 0 && (
+                    <span className="text-xs text-ink-muted font-body">
+                      {docs.length} document{docs.length > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
 
-                if (docs.length === 0) {
-                  return (
-                    <div className="bg-paper p-4 rounded-xl border border-ink-faint text-sm text-ink-muted flex items-center gap-2">
-                      <p className="text-xs text-ink-muted">No business documents uploaded yet by this employer.</p>
-                    </div>
-                  );
-                }
-
-                return (
+                {docs.length === 0 ? (
+                  <div className="bg-paper p-4 rounded-xl border border-ink-faint text-sm text-ink-muted flex items-center gap-2">
+                    <p className="text-xs text-ink-muted">No business documents uploaded yet by this employer.</p>
+                  </div>
+                ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {docs.map((docUrl, idx) => {
                       const isPdf = typeof docUrl === 'string' && (docUrl.toLowerCase().endsWith('.pdf') || docUrl.includes('.pdf?'));
@@ -267,10 +439,10 @@ export default function VerificationModal({
                       );
                     })}
                   </div>
-                );
-              })()}
-            </div>
-          )}
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Action Footer */}

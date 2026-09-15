@@ -42,10 +42,10 @@ function VerificationsPageContent() {
     setCurrentPage(1);
   }, [urlSearch]);
 
-  const fetchVerifications = async (silent = false) => {
+  const fetchVerifications = async (silent = false, forceRefresh = false) => {
     try {
       if (!silent) setLoading(true);
-      const res = await adminApi.getVerifications();
+      const res = await adminApi.getVerifications(false, forceRefresh);
       setUsers(res.data.data || []);
     } catch (err: any) {
       if (!silent) setError(err.message || 'Failed to load verifications');
@@ -111,7 +111,7 @@ function VerificationsPageContent() {
     const loadVerifications = async (silent = false) => {
       try {
         if (!silent) setLoading(true);
-        const res = await adminApi.getVerifications();
+        const res = await adminApi.getVerifications(false, true);
         if (!cancelled) {
           setUsers(res.data.data || []);
         }
@@ -177,7 +177,14 @@ function VerificationsPageContent() {
     <div className="animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">ID Verifications</h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">ID Verifications</h1>
+            {pendingUsers.length > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold font-numeric bg-primary text-white shadow-2xs">
+                {pendingUsers.length} Pending
+              </span>
+            )}
+          </div>
           <p className="text-xs text-ink-muted mt-0.5">
             Review and approve user-submitted government IDs to grant platform access.
           </p>
@@ -226,7 +233,7 @@ function VerificationsPageContent() {
           </button>
 
           <button
-            onClick={() => fetchVerifications(false)}
+            onClick={() => fetchVerifications(false, true)}
             aria-label="Refresh verifications list"
             className="p-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-white text-ink-soft hover:text-primary transition flex items-center justify-center cursor-pointer"
             title="Refresh list"

@@ -3,13 +3,13 @@
 import { useEffect, useRef, useState } from 'react';
 
 interface InactivityTimerOptions {
-  timeoutMs?: number; // default 15 minutes = 900,000 ms
+  timeoutMs?: number; // default 10 minutes = 600,000 ms
   warningMs?: number; // default 60 seconds warning = 60,000 ms
   onTimeout: () => void;
 }
 
 export function useInactivityTimer({
-  timeoutMs = 15 * 60 * 1000,
+  timeoutMs = 10 * 60 * 1000,
   warningMs = 60 * 1000,
   onTimeout,
 }: InactivityTimerOptions) {

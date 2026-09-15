@@ -23,8 +23,16 @@ export interface User {
   updated_at?: string;
   deleted_at?: string;
   last_active_at?: string;
+  date_of_birth?: string;
+  admin_role?: string;
+  last_login_ip?: string;
+  last_login_at?: string;
+  two_factor_confirmed_at?: string;
+  contact_platforms?: Array<{ platform: string; value: string }>;
   workerProfile?: WorkerProfile;
   employerProfile?: EmployerProfile;
+  worker_profile?: WorkerProfile;
+  employer_profile?: EmployerProfile;
 }
 
 export interface WorkerProfile {

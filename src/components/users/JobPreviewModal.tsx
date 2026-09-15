@@ -21,7 +21,7 @@ export default function JobPreviewModal({ selectedJob, onClose }: JobPreviewModa
 
   return (
     <div
-      className="fixed inset-0 bg-ink/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+      className="fixed inset-0 bg-ink/50 z-[80] flex items-center justify-center p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label="Job Preview"

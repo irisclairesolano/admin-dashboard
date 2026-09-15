@@ -26,7 +26,8 @@ function UsersContent() {
   const router = useRouter();
   const urlSearch = searchParams.get('search') || '';
 
-  const [users, setUsers] = useState<any[]>([]);
+  const [activeUsers, setActiveUsers] = useState<any[]>([]);
+  const [archivedUsers, setArchivedUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState(urlSearch);
@@ -46,6 +47,7 @@ function UsersContent() {
 
   // New Drawer & Lazy-Loading States
   const [showArchived, setShowArchived] = useState(false);
+  const users = showArchived ? archivedUsers : activeUsers;
   const [selectedDetailUser, setSelectedDetailUser] = useState<any | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [userDetailData, setUserDetailData] = useState<any | null>(null);
@@ -88,18 +90,26 @@ function UsersContent() {
   const fetchUsers = useCallback(async (forceRefresh: boolean = false) => {
     try {
       setLoading(true);
-      const res = await adminApi.getUsers({
-        trashed: showArchived,
-        all: true,
-        forceRefresh,
-      });
-      setUsers(res.data.data || []);
+      const [activeRes, archivedRes] = await Promise.all([
+        adminApi.getUsers({
+          trashed: false,
+          all: true,
+          forceRefresh,
+        }),
+        adminApi.getUsers({
+          trashed: true,
+          all: true,
+          forceRefresh,
+        }),
+      ]);
+      setActiveUsers(activeRes.data?.data || []);
+      setArchivedUsers(archivedRes.data?.data || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load users');
     } finally {
       setLoading(false);
     }
-  }, [showArchived]);
+  }, []);
 
   useEffect(() => {
     fetchUsers();
@@ -240,8 +250,8 @@ function UsersContent() {
       title: 'Update Suspension Status',
       message: `Are you sure you want to ${currentStatus ? 'unsuspend' : 'suspend'} this user?`,
       onConfirm: async () => {
-        const previousUsers = [...users];
-        setUsers((prev: any[]) => prev.map(u => u.id === id ? { ...u, is_suspended: !currentStatus } : u));
+        const previousActive = [...activeUsers];
+        setActiveUsers((prev: any[]) => prev.map(u => u.id === id ? { ...u, is_suspended: !currentStatus } : u));
         if (selectedDetailUser && selectedDetailUser.id === id) {
           setSelectedDetailUser((prev: any) => prev ? { ...prev, is_suspended: !currentStatus } : null);
         }
@@ -253,7 +263,7 @@ function UsersContent() {
             fetchUserDetails(id); // Refresh drawer
           }
         } catch (err: any) {
-          setUsers(previousUsers);
+          setActiveUsers(previousActive);
           if (selectedDetailUser && selectedDetailUser.id === id) {
             setSelectedDetailUser((prev: any) => prev ? { ...prev, is_suspended: currentStatus } : null);
           }
@@ -268,10 +278,15 @@ function UsersContent() {
     setAlertState({
       open: true,
       title: 'Delete User',
-      message: 'Are you sure you want to delete this user? This action can be undone later by a database administrator (soft delete).',
+      message: 'Are you sure you want to delete this user? This action can be undone later by restoring them from the archived list.',
       onConfirm: async () => {
-        const previousUsers = [...users];
-        setUsers(prev => prev.filter(u => u.id !== id));
+        const previousActive = [...activeUsers];
+        const previousArchived = [...archivedUsers];
+        const target = activeUsers.find(u => u.id === id);
+        setActiveUsers(prev => prev.filter(u => u.id !== id));
+        if (target) {
+          setArchivedUsers(prev => [{ ...target, deleted_at: new Date().toISOString() }, ...prev]);
+        }
         if (selectedDetailUser && selectedDetailUser.id === id) {
           setSelectedDetailUser(null);
         }
@@ -280,7 +295,8 @@ function UsersContent() {
           await adminApi.deleteUser(id);
           await fetchUsers(true); // Refresh list
         } catch (err: any) {
-          setUsers(previousUsers);
+          setActiveUsers(previousActive);
+          setArchivedUsers(previousArchived);
           setAlertState({ open: true, title: 'Error', message: 'Failed to delete user: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
         } finally {
           setActionLoading(null);
@@ -294,8 +310,13 @@ function UsersContent() {
       title: 'Restore User',
       message: 'Are you sure you want to restore this user?',
       onConfirm: async () => {
-        const previousUsers = [...users];
-        setUsers(prev => prev.filter(u => u.id !== id));
+        const previousArchived = [...archivedUsers];
+        const previousActive = [...activeUsers];
+        const target = archivedUsers.find(u => u.id === id);
+        setArchivedUsers(prev => prev.filter(u => u.id !== id));
+        if (target) {
+          setActiveUsers(prev => [{ ...target, deleted_at: null }, ...prev]);
+        }
         if (selectedDetailUser && selectedDetailUser.id === id) {
           setSelectedDetailUser(null);
         }
@@ -304,7 +325,8 @@ function UsersContent() {
           await adminApi.restoreUser(id);
           await fetchUsers(true); // Refresh list
         } catch (err: any) {
-          setUsers(previousUsers);
+          setArchivedUsers(previousArchived);
+          setActiveUsers(previousActive);
           setAlertState({ open: true, title: 'Error', message: 'Failed to restore user: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
         } finally {
           setActionLoading(null);
@@ -330,7 +352,11 @@ function UsersContent() {
   };
 
   const handleVerify = (user?: any) => {
-    const userToVerify = user || userDetailData?.user || selectedDetailUser;
+    // If the active drawer already loaded full user details with signed document URLs, prefer that object
+    let userToVerify = user || selectedDetailUser;
+    if (userDetailData?.user && userToVerify && userDetailData.user.id === userToVerify.id) {
+      userToVerify = { ...userToVerify, ...userDetailData.user };
+    }
     if (userToVerify) {
       setSelectedIdUser(userToVerify);
       setShowIdModal(true);
@@ -449,12 +475,38 @@ function UsersContent() {
         </div>
       </div>
 
-      {/* 4 Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <StatCard title="Total Users" value={users.length} iconClass="lni lni-users" onClick={() => { setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }} />
-        <StatCard title="Workers" value={users.filter(u => u.role === 'worker').length} iconClass="lni lni-user" onClick={() => { setRoleFilter('worker'); setFilter('all'); setCurrentPage(1); }} />
-        <StatCard title="Employers" value={users.filter(u => u.role === 'employer').length} iconClass="lni lni-briefcase" onClick={() => { setRoleFilter('employer'); setFilter('all'); setCurrentPage(1); }} />
-        <StatCard title="Pending Review" value={users.filter(u => u.registration_status === 'pending_review' || (u.verification_status === 'pending' && u.document_url)).length} iconClass="lni lni-warning" onClick={() => router.push('/dashboard/verifications')} />
+      {/* 5 Stat Cards: Total, Workers, Employers, Pending Review, Archived */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+        <StatCard
+          title="Total Users"
+          value={activeUsers.length + archivedUsers.length}
+          iconClass="lni lni-users"
+          onClick={() => { setShowArchived(false); setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }}
+        />
+        <StatCard
+          title="Workers"
+          value={activeUsers.filter(u => u.role === 'worker').length}
+          iconClass="lni lni-user"
+          onClick={() => { setShowArchived(false); setRoleFilter('worker'); setFilter('all'); setCurrentPage(1); }}
+        />
+        <StatCard
+          title="Employers"
+          value={activeUsers.filter(u => u.role === 'employer').length}
+          iconClass="lni lni-briefcase"
+          onClick={() => { setShowArchived(false); setRoleFilter('employer'); setFilter('all'); setCurrentPage(1); }}
+        />
+        <StatCard
+          title="Pending Review"
+          value={activeUsers.filter(u => u.registration_status === 'pending_review' || (u.verification_status === 'pending' && u.document_url)).length}
+          iconClass="lni lni-warning"
+          onClick={() => router.push('/dashboard/verifications')}
+        />
+        <StatCard
+          title="Archived & Deleted"
+          value={archivedUsers.length}
+          iconClass="lni lni-trash-can"
+          onClick={() => { setShowArchived(true); setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }}
+        />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2.5 mb-4">
@@ -558,6 +610,7 @@ function UsersContent() {
           onVerify={(user) => handleVerify(user)}
           onSuspend={handleSuspend}
           onDelete={handleDelete}
+          onRestore={handleRestore}
         />
       </div>
 
