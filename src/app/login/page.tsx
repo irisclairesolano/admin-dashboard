@@ -2,7 +2,6 @@
 
 import { adminApi, warmUpServer } from '@/lib/api';
 import {
-  LogIn,
   ShieldCheck,
   Lock,
   Mail,
@@ -142,9 +141,6 @@ export default function LoginPage() {
           
           {/* Card Header */}
           <div className="mb-6 text-left">
-            <div className="w-11 h-11 bg-primary/10 rounded-2xl flex items-center justify-center mb-3.5 text-primary shadow-xs">
-              <LogIn className="w-5 h-5" />
-            </div>
             <h2 className="font-display text-2xl font-black text-slate-900 tracking-tight">
               {mfaRequired ? 'Two-Factor Challenge' : 'Administrator Portal'}
             </h2>
@@ -245,10 +241,7 @@ export default function LoginPage() {
                     <span>Signing In...</span>
                   </>
                 ) : (
-                  <>
-                    <span>Sign In to Dashboard</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
+                  <span>Sign In</span>
                 )}
               </button>
             </form>
@@ -361,92 +354,51 @@ export default function LoginPage() {
         </div>
       </main>
 
-      {/* ── Comprehensive Professional Footer ─────────────────────────────── */}
-      <footer className="w-full bg-white border-t border-slate-200/90 pt-12 pb-8 px-6 sm:px-10 lg:px-16 text-slate-600 font-body relative z-20">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-          
-          {/* Col 1: Brand & Mission */}
-          <div className="space-y-3">
-            <div className="relative h-8 w-28 flex items-center">
-              <Image
-                src="/logo/04_Wordmark.png"
-                alt="SIKAP Logo"
-                width={112}
-                height={32}
-                className="object-contain"
-              />
-            </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              A dedicated skills and job matching platform and administrative management portal connecting local workers with nearby employment opportunities.
+      {/* ── Simplified Footer: Meet the Team ─────────────────────────────── */}
+      <footer className="w-full bg-white border-t border-slate-200/90 py-8 px-6 sm:px-10 lg:px-16 text-slate-600 font-body relative z-20">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <Image
+              src="/logo/04_Wordmark.png"
+              alt="SIKAP Logo"
+              width={96}
+              height={28}
+              className="h-6 w-auto object-contain"
+            />
+            <span className="text-xs text-slate-400 font-medium hidden sm:inline">|</span>
+            <p className="text-xs text-slate-500">
+              Skills and Job Matching Platform · Bulan, Sorsogon
             </p>
           </div>
 
-          {/* Col 2: Core Platform Capabilities */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3.5">
-              Platform Features
-            </h4>
-            <ul className="space-y-2 text-xs text-slate-500">
-              <li className="flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-                <span>Identity Verification</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <Briefcase className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span>Job Postings & Applications</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
-                <span>User Reports & Moderation</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <FileCheck className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
-                <span>Activity Logs & Analytics</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 3: System Overview */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3.5">
-              System Architecture
-            </h4>
-            <ul className="space-y-2 text-xs text-slate-500">
-              <li className="flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
-                <span>SIKAP Mobile Application</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
-                <span>Admin Management Console</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
-                <span>Real-Time Moderation Engine</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Col 4: Compliance & Security */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3.5">
-              Compliance & Security
-            </h4>
-            <ul className="space-y-2 text-xs text-slate-500">
-              <li>Data Privacy Act of 2012 (RA 10173)</li>
-              <li>Two-Factor Authentication (TOTP)</li>
-              <li>Role-Based Access Control (RBAC)</li>
-              <li>Encrypted Credential Storage</li>
-            </ul>
+          {/* Meet the Team */}
+          <div className="flex flex-col items-center md:items-end gap-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-900">
+              Meet the Team
+            </p>
+            <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-4 gap-y-1 text-xs">
+              <span className="text-slate-700 font-medium">
+                <strong className="font-semibold text-slate-900">Solano</strong> — Developer
+              </span>
+              <span className="text-slate-300 hidden sm:inline">•</span>
+              <span className="text-slate-700 font-medium">
+                <strong className="font-semibold text-slate-900">Bohol</strong> — Project Manager
+              </span>
+              <span className="text-slate-300 hidden sm:inline">•</span>
+              <span className="text-slate-700 font-medium">
+                <strong className="font-semibold text-slate-900">Escultura</strong> — Systems Analyst
+              </span>
+              <span className="text-slate-300 hidden sm:inline">•</span>
+              <span className="text-slate-700 font-medium">
+                <strong className="font-semibold text-slate-900">Deticio</strong> — Technical Writer
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Copyright Strip */}
-        <div className="max-w-7xl mx-auto pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <div className="max-w-7xl mx-auto mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400">
           <p>&copy; {new Date().getFullYear()} SIKAP Project. All rights reserved.</p>
-          <p className="text-[11px] text-slate-500">
-            SIKAP: Skills and Job Matching Platform
-          </p>
+          <p>Local Skills &amp; Labor Workforce Management</p>
         </div>
       </footer>
     </div>
