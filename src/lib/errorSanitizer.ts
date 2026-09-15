@@ -39,7 +39,7 @@ export function sanitizeErrorMessage(rawInput: unknown): string {
     return 'An unexpected error occurred. Please try again.';
   }
 
-  let message =
+  const message =
     typeof rawInput === 'string'
       ? rawInput
       : (rawInput as any)?.response?.data?.message ||
