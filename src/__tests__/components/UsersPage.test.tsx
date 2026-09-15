@@ -4,13 +4,28 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import UsersPage from '@/app/dashboard/users/page';
 import { adminApi } from '@/lib/api';
 
-// Mock the adminApi methods
+// Mock the adminApi methods used by the UsersPage component
 vi.mock('@/lib/api', () => ({
   adminApi: {
     getUsers: vi.fn(),
     suspendUser: vi.fn(),
     deleteUser: vi.fn(),
+    getUserDetails: vi.fn(),
+    getUserApplications: vi.fn(),
+    getUserPosts: vi.fn(),
+    getUserHired: vi.fn(),
+    getUserReviews: vi.fn(),
+    getUserReports: vi.fn(),
+    getUserLogs: vi.fn(),
+    restoreUser: vi.fn(),
+    verifyUser: vi.fn(),
   },
+}));
+
+// Mock next/navigation used inside UsersContent
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => ({ get: vi.fn(() => null) }),
 }));
 
 describe('UsersPage Component', () => {
@@ -23,7 +38,9 @@ describe('UsersPage Component', () => {
       verification_status: 'approved',
       registration_status: 'approved',
       created_at: '2026-08-17T00:00:00Z',
+      updated_at: '2026-08-17T00:00:00Z',
       is_suspended: false,
+      deleted_at: null,
     },
     {
       id: 2,
@@ -33,7 +50,9 @@ describe('UsersPage Component', () => {
       verification_status: 'pending',
       registration_status: 'pending_review',
       created_at: '2026-08-16T00:00:00Z',
+      updated_at: '2026-08-16T00:00:00Z',
       is_suspended: false,
+      deleted_at: null,
     },
     {
       id: 3,
@@ -43,15 +62,26 @@ describe('UsersPage Component', () => {
       verification_status: 'approved',
       registration_status: 'approved',
       created_at: '2026-08-15T00:00:00Z',
+      updated_at: '2026-08-15T00:00:00Z',
       is_suspended: true,
+      deleted_at: null,
     },
   ];
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock both active and trashed user calls
     vi.mocked(adminApi.getUsers).mockResolvedValue({
       data: { success: true, data: mockUsers },
     } as any);
+    // Silence any other API calls the component makes on mount
+    vi.mocked(adminApi.getUserDetails).mockResolvedValue({ data: {} } as any);
+    vi.mocked(adminApi.getUserApplications).mockResolvedValue({ data: { data: [], last_page: 1 } } as any);
+    vi.mocked(adminApi.getUserPosts).mockResolvedValue({ data: { data: [], last_page: 1 } } as any);
+    vi.mocked(adminApi.getUserHired).mockResolvedValue({ data: { data: [], last_page: 1 } } as any);
+    vi.mocked(adminApi.getUserReviews).mockResolvedValue({ data: { data: [], last_page: 1 } } as any);
+    vi.mocked(adminApi.getUserReports).mockResolvedValue({ data: { data: [], last_page: 1 } } as any);
+    vi.mocked(adminApi.getUserLogs).mockResolvedValue({ data: { data: [], last_page: 1 } } as any);
   });
 
   it('fetches and renders user management table on load', async () => {
@@ -109,12 +139,12 @@ describe('UsersPage Component', () => {
       expect(screen.getByText('Nena Cruz')).toBeInTheDocument();
     });
 
-    // Click suspend button for Nena Cruz (index 0)
+    // Click the Suspend button for Nena Cruz (first non-suspended user)
     const suspendButtons = screen.getAllByRole('button', { name: /suspend/i });
     fireEvent.click(suspendButtons[0]);
 
-    // Click Confirm in custom AlertDialog
-    const confirmBtn = screen.getByRole('button', { name: /Confirm/i });
+    // Wait for the AlertDialog to render asynchronously, then confirm
+    const confirmBtn = await screen.findByRole('button', { name: /Confirm/i });
     fireEvent.click(confirmBtn);
 
     expect(adminApi.suspendUser).toHaveBeenCalledWith(1, true);
@@ -131,11 +161,13 @@ describe('UsersPage Component', () => {
       expect(screen.getByText('Nena Cruz')).toBeInTheDocument();
     });
 
-    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
+    // Find all Delete buttons — use getAllByText for exact button text match
+    const deleteButtons = screen.getAllByRole('button', { name: /^delete$/i });
+    // Click the first Delete button (Nena Cruz, id=1)
     fireEvent.click(deleteButtons[0]);
 
-    // Click Confirm in custom AlertDialog
-    const confirmBtn = screen.getByRole('button', { name: /Confirm/i });
+    // Wait for the AlertDialog Confirm button to appear after state update
+    const confirmBtn = await screen.findByRole('button', { name: /Confirm/i });
     fireEvent.click(confirmBtn);
 
     expect(adminApi.deleteUser).toHaveBeenCalledWith(1);
