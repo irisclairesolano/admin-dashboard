@@ -88,6 +88,9 @@ export interface JobPost {
   barangay?: string;
   municipality?: string;
   duration_type: string;
+  duration?: number;
+  duration_unit?: string;
+  rate_unit?: string;
   compensation: string;
   slots: number;
   accepted_count: number;

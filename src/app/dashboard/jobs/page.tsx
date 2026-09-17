@@ -421,7 +421,13 @@ function JobsPageContent() {
                         </div>
                         <div className="flex items-center text-[11px] text-ink-soft mt-1.5 gap-2 flex-wrap">
                           <span className="font-numeric font-bold text-ink bg-primary-soft/40 px-2 py-0.5 rounded border border-primary/10">
-                            ₱{(parseFloat(job.compensation) || 0).toFixed(2)} <span className="text-[10px] text-ink-muted font-normal">/ {job.duration_type}</span>
+                            ₱{(parseFloat(job.compensation) || 0).toFixed(2)} <span className="text-[10px] text-ink-muted font-normal">/ {
+                              job.rate_unit === 'per_hour' ? 'hour' :
+                              job.rate_unit === 'per_project' ? 'project' :
+                              job.rate_unit === 'per_piece' ? 'piece' :
+                              job.rate_unit === 'per_day' ? 'day' :
+                              job.duration_type || 'day'
+                            }</span>
                           </span>
                           <span className="text-[10px] text-ink-soft font-body font-semibold bg-white/40 px-2 py-0.5 rounded border border-ink-faint/30">Slots: {job.slots}</span>
                         </div>
@@ -578,10 +584,22 @@ function JobsPageContent() {
                     <span className="block text-[9px] font-bold text-ink-muted uppercase tracking-wide">Compensation</span>
                     <span className="text-sm font-bold text-status-success mt-1 block">
                       ₱{(parseFloat(selectedDetailJob.compensation) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      <span className="text-[9px] text-ink-muted font-normal"> / {selectedDetailJob.duration_type || 'job'}</span>
+                      <span className="text-[9px] text-ink-muted font-normal"> / {
+                        selectedDetailJob.rate_unit === 'per_hour' ? 'hour' :
+                        selectedDetailJob.rate_unit === 'per_project' ? 'project' :
+                        selectedDetailJob.rate_unit === 'per_piece' ? 'piece' :
+                        selectedDetailJob.rate_unit === 'per_day' ? 'day' :
+                        selectedDetailJob.duration_type || 'day'
+                      }</span>
                     </span>
                   </div>
                   <div className="p-3 bg-white/50 rounded-xl border border-white/50">
+                    <span className="block text-[9px] font-bold text-ink-muted uppercase tracking-wide">Duration</span>
+                    <span className="text-sm font-bold text-ink mt-1 block">
+                      {selectedDetailJob.duration ? `${selectedDetailJob.duration} ${selectedDetailJob.duration_unit || 'Days'}` : 'Flexible'}
+                    </span>
+                  </div>
+                  <div className="p-3 bg-white/50 rounded-xl border border-white/50 col-span-2">
                     <span className="block text-[9px] font-bold text-ink-muted uppercase tracking-wide">Slots filled</span>
                     <span className="text-sm font-bold text-ink mt-1 block">
                       {selectedDetailJob.accepted_count ?? 0} / {selectedDetailJob.slots}
