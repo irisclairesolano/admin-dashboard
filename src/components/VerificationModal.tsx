@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
-import { XCircle, ExternalLink, RefreshCw, AlertCircle } from 'lucide-react';
+import { XCircle, ExternalLink, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCw, Download, FileText } from 'lucide-react';
 import Tooltip from '@/components/Tooltip';
 import { adminApi } from '@/api/admin';
 
@@ -46,8 +46,30 @@ export default function VerificationModal({
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [isRejecting, setIsRejecting] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
-  const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
+  const [lightboxDoc, setLightboxDoc] = useState<{ url: string; title: string; isPdf?: boolean } | null>(null);
+  const [zoom, setZoom] = useState<number>(1);
+  const [rotation, setRotation] = useState<number>(0);
   const [mounted, setMounted] = useState(false);
+
+  const handleOpenLightbox = (url: string, title: string, isPdf = false) => {
+    setZoom(1);
+    setRotation(0);
+    setLightboxDoc({ url, title, isPdf });
+  };
+
+  const handleCloseLightbox = () => {
+    setLightboxDoc(null);
+    setZoom(1);
+    setRotation(0);
+  };
+
+  const handleZoomIn = () => setZoom((prev) => Math.min(Number((prev + 0.5).toFixed(1)), 3));
+  const handleZoomOut = () => setZoom((prev) => Math.max(Number((prev - 0.5).toFixed(1)), 1));
+  const handleZoomReset = () => {
+    setZoom(1);
+    setRotation(0);
+  };
+  const handleRotate = () => setRotation((prev) => (prev + 90) % 360);
 
   // Sync state if user prop changes
   useEffect(() => {
@@ -245,7 +267,7 @@ export default function VerificationModal({
                       unoptimized
                       data-testid="id-front-img"
                       onError={() => handleImageError('front')}
-                      onClick={() => setLightboxImage({ url: frontUrl, title: 'Government ID (Front)' })}
+                      onClick={() => handleOpenLightbox(frontUrl, 'Government ID (Front)', false)}
                       className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
                     />
                   )
@@ -305,7 +327,7 @@ export default function VerificationModal({
                       unoptimized
                       data-testid="id-back-img"
                       onError={() => handleImageError('back')}
-                      onClick={() => setLightboxImage({ url: backUrl, title: 'Government ID (Back)' })}
+                      onClick={() => handleOpenLightbox(backUrl, 'Government ID (Back)', false)}
                       className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
                     />
                   )
@@ -365,7 +387,7 @@ export default function VerificationModal({
                       unoptimized
                       data-testid="selfie-id-img"
                       onError={() => handleImageError('selfie')}
-                      onClick={() => setLightboxImage({ url: selfieUrl, title: 'Selfie holding ID' })}
+                      onClick={() => handleOpenLightbox(selfieUrl, 'Selfie holding ID', false)}
                       className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
                     />
                   )
@@ -408,20 +430,35 @@ export default function VerificationModal({
                       const isPdf = typeof docUrl === 'string' && (docUrl.toLowerCase().endsWith('.pdf') || docUrl.includes('.pdf?'));
                       return (
                         <div key={idx} className="group relative">
-                          <span className="block font-body font-semibold text-ink-soft text-xs mb-1.5">Document #{idx + 1}</span>
-                          <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[180px] flex items-center justify-center bg-black/5 overflow-hidden">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="font-body font-semibold text-ink-soft text-xs">Document #{idx + 1}</span>
+                            <span className="text-[10px] font-medium uppercase px-1.5 py-0.5 rounded bg-paper text-ink-muted border border-ink-faint">
+                              {isPdf ? 'PDF' : 'IMAGE'}
+                            </span>
+                          </div>
+                          <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[180px] flex items-center justify-center bg-black/5 overflow-hidden relative">
                             {isPdf ? (
-                              <div className="flex flex-col items-center gap-2">
-                                <i className="lni lni-files text-3xl text-primary" />
-                                <a
-                                  href={docUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-xs text-primary font-bold hover:underline text-center px-2 inline-flex items-center gap-1"
-                                >
-                                  <span>Open PDF Document</span>
-                                  <i className="lni lni-arrow-right text-[10px]" />
-                                </a>
+                              <div className="flex flex-col items-center justify-center text-center p-3">
+                                <FileText className="w-10 h-10 text-primary mb-2" />
+                                <p className="text-xs font-semibold text-ink mb-2">Business Permit (PDF)</p>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenLightbox(docUrl, `Business Document #${idx + 1} (PDF)`, true)}
+                                    className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
+                                  >
+                                    Preview <ExternalLink className="w-3 h-3" />
+                                  </button>
+                                  <a
+                                    href={docUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
+                                    title="Open direct"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                  </a>
+                                </div>
                               </div>
                             ) : (
                               <Image
@@ -430,7 +467,7 @@ export default function VerificationModal({
                                 width={400}
                                 height={300}
                                 unoptimized
-                                onClick={() => setLightboxImage({ url: docUrl, title: `Business Document #${idx + 1}` })}
+                                onClick={() => handleOpenLightbox(docUrl, `Business Document #${idx + 1}`, false)}
                                 className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
                               />
                             )}
@@ -519,40 +556,168 @@ export default function VerificationModal({
         )}
       </div>
 
-      {lightboxImage && (
+      {lightboxDoc && (
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="lightbox-title"
-          className="fixed inset-0 bg-black/90 z-[250] flex flex-col items-center justify-center p-4 backdrop-blur-md animate-fade-in"
-          onClick={() => setLightboxImage(null)}
+          className="fixed inset-0 bg-black/92 z-[250] flex flex-col p-4 backdrop-blur-md animate-fade-in"
+          onClick={handleCloseLightbox}
+          data-testid="lightbox-overlay"
         >
-          {/* Header */}
-          <div className="absolute top-4 left-0 right-0 px-6 flex justify-between items-center text-white z-10">
-            <h4 id="lightbox-title" className="font-display text-lg font-bold tracking-wide">{lightboxImage.title}</h4>
-            <button
-              onClick={() => setLightboxImage(null)}
-              className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all flex items-center justify-center"
-              aria-label="Close image viewer"
-            >
-              <XCircle className="w-8 h-8" />
-            </button>
+          {/* Lightbox Controls Header */}
+          <div
+            className="w-full max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3 text-white z-10 pb-3 border-b border-white/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div>
+              <h4 id="lightbox-title" className="font-display text-lg font-bold tracking-wide">
+                {lightboxDoc.title}
+              </h4>
+              <p className="text-white/60 text-xs font-body">
+                {lightboxDoc.isPdf ? 'PDF Document Preview' : 'Interactive Document Viewer · Click outside or press Esc to close'}
+              </p>
+            </div>
+
+            {/* Inspection Toolbar */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {!lightboxDoc.isPdf && (
+                <>
+                  <div className="flex items-center bg-white/10 rounded-xl p-1 border border-white/10">
+                    <button
+                      type="button"
+                      onClick={handleZoomOut}
+                      disabled={zoom <= 1}
+                      data-testid="lightbox-zoom-out"
+                      className="p-1.5 hover:bg-white/20 disabled:opacity-40 disabled:hover:bg-transparent rounded-lg text-white transition-colors"
+                      title="Zoom out"
+                      aria-label="Zoom out"
+                    >
+                      <ZoomOut className="w-4 h-4" />
+                    </button>
+                    <span
+                      data-testid="lightbox-zoom-level"
+                      className="px-2 text-xs font-medium font-body text-white min-w-[48px] text-center"
+                    >
+                      {Math.round(zoom * 100)}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleZoomIn}
+                      disabled={zoom >= 3}
+                      data-testid="lightbox-zoom-in"
+                      className="p-1.5 hover:bg-white/20 disabled:opacity-40 disabled:hover:bg-transparent rounded-lg text-white transition-colors"
+                      title="Zoom in"
+                      aria-label="Zoom in"
+                    >
+                      <ZoomIn className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleRotate}
+                    data-testid="lightbox-rotate"
+                    className="p-2 bg-white/10 hover:bg-white/20 rounded-xl border border-white/10 text-white text-xs font-body inline-flex items-center gap-1.5 transition-colors"
+                    title="Rotate 90° clockwise"
+                  >
+                    <RotateCw className="w-4 h-4" />
+                    <span className="hidden sm:inline">Rotate</span>
+                  </button>
+
+                  {(zoom > 1 || rotation > 0) && (
+                    <button
+                      type="button"
+                      onClick={handleZoomReset}
+                      data-testid="lightbox-reset"
+                      className="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 rounded-xl border border-white/10 text-white text-xs font-body inline-flex items-center gap-1 transition-colors"
+                      title="Reset view"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Reset</span>
+                    </button>
+                  )}
+                </>
+              )}
+
+              <a
+                href={lightboxDoc.url}
+                target="_blank"
+                rel="noreferrer"
+                download
+                data-testid="lightbox-download-btn"
+                className="p-2 bg-primary hover:bg-primary-dark rounded-xl text-white text-xs font-body font-semibold inline-flex items-center gap-1.5 transition-colors shadow-lg"
+                title="Download original file"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Download</span>
+              </a>
+
+              <a
+                href={lightboxDoc.url}
+                target="_blank"
+                rel="noreferrer"
+                className="p-2 bg-white/10 hover:bg-white/20 rounded-xl border border-white/10 text-white text-xs font-body inline-flex items-center gap-1.5 transition-colors"
+                title="Open in new tab"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span className="hidden sm:inline">Open Direct</span>
+              </a>
+
+              <button
+                onClick={handleCloseLightbox}
+                data-testid="lightbox-close-btn"
+                className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all flex items-center justify-center ml-1"
+                aria-label="Close document viewer"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
           </div>
 
-          {/* Image Container */}
-          <div className="w-full h-full max-w-5xl max-h-[80vh] flex items-center justify-center p-4">
-            <Image
-              src={lightboxImage.url}
-              alt={lightboxImage.title}
-              width={400}
-              height={300}
-              unoptimized
-              className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-scale-up"
-              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image itself
-            />
+          {/* Document Content Viewport */}
+          <div className="w-full flex-1 max-w-6xl mx-auto flex items-center justify-center p-2 sm:p-4 overflow-auto">
+            {lightboxDoc.isPdf ? (
+              <div
+                className="w-full h-full min-h-[500px] max-h-[82vh] bg-white rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <iframe
+                  src={lightboxDoc.url}
+                  title={lightboxDoc.title}
+                  data-testid="lightbox-pdf-iframe"
+                  className="w-full flex-1 border-0 rounded-2xl"
+                />
+              </div>
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center overflow-auto p-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div
+                  style={{
+                    transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                    transition: 'transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1)',
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Image
+                    src={lightboxDoc.url}
+                    alt={lightboxDoc.title}
+                    width={800}
+                    height={600}
+                    unoptimized
+                    data-testid="lightbox-img"
+                    className="max-w-full max-h-[76vh] object-contain rounded-xl shadow-2xl animate-scale-up select-none"
+                  />
+                </div>
+              </div>
+            )}
           </div>
-          
-          <p className="text-white/60 text-xs font-body mt-4">Click anywhere outside to close full screen view</p>
         </div>
       )}
     </div>

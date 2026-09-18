@@ -142,4 +142,64 @@ describe('VerificationModal Component', () => {
     expect(selfieImg).toBeInTheDocument();
     expect(selfieImg.getAttribute('src')).toBe('https://example.com/fallback-selfie.jpg');
   });
+
+  it('opens interactive lightbox and controls zoom and rotation', () => {
+    render(<VerificationModal user={mockUser} onClose={vi.fn()} />);
+
+    // Click front ID image to open lightbox
+    fireEvent.click(screen.getByTestId('id-front-img'));
+
+    // Lightbox should now be visible
+    expect(screen.getByTestId('lightbox-overlay')).toBeInTheDocument();
+    expect(screen.getByTestId('lightbox-zoom-level')).toHaveTextContent('100%');
+
+    // Zoom in
+    fireEvent.click(screen.getByTestId('lightbox-zoom-in'));
+    expect(screen.getByTestId('lightbox-zoom-level')).toHaveTextContent('150%');
+
+    // Rotate
+    fireEvent.click(screen.getByTestId('lightbox-rotate'));
+
+    // Reset view
+    const resetBtn = screen.getByTestId('lightbox-reset');
+    expect(resetBtn).toBeInTheDocument();
+    fireEvent.click(resetBtn);
+    expect(screen.getByTestId('lightbox-zoom-level')).toHaveTextContent('100%');
+
+    // Close lightbox
+    fireEvent.click(screen.getByTestId('lightbox-close-btn'));
+    expect(screen.queryByTestId('lightbox-overlay')).not.toBeInTheDocument();
+  });
+
+  it('renders employer business documents and allows previewing PDFs in modal', () => {
+    const employerWithDocs: User = {
+      id: 104,
+      name: 'ABC Corp',
+      email: 'abc@corp.com',
+      role: 'employer',
+      business_documents: [
+        'https://example.com/dti-permit.pdf',
+        'https://example.com/bir-permit.jpg',
+      ],
+    };
+
+    render(<VerificationModal user={employerWithDocs} onClose={vi.fn()} />);
+
+    // Shows 2 documents count
+    expect(screen.getByText('Uploaded Business Documents')).toBeInTheDocument();
+    expect(screen.getByText('2 documents')).toBeInTheDocument();
+
+    // Click preview on the PDF document
+    const previewPdfBtn = screen.getByText('Preview');
+    expect(previewPdfBtn).toBeInTheDocument();
+    fireEvent.click(previewPdfBtn);
+
+    // Lightbox opens with iframe
+    expect(screen.getByTestId('lightbox-pdf-iframe')).toBeInTheDocument();
+    expect(screen.getByTestId('lightbox-pdf-iframe')).toHaveAttribute('src', 'https://example.com/dti-permit.pdf');
+
+    // Close lightbox
+    fireEvent.click(screen.getByTestId('lightbox-close-btn'));
+    expect(screen.queryByTestId('lightbox-overlay')).not.toBeInTheDocument();
+  });
 });
