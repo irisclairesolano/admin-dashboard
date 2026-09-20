@@ -76,12 +76,18 @@ export default function VerificationModal({
     setCurrentUser(user);
   }, [user]);
 
-  // If document_url is missing or potentially stale, fetch fresh details from API
+  // If document_url is missing or is an unsigned public URL on a private bucket, fetch fresh signed details from API
   useEffect(() => {
     let isCancelled = false;
     const loadFreshUser = async () => {
       const frontDoc = user.document_url || user.document_front_url || user.id_front_url;
-      if (!frontDoc && user.id) {
+      const needsFreshDetails =
+        !frontDoc ||
+        (typeof frontDoc === 'string' &&
+          frontDoc.includes('/government-ids/') &&
+          !frontDoc.includes('token='));
+
+      if (needsFreshDetails && user.id) {
         try {
           setFetchingDetails(true);
           const res = await adminApi.getUserDetails(user.id);
@@ -110,8 +116,22 @@ export default function VerificationModal({
     setImageErrors(prev => ({ ...prev, [key]: true }));
   };
 
-  const handleRetryImage = (key: string) => {
+  const handleRetryImage = async (key: string) => {
     setImageErrors(prev => ({ ...prev, [key]: false }));
+    if (currentUser?.id) {
+      try {
+        setFetchingDetails(true);
+        const res = await adminApi.getUserDetails(currentUser.id);
+        const freshUser = res.data?.user || res.data;
+        if (freshUser && freshUser.id === currentUser.id) {
+          setCurrentUser(freshUser);
+        }
+      } catch {
+        // Keep current state
+      } finally {
+        setFetchingDetails(false);
+      }
+    }
   };
 
   useEffect(() => {
