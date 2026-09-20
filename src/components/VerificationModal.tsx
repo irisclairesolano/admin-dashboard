@@ -74,6 +74,7 @@ export default function VerificationModal({
   // Sync state if user prop changes
   useEffect(() => {
     setCurrentUser(user);
+    setImageErrors({});
   }, [user]);
 
   // If document_url is missing or is an unsigned public URL on a private bucket, fetch fresh signed details from API
@@ -94,6 +95,7 @@ export default function VerificationModal({
           const freshUser = res.data?.user || res.data;
           if (!isCancelled && freshUser && freshUser.id === user.id) {
             setCurrentUser(freshUser);
+            setImageErrors({});
           }
         } catch {
           // Keep current state if fetch fails
@@ -125,6 +127,7 @@ export default function VerificationModal({
         const freshUser = res.data?.user || res.data;
         if (freshUser && freshUser.id === currentUser.id) {
           setCurrentUser(freshUser);
+          setImageErrors({});
         }
       } catch {
         // Keep current state
