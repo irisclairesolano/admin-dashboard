@@ -8,7 +8,7 @@ import { AlertDialog } from '@/components/AlertDialog';
 import { humanizeModel } from '@/lib/constants';
 import { formatDate } from '@/lib/date';
 import { usePolling } from '@/hooks/usePolling';
-import { exportTableToCSV, formatCSVDate } from '@/lib/export/csv';
+import { exportMultiSectionCSV, formatCSVDate } from '@/lib/export/csv';
 
 function ModerationPageContent() {
   const router = useRouter();
@@ -74,10 +74,22 @@ function ModerationPageContent() {
       formatCSVDate(r.resolved_at)
     ]);
 
-    exportTableToCSV(
+    exportMultiSectionCSV(
       `sikap_moderation_audit_${new Date().toISOString().slice(0, 10)}`,
-      headers,
-      rows
+      'SIKAP Moderation & Safety Audit Report',
+      [
+        ['Generated On:', formatCSVDate(new Date().toISOString())],
+        ['Report Classification:', 'Official SIKAP Moderation Record'],
+        ['Total Audit Records:', String(filteredReports.length)],
+        ['Status Filter:', statusFilter.toUpperCase()],
+      ],
+      [
+        {
+          title: 'Moderation Reports',
+          headers,
+          rows,
+        },
+      ]
     );
   };
 

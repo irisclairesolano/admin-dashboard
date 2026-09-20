@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, MapPin, Calendar } from 'lucide-react';
 
 interface JobPreviewModalProps {
@@ -9,6 +10,12 @@ interface JobPreviewModalProps {
 }
 
 export default function JobPreviewModal({ selectedJob, onClose }: JobPreviewModalProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -17,11 +24,11 @@ export default function JobPreviewModal({ selectedJob, onClose }: JobPreviewModa
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  if (!selectedJob) return null;
+  if (!selectedJob || !mounted) return null;
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 bg-ink/50 z-[80] flex items-center justify-center p-4 backdrop-blur-sm"
+      className="fixed inset-0 bg-ink/50 z-[110] flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-label="Job Preview"
@@ -72,7 +79,7 @@ export default function JobPreviewModal({ selectedJob, onClose }: JobPreviewModa
             <div>
               <span className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">Slots Available</span>
               <span className="text-sm font-bold text-ink mt-1 block">
-                {selectedJob.accepted_count ?? 0} / {selectedJob.slots ?? 1} filled
+                {(selectedJob.filled_slots ?? selectedJob.accepted_count) ?? 0} / {selectedJob.slots ?? 1} filled
               </span>
             </div>
           </div>
@@ -113,4 +120,7 @@ export default function JobPreviewModal({ selectedJob, onClose }: JobPreviewModa
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 }
+

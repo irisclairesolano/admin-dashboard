@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { adminApi } from '@/api/admin';
 import { ShieldAlert, KeyRound, Loader2, X } from 'lucide-react';
 
@@ -23,6 +24,7 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
   onSuccess,
   onCancel,
 }) => {
+  const [mounted, setMounted] = useState(false);
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
   const [confirmInput, setConfirmInput] = useState('');
@@ -30,7 +32,11 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const isNameConfirmed = !confirmText || confirmInput.trim().toLowerCase() === confirmText.trim().toLowerCase();
   const isCredentialProvided = useOtp ? code.length > 0 : password.length > 0;
@@ -62,9 +68,9 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" role="dialog" aria-modal="true">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 relative">
+  const modalContent = (
+    <div className="fixed inset-0 z-[140] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in overflow-y-auto" role="dialog" aria-modal="true">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 relative my-auto">
         <button
           onClick={onCancel}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors"
@@ -176,4 +182,6 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 };

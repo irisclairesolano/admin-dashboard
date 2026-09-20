@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { sanitizeErrorMessage } from '@/lib/errorSanitizer';
 
 export interface AlertState {
@@ -27,6 +28,11 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
   onConfirm,
   onCancel,
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const visible = isOpen ?? open ?? false;
   const cleanTitle = sanitizeErrorMessage(title);
   const cleanMessage = sanitizeErrorMessage(message);
@@ -65,8 +71,10 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  if (!visible || !mounted) return null;
+
+  const modalContent = (
+    <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 overflow-y-auto">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-ink/40 backdrop-blur-sm transition-opacity duration-300"
@@ -81,7 +89,7 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
         aria-labelledby="alert-title"
         aria-describedby="alert-msg"
         tabIndex={-1}
-        className="bg-white/95 backdrop-blur-xl border border-white/50 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 transform scale-100 transition-all duration-300 animate-fade-in"
+        className="bg-white/95 backdrop-blur-xl border border-white/50 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 transform scale-100 transition-all duration-300 animate-fade-in my-auto"
       >
         <h3 id="alert-title" className="text-xl font-display font-bold text-ink mb-2">
           {cleanTitle}
@@ -109,4 +117,6 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 };

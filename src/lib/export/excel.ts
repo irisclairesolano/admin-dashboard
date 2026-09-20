@@ -1,4 +1,5 @@
 import ExcelJS from 'exceljs';
+import { calculateNormalizedHourlyWage } from './csv';
 
 export interface ExportDataPayload {
   users: any[];
@@ -189,7 +190,7 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   kpiRow11.height = 18;
   const kpiLabels2 = [
     { col: 1, text: 'Job Fill Rate' },
-    { col: 3, text: 'Avg. Compensation' },
+    { col: 3, text: 'Avg. Hourly Wage' },
     { col: 5, text: 'Open Job Postings' },
     { col: 7, text: 'Total Applications' },
   ];
@@ -203,20 +204,24 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   const kpiRow12 = ws1.getRow(12);
   kpiRow12.height = 32;
   // Fill Rate
+  const totalSlotsReq = jobs.reduce((acc, j) => acc + (Number(j.slots) || 1), 0);
+  const totalSlotsHired = jobs.reduce((acc, j) => acc + (Number(j.filled_slots ?? j.accepted_count) || 0), 0);
   const cA12 = kpiRow12.getCell(1);
-  cA12.value = { formula: `IFERROR(SUM(Jobs!I6:I200)/SUM(Jobs!H6:H200),0)`, result: 0 };
+  cA12.value = { formula: `IFERROR(SUM(Jobs!K6:K200)/SUM(Jobs!J6:J200),0)`, result: totalSlotsReq ? totalSlotsHired / totalSlotsReq : 0 };
   cA12.numFmt = '0.0%';
   cA12.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FF' + NAVY } };
   cA12.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
   cA12.alignment = { vertical: 'middle', horizontal: 'center' };
 
-  // Avg Comp
-  const validCompJobs = jobs.filter((j) => parseFloat(j.compensation) > 0);
-  const avgComp = validCompJobs.length > 0
-    ? validCompJobs.reduce((acc, j) => acc + parseFloat(j.compensation), 0) / validCompJobs.length
+  // Avg Hourly Comp
+  const validHourlyJobs = jobs
+    .map((j) => calculateNormalizedHourlyWage(j.compensation, j.rate_unit, j.duration, j.duration_unit, j.duration_type))
+    .filter((w) => w > 0);
+  const avgHourlyComp = validHourlyJobs.length > 0
+    ? validHourlyJobs.reduce((acc, w) => acc + w, 0) / validHourlyJobs.length
     : 0;
   const cC12 = kpiRow12.getCell(3);
-  cC12.value = { formula: `IFERROR(AVERAGE(Jobs!F6:F200),0)`, result: avgComp };
+  cC12.value = { formula: `IFERROR(AVERAGE(Jobs!I6:I200),0)`, result: avgHourlyComp };
   cC12.numFmt = '₱#,##0.00';
   cC12.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FF' + NAVY } };
   cC12.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
@@ -224,7 +229,7 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
 
   // Open Jobs
   const cE12 = kpiRow12.getCell(5);
-  cE12.value = { formula: `COUNTIF(Jobs!J6:J200,"*open*")`, result: jobs.filter((j) => String(j.status).includes('open')).length };
+  cE12.value = { formula: `COUNTIF(Jobs!L6:L200,"*open*")`, result: jobs.filter((j) => String(j.status).includes('open')).length };
   cE12.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FF' + NAVY } };
   cE12.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
   cE12.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -232,7 +237,7 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   // Applications
   const totalApps = jobs.reduce((acc, j) => acc + (Number(j.applications_count) || 0), 0);
   const cG12 = kpiRow12.getCell(7);
-  cG12.value = { formula: `SUM(Jobs!K6:K200)`, result: totalApps };
+  cG12.value = { formula: `SUM(Jobs!M6:M200)`, result: totalApps };
   cG12.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FF' + NAVY } };
   cG12.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
   cG12.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -310,7 +315,8 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
     }
   });
   jobs.forEach((j) => {
-    if (j.status === 'completed' && (!j.accepted_count || j.accepted_count === 0)) {
+    const filled = j.filled_slots ?? j.accepted_count ?? 0;
+    if (j.status === 'completed' && filled === 0) {
       qualityFlags.push({ severity: '⚠️ NOTICE', text: `Job #${j.id} ("${j.title}") marked completed with 0 recorded accepted worker slots.` });
     }
   });
@@ -380,8 +386,15 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
     opCell.value = opStatus;
     formatStatusCell(opCell, opStatus);
 
-    row.getCell(10).value = u.reputation_score ? parseFloat(u.reputation_score) : null;
-    row.getCell(10).numFmt = '0.0';
+    const hasReviews = (u.ratings_count !== undefined && u.ratings_count > 0) ||
+      (u.reviews_received_count !== undefined && u.reviews_received_count > 0) ||
+      (u.reviews_count !== undefined && u.reviews_count > 0);
+    const repValue = hasReviews && u.reputation_score ? parseFloat(u.reputation_score) : null;
+    
+    row.getCell(10).value = repValue !== null ? repValue : 'N/A';
+    if (repValue !== null) {
+      row.getCell(10).numFmt = '0.00';
+    }
 
     if (u.created_at) {
       row.getCell(11).value = new Date(u.created_at);
@@ -406,15 +419,16 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   });
   ws3.columns = [
     { width: 10 }, { width: 22 }, { width: 32 }, { width: 24 },
-    { width: 18 }, { width: 20 }, { width: 16 }, { width: 14 },
-    { width: 14 }, { width: 18 }, { width: 14 }, { width: 22 }, { width: 14 },
+    { width: 18 }, { width: 20 }, { width: 16 }, { width: 16 },
+    { width: 22 }, { width: 14 }, { width: 14 }, { width: 18 },
+    { width: 14 }, { width: 22 }, { width: 14 },
   ];
 
-  applyTitleBlock(ws3, 'JOB POSTINGS & OPPORTUNITIES', 'All job listings created by employers across the platform', 13);
+  applyTitleBlock(ws3, 'JOB POSTINGS & OPPORTUNITIES', 'All job listings created by employers across the platform', 15);
   applyTableHeader(ws3, 5, [
     'Job ID', 'Reference Code', 'Job Title', 'Employer', 'Category',
-    'Compensation (PHP)', 'Duration Type', 'Slots Required', 'Slots Hired',
-    'Status', 'Applications', 'Date Posted', 'Fill %',
+    'Offered Comp (PHP)', 'Rate Unit', 'Duration', 'Hourly Wage (PHP/hr)',
+    'Slots Required', 'Slots Hired', 'Status', 'Applications', 'Date Posted', 'Fill %',
   ]);
 
   jobs.forEach((j, idx) => {
@@ -432,28 +446,37 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
     compCell.value = parseFloat(j.compensation) || 0;
     compCell.numFmt = '₱#,##0.00';
 
-    row.getCell(7).value = j.duration_type ? j.duration_type.replace(/_/g, ' ') : 'project-based';
-    row.getCell(8).value = Number(j.slots) || 1;
-    row.getCell(9).value = Number(j.accepted_count) || 0;
+    row.getCell(7).value = j.rate_unit ? String(j.rate_unit).replace(/_/g, ' ') : (j.duration_type ? String(j.duration_type).replace(/_/g, ' ') : 'per day');
+    row.getCell(8).value = j.duration ? String(j.duration) : 'N/A';
 
-    const statusCell = row.getCell(10);
+    const hourlyCell = row.getCell(9);
+    hourlyCell.value = calculateNormalizedHourlyWage(j.compensation, j.rate_unit, j.duration, j.duration_unit, j.duration_type);
+    hourlyCell.numFmt = '₱#,##0.00';
+
+    const slotsReq = Number(j.slots) || 1;
+    const slotsHired = Number(j.filled_slots ?? j.accepted_count) || 0;
+
+    row.getCell(10).value = slotsReq;
+    row.getCell(11).value = slotsHired;
+
+    const statusCell = row.getCell(12);
     statusCell.value = j.status || 'open';
     formatStatusCell(statusCell, j.status || 'open');
 
-    row.getCell(11).value = Number(j.applications_count) || 0;
+    row.getCell(13).value = Number(j.applications_count) || 0;
 
     if (j.created_at) {
-      row.getCell(12).value = new Date(j.created_at);
-      row.getCell(12).numFmt = 'yyyy-mm-dd hh:mm';
+      row.getCell(14).value = new Date(j.created_at);
+      row.getCell(14).numFmt = 'yyyy-mm-dd hh:mm';
     }
 
-    const fillCell = row.getCell(13);
-    fillCell.value = { formula: `IFERROR(I${rNum}/H${rNum},0)`, result: j.slots ? (j.accepted_count || 0) / j.slots : 0 };
+    const fillCell = row.getCell(15);
+    fillCell.value = { formula: `IFERROR(K${rNum}/J${rNum},0)`, result: slotsReq ? slotsHired / slotsReq : 0 };
     fillCell.numFmt = '0.0%';
 
     if (idx % 2 === 1) {
-      for (let c = 1; c <= 13; c++) {
-        if (c !== 10) {
+      for (let c = 1; c <= 15; c++) {
+        if (c !== 12) {
           row.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + LIGHT_GRAY } };
         }
       }

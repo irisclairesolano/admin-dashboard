@@ -3849,7 +3849,7 @@ export default function AnalyticsDashboard() {
                           <td className="text-slate-700">{j.employer?.name || '—'}</td>
                           <td className="text-slate-600 capitalize">{j.category}</td>
                           <td className="font-bold text-slate-900">PHP {parseFloat(j.compensation || 0).toFixed(2)}</td>
-                          <td className="text-slate-700">{j.accepted_count ?? 0}/{j.slots ?? 1}</td>
+                          <td className="text-slate-700">{(j.filled_slots ?? j.accepted_count) ?? 0}/{j.slots ?? 1}</td>
                           <td className="text-slate-700">{j.applications_count ?? 0}</td>
                           <td className="capitalize font-semibold text-slate-800">{j.status}</td>
                         </tr>

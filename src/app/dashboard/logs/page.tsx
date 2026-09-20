@@ -9,7 +9,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { AlertDialog } from '@/components/AlertDialog';
 import { formatDate } from '@/lib/date';
 import { ACTION_TYPES, DEFAULT_ACTION_BADGE } from '@/lib/constants';
-import { exportTableToCSV, formatCSVDate } from '@/lib/export/csv';
+import { exportMultiSectionCSV, formatCSVDate } from '@/lib/export/csv';
 
 function LogsPageContent() {
   const router = useRouter();
@@ -147,10 +147,22 @@ function LogsPageContent() {
         log.description || ''
       ]);
 
-      exportTableToCSV(
+      exportMultiSectionCSV(
         `sikap_audit_logs_${new Date().toISOString().slice(0, 10)}`,
-        headers,
-        rows
+        'SIKAP Administrative Activity Audit Trail',
+        [
+          ['Generated On:', formatCSVDate(new Date().toISOString())],
+          ['Report Classification:', 'Official SIKAP Audit Trail'],
+          ['Total Audit Events:', String(exportLogs.length)],
+          ['Action Filter:', actionFilter ? formatActionName(actionFilter) : 'ALL ACTIONS'],
+        ],
+        [
+          {
+            title: 'Administrative Logs',
+            headers,
+            rows,
+          },
+        ]
       );
     } catch (err: any) {
       setAlertState({

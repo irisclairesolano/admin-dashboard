@@ -5,6 +5,7 @@ import { adminApi } from '@/lib/api';
 import { formatDate } from '@/lib/date';
 import StatCard from '@/components/StatCard';
 import { generateMasterExcelWorkbook, downloadExcelBlob } from '@/lib/export/excel';
+import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus, formatCSVReputation, calculateNormalizedHourlyWage } from '@/lib/export/csv';
 
 type ReportType = 'users' | 'jobs' | 'demographics' | 'verifications';
 type DatePreset = 'all' | 'today' | '7days' | '30days' | 'year' | 'custom';
@@ -231,74 +232,184 @@ export default function ExportReportsPage() {
   };
 
   const handleExportCSV = () => {
-    let csvContent = '';
     const dateStamp = new Date().toISOString().split('T')[0];
+    const timestamp = formatCSVDate(new Date().toISOString());
 
     if (reportType === 'users') {
-      const headers = ['User ID', 'Name', 'Role', 'Email', 'Phone', 'Barangay', 'Municipality', 'Verification Status', 'Joined Date'];
+      const headers = [
+        'User ID',
+        'Full Name',
+        'Role',
+        'Email Address',
+        'Phone Number',
+        'Municipality',
+        'Barangay',
+        'Verification Status',
+        'Reputation Score',
+        'Date Registered'
+      ];
       const rows = filteredUsers.map((u) => [
         u.id,
-        `"${(u.name || '').replace(/"/g, '""')}"`,
-        u.role,
-        u.email,
+        u.name || '',
+        u.role || '',
+        u.email || '',
         u.phone || 'N/A',
-        `"${u.barangay || ''}"`,
-        `"${u.municipality || ''}"`,
-        u.verification_status || 'unverified',
-        formatDate(u.created_at),
+        u.municipality || 'Bulan',
+        u.barangay || '',
+        formatCSVStatus(u.verification_status),
+        formatCSVReputation(u.reputation_score, u.ratings_count ?? u.reviews_received_count),
+        formatCSVDate(u.created_at)
       ]);
-      csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+
+      exportMultiSectionCSV(
+        `SIKAP_USERS_REPORT_${dateStamp}`,
+        'SIKAP Registered Users & Demographics Masterlist',
+        [
+          ['Generated On:', timestamp],
+          ['Official Signatory:', adminName],
+          ['Report Classification:', 'Official SIKAP User Registry'],
+          ['Total Records Included:', String(filteredUsers.length)],
+          ['Role Filter:', roleFilter.toUpperCase()],
+          ['Date Scope:', datePreset.toUpperCase()]
+        ],
+        [
+          {
+            title: 'Users Masterlist',
+            headers,
+            rows
+          }
+        ]
+      );
     } else if (reportType === 'jobs') {
-      const headers = ['Job ID', 'Ref Number', 'Title', 'Category', 'Employer', 'Barangay', 'Municipality', 'Slots', 'Accepted', 'Wage (PHP)', 'Status', 'Date Posted'];
+      const headers = [
+        'Job ID',
+        'Reference Code',
+        'Job Title',
+        'Category',
+        'Employer Name',
+        'Municipality',
+        'Barangay',
+        'Offered Comp (PHP)',
+        'Rate Unit',
+        'Duration',
+        'Hourly Wage (PHP/hr)',
+        'Slots Required',
+        'Slots Hired',
+        'Status',
+        'Date Posted'
+      ];
       const rows = filteredJobs.map((j) => [
         j.id,
-        j.reference_number || `SIKAP-${j.id}`,
-        `"${(j.title || '').replace(/"/g, '""')}"`,
-        `"${j.category?.name || j.category || 'General'}"`,
-        `"${(j.employer?.name || '').replace(/"/g, '""')}"`,
-        `"${j.barangay || ''}"`,
-        `"${j.municipality || ''}"`,
-        j.slots || 1,
-        j.accepted_count || 0,
-        j.wage_amount || 0,
-        j.status,
-        formatDate(j.created_at),
+        j.reference_number || `SKP-JOB-${j.id}`,
+        j.title || '',
+        j.category?.name || j.category || 'General',
+        j.employer?.name || '',
+        j.municipality || 'Bulan',
+        j.barangay || '',
+        formatCSVCurrency(j.compensation),
+        j.rate_unit ? String(j.rate_unit).replace(/_/g, ' ') : (j.duration_type ? String(j.duration_type).replace(/_/g, ' ') : 'per day'),
+        j.duration ? String(j.duration) : 'N/A',
+        formatCSVCurrency(calculateNormalizedHourlyWage(j.compensation, j.rate_unit, j.duration, j.duration_unit, j.duration_type)),
+        Number(j.slots) || 1,
+        Number(j.filled_slots ?? j.accepted_count) || 0,
+        formatCSVStatus(j.status),
+        formatCSVDate(j.created_at)
       ]);
-      csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+
+      exportMultiSectionCSV(
+        `SIKAP_JOBS_REPORT_${dateStamp}`,
+        'SIKAP Job Postings & Employment Demand Report',
+        [
+          ['Generated On:', timestamp],
+          ['Official Signatory:', adminName],
+          ['Report Classification:', 'Official SIKAP Employment Record'],
+          ['Total Records Included:', String(filteredJobs.length)],
+          ['Category Filter:', categoryFilter.toUpperCase()],
+          ['Status Filter:', statusFilter.toUpperCase()],
+          ['Date Scope:', datePreset.toUpperCase()]
+        ],
+        [
+          {
+            title: 'Job Postings Directory',
+            headers,
+            rows
+          }
+        ]
+      );
     } else if (reportType === 'demographics') {
       const headers = ['Barangay', 'Municipality', 'Registered Workers', 'Registered Employers', 'Jobs Posted', 'Total Platform Activity'];
       const rows = barangaySummary.map((b) => [
-        `"${b.barangay}"`,
-        `"${b.municipality}"`,
+        b.barangay,
+        b.municipality,
         b.workers,
         b.employers,
         b.jobs,
-        b.workers + b.employers + b.jobs,
+        b.workers + b.employers + b.jobs
       ]);
-      csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+
+      exportMultiSectionCSV(
+        `SIKAP_DEMOGRAPHICS_REPORT_${dateStamp}`,
+        'SIKAP Barangay-Level Coverage & Placement Summary',
+        [
+          ['Generated On:', timestamp],
+          ['Official Signatory:', adminName],
+          ['Report Classification:', 'Official SIKAP Demographic Survey'],
+          ['Total Barangays Covered:', String(barangaySummary.length)]
+        ],
+        [
+          {
+            title: 'Barangay Demographics',
+            headers,
+            rows
+          }
+        ]
+      );
     } else {
-      const headers = ['User ID', 'Name', 'Role', 'Email', 'Verification Status', 'Rejection Reason', 'Submission Date'];
+      const headers = [
+        'User ID',
+        'Full Name',
+        'Role',
+        'Email Address',
+        'Verification Status',
+        'Front ID',
+        'Back ID',
+        'Selfie',
+        'Rejection Reason',
+        'Submission Date'
+      ];
       const rows = filteredVerifications.map((v) => [
         v.id,
-        `"${(v.name || '').replace(/"/g, '""')}"`,
-        v.role,
-        v.email,
-        v.verification_status,
-        `"${(v.rejection_reason || '').replace(/"/g, '""')}"`,
-        formatDate(v.created_at || v.updated_at),
+        v.name || '',
+        v.role || '',
+        v.email || '',
+        formatCSVStatus(v.verification_status),
+        v.document_url ? 'Yes' : 'No',
+        v.document_back_url ? 'Yes' : 'No',
+        v.selfie_url ? 'Yes' : 'No',
+        v.rejection_reason || 'N/A',
+        formatCSVDate(v.created_at || v.updated_at)
       ]);
-      csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    }
 
-    // Include UTF-8 BOM so Excel properly opens accented characters and symbols
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `SIKAP_${reportType.toUpperCase()}_REPORT_${dateStamp}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      exportMultiSectionCSV(
+        `SIKAP_VERIFICATIONS_REPORT_${dateStamp}`,
+        'SIKAP Identity Verification & Compliance Audit Report',
+        [
+          ['Generated On:', timestamp],
+          ['Official Signatory:', adminName],
+          ['Report Classification:', 'Official SIKAP Compliance Audit'],
+          ['Total Records Included:', String(filteredVerifications.length)],
+          ['Verification Filter:', statusFilter.toUpperCase()],
+          ['Date Scope:', datePreset.toUpperCase()]
+        ],
+        [
+          {
+            title: 'Verification Queue',
+            headers,
+            rows
+          }
+        ]
+      );
+    }
   };
 
   const getReportTitle = () => {
@@ -799,7 +910,7 @@ export default function ExportReportsPage() {
                           {j.barangay ? `${j.barangay}, ` : ''}{j.municipality || 'Sorsogon'}
                         </td>
                         <td className="py-3 px-4 text-center font-bold">
-                          {j.accepted_count || 0} / {j.slots || 1}
+                          {(j.filled_slots ?? j.accepted_count) || 0} / {j.slots || 1}
                         </td>
                         <td className="py-3 px-4 font-bold text-emerald-700">
                           ₱{(Number(j.wage_amount) || 0).toLocaleString()}

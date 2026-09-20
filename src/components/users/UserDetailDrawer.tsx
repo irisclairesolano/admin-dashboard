@@ -1,5 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, ShieldAlert, CheckCircle2, AlertCircle, MapPin, Star, RefreshCw, Mail, Phone, Calendar, UserX, Undo, Trash2, Search, FileText, FileDown, ExternalLink, Briefcase, Users, Award, ShieldCheck, Clock, Lock, Key, Eye, XCircle } from 'lucide-react';
 import Avatar from '@/components/Avatar';
 import Image from 'next/image';
@@ -118,9 +119,14 @@ export default function UserDetailDrawer({
   const setReportsPage = externalSetReportsPage ?? setInternalReportsPage;
   const logsPage = externalLogsPage ?? internalLogsPage;
   const setLogsPage = externalSetLogsPage ?? setInternalLogsPage;
-  return (
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const modalContent = (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-6"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="user-drawer-title"
@@ -1175,7 +1181,7 @@ export default function UserDetailDrawer({
           role="dialog"
           aria-modal="true"
           aria-labelledby="user-drawer-lightbox-title"
-          className="fixed inset-0 bg-black/90 z-[100] flex flex-col items-center justify-center p-4 backdrop-blur-md animate-fade-in"
+          className="fixed inset-0 bg-black/90 z-[120] flex flex-col items-center justify-center p-4 backdrop-blur-md animate-fade-in"
           onClick={() => setLightboxImage(null)}
         >
           {/* Header */}
@@ -1208,4 +1214,8 @@ export default function UserDetailDrawer({
       )}
     </div>
   );
+
+  if (!mounted) return null;
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 }

@@ -7,9 +7,9 @@ import dynamic from 'next/dynamic';
 import { useDebounce } from '@/hooks/useDebounce';
 import { adminApi } from '@/lib/api';
 import StatCard from '@/components/StatCard';
-import { ArrowLeft, ArrowRight, Download } from 'lucide-react';
 import UserTable from '@/components/users/UserTable';
-import { exportTableToCSV, formatCSVDate, formatCSVStatus } from '@/lib/export/csv';
+import { Download, ArrowLeft, ArrowRight } from 'lucide-react';
+import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus, formatCSVReputation } from '@/lib/export/csv';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
@@ -398,14 +398,27 @@ function UsersContent() {
       u.barangay || '',
       formatCSVStatus(u.verification_status),
       u.is_suspended ? 'Suspended' : u.deleted_at ? 'Archived' : 'Active',
-      u.reputation_score ? Number(u.reputation_score).toFixed(2) : '5.00',
+      formatCSVReputation(u.reputation_score, u.ratings_count ?? u.reviews_received_count),
       formatCSVDate(u.created_at)
     ]);
 
-    exportTableToCSV(
+    exportMultiSectionCSV(
       `sikap_users_directory_${new Date().toISOString().slice(0, 10)}`,
-      headers,
-      rows
+      'SIKAP Registered Users Masterlist',
+      [
+        ['Generated On:', formatCSVDate(new Date().toISOString())],
+        ['Report Classification:', 'Official SIKAP User Registry'],
+        ['Total Records Exported:', String(sortedUsers.length)],
+        ['Active View Filter:', showArchived ? 'Archived Users' : filter.toUpperCase()],
+        ['Role Filter:', roleFilter.toUpperCase()],
+      ],
+      [
+        {
+          title: 'Users Directory',
+          headers,
+          rows,
+        },
+      ]
     );
   };
 

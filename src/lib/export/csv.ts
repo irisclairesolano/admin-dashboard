@@ -39,6 +39,86 @@ export function formatCSVCurrency(val: number | string | null | undefined): stri
   return isNaN(num) ? '0.00' : num.toFixed(2);
 }
 
+export function formatCSVReputation(score: number | string | null | undefined, ratingsCount?: number | null | undefined): string {
+  if (ratingsCount !== undefined && ratingsCount !== null && Number(ratingsCount) === 0) {
+    return 'N/A';
+  }
+  if (score === null || score === undefined || score === '' || isNaN(Number(score))) {
+    return 'N/A';
+  }
+  const num = Number(score);
+  return num > 0 ? num.toFixed(2) : 'N/A';
+}
+
+export function calculateNormalizedHourlyWage(
+  compensation: number | string | null | undefined,
+  rateUnit?: string | null,
+  duration?: string | number | null,
+  durationUnit?: string | null,
+  durationType?: string | null
+): number {
+  const comp = typeof compensation === 'string' ? parseFloat(compensation) : Number(compensation || 0);
+  if (isNaN(comp) || comp <= 0) return 0;
+
+  const unit = String(rateUnit || durationType || '').toLowerCase().trim();
+  const durUnit = String(durationUnit || '').toLowerCase().trim();
+  const durStr = String(duration || '').toLowerCase().trim();
+
+  // If rate is already per hour
+  if (unit === 'per_hour' || unit === 'hourly' || unit === '/hr') {
+    return Math.round(comp * 100) / 100;
+  }
+
+  // Parse duration numbers and units (e.g. "2 Hours", "8 Days", "2 Months")
+  let durVal: number | null = null;
+  let durParsedUnit = '';
+  if (durStr) {
+    const match = durStr.match(/^(\d+(?:\.\d+)?)\s*([a-zA-Z]+)?/);
+    if (match) {
+      durVal = parseFloat(match[1]);
+      durParsedUnit = (match[2] || '').toLowerCase();
+    }
+  }
+  if (durVal === null && duration !== null && duration !== undefined && !isNaN(Number(duration))) {
+    durVal = Number(duration);
+  }
+  const effectiveUnit = durUnit || durParsedUnit;
+
+  // If rate is per day (standard 8-hour workday)
+  if (unit === 'per_day' || unit === 'daily' || unit === '/day') {
+    return Math.round((comp / 8.0) * 100) / 100;
+  }
+
+  // If rate is per week (40 hours)
+  if (unit === 'per_week' || unit === 'weekly' || unit === '/week') {
+    return Math.round((comp / 40.0) * 100) / 100;
+  }
+
+  // If rate is per month (160 hours)
+  if (unit === 'per_month' || unit === 'monthly' || unit === '/month') {
+    return Math.round((comp / 160.0) * 100) / 100;
+  }
+
+  // Fixed or project-based: calculate from duration if provided
+  if (durVal && durVal > 0 && effectiveUnit) {
+    if (effectiveUnit.includes('hour')) {
+      return Math.round((comp / durVal) * 100) / 100;
+    }
+    if (effectiveUnit.includes('day')) {
+      return Math.round((comp / (durVal * 8.0)) * 100) / 100;
+    }
+    if (effectiveUnit.includes('week')) {
+      return Math.round((comp / (durVal * 40.0)) * 100) / 100;
+    }
+    if (effectiveUnit.includes('month')) {
+      return Math.round((comp / (durVal * 160.0)) * 100) / 100;
+    }
+  }
+
+  // Standard 8-hour workday fallback for project/fixed
+  return Math.round((comp / 8.0) * 100) / 100;
+}
+
 export function formatCSVStatus(status?: string | null): string {
   if (!status) return 'Unknown';
   switch (status.toLowerCase()) {
@@ -65,6 +145,7 @@ export function formatCSVStatus(status?: string | null): string {
     case 'cancelled':
     case 'dismissed':
     case 'inactive':
+    case 'archived':
       return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' ');
     default:
       return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -133,4 +214,21 @@ export function exportMultiSectionCSV(
   }
 
   downloadCSV(filename, lines.join('\r\n'));
+}
+
+export function exportFormattedTableCSV(
+  filename: string,
+  reportTitle: string,
+  metadata: [string, string][],
+  sectionTitle: string,
+  headers: string[],
+  rows: (string | number | boolean | null | undefined)[][]
+): void {
+  exportMultiSectionCSV(filename, reportTitle, metadata, [
+    {
+      title: sectionTitle,
+      headers,
+      rows,
+    },
+  ]);
 }

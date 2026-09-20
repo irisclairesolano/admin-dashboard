@@ -8,7 +8,7 @@ import StatusTabs from '@/components/StatusTabs';
 import { AlertDialog } from '@/components/AlertDialog';
 import { formatDate } from '@/lib/date';
 import { STATUS_BADGE_MAP, DEFAULT_BADGE_CLASS } from '@/lib/constants';
-import { exportTableToCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus } from '@/lib/export/csv';
+import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus, calculateNormalizedHourlyWage } from '@/lib/export/csv';
 
 function JobsPageContent() {
   const searchParams = useSearchParams();
@@ -45,8 +45,10 @@ function JobsPageContent() {
       'Job Title',
       'Employer Name',
       'Category',
-      'Compensation (PHP)',
-      'Duration Type',
+      'Offered Comp (PHP)',
+      'Rate Unit',
+      'Duration',
+      'Hourly Wage (PHP/hr)',
       'Slots Required',
       'Slots Hired',
       'Municipality',
@@ -63,9 +65,11 @@ function JobsPageContent() {
       j.employer?.name || '',
       j.category,
       formatCSVCurrency(j.compensation),
-      j.duration_type,
+      j.rate_unit ? String(j.rate_unit).replace(/_/g, ' ') : (j.duration_type ? String(j.duration_type).replace(/_/g, ' ') : 'per day'),
+      j.duration ? String(j.duration) : 'N/A',
+      formatCSVCurrency(calculateNormalizedHourlyWage(j.compensation, j.rate_unit, j.duration, j.duration_unit, j.duration_type)),
       j.slots ?? 1,
-      j.accepted_count ?? 0,
+      j.filled_slots ?? j.accepted_count ?? 0,
       j.municipality || 'Bulan',
       j.barangay || '',
       formatCSVStatus(j.deleted_at ? 'archived' : j.status),
@@ -73,10 +77,22 @@ function JobsPageContent() {
       formatCSVDate(j.created_at)
     ]);
 
-    exportTableToCSV(
+    exportMultiSectionCSV(
       `sikap_jobs_${new Date().toISOString().slice(0, 10)}`,
-      headers,
-      rows
+      'SIKAP Job Postings & Opportunities Masterlist',
+      [
+        ['Generated On:', formatCSVDate(new Date().toISOString())],
+        ['Report Classification:', 'Official SIKAP Employment Record'],
+        ['Total Records Exported:', String(filteredJobs.length)],
+        ['Status Filter:', statusFilter.toUpperCase()],
+      ],
+      [
+        {
+          title: 'Job Postings Directory',
+          headers,
+          rows,
+        },
+      ]
     );
   };
 
@@ -429,7 +445,7 @@ function JobsPageContent() {
                               job.duration_type || 'day'
                             }</span>
                           </span>
-                          <span className="text-[10px] text-ink-soft font-body font-semibold bg-white/40 px-2 py-0.5 rounded border border-ink-faint/30">Slots: {job.slots}</span>
+                          <span className="text-[10px] text-ink-soft font-body font-semibold bg-white/40 px-2 py-0.5 rounded border border-ink-faint/30">Slots: {(job.filled_slots ?? job.accepted_count) ?? 0}/{job.slots}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -602,7 +618,7 @@ function JobsPageContent() {
                   <div className="p-3 bg-white/50 rounded-xl border border-white/50 col-span-2">
                     <span className="block text-[9px] font-bold text-ink-muted uppercase tracking-wide">Slots filled</span>
                     <span className="text-sm font-bold text-ink mt-1 block">
-                      {selectedDetailJob.accepted_count ?? 0} / {selectedDetailJob.slots}
+                      {(selectedDetailJob.filled_slots ?? selectedDetailJob.accepted_count) ?? 0} / {selectedDetailJob.slots}
                     </span>
                   </div>
                 </div>

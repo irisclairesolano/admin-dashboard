@@ -6,7 +6,7 @@ import { adminApi } from '@/lib/api';
 import Avatar from '@/components/Avatar';
 import dynamic from 'next/dynamic';
 import { AlertDialog } from '@/components/AlertDialog';
-import { exportTableToCSV, formatCSVDate } from '@/lib/export/csv';
+import { exportMultiSectionCSV, formatCSVDate } from '@/lib/export/csv';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
@@ -98,10 +98,22 @@ function VerificationsPageContent() {
       formatCSVDate(u.updated_at)
     ]);
 
-    exportTableToCSV(
+    exportMultiSectionCSV(
       `sikap_verifications_${new Date().toISOString().slice(0, 10)}`,
-      headers,
-      rows
+      'SIKAP Identity Verification Queue Masterlist',
+      [
+        ['Generated On:', formatCSVDate(new Date().toISOString())],
+        ['Report Classification:', 'Official SIKAP Verification Record'],
+        ['Total Pending Records:', String(pendingUsers.length)],
+        ['Sort Order:', sortOrder.toUpperCase()],
+      ],
+      [
+        {
+          title: 'Identity Verification Queue',
+          headers,
+          rows,
+        },
+      ]
     );
   };
 
