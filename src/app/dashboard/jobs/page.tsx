@@ -332,13 +332,13 @@ function JobsPageContent() {
           </div>
         </div>
 
-        {/* 5 Stat Cards: Total, Open, In Progress, Suspended, Archived */}
+        {/* 5 Stat Cards: Total, Open, In Progress, Completed, Suspended & Archived */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
           <StatCard title="Total Posts" value={activeJobs.length + archivedJobs.length} iconClass="lni lni-briefcase" onClick={() => setStatusFilter('All')} />
           <StatCard title="Open" value={activeJobs.filter(j => j.status === 'open').length} iconClass="lni lni-play" onClick={() => setStatusFilter('Open')} />
           <StatCard title="In Progress" value={activeJobs.filter(j => j.status === 'in_progress' || j.status === 'in progress').length} iconClass="lni lni-pause" onClick={() => setStatusFilter('In Progress')} />
-          <StatCard title="Suspended" value={activeJobs.filter(j => j.status === 'suspended').length} iconClass="lni lni-warning" onClick={() => setStatusFilter('Suspended')} />
-          <StatCard title="Archived & Deleted" value={archivedJobs.length} iconClass="lni lni-trash-can" onClick={() => setStatusFilter('Archived')} />
+          <StatCard title="Completed" value={activeJobs.filter(j => j.status === 'completed').length} iconClass="lni lni-checkmark-circle" onClick={() => setStatusFilter('Completed')} />
+          <StatCard title="Suspended & Archived" value={activeJobs.filter(j => j.status === 'suspended').length + archivedJobs.length} iconClass="lni lni-trash-can" onClick={() => setStatusFilter(activeJobs.some(j => j.status === 'suspended') ? 'Suspended' : 'Archived')} />
         </div>
 
         {/* Status Switcher & Search Bar */}
