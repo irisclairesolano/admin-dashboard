@@ -1556,11 +1556,14 @@ export default function AnalyticsDashboard() {
                       <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
                         {(data?.kpis?.total_users?.value ?? 0).toLocaleString()}
                       </h3>
-                      {data?.kpis?.total_users?.change !== undefined && (
+                      {data?.kpis?.total_users?.change !== undefined && data?.kpis?.total_users?.change !== null && (
                         <span className={`inline-flex items-center text-[11px] font-bold font-numeric ${(data.kpis.total_users.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
                           <i className={`lni ${(data.kpis.total_users.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-0.5 text-[9px]`} />
                           {Math.abs(data.kpis.total_users.change ?? 0)}%
                         </span>
+                      )}
+                      {data?.kpis?.total_users?.change === null && (data?.kpis?.total_users?.value ?? 0) > 0 && (
+                        <span className="inline-flex items-center text-[11px] font-bold font-numeric text-status-success">New</span>
                       )}
                     </div>
                   </div>
@@ -1587,11 +1590,14 @@ export default function AnalyticsDashboard() {
                       <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
                         {(data?.kpis?.active_jobs?.value ?? 0).toLocaleString()}
                       </h3>
-                      {data?.kpis?.active_jobs?.change !== undefined && (
+                      {data?.kpis?.active_jobs?.change !== undefined && data?.kpis?.active_jobs?.change !== null && (
                         <span className={`inline-flex items-center text-[11px] font-bold font-numeric ${(data.kpis.active_jobs.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
                           <i className={`lni ${(data.kpis.active_jobs.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-0.5 text-[9px]`} />
                           {Math.abs(data.kpis.active_jobs.change ?? 0)}%
                         </span>
+                      )}
+                      {data?.kpis?.active_jobs?.change === null && (data?.kpis?.active_jobs?.value ?? 0) > 0 && (
+                        <span className="inline-flex items-center text-[11px] font-bold font-numeric text-status-success">New</span>
                       )}
                     </div>
                   </div>
@@ -1618,11 +1624,14 @@ export default function AnalyticsDashboard() {
                       <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
                         {(data?.kpis?.applications?.value ?? 0).toLocaleString()}
                       </h3>
-                      {data?.kpis?.applications?.change !== undefined && (
+                      {data?.kpis?.applications?.change !== undefined && data?.kpis?.applications?.change !== null && (
                         <span className={`inline-flex items-center text-[11px] font-bold font-numeric ${(data.kpis.applications.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
                           <i className={`lni ${(data.kpis.applications.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-0.5 text-[9px]`} />
                           {Math.abs(data.kpis.applications.change ?? 0)}%
                         </span>
+                      )}
+                      {data?.kpis?.applications?.change === null && (data?.kpis?.applications?.value ?? 0) > 0 && (
+                        <span className="inline-flex items-center text-[11px] font-bold font-numeric text-status-success">New</span>
                       )}
                     </div>
                   </div>
@@ -3045,21 +3054,27 @@ export default function AnalyticsDashboard() {
                   <div>
                     <div className="mb-3">
                       <h3 className="font-display text-sm font-bold text-ink">Two-Way Star Ratings</h3>
-                      <p className="text-[11px] text-ink-muted">Average user ratings and feedback score distribution.</p>
+                      <p className="text-[11px] text-ink-muted">Average user ratings for this period. <span className="italic">Adjust the date range above to view all-time data.</span></p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       <div className="bg-slate-50/70 p-2.5 rounded-lg border border-ink-faint/30 flex items-center justify-between">
                         <div>
                           <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider">Worker Avg</span>
-                          <strong className="text-lg font-numeric text-ink block mt-0.5">{data?.ratings?.average_worker_rating ?? 'N/A'}</strong>
+                          {(data?.ratings?.average_worker_rating ?? 0) > 0
+                            ? <strong className="text-lg font-numeric text-ink block mt-0.5">{Number(data.ratings.average_worker_rating).toFixed(2)}</strong>
+                            : <span className="text-xs text-ink-muted block mt-0.5 italic">No ratings yet</span>
+                          }
                         </div>
                         <div className="text-xl text-yellow-400">★</div>
                       </div>
                       <div className="bg-slate-50/70 p-2.5 rounded-lg border border-ink-faint/30 flex items-center justify-between">
                         <div>
                           <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider">Employer Avg</span>
-                          <strong className="text-lg font-numeric text-ink block mt-0.5">{data?.ratings?.average_employer_rating ?? 'N/A'}</strong>
+                          {(data?.ratings?.average_employer_rating ?? 0) > 0
+                            ? <strong className="text-lg font-numeric text-ink block mt-0.5">{Number(data.ratings.average_employer_rating).toFixed(2)}</strong>
+                            : <span className="text-xs text-ink-muted block mt-0.5 italic">No ratings yet</span>
+                          }
                         </div>
                         <div className="text-xl text-yellow-400">★</div>
                       </div>
@@ -3093,21 +3108,21 @@ export default function AnalyticsDashboard() {
                   <div>
                     <div className="mb-3">
                       <h3 className="font-display text-sm font-bold text-ink">Compensation & Wage Analytics</h3>
-                      <p className="text-[11px] text-ink-muted">Platform payment statistics and category wage guides.</p>
+                      <p className="text-[11px] text-ink-muted">Normalized to hourly rate (per-day ÷ 8, per-week ÷ 40, per-month ÷ 160).</p>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2.5 text-center mb-4">
                       <div className="bg-slate-50/70 p-2 rounded-lg border border-ink-faint/30">
                         <span className="text-[10px] text-ink-muted block">Min Wage</span>
-                        <strong className="text-xs font-numeric text-ink mt-0.5 block">PHP {data?.compensation?.min ?? 0}</strong>
+                        <strong className="text-xs font-numeric text-ink mt-0.5 block">₱{data?.compensation?.min ?? 0}<span className="font-normal text-ink-muted">/hr</span></strong>
                       </div>
                       <div className="bg-slate-50/70 p-2 rounded-lg border border-ink-faint/30">
                         <span className="text-[10px] text-ink-muted block">Avg Wage</span>
-                        <strong className="text-xs font-numeric text-primary-dark mt-0.5 block font-bold">PHP {data?.compensation?.avg ?? 0}</strong>
+                        <strong className="text-xs font-numeric text-primary-dark mt-0.5 block font-bold">₱{data?.compensation?.avg ?? 0}<span className="font-normal text-ink-muted">/hr</span></strong>
                       </div>
                       <div className="bg-slate-50/70 p-2 rounded-lg border border-ink-faint/30">
                         <span className="text-[10px] text-ink-muted block">Max Wage</span>
-                        <strong className="text-xs font-numeric text-ink mt-0.5 block">PHP {data?.compensation?.max ?? 0}</strong>
+                        <strong className="text-xs font-numeric text-ink mt-0.5 block">₱{data?.compensation?.max ?? 0}<span className="font-normal text-ink-muted">/hr</span></strong>
                       </div>
                     </div>
 
@@ -3131,8 +3146,13 @@ export default function AnalyticsDashboard() {
                               {filteredCompensationCategories.length > 0 ? (
                                 filteredCompensationCategories.map((c: any, idx: number) => (
                                   <tr key={idx} className="border-b border-gray-100/50 hover:bg-slate-50/50 last:border-none">
-                                    <td className="py-1.5 px-2 text-ink font-semibold">{c.category}</td>
-                                    <td className="py-1.5 px-2 text-right font-numeric text-ink-soft font-bold">PHP {parseFloat(c.avg_comp).toFixed(2)}</td>
+                                    <td className="py-1.5 px-2 text-ink font-semibold">
+                                      {c.category}
+                                      {c.job_count != null && (
+                                        <span className="ml-1.5 text-[9px] text-ink-muted font-normal">(n={c.job_count})</span>
+                                      )}
+                                    </td>
+                                    <td className="py-1.5 px-2 text-right font-numeric text-ink-soft font-bold">₱{parseFloat(c.avg_comp).toFixed(2)}<span className="font-normal text-ink-muted text-[10px]">/hr</span></td>
                                   </tr>
                                 ))
                               ) : (

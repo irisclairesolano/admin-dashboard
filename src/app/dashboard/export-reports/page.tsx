@@ -46,7 +46,7 @@ export default function ExportReportsPage() {
       const [usersRes, jobsRes, verifRes] = await Promise.all([
         adminApi.getUsers({ all: true, forceRefresh: true }),
         adminApi.getJobs({ all: true, forceRefresh: true }),
-        adminApi.getVerifications(),
+        adminApi.getVerifications(true),
       ]);
 
       setUsers(usersRes.data?.data || usersRes.data || []);
@@ -125,6 +125,7 @@ export default function ExportReportsPage() {
     return jobs.filter((j) => {
       if (!isWithinDateRange(j.created_at)) return false;
       if (categoryFilter !== 'all' && (j.category?.name || j.category) !== categoryFilter) return false;
+      if (statusFilter === 'archived') return !!j.deleted_at;
       if (statusFilter !== 'all' && j.status !== statusFilter) return false;
 
       if (searchQuery.trim()) {
@@ -312,7 +313,7 @@ export default function ExportReportsPage() {
         formatCSVCurrency(calculateNormalizedHourlyWage(j.compensation, j.rate_unit, j.duration, j.duration_unit, j.duration_type)),
         Number(j.slots) || 1,
         Number(j.filled_slots ?? j.accepted_count) || 0,
-        formatCSVStatus(j.status),
+        formatCSVStatus(j.deleted_at ? 'archived' : j.status),
         formatCSVDate(j.created_at)
       ]);
 

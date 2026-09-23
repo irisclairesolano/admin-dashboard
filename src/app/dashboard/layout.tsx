@@ -658,7 +658,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         <div className="p-5 flex flex-col flex-1 min-h-0 justify-between">
-          <nav className="flex-1 space-y-2 mt-4 lg:mt-0 overflow-y-auto no-scrollbar pr-1">
+          <nav className="flex-1 space-y-2 mt-4 lg:mt-0 overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:theme(colors.ink.faint)_transparent]">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               const hasBadge = item.badge > 0;
