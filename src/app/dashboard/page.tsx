@@ -337,6 +337,8 @@ export default function AnalyticsDashboard() {
   const [aiError, setAiError] = useState('');
   const [aiPeriod, setAiPeriod] = useState('');
   const [showAiBriefing, setShowAiBriefing] = useState(false);
+  const [aiGeneratedAt, setAiGeneratedAt] = useState<Date | null>(null);
+  const [aiCached, setAiCached] = useState(false);
 
   // Print & Master PDF States
   const [printMode, setPrintMode] = useState<'analytics' | 'master'>('analytics');
@@ -386,6 +388,8 @@ export default function AnalyticsDashboard() {
     setAiInsights(null);
     setAiError('');
     setAiPeriod('');
+    setAiGeneratedAt(null);
+    setAiCached(false);
   }, [from, to, intervalFilter]);
 
   const [analyticsError, setAnalyticsError] = useState('');
@@ -441,6 +445,8 @@ export default function AnalyticsDashboard() {
       }
       setAiInsights(parsed);
       setAiPeriod(res.data.period);
+      setAiGeneratedAt(new Date());
+      setAiCached(!!res.data.cached);
     } catch (err: any) {
       console.error('Failed to generate AI insights', err);
       setAiError(err.response?.data?.message || 'Failed to generate insights. Please verify Gemini configuration.');
@@ -1703,26 +1709,33 @@ export default function AnalyticsDashboard() {
                 </div>
               )}
 
-              {/* Gemini AI Executive Briefing Strip (Collapsible) */}
-              <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-primary/20 p-3.5 sm:p-4 shadow-2xs print-chart-container transition-all">
+              {/* AI Insights Strip (Collapsible) */}
+              <div className="bg-white rounded-2xl border border-ink-faint/40 p-3.5 sm:p-4 shadow-2xs print-chart-container transition-all">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary-soft flex items-center justify-center text-amber-300 shadow-sm flex-shrink-0">
-                      <i className="lni lni-keyword-research text-sm" />
+                    <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                      <i className="lni lni-keyword-research text-sm text-primary" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-display font-bold text-ink">Gemini AI Executive Briefing</span>
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary/10 text-primary uppercase tracking-wider">
-                          Strategic Intel
-                        </span>
-                      </div>
+                      <span className="text-sm font-display font-bold text-ink">AI Insights</span>
                       <p className="text-[11px] text-ink-muted mt-0.5">
-                        Pattern recognition, labor shifts & actionable municipal labor intelligence
+                        Gemini-powered analysis of labor market patterns and platform health.
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap justify-end">
+                    {aiInsights && aiGeneratedAt && (
+                      <span className="text-[10px] text-ink-muted font-body">
+                        {aiCached ? 'Cached · ' : ''}
+                        {(() => {
+                          const diffMin = Math.floor((Date.now() - aiGeneratedAt.getTime()) / 60000);
+                          if (diffMin < 1) return 'just now';
+                          if (diffMin === 1) return '1 min ago';
+                          if (diffMin < 60) return `${diffMin} min ago`;
+                          return `${Math.floor(diffMin / 60)}h ago`;
+                        })()}
+                      </span>
+                    )}
                     <button
                       onClick={handleGenerateInsights}
                       disabled={aiLoading}
@@ -1734,12 +1747,12 @@ export default function AnalyticsDashboard() {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          <span>Analyzing Telemetry...</span>
+                          <span>Analyzing...</span>
                         </>
                       ) : (
                         <>
                           <i className="lni lni-spinner-arrow text-[11px]" />
-                          <span>Generate Briefing</span>
+                          <span>{aiInsights ? 'Regenerate' : 'Generate Insights'}</span>
                         </>
                       )}
                     </button>
@@ -1771,7 +1784,7 @@ export default function AnalyticsDashboard() {
                     )}
 
                     {!aiLoading && !aiError && aiInsights && (
-                      <AIInsightsCard data={aiInsights} period={aiPeriod} />
+                      <AIInsightsCard data={aiInsights} period={aiPeriod} cached={aiCached} generatedAt={aiGeneratedAt} />
                     )}
                   </div>
                 )}

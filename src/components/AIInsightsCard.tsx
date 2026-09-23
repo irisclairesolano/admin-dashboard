@@ -10,7 +10,6 @@ import {
   ChevronDown, 
   ChevronUp,
   ArrowUpRight,
-  ShieldAlert,
   Database,
   Layers,
   Info
@@ -37,8 +36,6 @@ export interface InsightsData {
 const categoryConfig: Record<'insight' | 'trend' | 'concern' | 'recommendation', {
   label: string;
   icon: typeof CheckCircle2;
-  iconBg: string;
-  iconColor: string;
   accentBorder: string;
   badgeBg: string;
   badgeText: string;
@@ -46,8 +43,6 @@ const categoryConfig: Record<'insight' | 'trend' | 'concern' | 'recommendation',
   insight: {
     label: 'Key Finding',
     icon: CheckCircle2,
-    iconBg: 'from-emerald-500/10 to-emerald-500/20',
-    iconColor: 'text-emerald-700',
     accentBorder: 'border-l-emerald-500',
     badgeBg: 'bg-emerald-50 border-emerald-200/80',
     badgeText: 'text-emerald-800',
@@ -55,8 +50,6 @@ const categoryConfig: Record<'insight' | 'trend' | 'concern' | 'recommendation',
   trend: {
     label: 'Market Trend',
     icon: TrendingUp,
-    iconBg: 'from-sky-500/10 to-sky-500/20',
-    iconColor: 'text-sky-700',
     accentBorder: 'border-l-sky-500',
     badgeBg: 'bg-sky-50 border-sky-200/80',
     badgeText: 'text-sky-800',
@@ -64,8 +57,6 @@ const categoryConfig: Record<'insight' | 'trend' | 'concern' | 'recommendation',
   concern: {
     label: 'Area of Concern',
     icon: AlertTriangle,
-    iconBg: 'from-rose-500/10 to-rose-500/20',
-    iconColor: 'text-rose-700',
     accentBorder: 'border-l-rose-500',
     badgeBg: 'bg-rose-50 border-rose-200/80',
     badgeText: 'text-rose-800',
@@ -73,8 +64,6 @@ const categoryConfig: Record<'insight' | 'trend' | 'concern' | 'recommendation',
   recommendation: {
     label: 'Action Recommendation',
     icon: Lightbulb,
-    iconBg: 'from-amber-500/10 to-amber-500/20',
-    iconColor: 'text-amber-700',
     accentBorder: 'border-l-amber-500',
     badgeBg: 'bg-amber-50 border-amber-200/80',
     badgeText: 'text-amber-800',
@@ -90,46 +79,32 @@ function InsightStatCard({
 }) {
   const [showData, setShowData] = useState(false);
   const cfg = categoryConfig[category] || categoryConfig.insight;
-  const Icon = cfg.icon;
 
   return (
-    <div className={`bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-ink-faint/40 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between border-l-4 ${cfg.accentBorder}`}>
+    <div className={`bg-white rounded-xl p-3.5 border border-ink-faint/40 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between border-l-4 ${cfg.accentBorder}`}>
       <div>
-        {/* Card Header similar to StatCard */}
-        <div className="flex items-start justify-between gap-3 mb-2.5">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-body font-bold uppercase tracking-wider border ${cfg.badgeBg} ${cfg.badgeText}`}>
-              <span className="w-1.5 h-1.5 rounded-full bg-current" />
-              {cfg.label}
-            </span>
-
-            {item.sampleSizeWarning && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 shadow-2xs">
-                <ShieldAlert className="w-3 h-3 text-amber-600" />
-                Low Sample Size
-              </span>
-            )}
-          </div>
-
-          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br ${cfg.iconBg} flex items-center justify-center flex-shrink-0 shadow-inner`}>
-            <Icon className={`w-4 h-4 sm:w-4.5 sm:h-4.5 ${cfg.iconColor}`} />
-          </div>
+        {/* Card Header — badge only, no icon-in-circle */}
+        <div className="flex items-center gap-2 flex-wrap mb-2.5">
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-body font-bold uppercase tracking-wider border ${cfg.badgeBg} ${cfg.badgeText}`}>
+            <span className="w-1.5 h-1.5 rounded-full bg-current" />
+            {cfg.label}
+          </span>
         </div>
 
-        {/* Primary Insight Headline / Value */}
+        {/* Primary Insight Text */}
         <p className="text-sm font-body font-semibold text-ink leading-relaxed mb-3">
           {item.text}
         </p>
       </div>
 
-      {/* Footer / Supporting Evidence Section */}
+      {/* Footer / Evidence */}
       <div className="mt-2 pt-2.5 border-t border-ink-faint/30 flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
           {item.supportingData ? (
             <button
               type="button"
               onClick={() => setShowData(!showData)}
-              className="inline-flex items-center gap-1.5 text-xs font-body font-semibold text-ink-muted hover:text-primary transition-colors cursor-pointer py-1"
+              className="inline-flex items-center gap-1.5 text-xs font-body font-semibold text-ink-soft border border-ink-faint/60 bg-white px-2.5 py-1 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
               title="Inspect statistical telemetry supporting this finding"
             >
               <Database className="w-3.5 h-3.5" />
@@ -164,56 +139,100 @@ function InsightStatCard({
   );
 }
 
-export function AIInsightsCard({ data, period }: { data?: InsightsData | null; period?: string }) {
+function isTestDataConcern(item: InsightItem): boolean {
+  const lower = item.text.toLowerCase();
+  return lower.includes('test data') || lower.includes('likely test') || lower.includes('test/placeholder') || lower.includes('placeholder data');
+}
+
+export function AIInsightsCard({ 
+  data, 
+  period,
+  cached,
+  generatedAt,
+}: { 
+  data?: InsightsData | null; 
+  period?: string;
+  cached?: boolean;
+  generatedAt?: Date | null;
+}) {
   const [activeCategory, setActiveCategory] = useState<'all' | 'insights' | 'trends' | 'concerns' | 'recommendations'>('all');
 
   const safeData: InsightsData = data || {};
   const keyInsights = safeData.keyInsights || [];
   const trends = safeData.trends || [];
-  const areasOfConcern = safeData.areasOfConcern || [];
+  const allConcerns = safeData.areasOfConcern || [];
   const recommendations = safeData.recommendations || [];
+
+  // Separate test-data flag items from regular concerns
+  const testDataConcerns = allConcerns.filter(isTestDataConcern);
+  const areasOfConcern = allConcerns.filter(item => !isTestDataConcern(item));
 
   const totalInsights = 
     keyInsights.length + 
     trends.length + 
-    areasOfConcern.length + 
+    allConcerns.length + 
     recommendations.length;
 
+  const generatedAtLabel = (() => {
+    if (!generatedAt) return null;
+    const diffMs = Date.now() - generatedAt.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'just now';
+    if (diffMin === 1) return '1 min ago';
+    if (diffMin < 60) return `${diffMin} min ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    return `${diffHr}h ago`;
+  })();
+
   return (
-    <div className="w-full rounded-2xl bg-gradient-to-br from-white via-white/95 to-primary-tint/30 border border-primary/20 shadow-sm overflow-hidden animate-fade-in">
-      {/* Executive Briefing Banner Header */}
-      <div className="relative px-5 py-4 bg-gradient-to-r from-primary to-primary-soft text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-hidden">
-        <div className="absolute right-0 top-0 bottom-0 w-64 bg-radial from-white/10 to-transparent pointer-events-none" />
-        
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 backdrop-blur-md flex items-center justify-center text-amber-300 shadow-inner flex-shrink-0">
-            <Sparkles className="w-5 h-5 animate-pulse" />
+    <div className="w-full rounded-2xl bg-white border border-ink-faint/40 shadow-sm overflow-hidden animate-fade-in">
+      {/* Flat Header — matches rest of app design language */}
+      <div className="px-5 py-4 bg-slate-50 border-b border-ink-faint/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+            <Sparkles className="w-4.5 h-4.5 text-primary" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-display font-bold text-base text-white tracking-wide">
-                Gemini Intelligence Executive Briefing
-              </h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white border border-white/25">
-                AI Synthesis
-              </span>
-            </div>
-            <p className="text-xs text-white/80 font-body mt-0.5">
-              Automated high-signal analysis of labor market supply, demand shifts, and moderation safety.
+            <h3 className="font-display font-bold text-base text-ink tracking-wide">
+              AI Insights
+            </h3>
+            <p className="text-xs text-ink-muted font-body mt-0.5">
+              Automated analysis of labor market supply, demand shifts, and moderation safety.
             </p>
           </div>
         </div>
 
-        {period && (
-          <div className="relative z-10 flex-shrink-0 bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 text-xs font-numeric font-semibold text-white/90 shadow-2xs">
-            <span className="text-[10px] uppercase font-body tracking-wider text-white/70 mr-1.5">Period:</span>
-            {period}
-          </div>
-        )}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {period && (
+            <div className="px-3 py-1.5 rounded-xl border border-ink-faint/60 bg-white text-xs font-numeric font-semibold text-ink-soft shadow-2xs">
+              <span className="text-[10px] uppercase font-body tracking-wider text-ink-muted mr-1.5">Period:</span>
+              {period}
+            </div>
+          )}
+          {generatedAtLabel && (
+            <span className="text-[10px] text-ink-muted font-body">
+              {cached ? '(cached)' : 'Generated'} {generatedAtLabel}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="p-4 sm:p-5 space-y-4">
-        {/* Data Sufficiency Notice */}
+        {/* Test Data Alert — top-priority banner, above everything else */}
+        {testDataConcerns.length > 0 && (
+          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-status-error/8 border border-status-error/25 text-xs font-body shadow-2xs">
+            <AlertTriangle className="w-4 h-4 text-status-error flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold text-status-error mr-1.5">Data Integrity Notice:</span>
+              {testDataConcerns.map((item, i) => (
+                <span key={i} className="text-ink-soft">{item.text}{i < testDataConcerns.length - 1 ? ' · ' : ''}</span>
+              ))}
+              <span className="block text-ink-muted mt-0.5 italic">Statistics on this page may not reflect real-world conditions.</span>
+            </div>
+          </div>
+        )}
+
+        {/* Statistical Variance Notice */}
         {safeData.dataSufficiency?.isLowVolume && (
           <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-900 text-xs font-body shadow-2xs">
             <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -229,10 +248,10 @@ export function AIInsightsCard({ data, period }: { data?: InsightsData | null; p
           <div className="flex flex-wrap items-center gap-1.5">
             {[
               { id: 'all', label: 'All Insights', count: totalInsights, icon: Layers },
-              { id: 'insights', label: 'Key Insights', count: keyInsights.length, icon: CheckCircle2, color: 'text-emerald-600' },
-              { id: 'trends', label: 'Market Trends', count: trends.length, icon: TrendingUp, color: 'text-sky-600' },
-              { id: 'concerns', label: 'Areas of Concern', count: areasOfConcern.length, icon: AlertTriangle, color: 'text-rose-600' },
+              { id: 'concerns', label: 'Concerns', count: allConcerns.length, icon: AlertTriangle, color: 'text-rose-600' },
               { id: 'recommendations', label: 'Recommendations', count: recommendations.length, icon: Lightbulb, color: 'text-amber-600' },
+              { id: 'insights', label: 'Key Findings', count: keyInsights.length, icon: CheckCircle2, color: 'text-emerald-600' },
+              { id: 'trends', label: 'Trends', count: trends.length, icon: TrendingUp, color: 'text-sky-600' },
             ].map(({ id, label, count, icon: Icon, color }) => (
               <button
                 key={id}
@@ -258,34 +277,34 @@ export function AIInsightsCard({ data, period }: { data?: InsightsData | null; p
           </div>
 
           <div className="text-[11px] font-body text-ink-muted hidden sm:block">
-            High-signal platform intelligence cards
+            High-signal platform intelligence
           </div>
         </div>
 
-        {/* StatCard-Style Grid Findings */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-3.5">
-          {/* 1. Key Insights */}
-          {(activeCategory === 'all' || activeCategory === 'insights') &&
-            keyInsights.map((item, idx) => (
-              <InsightStatCard key={`insight-${idx}`} item={item} category="insight" />
-            ))}
-
-          {/* 2. Trends */}
-          {(activeCategory === 'all' || activeCategory === 'trends') &&
-            trends.map((item, idx) => (
-              <InsightStatCard key={`trend-${idx}`} item={item} category="trend" />
-            ))}
-
-          {/* 3. Areas of Concern */}
+        {/* Urgency-ordered card grid — Concerns → Recs → Key Findings → Trends */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5">
+          {/* 1. Areas of Concern (non-test-data) — highest urgency */}
           {(activeCategory === 'all' || activeCategory === 'concerns') &&
             areasOfConcern.map((item, idx) => (
               <InsightStatCard key={`concern-${idx}`} item={item} category="concern" />
             ))}
 
-          {/* 4. Strategic Recommendations */}
+          {/* 2. Recommendations */}
           {(activeCategory === 'all' || activeCategory === 'recommendations') &&
             recommendations.map((item, idx) => (
               <InsightStatCard key={`rec-${idx}`} item={item} category="recommendation" />
+            ))}
+
+          {/* 3. Key Findings */}
+          {(activeCategory === 'all' || activeCategory === 'insights') &&
+            keyInsights.map((item, idx) => (
+              <InsightStatCard key={`insight-${idx}`} item={item} category="insight" />
+            ))}
+
+          {/* 4. Market Trends — lowest urgency */}
+          {(activeCategory === 'all' || activeCategory === 'trends') &&
+            trends.map((item, idx) => (
+              <InsightStatCard key={`trend-${idx}`} item={item} category="trend" />
             ))}
         </div>
 

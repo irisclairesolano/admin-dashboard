@@ -253,19 +253,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const openTicketsCount = notifications.filter(n => n.category === 'support').length;
 
   const rawNavItems = [
-    { name: 'Analytics',             href: '/dashboard',              iconClass: 'lni lni-grid-alt',  badge: 0 },
-    { name: 'Verifications',         href: '/dashboard/verifications', iconClass: 'lni lni-user',      badge: pendingVerificationsCount, badgeColor: 'bg-primary text-white' },
-    { name: 'Users',                 href: '/dashboard/users',         iconClass: 'lni lni-users',     badge: 0 },
-    { name: 'Jobs',                  href: '/dashboard/jobs',          iconClass: 'lni lni-briefcase', badge: 0 },
-    { name: 'Institutional Reports', href: '/dashboard/export-reports', iconClass: 'lni lni-printer',  badge: 0 },
-    { name: 'Support',               href: '/dashboard/support',       iconClass: 'lni lni-comments',  badge: openTicketsCount, badgeColor: 'bg-status-warning text-white' },
-    { name: 'Moderation',            href: '/dashboard/moderation',    iconClass: 'lni lni-flag',      badge: openReportsCount, badgeColor: 'bg-status-error text-white' },
-    { name: 'Word Filter',           href: '/dashboard/profanity',     iconClass: 'lni lni-ban',       badge: 0 },
-    { name: 'Archives',              href: '/dashboard/archives',      iconClass: 'lni lni-archive',   badge: 0 },
-    { name: 'Audit Logs',            href: '/dashboard/logs',          iconClass: 'lni lni-shield',    badge: 0, superAdminOnly: true },
+    { name: 'Analytics',    href: '/dashboard',               iconClass: 'lni lni-grid-alt',  badge: 0,                       section: 'overview' },
+    { name: 'Verifications',href: '/dashboard/verifications',  iconClass: 'lni lni-user',      badge: pendingVerificationsCount, badgeColor: 'bg-primary text-white', section: 'people' },
+    { name: 'Users',        href: '/dashboard/users',          iconClass: 'lni lni-users',     badge: 0,                       section: 'people' },
+    { name: 'Jobs',         href: '/dashboard/jobs',           iconClass: 'lni lni-briefcase', badge: 0,                       section: 'people' },
+    { name: 'Moderation',   href: '/dashboard/moderation',     iconClass: 'lni lni-flag',      badge: openReportsCount,        badgeColor: 'bg-status-error text-white', section: 'trust' },
+    { name: 'Word Filter',  href: '/dashboard/profanity',      iconClass: 'lni lni-ban',       badge: 0,                       section: 'trust' },
+    { name: 'Support',      href: '/dashboard/support',        iconClass: 'lni lni-comments',  badge: openTicketsCount,        badgeColor: 'bg-status-warning text-white', section: 'trust' },
+    { name: 'Data Exports', href: '/dashboard/export-reports', iconClass: 'lni lni-printer',   badge: 0,                       section: 'records' },
+    { name: 'Archives',     href: '/dashboard/archives',       iconClass: 'lni lni-archive',   badge: 0,                       section: 'records' },
+    { name: 'Audit Logs',   href: '/dashboard/logs',           iconClass: 'lni lni-shield',    badge: 0,                       superAdminOnly: true, section: 'records' },
   ];
 
   const navItems = rawNavItems.filter(item => !item.superAdminOnly || adminRole === 'superadmin');
+
+  const navSections = [
+    { key: 'overview', label: 'Overview',           items: navItems.filter(i => i.section === 'overview') },
+    { key: 'people',   label: 'People & Listings',  items: navItems.filter(i => i.section === 'people') },
+    { key: 'trust',    label: 'Trust & Safety',     items: navItems.filter(i => i.section === 'trust') },
+    { key: 'records',  label: 'Records',            items: navItems.filter(i => i.section === 'records') },
+  ].filter(s => s.items.length > 0);
 
   // ── Notifications Helper Computes ──────────────────────────────────────────
   const unreadNotifications = notifications.filter(n => !readNotifications.includes(n.id));
@@ -658,44 +665,51 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         <div className="p-5 flex flex-col flex-1 min-h-0 justify-between">
-          <nav className="flex-1 space-y-2 mt-4 lg:mt-0 overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:theme(colors.ink.faint)_transparent]">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-              const hasBadge = item.badge > 0;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`
-                    group flex items-center px-4 py-3.5 text-sm font-body font-semibold rounded-2xl
-                    transition-all duration-300 relative overflow-hidden
-                    ${isActive
-                      ? 'bg-ink text-white shadow-md transform scale-[1.02]'
-                      : 'text-ink-soft hover:bg-white/50 hover:text-ink hover:shadow-sm'
-                    }
-                  `}
-                >
-                  {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />}
-                  <i className={`${item.iconClass} text-lg mr-3 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-white' : 'text-ink-muted group-hover:text-primary-dark'}`} />
-                  {item.name}
-                  <span className="ml-auto flex items-center gap-1.5">
-                    {/* Dynamic counter badge for items with pending work */}
-                    {hasBadge && (
-                      <span className={`min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${
-                        item.badgeColor || (isActive ? 'bg-status-error text-white' : 'bg-status-error text-white')
-                      } ${item.name === 'Reports' ? 'animate-pulse' : ''}`}>
-                        {item.badge > 99 ? '99+' : item.badge}
-                      </span>
-                    )}
-                    {/* Pulse dot while pre-fetch is in flight */}
-                    {prefetchStatus === 'loading' && !hasBadge && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                    )}
-                  </span>
-                </Link>
-              );
-            })}
+          <nav className="flex-1 mt-4 lg:mt-0 overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:theme(colors.ink.faint)_transparent] space-y-4">
+            {navSections.map((section) => (
+              <div key={section.key}>
+                <span className="block text-[9px] font-body font-bold uppercase tracking-widest text-ink-muted/60 px-4 mb-1.5">
+                  {section.label}
+                </span>
+                <div className="space-y-1">
+                  {section.items.map((item) => {
+                    const isActive = pathname === item.href;
+                    const hasBadge = item.badge > 0;
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setSidebarOpen(false)}
+                        className={`
+                          group flex items-center px-4 py-3 text-sm font-body font-semibold rounded-2xl
+                          transition-all duration-300 relative overflow-hidden
+                          ${isActive
+                            ? 'bg-ink text-white shadow-md transform scale-[1.02]'
+                            : 'text-ink-soft hover:bg-white/50 hover:text-ink hover:shadow-sm'
+                          }
+                        `}
+                      >
+                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />}
+                        <i className={`${item.iconClass} text-lg mr-3 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-white' : 'text-ink-muted group-hover:text-primary-dark'}`} />
+                        {item.name}
+                        <span className="ml-auto flex items-center gap-1.5">
+                          {hasBadge && (
+                            <span className={`min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${
+                              item.badgeColor || 'bg-status-error text-white'
+                            } ${item.name === 'Moderation' ? 'animate-pulse' : ''}`}>
+                              {item.badge > 99 ? '99+' : item.badge}
+                            </span>
+                          )}
+                          {prefetchStatus === 'loading' && !hasBadge && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                          )}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
 
           <div className="pt-4 border-t border-ink-faint/30 mt-auto flex items-center justify-between px-2 text-[11px] text-ink-muted flex-shrink-0">
