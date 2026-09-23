@@ -144,6 +144,7 @@ export interface AuditLog {
 export interface ProfanityWord {
   id: number;
   word: string;
+  action: 'block' | 'flag';
   created_at: string;
 }
 

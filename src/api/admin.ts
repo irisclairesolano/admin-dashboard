@@ -386,9 +386,9 @@ export const adminApi = {
   getProfanityWords: async () => {
     return cachedGet('/admin/profanity-words');
   },
-  addProfanityWord: async (word: string) => {
+  addProfanityWord: async (word: string, action: 'block' | 'flag' = 'block') => {
     clearApiCache();
-    return apiClient.post('/admin/profanity-words', { word });
+    return apiClient.post('/admin/profanity-words', { word, action });
   },
   deleteProfanityWord: async (id: number) => {
     clearApiCache();
