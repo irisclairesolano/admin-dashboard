@@ -300,6 +300,15 @@ export const adminApi = {
     return cachedGet(url);
   },
 
+  getJob: async (id: number, forceRefresh: boolean = false) => {
+    const url = `/admin/jobs/${id}`;
+    if (forceRefresh) {
+      clearApiCache();
+      return apiClient.get(url);
+    }
+    return cachedGet(url);
+  },
+
   deleteJob: async (id: number) => {
     clearApiCache();
     return apiClient.delete(`/admin/jobs/${id}`);

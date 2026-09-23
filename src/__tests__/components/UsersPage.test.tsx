@@ -172,4 +172,71 @@ describe('UsersPage Component', () => {
 
     expect(adminApi.deleteUser).toHaveBeenCalledWith(1);
   });
+
+  it('clicking show archived includes archived users on the list alongside active users', async () => {
+    const activeList = [
+      {
+        id: 10,
+        name: 'Active Worker',
+        email: 'active@example.com',
+        role: 'worker',
+        verification_status: 'approved',
+        registration_status: 'approved',
+        created_at: '2026-08-17T00:00:00Z',
+        is_suspended: false,
+        deleted_at: null,
+      },
+    ];
+    const archivedList = [
+      {
+        id: 11,
+        name: 'Archived Worker',
+        email: 'archived@example.com',
+        role: 'worker',
+        verification_status: 'approved',
+        registration_status: 'approved',
+        created_at: '2026-08-10T00:00:00Z',
+        is_suspended: false,
+        deleted_at: '2026-08-18T00:00:00Z',
+      },
+    ];
+
+    vi.mocked(adminApi.getUsers).mockImplementation(async (params: any) => {
+      if (params?.trashed) {
+        return { data: { success: true, data: archivedList } } as any;
+      }
+      return { data: { success: true, data: activeList } } as any;
+    });
+
+    render(<UsersPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Active Worker')).toBeInTheDocument();
+    });
+    // Initially, archived worker should NOT be in the document
+    expect(screen.queryByText('Archived Worker')).not.toBeInTheDocument();
+
+    // Find the "Show Archived" checkbox
+    const showArchivedCheckbox = screen.getByRole('checkbox', { name: /show archived users/i });
+    expect(showArchivedCheckbox).not.toBeChecked();
+
+    // Check "Show Archived"
+    fireEvent.click(showArchivedCheckbox);
+
+    // Both active worker AND archived worker should now be present on the list!
+    await waitFor(() => {
+      expect(screen.getByText('Active Worker')).toBeInTheDocument();
+      expect(screen.getByText('Archived Worker')).toBeInTheDocument();
+    });
+
+    // Uncheck "Show Archived"
+    fireEvent.click(showArchivedCheckbox);
+
+    // Archived worker should disappear, active worker remains
+    await waitFor(() => {
+      expect(screen.getByText('Active Worker')).toBeInTheDocument();
+      expect(screen.queryByText('Archived Worker')).not.toBeInTheDocument();
+    });
+  });
 });
+

@@ -221,7 +221,7 @@ export default function UserDetailDrawer({
                     <div className="w-1.5 h-1.5 bg-ink-faint rounded-full hidden sm:block" />
                     <div className="flex items-center gap-1.5">
                       <Star className="w-4 h-4 text-status-gold fill-status-gold" />
-                      <span>{Number(userDetailData.stats.average_rating).toFixed(1)} / 5.0 ({userDetailData.stats.reviews_count} reviews)</span>
+                      <span>{Number(userDetailData.stats.average_rating).toFixed(2)} / 5.0 ({userDetailData.stats.reviews_count} reviews)</span>
                     </div>
                     {selectedDetailUser.role === 'employer' && (
                       <>
@@ -1015,7 +1015,7 @@ export default function UserDetailDrawer({
                             </div>
                             <div className="flex items-center gap-1 bg-status-gold/10 px-2 py-0.5 rounded border border-status-gold/20 text-xs font-bold text-status-gold">
                               <Star className="w-3.5 h-3.5 fill-status-gold" />
-                              <span>{Number(r.overall_rating).toFixed(1)}</span>
+                              <span>{Number(r.overall_rating).toFixed(2)}</span>
                             </div>
                           </div>
                           <p className="text-sm text-ink-soft leading-relaxed italic bg-white/50 p-3 rounded-xl border border-white/60">

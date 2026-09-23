@@ -171,17 +171,6 @@ export interface CSVSection {
   rows: (string | number | boolean | null | undefined)[][];
 }
 
-export function exportTableToCSV(
-  filename: string,
-  headers: string[],
-  rows: (string | number | boolean | null | undefined)[][]
-): void {
-  const headerLine = headers.map(escapeCSVField).join(',');
-  const rowLines = rows.map((row) => row.map(escapeCSVField).join(','));
-  const csvContent = [headerLine, ...rowLines].join('\r\n');
-  downloadCSV(filename, csvContent);
-}
-
 export function exportMultiSectionCSV(
   filename: string,
   reportTitle: string,
@@ -214,21 +203,4 @@ export function exportMultiSectionCSV(
   }
 
   downloadCSV(filename, lines.join('\r\n'));
-}
-
-export function exportFormattedTableCSV(
-  filename: string,
-  reportTitle: string,
-  metadata: [string, string][],
-  sectionTitle: string,
-  headers: string[],
-  rows: (string | number | boolean | null | undefined)[][]
-): void {
-  exportMultiSectionCSV(filename, reportTitle, metadata, [
-    {
-      title: sectionTitle,
-      headers,
-      rows,
-    },
-  ]);
 }

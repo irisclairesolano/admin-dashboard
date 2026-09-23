@@ -19,6 +19,7 @@ vi.mock('next/navigation', () => {
 import VerificationModal from '../components/VerificationModal';
 import UserDetailDrawer from '../components/users/UserDetailDrawer';
 import JobPreviewModal from '../components/users/JobPreviewModal';
+import JobDetailModal from '../components/jobs/JobDetailModal';
 
 vi.mock('next/dynamic', () => {
   return {
@@ -32,6 +33,9 @@ vi.mock('next/dynamic', () => {
       }
       if (str.includes('JobPreviewModal')) {
         return JobPreviewModal;
+      }
+      if (str.includes('JobDetailModal')) {
+        return JobDetailModal;
       }
       return () => null;
     },

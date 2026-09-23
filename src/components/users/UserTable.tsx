@@ -61,7 +61,7 @@ export default function UserTable({
             </tr>
           ) : (
             paginatedUsers.map((user) => (
-              <tr key={user.id} className={`transition-colors duration-200 ${user.is_suspended ? 'bg-status-error/5 hover:bg-status-error/10' : 'hover:bg-white/60'}`}>
+              <tr key={user.id} className={`transition-colors duration-200 ${user.deleted_at ? 'bg-ink-faint/15 hover:bg-ink-faint/25' : user.is_suspended ? 'bg-status-error/5 hover:bg-status-error/10' : 'hover:bg-white/60'}`}>
                 <td className="px-4 py-3.5 font-numeric text-xs font-semibold text-ink-muted">
                   #{user.id}
                 </td>

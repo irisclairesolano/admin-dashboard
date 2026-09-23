@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, Suspense, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { AlertDialog } from '@/components/AlertDialog';
 import dynamic from 'next/dynamic';
@@ -32,7 +32,7 @@ function UsersContent() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [filter, setFilter] = useState<'all' | 'verified' | 'unverified' | 'rejected'>('all');
-  const [roleFilter, setRoleFilter] = useState<'all' | 'worker' | 'employer'>('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'worker' | 'employer' | 'admin'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'created_at' | 'rating'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -47,7 +47,12 @@ function UsersContent() {
 
   // New Drawer & Lazy-Loading States
   const [showArchived, setShowArchived] = useState(false);
-  const users = showArchived ? archivedUsers : activeUsers;
+  const users = useMemo(() => {
+    if (!showArchived) return activeUsers;
+    const activeIds = new Set(activeUsers.map((u: any) => u.id));
+    const uniqueArchived = archivedUsers.filter((u: any) => !activeIds.has(u.id));
+    return [...activeUsers, ...uniqueArchived];
+  }, [showArchived, activeUsers, archivedUsers]);
   const [selectedDetailUser, setSelectedDetailUser] = useState<any | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [userDetailData, setUserDetailData] = useState<any | null>(null);
@@ -409,7 +414,7 @@ function UsersContent() {
         ['Generated On:', formatCSVDate(new Date().toISOString())],
         ['Report Classification:', 'Official SIKAP User Registry'],
         ['Total Records Exported:', String(sortedUsers.length)],
-        ['Active View Filter:', showArchived ? 'Archived Users' : filter.toUpperCase()],
+        ['Active View Filter:', showArchived ? `${filter.toUpperCase()} (Including Archived)` : filter.toUpperCase()],
         ['Role Filter:', roleFilter.toUpperCase()],
       ],
       [
@@ -488,8 +493,8 @@ function UsersContent() {
         </div>
       </div>
 
-      {/* 5 Stat Cards: Total, Workers, Employers, Pending Review, Archived */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+      {/* 6 Stat Cards: Total, Workers, Employers, Admins, Pending Review, Archived */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 mb-4">
         <StatCard
           title="Total Users"
           value={activeUsers.length + archivedUsers.length}
@@ -507,6 +512,12 @@ function UsersContent() {
           value={activeUsers.filter(u => u.role === 'employer').length}
           iconClass="lni lni-briefcase"
           onClick={() => { setShowArchived(false); setRoleFilter('employer'); setFilter('all'); setCurrentPage(1); }}
+        />
+        <StatCard
+          title="Admins"
+          value={activeUsers.filter(u => u.role === 'admin').length}
+          iconClass="lni lni-shield"
+          onClick={() => { setShowArchived(false); setRoleFilter('admin'); setFilter('all'); setCurrentPage(1); }}
         />
         <StatCard
           title="Pending Review"
@@ -573,6 +584,7 @@ function UsersContent() {
             <option value="all">All Roles</option>
             <option value="worker">Workers</option>
             <option value="employer">Employers</option>
+            <option value="admin">Admins</option>
           </select>
 
           <select

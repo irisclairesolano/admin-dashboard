@@ -1,5 +1,6 @@
 import ExcelJS from 'exceljs';
-import { calculateNormalizedHourlyWage } from './csv';
+import { calculateNormalizedHourlyWage, formatCSVStatus } from './csv';
+import { humanizeModel } from '../../lib/constants';
 
 export interface ExportDataPayload {
   users: any[];
@@ -389,8 +390,8 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
     const hasReviews = (u.ratings_count !== undefined && u.ratings_count > 0) ||
       (u.reviews_received_count !== undefined && u.reviews_received_count > 0) ||
       (u.reviews_count !== undefined && u.reviews_count > 0);
-    const repValue = hasReviews && u.reputation_score ? parseFloat(u.reputation_score) : null;
-    
+    const repValue = hasReviews && u.reputation_score ? Math.round(parseFloat(u.reputation_score) * 100) / 100 : null;
+
     row.getCell(10).value = repValue !== null ? repValue : 'N/A';
     if (repValue !== null) {
       row.getCell(10).numFmt = '0.00';
@@ -564,8 +565,8 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
       row.height = 20;
 
       row.getCell(1).value = r.id;
-      row.getCell(2).value = r.type ? r.type.replace(/_/g, ' ') : 'Other';
-      row.getCell(3).value = r.reportable_type ? r.reportable_type.replace(/_/g, ' ') : 'N/A';
+      row.getCell(2).value = formatCSVStatus(r.type);
+      row.getCell(3).value = r.reportable_type ? humanizeModel(r.reportable_type) : 'N/A';
       row.getCell(4).value = r.reportable_id ?? 'N/A';
       row.getCell(5).value = r.reporter?.name || 'Anonymous';
       row.getCell(6).value = r.description || '';

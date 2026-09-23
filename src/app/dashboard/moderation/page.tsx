@@ -8,7 +8,7 @@ import { AlertDialog } from '@/components/AlertDialog';
 import { humanizeModel } from '@/lib/constants';
 import { formatDate } from '@/lib/date';
 import { usePolling } from '@/hooks/usePolling';
-import { exportMultiSectionCSV, formatCSVDate } from '@/lib/export/csv';
+import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus } from '@/lib/export/csv';
 
 function ModerationPageContent() {
   const router = useRouter();
@@ -63,13 +63,13 @@ function ModerationPageContent() {
 
     const rows = filteredReports.map((r) => [
       r.id,
-      r.type,
-      r.reportable_type,
+      formatCSVStatus(r.type),
+      humanizeModel(r.reportable_type),
       r.reportable_id,
       r.reporter?.name || '',
       r.reporter?.role || '',
       r.description,
-      r.status,
+      formatCSVStatus(r.status),
       formatCSVDate(r.created_at),
       formatCSVDate(r.resolved_at)
     ]);

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import StatCard from '@/components/StatCard';
@@ -9,6 +10,10 @@ import { AlertDialog } from '@/components/AlertDialog';
 import { formatDate } from '@/lib/date';
 import { STATUS_BADGE_MAP, DEFAULT_BADGE_CLASS } from '@/lib/constants';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus, calculateNormalizedHourlyWage } from '@/lib/export/csv';
+
+const JobDetailModal = dynamic(() => import('@/components/jobs/JobDetailModal'), {
+  ssr: false,
+});
 
 function JobsPageContent() {
   const searchParams = useSearchParams();
@@ -348,12 +353,13 @@ function JobsPageContent() {
           </div>
         </div>
 
-        {/* 5 Stat Cards: Total, Open, In Progress, Completed, Suspended & Archived */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+        {/* 6 Stat Cards: Total, Open, In Progress, Completed, Cancelled, Suspended & Archived */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 mb-4">
           <StatCard title="Total Posts" value={activeJobs.length + archivedJobs.length} iconClass="lni lni-briefcase" onClick={() => setStatusFilter('All')} />
           <StatCard title="Open" value={activeJobs.filter(j => j.status === 'open').length} iconClass="lni lni-play" onClick={() => setStatusFilter('Open')} />
           <StatCard title="In Progress" value={activeJobs.filter(j => j.status === 'in_progress' || j.status === 'in progress').length} iconClass="lni lni-pause" onClick={() => setStatusFilter('In Progress')} />
           <StatCard title="Completed" value={activeJobs.filter(j => j.status === 'completed').length} iconClass="lni lni-checkmark-circle" onClick={() => setStatusFilter('Completed')} />
+          <StatCard title="Cancelled" value={activeJobs.filter(j => j.status === 'cancelled').length} iconClass="lni lni-close" onClick={() => setStatusFilter('Cancelled')} />
           <StatCard title="Suspended & Archived" value={activeJobs.filter(j => j.status === 'suspended').length + archivedJobs.length} iconClass="lni lni-trash-can" onClick={() => setStatusFilter(activeJobs.some(j => j.status === 'suspended') ? 'Suspended' : 'Archived')} />
         </div>
 
@@ -544,171 +550,17 @@ function JobsPageContent() {
         )}
       </div>
 
-      {/* Right-Side Fixed Drawer (Glassmorphic details panel) */}
+      {/* Job Details Modal - Centered modal matching UserDetailDrawer */}
       {selectedDetailJob && (
-        <>
-          <div 
-            className="fixed inset-0 bg-ink/20 backdrop-blur-sm z-40 transition-opacity animate-fade-in"
-            onClick={() => setSelectedDetailJob(null)}
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="job-drawer-title"
-            tabIndex={-1}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape') setSelectedDetailJob(null);
-            }}
-            className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white/95 backdrop-blur-xl border-l border-white/50 shadow-2xl flex flex-col h-screen transform transition-transform duration-300 translate-x-0 animate-slide-in"
-          >
-            {/* Header */}
-            <div className="p-6 border-b border-ink-faint/30 bg-paper/30 flex justify-between items-center">
-              <div>
-                <span className="text-[10px] font-mono font-bold text-primary uppercase bg-primary/10 px-2.5 py-1 rounded">
-                  #{selectedDetailJob.id}
-                </span>
-                <h2 id="job-drawer-title" className="font-display text-xl text-ink font-bold mt-2 leading-tight">{selectedDetailJob.title}</h2>
-              </div>
-              <button
-                onClick={() => setSelectedDetailJob(null)}
-                className="w-8 h-8 flex items-center justify-center hover:bg-paper rounded-full text-ink-muted hover:text-ink transition-colors"
-                aria-label="Close details"
-              >
-                <i className="lni lni-close text-xs" />
-              </button>
-            </div>
-
-            {/* Content list */}
-            <div className="p-6 flex-1 overflow-y-auto space-y-5 font-body">
-              <div>
-                <span className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider">Employer</span>
-                <div className="flex items-center mt-2 p-3 bg-white/50 rounded-xl border border-white/50">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-peach to-accent-peachBright/50 flex items-center justify-center text-primary-dark font-body font-bold text-sm shadow-inner mr-3 flex-shrink-0">
-                    {(selectedDetailJob.employer?.name || 'U').charAt(0)}
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="font-bold text-ink text-sm truncate">{selectedDetailJob.employer?.name || 'Unknown'}</h4>
-                    <p className="text-[10px] text-ink-soft mt-0.5 truncate">{selectedDetailJob.employer?.email}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <span className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider">Job Details</span>
-                <div className="grid grid-cols-2 gap-3 mt-2">
-                  <div className="p-3 bg-white/50 rounded-xl border border-white/50">
-                    <span className="block text-[9px] font-bold text-ink-muted uppercase tracking-wide">Compensation</span>
-                    <span className="text-sm font-bold text-status-success mt-1 block">
-                      ₱{(parseFloat(selectedDetailJob.compensation) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      <span className="text-[9px] text-ink-muted font-normal"> / {
-                        selectedDetailJob.rate_unit === 'per_hour' ? 'hour' :
-                        selectedDetailJob.rate_unit === 'per_project' ? 'project' :
-                        selectedDetailJob.rate_unit === 'per_piece' ? 'piece' :
-                        selectedDetailJob.rate_unit === 'per_day' ? 'day' :
-                        selectedDetailJob.duration_type || 'day'
-                      }</span>
-                    </span>
-                  </div>
-                  <div className="p-3 bg-white/50 rounded-xl border border-white/50">
-                    <span className="block text-[9px] font-bold text-ink-muted uppercase tracking-wide">Duration</span>
-                    <span className="text-sm font-bold text-ink mt-1 block">
-                      {selectedDetailJob.duration ? `${selectedDetailJob.duration} ${selectedDetailJob.duration_unit || 'Days'}` : 'Flexible'}
-                    </span>
-                  </div>
-                  <div className="p-3 bg-white/50 rounded-xl border border-white/50 col-span-2">
-                    <span className="block text-[9px] font-bold text-ink-muted uppercase tracking-wide">Slots filled</span>
-                    <span className="text-sm font-bold text-ink mt-1 block">
-                      {(selectedDetailJob.filled_slots ?? selectedDetailJob.accepted_count) ?? 0} / {selectedDetailJob.slots}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <span className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">Location</span>
-                <div className="flex items-center gap-2 p-3 bg-white/50 rounded-xl border border-white/50 text-xs font-semibold text-ink">
-                  <i className="lni lni-map-marker text-primary text-sm" />
-                  <span>Brgy. {selectedDetailJob.barangay}, {selectedDetailJob.municipality}</span>
-                </div>
-              </div>
-
-              <div>
-                <span className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">Posted & Status</span>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-white/50 rounded-xl border border-white/50">
-                    <span className="block text-[9px] font-bold text-ink-muted uppercase tracking-wide">Posted Date</span>
-                    <span className="text-xs font-semibold text-ink mt-1 block">
-                      {formatDate(selectedDetailJob.created_at)}
-                    </span>
-                  </div>
-                  <div className="p-3 bg-white/50 rounded-xl border border-white/50">
-                    <span className="block text-[9px] font-bold text-ink-muted uppercase tracking-wide">Status</span>
-                    <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide ${
-                      selectedDetailJob.status === 'open' ? 'bg-status-success/20 text-status-success border border-status-success/30' :
-                      selectedDetailJob.status === 'suspended' ? 'bg-status-warning/20 text-status-warning border border-status-warning/30' :
-                      'bg-ink-faint/50 text-ink-soft border border-ink-faint'
-                    }`}>
-                      {selectedDetailJob.status}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <span className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">Description</span>
-                <p className="text-xs text-ink-soft leading-relaxed bg-white/50 p-3 rounded-xl border border-white/50 whitespace-pre-line">
-                  {selectedDetailJob.description}
-                </p>
-              </div>
-
-              {selectedDetailJob.tools_required && (
-                <div>
-                  <span className="block text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">Tools Required</span>
-                  <p className="text-xs text-ink-soft bg-white/50 p-3 rounded-xl border border-white/50">
-                    {selectedDetailJob.tools_required}
-                  </p>
-                </div>
-              )}
-
-              {/* Drawer Actions */}
-              <div className="pt-3 border-t border-ink-faint/30 flex gap-2">
-                {selectedDetailJob.deleted_at ? (
-                  <button
-                    disabled={actionLoading === selectedDetailJob.id}
-                    onClick={() => handleRestore(selectedDetailJob.id)}
-                    className="flex-1 py-2 px-3 rounded-xl bg-status-success text-white font-body font-bold text-xs hover:bg-status-success/90 transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-                  >
-                    <i className="lni lni-reload text-xs" />
-                    Restore Job Post
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      disabled={actionLoading === selectedDetailJob.id}
-                      onClick={() => handleSuspendToggle(selectedDetailJob.id, selectedDetailJob.status)}
-                      className={`flex-1 py-2 px-3 rounded-xl font-body font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer ${
-                        selectedDetailJob.status === 'suspended'
-                          ? 'bg-status-success text-white hover:bg-status-success/90'
-                          : 'bg-status-warning text-white hover:bg-status-warning/90'
-                      }`}
-                    >
-                      <i className={`${selectedDetailJob.status === 'suspended' ? 'lni lni-play' : 'lni lni-pause'} text-xs`} />
-                      {selectedDetailJob.status === 'suspended' ? 'Unsuspend' : 'Suspend'}
-                    </button>
-                    <button
-                      disabled={actionLoading === selectedDetailJob.id}
-                      onClick={() => handleDelete(selectedDetailJob.id)}
-                      className="py-2 px-3 rounded-xl bg-status-error/10 text-status-error border border-status-error/20 hover:bg-status-error hover:text-white font-body font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      <i className="lni lni-trash-can text-xs" />
-                      Delete
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </>
+        <JobDetailModal
+          job={selectedDetailJob}
+          onClose={() => setSelectedDetailJob(null)}
+          onSuspendToggle={handleSuspendToggle}
+          onDelete={handleDelete}
+          onRestore={handleRestore}
+          actionLoading={actionLoading}
+          onRefresh={() => fetchJobs(true)}
+        />
       )}
 
       <AlertDialog

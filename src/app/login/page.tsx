@@ -170,7 +170,7 @@ export default function LoginPage() {
                 </svg>
                 <span className="flex-1">{error}</span>
               </div>
-              {error.toLowerCase().includes('too many') && (
+              {error.toLowerCase().includes('too many') && process.env.NODE_ENV === 'development' && (
                 <button
                   type="button"
                   onClick={handleResetLockout}

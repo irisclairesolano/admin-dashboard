@@ -8,6 +8,7 @@ import { adminApi } from '@/lib/api';
 vi.mock('@/lib/api', () => ({
   adminApi: {
     getJobs: vi.fn(),
+    getJob: vi.fn(),
     deleteJob: vi.fn(),
     updateJobStatus: vi.fn(),
   },
@@ -51,6 +52,13 @@ describe('JobsPage Component', () => {
     vi.clearAllMocks();
     vi.mocked(adminApi.getJobs).mockResolvedValue({
       data: { success: true, data: mockJobs },
+    } as any);
+    vi.mocked(adminApi.getJob).mockResolvedValue({
+      data: {
+        job: mockJobs[0],
+        applications: [],
+        reports: [],
+      },
     } as any);
   });
 
@@ -110,5 +118,31 @@ describe('JobsPage Component', () => {
     fireEvent.click(confirmBtn);
 
     expect(adminApi.deleteJob).toHaveBeenCalledWith(1);
+  });
+
+  it('opens centered job details modal when clicking a job row', async () => {
+    render(<JobsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Senior House Painter')).toBeInTheDocument();
+    });
+
+    const jobRowTitle = screen.getByText('Senior House Painter');
+    fireEvent.click(jobRowTitle);
+
+    await waitFor(() => {
+      // Check modal role and header
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('Job Overview & Specs')).toBeInTheDocument();
+      expect(screen.getByText('Employer Profile')).toBeInTheDocument();
+    });
+
+    // Close button should close the modal
+    const closeBtn = screen.getByLabelText('Close details');
+    fireEvent.click(closeBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
   });
 });

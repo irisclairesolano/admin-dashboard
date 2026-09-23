@@ -6,7 +6,7 @@ import { adminApi } from '@/lib/api';
 import Avatar from '@/components/Avatar';
 import dynamic from 'next/dynamic';
 import { AlertDialog } from '@/components/AlertDialog';
-import { exportMultiSectionCSV, formatCSVDate } from '@/lib/export/csv';
+import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus } from '@/lib/export/csv';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
@@ -89,7 +89,7 @@ function VerificationsPageContent() {
       u.phone || '',
       u.municipality || 'Bulan',
       u.barangay || '',
-      u.verification_status || u.registration_status,
+      formatCSVStatus(u.verification_status || u.registration_status),
       u.document_url ? 'Yes' : 'No',
       u.document_back_url ? 'Yes' : 'No',
       u.selfie_url ? 'Yes' : 'No',

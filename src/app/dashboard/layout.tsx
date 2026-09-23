@@ -11,6 +11,8 @@ import { usePolling } from '@/hooks/usePolling';
 import { useInactivityTimer } from '@/hooks/useInactivityTimer';
 import { TwoFactorSetupModal } from '@/components/TwoFactorSetupModal';
 import { ShieldCheck, ShieldAlert, KeyRound } from 'lucide-react';
+import { humanizeModel } from '@/lib/constants';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 type PrefetchStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -135,7 +137,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       // 2. Open Reports (Individual items)
       const openReports = (reportsRes.data?.data || []);
       openReports.forEach((r: any) => {
-        const rawModel = r.reportable_type ? r.reportable_type.replace(/.*\\/, '').replace(/([A-Z])/g, ' $1').trim() : 'Content';
+        const rawModel = r.reportable_type ? humanizeModel(r.reportable_type) : 'Content';
         list.push({
           id: `report-${r.id}`,
           category: 'report',
@@ -788,7 +790,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <main className="flex-1 w-full mx-auto relative overflow-y-auto pt-16 lg:pt-0">
           <div className="p-3 sm:p-4 md:p-6 animate-fade-in max-w-[1560px] mx-auto">
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </div>
         </main>
       </div>

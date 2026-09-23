@@ -10,7 +10,7 @@ import { adminApi } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { AIInsightsCard, InsightsData } from '@/components/AIInsightsCard';
 import { CHART_COLORS } from '@/lib/constants';
-import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency } from '@/lib/export/csv';
+import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus } from '@/lib/export/csv';
 import { generateMasterExcelWorkbook, downloadExcelBlob } from '@/lib/export/excel';
 
 const renderActiveShape = (props: any) => {
@@ -603,7 +603,7 @@ export default function AnalyticsDashboard() {
         headers: ['Violation Type', 'Report Count'],
         rows: (data.reports?.breakdown && data.reports.breakdown.length > 0)
           ? data.reports.breakdown.map((r: any) => [
-              r.type ? r.type.replace(/_/g, ' ').toUpperCase() : 'OTHER',
+              formatCSVStatus(r.type),
               r.count ?? 0
             ])
           : [['No Active Violations Reported', 0]]
