@@ -72,11 +72,20 @@ export const DEFAULT_ACTION_BADGE: ActionBadgeStyle = { bg: 'bg-ink-faint/40', t
 
 // ─── Reportable Type Humanizer ───────────────────────────────────────────────
 const REPORTABLE_TYPE_MAP: Record<string, string> = {
-  'App\\Models\\JobPost':  'Job Post',
-  'App\\Models\\Job':      'Job Post',
-  'App\\Models\\User':     'User',
-  'App\\Models\\Review':   'Review',
-  'App\\Models\\Comment':  'Comment',
+  'App\\Models\\JobPost':        'Job Post',
+  'App\\Models\\Job':            'Job Post',
+  'App\\Models\\User':           'User',
+  'App\\Models\\Review':         'Review',
+  'App\\Models\\Comment':        'Comment',
+  'App\\Models\\Message':        'Chat Message',
+  'App\\Models\\Application':    'Application',
+  'App\\Models\\SupportTicket':  'Support Ticket',
+  'message':                     'Chat Message',
+  'application':                 'Application',
+  'review':                      'Review',
+  'support_ticket':              'Support Ticket',
+  'job_post':                    'Job Post',
+  'user':                        'User',
 };
 
 export function humanizeModel(type: string): string {
