@@ -339,13 +339,27 @@ function ModerationPageContent() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-paper-cream to-ink-faint flex items-center justify-center text-ink font-body font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
-                            {(report.reporter?.name || 'U').charAt(0)}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="font-body font-bold text-ink text-xs truncate">{report.reporter?.name || 'Unknown'}</div>
-                            <div className="text-[10px] text-ink-soft truncate mt-0.5">{report.reporter?.email}</div>
-                          </div>
+                          {report.reporter ? (
+                            <>
+                              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-paper-cream to-ink-faint flex items-center justify-center text-ink font-body font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
+                                {(report.reporter?.name || 'U').charAt(0)}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-body font-bold text-ink text-xs truncate">{report.reporter?.name || 'Unknown'}</div>
+                                <div className="text-[10px] text-ink-soft truncate mt-0.5">{report.reporter?.email}</div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-sm shadow-inner mr-2.5 flex-shrink-0 border border-primary/20">
+                                <i className="lni lni-shield" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-body font-bold text-ink text-xs truncate">System Auto-Moderation</div>
+                                <div className="text-[10px] text-primary font-semibold truncate mt-0.5">Word Filter Rule</div>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -469,17 +483,32 @@ function ModerationPageContent() {
             {/* Reporter Info */}
             <div className="p-4 bg-paper/40 rounded-2xl border border-ink-faint/30 mb-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary font-bold flex items-center justify-center shadow-inner text-sm">
-                  {(selectedReport.reporter?.name || 'U').charAt(0)}
-                </div>
-                <div>
-                  <div className="text-xs text-ink-muted font-body">Reported by</div>
-                  <div className="text-sm font-body font-bold text-ink">{selectedReport.reporter?.name || 'Anonymous User'}</div>
-                  <div className="text-xs text-ink-soft">{selectedReport.reporter?.email}</div>
-                </div>
+                {selectedReport.reporter ? (
+                  <>
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary font-bold flex items-center justify-center shadow-inner text-sm">
+                      {(selectedReport.reporter?.name || 'U').charAt(0)}
+                    </div>
+                    <div>
+                      <div className="text-xs text-ink-muted font-body">Reported by</div>
+                      <div className="text-sm font-body font-bold text-ink">{selectedReport.reporter?.name || 'Anonymous User'}</div>
+                      <div className="text-xs text-ink-soft">{selectedReport.reporter?.email}</div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shadow-inner text-lg border border-primary/20">
+                      <i className="lni lni-shield" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-primary font-body font-bold uppercase tracking-wider">Source</div>
+                      <div className="text-sm font-body font-bold text-ink">System Auto-Moderator</div>
+                      <div className="text-xs text-ink-soft">Word Filter Context Policy</div>
+                    </div>
+                  </>
+                )}
               </div>
               <span className="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-ink-faint text-ink-soft">
-                Reporter ID: #{selectedReport.reporter?.id || 'N/A'}
+                {selectedReport.reporter ? `Reporter ID: #${selectedReport.reporter.id}` : 'System Trigger'}
               </span>
             </div>
 
@@ -493,9 +522,9 @@ function ModerationPageContent() {
               </div>
 
               <div>
-                <label className="text-xs font-body font-bold text-ink-soft uppercase tracking-wider">Complaint Description</label>
+                <label className="text-xs font-body font-bold text-ink-soft uppercase tracking-wider">Complaint / Flagged Content Excerpt</label>
                 <div className="mt-1.5 p-4 rounded-2xl bg-paper/60 border border-ink-faint/40 text-sm font-body text-ink leading-relaxed">
-                  {selectedReport.description || 'No additional explanation provided by the reporter.'}
+                  {selectedReport.description || 'No additional explanation provided.'}
                 </div>
               </div>
             </div>
@@ -505,12 +534,19 @@ function ModerationPageContent() {
               <div className="flex items-center justify-between mb-3">
                 <div className="text-xs font-body font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
                   <i className="lni lni-target text-primary" />
-                  Target Item Details
+                  Target Item Details ({humanizeModel(selectedReport.reportable_type)})
                 </div>
                 <span className="text-xs font-numeric font-bold bg-ink-faint px-2 py-0.5 rounded text-ink-soft">
                   Target ID: #{selectedReport.reportable_id}
                 </span>
               </div>
+
+              {selectedReport.reportable_type?.toLowerCase().includes('message') && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl mb-3 text-xs text-amber-900 font-body">
+                  <span className="font-bold">Privacy Guard:</span> For end-to-end user privacy, private message exchanges are sealed. The offending excerpt and sender identity have been captured above for moderation.
+                </div>
+              )}
+
               <div className="flex flex-wrap items-center gap-3">
                 <button
                   type="button"
@@ -535,7 +571,7 @@ function ModerationPageContent() {
                   className="px-4 py-2 rounded-xl bg-status-error/10 hover:bg-status-error text-status-error hover:text-white font-body font-bold text-xs border border-status-error/30 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                 >
                   <i className="lni lni-ban text-xs" />
-                  {selectedReport.reportable_type?.toLowerCase().includes('job') ? 'Suspend / Remove Job' : 'Suspend User Account'}
+                  {selectedReport.reportable_type?.toLowerCase().includes('job') ? 'Suspend / Remove Job' : 'Suspend Offending User'}
                 </button>
               </div>
             </div>
