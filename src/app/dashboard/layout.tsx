@@ -653,7 +653,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className={`no-print
         fixed inset-y-0 left-0 z-30 w-72 bg-white/70 backdrop-blur-xl border-r border-white/50 shadow-glass
         transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
-        lg:static lg:flex-shrink-0 h-screen flex flex-col
+        lg:static lg:flex-shrink-0 h-full flex flex-col
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         ${sidebarCollapsed ? 'lg:-ml-72 lg:opacity-0 lg:pointer-events-none' : 'lg:ml-0 lg:opacity-100'}
       `}>
@@ -768,7 +768,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       )}
 
       {/* ── Persistent Content Wrapper (Main) ──────────────────── */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Desktop Top Header (Content Page Side) */}
         <header className="no-print hidden lg:flex items-center justify-between h-14 px-6 bg-white/70 backdrop-blur-xl border-b border-white/50 z-20 flex-shrink-0">
           <div className="flex items-center gap-4">

@@ -1043,7 +1043,7 @@ export default function AnalyticsDashboard() {
   })();
 
   return (
-    <div className="animate-fade-in print:p-0 print:bg-white min-h-screen pb-12">
+    <div className="animate-fade-in print:p-0 print:bg-white">
       {/* Dynamic Style Block for PDF & Print Exports */}
       <style jsx global>{`
         @page {
@@ -1052,12 +1052,7 @@ export default function AnalyticsDashboard() {
         }
         @media screen {
           .print-only-report {
-            position: absolute !important;
-            left: -9999px !important;
-            top: -9999px !important;
-            width: 1060px !important;
-            height: auto !important;
-            overflow: hidden !important;
+            display: none !important;
           }
           .screen-only {
             display: block !important;
