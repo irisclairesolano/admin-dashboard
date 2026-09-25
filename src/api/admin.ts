@@ -247,6 +247,10 @@ export const adminApi = {
   getUserLogs: async (id: number, page: number = 1) => {
     return apiClient.get(`/admin/users/${id}/logs?page=${page}`);
   },
+
+  getUserBlocks: async (id: number) => {
+    return apiClient.get(`/admin/users/${id}/blocks`);
+  },
   
   suspendUser: async (id: number, is_suspended: boolean = true) => {
     clearApiCache();

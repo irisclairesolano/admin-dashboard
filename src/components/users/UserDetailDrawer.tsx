@@ -12,8 +12,8 @@ interface UserDetailDrawerProps {
   onClose: () => void;
   userDetailData?: any;
   detailLoading?: boolean;
-  activeTab?: 'profile' | 'activity' | 'reviews' | 'reports' | 'logs';
-  setActiveTab?: (tab: 'profile' | 'activity' | 'reviews' | 'reports' | 'logs') => void;
+  activeTab?: 'profile' | 'activity' | 'reviews' | 'reports' | 'logs' | 'blocks';
+  setActiveTab?: (tab: 'profile' | 'activity' | 'reviews' | 'reports' | 'logs' | 'blocks') => void;
   actionLoading?: number | null;
   onVerify?: () => void;
   onSuspend?: (id: number, isSuspended: boolean) => void;
@@ -50,6 +50,10 @@ interface UserDetailDrawerProps {
   logsData?: any;
   logsPage?: number;
   setLogsPage?: (page: number) => void;
+
+  // Tab 6 (Blocks) props
+  blocksLoading?: boolean;
+  blocksData?: { blocked: any[]; blocked_by: any[] } | null;
 }
 
 export default function UserDetailDrawer({
@@ -91,9 +95,12 @@ export default function UserDetailDrawer({
   logsData = null,
   logsPage: externalLogsPage,
   setLogsPage: externalSetLogsPage,
+
+  blocksLoading = false,
+  blocksData = null,
 }: UserDetailDrawerProps) {
   // Internal state fallbacks to prevent prop drilling overload
-  const [internalActiveTab, setInternalActiveTab] = React.useState<'profile' | 'activity' | 'reviews' | 'reports' | 'logs'>('profile');
+  const [internalActiveTab, setInternalActiveTab] = React.useState<'profile' | 'activity' | 'reviews' | 'reports' | 'logs' | 'blocks'>('profile');
   const [internalEmployerSubTab, setInternalEmployerSubTab] = React.useState<'posts' | 'hired'>('posts');
   const [internalActivitySearch, setInternalActivitySearch] = React.useState('');
   const [internalActivityStatus, setInternalActivityStatus] = React.useState('all');
@@ -251,6 +258,15 @@ export default function UserDetailDrawer({
                         </div>
                       </>
                     )}
+                    {userDetailData.stats.blocked_users_count !== undefined && (
+                      <>
+                        <div className="w-1.5 h-1.5 bg-ink-faint rounded-full hidden sm:block" />
+                        <div className="flex items-center gap-1.5 text-xs text-ink-muted">
+                          <UserX className="w-3.5 h-3.5 text-status-danger" />
+                          <span>Blocked {userDetailData.stats.blocked_users_count} · Blocked by {userDetailData.stats.blocked_by_count ?? 0}</span>
+                        </div>
+                      </>
+                    )}
                   </>
                 )}
               </>
@@ -331,6 +347,7 @@ export default function UserDetailDrawer({
                 { id: 'activity', label: selectedDetailUser.role === 'employer' ? 'Job Posts & Hires' : 'Work History & Applications' },
                 { id: 'reviews', label: 'Reviews Received' },
                 { id: 'reports', label: 'Reports' },
+                { id: 'blocks', label: 'Blocked Users' },
                 { id: 'logs', label: 'Activity Logs' }
               ]
           ).map((tab) => (
@@ -1167,6 +1184,90 @@ export default function UserDetailDrawer({
                     </div>
                   ) : (
                     <div className="text-center py-10 text-sm text-ink-muted">No activity logs found.</div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab 6: Blocked Users */}
+              {activeTab === 'blocks' && (
+                <div className="space-y-6">
+                  {blocksLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <RefreshCw className="w-6 h-6 text-primary animate-spin" />
+                      <span className="ml-2 text-sm text-ink-muted">Loading block relationships...</span>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Section 1: Users Blocked by this user */}
+                      <div className="bg-paper border border-ink-faint rounded-2xl p-5 shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            <UserX className="w-5 h-5 text-status-danger" />
+                            <h4 className="font-display font-bold text-sm text-ink">
+                              Users Blocked by {selectedDetailUser.name} ({blocksData?.blocked?.length || 0})
+                            </h4>
+                          </div>
+                        </div>
+
+                        {blocksData?.blocked && blocksData.blocked.length > 0 ? (
+                          <div className="divide-y divide-ink-faint">
+                            {blocksData.blocked.map((item: any) => (
+                              <div key={item.id} className="py-3 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <Avatar name={item.blocked?.name || 'User'} url={item.blocked?.avatar_url} size="sm" />
+                                  <div>
+                                    <div className="font-semibold text-sm text-ink">{item.blocked?.name || `User ID: ${item.blocked_id}`}</div>
+                                    <div className="text-xs text-ink-muted">{item.blocked?.email || ''} · <span className="capitalize">{item.blocked?.role || 'user'}</span></div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-xs text-ink-muted">Blocked on {new Date(item.created_at).toLocaleDateString()}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="py-6 text-center text-xs text-ink-muted bg-paper-light/50 rounded-xl border border-dashed border-ink-faint">
+                            This user has not blocked anyone.
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Section 2: Users who blocked this user */}
+                      <div className="bg-paper border border-ink-faint rounded-2xl p-5 shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            <ShieldAlert className="w-5 h-5 text-status-warning" />
+                            <h4 className="font-display font-bold text-sm text-ink">
+                              Users Who Blocked {selectedDetailUser.name} ({blocksData?.blocked_by?.length || 0})
+                            </h4>
+                          </div>
+                        </div>
+
+                        {blocksData?.blocked_by && blocksData.blocked_by.length > 0 ? (
+                          <div className="divide-y divide-ink-faint">
+                            {blocksData.blocked_by.map((item: any) => (
+                              <div key={item.id} className="py-3 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <Avatar name={item.blocker?.name || 'User'} url={item.blocker?.avatar_url} size="sm" />
+                                  <div>
+                                    <div className="font-semibold text-sm text-ink">{item.blocker?.name || `User ID: ${item.blocker_id}`}</div>
+                                    <div className="text-xs text-ink-muted">{item.blocker?.email || ''} · <span className="capitalize">{item.blocker?.role || 'user'}</span></div>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-xs text-ink-muted">Blocked on {new Date(item.created_at).toLocaleDateString()}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="py-6 text-center text-xs text-ink-muted bg-paper-light/50 rounded-xl border border-dashed border-ink-faint">
+                            No other users have blocked this user.
+                          </div>
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
               )}

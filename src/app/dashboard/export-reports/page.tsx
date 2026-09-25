@@ -432,13 +432,10 @@ export default function ExportReportsPage() {
       <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-display font-bold text-ink">Institutional & LGU Compliance Reports</h1>
-            <span className="bg-primary/10 text-primary-dark font-body font-bold text-xs px-2.5 py-0.5 rounded-full border border-primary/20">
-              Official Certified Documents
-            </span>
+            <h1 className="text-3xl font-display font-bold text-ink">Reports</h1>
           </div>
           <p className="text-ink-soft font-body text-sm mt-1">
-            Generate and export institutional accomplishment reports with Republic of the Philippines letterheads and certified signatories for academic defense and LGU submission.
+            Generate, view, and export platform masterlists and summary reports.
           </p>
         </div>
 
@@ -454,23 +451,13 @@ export default function ExportReportsPage() {
           </button>
 
           <button
-            onClick={handleExportMasterExcel}
-            disabled={loading || isExportingExcel}
-            className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-            title="Download complete multi-sheet platform master workbook"
-          >
-            <i className={`lni ${isExportingExcel ? 'lni-spinner animate-spin' : 'lni-download'} text-xs`} />
-            <span>{isExportingExcel ? 'Generating...' : 'Master Excel (.xlsx)'}</span>
-          </button>
-
-          <button
             onClick={handleExportCSV}
             disabled={loading}
             className="px-3.5 py-2 bg-slate-700 hover:bg-slate-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             title="Export filtered records of current tab as CSV"
           >
             <i className="lni lni-download text-xs" />
-            Tabular CSV
+            Export Masterlist (CSV)
           </button>
 
           <button

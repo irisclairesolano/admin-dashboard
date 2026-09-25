@@ -56,7 +56,7 @@ function UsersContent() {
   const [selectedDetailUser, setSelectedDetailUser] = useState<any | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [userDetailData, setUserDetailData] = useState<any | null>(null);
-  const [activeTab, setActiveTab] = useState<'profile' | 'activity' | 'reviews' | 'reports' | 'logs'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'activity' | 'reviews' | 'reports' | 'logs' | 'blocks'>('profile');
 
   // Tab 2: Activity states
   const [activityLoading, setActivityLoading] = useState(false);
@@ -81,6 +81,10 @@ function UsersContent() {
   const [logsLoading, setLogsLoading] = useState(false);
   const [logsData, setLogsData] = useState<any | null>(null);
   const [logsPage, setLogsPage] = useState(1);
+
+  // Tab 6: Blocks states
+  const [blocksLoading, setBlocksLoading] = useState(false);
+  const [blocksData, setBlocksData] = useState<{ blocked: any[]; blocked_by: any[] } | null>(null);
 
 
 
@@ -197,6 +201,18 @@ function UsersContent() {
     }
   };
 
+  const fetchUserBlocks = async (id: number) => {
+    try {
+      setBlocksLoading(true);
+      const res = await adminApi.getUserBlocks(id);
+      setBlocksData(res.data);
+    } catch (err: any) {
+      setAlertState({ open: true, title: 'Error', message: 'Failed to load user blocks: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
+    } finally {
+      setBlocksLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (selectedDetailUser) {
       fetchUserDetails(selectedDetailUser.id);
@@ -212,6 +228,7 @@ function UsersContent() {
       setReportsData(null);
       setLogsPage(1);
       setLogsData(null);
+      setBlocksData(null);
     } else {
       setUserDetailData(null);
     }
@@ -248,6 +265,12 @@ function UsersContent() {
       fetchUserLogs(selectedDetailUser.id, logsPage);
     }
   }, [selectedDetailUser, activeTab, logsPage]);
+
+  useEffect(() => {
+    if (selectedDetailUser && activeTab === 'blocks') {
+      fetchUserBlocks(selectedDetailUser.id);
+    }
+  }, [selectedDetailUser, activeTab]);
 
   const handleSuspend = (id: number, currentStatus: boolean) => {
     setAlertState({
@@ -716,6 +739,8 @@ function UsersContent() {
           logsData={logsData}
           logsPage={logsPage}
           setLogsPage={setLogsPage}
+          blocksLoading={blocksLoading}
+          blocksData={blocksData}
         />
       )}
 

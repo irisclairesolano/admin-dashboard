@@ -33,6 +33,17 @@ export interface User {
   employerProfile?: EmployerProfile;
   worker_profile?: WorkerProfile;
   employer_profile?: EmployerProfile;
+  blocked_users_count?: number;
+  blocked_by_count?: number;
+}
+
+export interface BlockedUserRecord {
+  id: number;
+  blocker_id: number;
+  blocked_id: number;
+  created_at: string;
+  blocker?: Partial<User>;
+  blocked?: Partial<User>;
 }
 
 export interface WorkerProfile {

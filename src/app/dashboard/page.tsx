@@ -351,22 +351,6 @@ export default function AnalyticsDashboard() {
     profanity: any[];
   } | null>(null);
   const [isGeneratingMasterPdf, setIsGeneratingMasterPdf] = useState(false);
-  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
-  const exportDropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target as Node)) {
-        setExportDropdownOpen(false);
-      }
-    };
-    if (exportDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [exportDropdownOpen]);
   // Messaging stats (aggregate only — no message content)
   const [convStats, setConvStats] = useState<{
     total_conversations: number;
@@ -1213,190 +1197,21 @@ export default function AnalyticsDashboard() {
 
           {/* Date Filter & Aggregation Components */}
           <div className="flex flex-wrap items-center gap-3">
-            {/* Unified Export Report Dropdown */}
-            <div className="relative" ref={exportDropdownRef}>
-              <button
-                type="button"
-                onClick={() => setExportDropdownOpen(prev => !prev)}
-                aria-haspopup="true"
-                aria-expanded={exportDropdownOpen}
-                className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs text-xs font-body font-bold text-slate-700 hover:bg-slate-900 hover:text-white transition-all cursor-pointer focus:outline-hidden"
-              >
-                <i className="lni lni-download text-xs" />
-                <span>Export Analytics</span>
-                {(isExportingExcel || isGeneratingMasterPdf) ? (
-                  <i className="lni lni-spinner animate-spin text-xs text-primary" />
-                ) : (
-                  <i className={`lni lni-chevron-down text-[10px] transition-transform duration-200 ${exportDropdownOpen ? 'rotate-180' : ''}`} />
-                )}
-              </button>
-
-              {exportDropdownOpen && (
-                <div
-                  role="menu"
-                  className="absolute right-0 mt-2 w-84 sm:w-96 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/80 p-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
-                >
-                  {/* Category 1: PDF Reports */}
-                  <div className="px-2 py-1">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      PDF Documents (Print & Presentations)
-                    </p>
-                  </div>
-
-                  <div className="space-y-1 mb-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setExportDropdownOpen(false);
-                        handleExportPDF();
-                      }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 transition-colors flex items-start gap-3 cursor-pointer group"
-                    >
-                      <div className="p-2 rounded-lg bg-sky-50 text-sky-600 group-hover:bg-sky-600 group-hover:text-white transition-colors shrink-0 mt-0.5">
-                        <i className="lni lni-printer text-base" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-800 group-hover:text-sky-700">
-                            Executive Summary & Data Tables (PDF)
-                          </span>
-                          <span className="text-[10px] font-medium text-slate-400 uppercase">Print / PDF</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                          Visual trend charts and complete tabular ledgers for current filters.
-                        </p>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={isGeneratingMasterPdf}
-                      onClick={() => {
-                        setExportDropdownOpen(false);
-                        handleExportMasterPDF();
-                      }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 transition-colors flex items-start gap-3 cursor-pointer group disabled:opacity-50"
-                    >
-                      <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors shrink-0 mt-0.5">
-                        {isGeneratingMasterPdf ? (
-                          <i className="lni lni-spinner animate-spin text-base" />
-                        ) : (
-                          <i className="lni lni-files text-base" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-800 group-hover:text-indigo-700">
-                            Complete Master Audit Dossier (PDF)
-                          </span>
-                          <span className="text-[10px] font-medium text-slate-400 uppercase">7-Page PDF</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                          {isGeneratingMasterPdf ? 'Preparing dossier...' : 'Comprehensive 7-page institutional audit with all users, jobs, & logs.'}
-                        </p>
-                      </div>
-                    </button>
-                  </div>
-
-                  <div className="border-t border-slate-100 my-1" />
-
-                  {/* Category 2: Spreadsheets & Data */}
-                  <div className="px-2 py-1">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Spreadsheets & Raw Data (Analysis)
-                    </p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setExportDropdownOpen(false);
-                        handleExportCSV();
-                      }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 transition-colors flex items-start gap-3 cursor-pointer group"
-                    >
-                      <div className="p-2 rounded-lg bg-slate-100 text-slate-700 group-hover:bg-slate-800 group-hover:text-white transition-colors shrink-0 mt-0.5">
-                        <i className="lni lni-download text-base" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-800 group-hover:text-slate-900">
-                            Analytics Data Tables (CSV)
-                          </span>
-                          <span className="text-[10px] font-medium text-slate-400 uppercase">.CSV</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                          Reconciled 9-section structured dataset matching active filters.
-                        </p>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={isExportingExcel}
-                      onClick={() => {
-                        setExportDropdownOpen(false);
-                        handleExportMasterExcel();
-                      }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 transition-colors flex items-start gap-3 cursor-pointer group disabled:opacity-50"
-                    >
-                      <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors shrink-0 mt-0.5">
-                        {isExportingExcel ? (
-                          <i className="lni lni-spinner animate-spin text-base" />
-                        ) : (
-                          <i className="lni lni-database text-base" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-800 group-hover:text-emerald-700">
-                            Complete Platform Workbook (Excel)
-                          </span>
-                          <span className="text-[10px] font-medium text-slate-400 uppercase">.XLSX</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                          {isExportingExcel ? 'Generating workbook...' : 'Multi-tab formatted workbook with all master records & styles.'}
-                        </p>
-                      </div>
-                    </button>
-                  </div>
-
-                  <div className="border-t border-slate-100 my-1.5" />
-
-                  {/* Category 3: Institutional Reports Hub Shortcut */}
-                  <div className="px-2 py-1">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Institutional & Compliance Documents
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setExportDropdownOpen(false);
-                      router.push('/dashboard/export-reports');
-                    }}
-                    className="w-full text-left p-2.5 rounded-xl hover:bg-slate-50 transition-colors flex items-start gap-3 cursor-pointer group"
-                  >
-                    <div className="p-2 rounded-lg bg-emerald-50 text-emerald-700 group-hover:bg-emerald-700 group-hover:text-white transition-colors shrink-0 mt-0.5">
-                      <i className="lni lni-printer text-base" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-800 group-hover:text-emerald-700">
-                          Institutional Reports & LGU Deliverables
-                        </span>
-                        <i className="lni lni-arrow-right text-[10px] text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-                      </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                        Printable reports with official letterhead, certified signatories, and master workbooks.
-                      </p>
-                    </div>
-                  </button>
-                </div>
+            {/* Master Excel Export Button */}
+            <button
+              type="button"
+              disabled={isExportingExcel}
+              onClick={handleExportMasterExcel}
+              className="flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl shadow-xs text-xs font-body font-bold transition-all cursor-pointer disabled:opacity-50"
+              title="Download complete multi-sheet platform master workbook"
+            >
+              {isExportingExcel ? (
+                <i className="lni lni-spinner animate-spin text-xs" />
+              ) : (
+                <i className="lni lni-database text-xs" />
               )}
-            </div>
+              <span>{isExportingExcel ? 'Generating...' : 'Master Excel (.xlsx)'}</span>
+            </button>
 
             {renderDateSelector(activeTab)}
           </div>

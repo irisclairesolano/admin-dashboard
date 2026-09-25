@@ -260,7 +260,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Moderation',   href: '/dashboard/moderation',     iconClass: 'lni lni-flag',      badge: openReportsCount,        badgeColor: 'bg-status-error text-white', section: 'trust' },
     { name: 'Word Filter',  href: '/dashboard/profanity',      iconClass: 'lni lni-ban',       badge: 0,                       section: 'trust' },
     { name: 'Support',      href: '/dashboard/support',        iconClass: 'lni lni-comments',  badge: openTicketsCount,        badgeColor: 'bg-status-warning text-white', section: 'trust' },
-    { name: 'Data Exports', href: '/dashboard/export-reports', iconClass: 'lni lni-printer',   badge: 0,                       section: 'records' },
+    { name: 'Reports',      href: '/dashboard/export-reports', iconClass: 'lni lni-printer',   badge: 0,                       section: 'records' },
     { name: 'Archives',     href: '/dashboard/archives',       iconClass: 'lni lni-archive',   badge: 0,                       section: 'records' },
     { name: 'Audit Logs',   href: '/dashboard/logs',           iconClass: 'lni lni-shield',    badge: 0,                       superAdminOnly: true, section: 'records' },
   ];
