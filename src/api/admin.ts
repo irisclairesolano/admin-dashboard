@@ -345,17 +345,27 @@ export const adminApi = {
     return apiClient.patch(`/admin/reports/${id}`, { status });
   },
 
-  getAnalytics: async (from?: string, to?: string, interval?: string) => {
+  getAnalytics: async (from?: string, to?: string, interval?: string, forceRefresh: boolean = false) => {
     const params = new URLSearchParams();
     if (from) params.append('from', from);
     if (to) params.append('to', to);
     if (interval) params.append('interval', interval);
     const queryString = params.toString();
-    return cachedGet(`/admin/analytics${queryString ? `?${queryString}` : ''}`);
+    const url = `/admin/analytics${queryString ? `?${queryString}` : ''}`;
+    if (forceRefresh) {
+      return apiClient.get(url);
+    }
+    return cachedGet(url);
   },
 
-  generateAIInsights: async (from?: string, to?: string, interval?: string) => {
-    return apiClient.post('/admin/analytics/insights', { from, to, interval });
+  generateAIInsights: async (from?: string, to?: string, interval?: string, forceRefresh: boolean = false, analyticsData?: any) => {
+    return apiClient.post('/admin/analytics/insights', {
+      from,
+      to,
+      interval,
+      force_refresh: forceRefresh,
+      analytics: analyticsData
+    });
   },
 
   // Support Tickets

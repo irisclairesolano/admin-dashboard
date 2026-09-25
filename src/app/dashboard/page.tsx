@@ -400,7 +400,7 @@ export default function AnalyticsDashboard() {
       setShowAiBriefing(true);
       setAiError('');
       
-      const res = await adminApi.generateAIInsights(from, to, intervalFilter);
+      const res = await adminApi.generateAIInsights(from, to, intervalFilter, !!aiInsights, data);
       let parsed: InsightsData | null = null;
       try {
         parsed = typeof res.data.insights === 'string' ? JSON.parse(res.data.insights) : res.data.insights;
@@ -453,12 +453,12 @@ export default function AnalyticsDashboard() {
           ))}
         </select>
 
-        {preset === 'Custom Date' && (
+        {preset === 'Custom Date' ? (
           <div className="flex items-center gap-1.5 bg-white/90 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
             <input
               aria-label={`${tab} custom start date`}
               type="date"
-              value={start}
+              value={start || from}
               onChange={(e) => {
                 setStart(e.target.value);
               }}
@@ -468,13 +468,19 @@ export default function AnalyticsDashboard() {
             <input
               aria-label={`${tab} custom end date`}
               type="date"
-              value={end}
+              value={end || to}
               onChange={(e) => {
                 setEnd(e.target.value);
               }}
               className="bg-transparent border-none outline-none font-body text-xs text-slate-700 focus:text-ink"
             />
           </div>
+        ) : (
+          from && to && (
+            <span className="text-[11px] font-numeric font-medium text-slate-500 bg-white/80 px-2 py-1 rounded-lg border border-slate-200/60 hidden sm:inline-block shadow-2xs">
+              {from} to {to}
+            </span>
+          )
         )}
       </div>
     );
