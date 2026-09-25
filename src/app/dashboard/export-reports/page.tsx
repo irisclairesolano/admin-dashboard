@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { adminApi } from '@/lib/api';
 import { formatDate } from '@/lib/date';
 import StatCard from '@/components/StatCard';
-import { generateMasterExcelWorkbook, downloadExcelBlob } from '@/lib/export/excel';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus, formatCSVReputation, calculateNormalizedHourlyWage } from '@/lib/export/csv';
 
 type ReportType = 'users' | 'jobs' | 'demographics' | 'verifications';
@@ -203,30 +202,6 @@ export default function ExportReportsPage() {
   }, [jobs]);
 
   // ── EXPORT ACTIONS ──────────────────────────────────────────────────────────
-
-  const [isExportingExcel, setIsExportingExcel] = useState(false);
-
-  const handleExportMasterExcel = async () => {
-    try {
-      setIsExportingExcel(true);
-      const reportsRes = await adminApi.getReports('all', 1, '', true).catch(() => ({ data: [] }));
-      const reportsList: any[] = reportsRes.data?.data || reportsRes.data || [];
-
-      const blob = await generateMasterExcelWorkbook({
-        users,
-        jobs,
-        verifications,
-        reports: reportsList,
-      });
-
-      const filename = `SIKAP-Platform-Master-Report.xlsx`;
-      downloadExcelBlob(blob, filename);
-    } catch (err) {
-      console.error('Failed to export master Excel report', err);
-    } finally {
-      setIsExportingExcel(false);
-    }
-  };
 
   const handlePrint = () => {
     window.print();

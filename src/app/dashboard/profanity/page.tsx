@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { adminApi } from '@/lib/api';
 import { AlertDialog } from '@/components/AlertDialog';
 import { ProfanityWord } from '@/types/models';
-import { Ban, Flag, Plus, Trash2, ShieldAlert, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Ban, Flag, Plus, Trash2, ShieldAlert } from 'lucide-react';
 
 export default function ProfanityFilterPage() {
   const [words, setWords] = useState<ProfanityWord[]>([]);

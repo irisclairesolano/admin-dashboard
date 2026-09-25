@@ -108,7 +108,7 @@ export default function JobDetailModal({
           setInternalReports(data.reports);
         }
       })
-      .catch((_err) => {
+      .catch(() => {
         // Fallback gracefully to table-level data if deep fetch fails
       })
       .finally(() => {
