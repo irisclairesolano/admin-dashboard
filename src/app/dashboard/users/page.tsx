@@ -475,7 +475,7 @@ function UsersContent() {
       'SIKAP Registered Users Masterlist',
       [
         ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Report Classification:', 'Official SIKAP User Registry'],
+        ['Report Type:', 'User Registry Summary'],
         ['Total Records Exported:', String(sortedUsers.length)],
         ['Active View Filter:', showArchived ? `${filter.toUpperCase()} (Including Archived)` : filter.toUpperCase()],
         ['Role Filter:', roleFilter.toUpperCase()],

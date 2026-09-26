@@ -3146,7 +3146,7 @@ export default function AnalyticsDashboard() {
             {/* ================= PAGE 1 OF 2: EXECUTIVE SCORECARD & VISUAL ANALYTICS ================= */}
             <div className="print-page">
               <div>
-                  {/* Institutional Header */}
+                  {/* Print Report Header */}
                   <div className="pb-2.5 border-b-2 border-slate-300 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-white font-black text-sm shadow-xs">
@@ -3157,13 +3157,13 @@ export default function AnalyticsDashboard() {
                           SIKAP: Skills and Job Matching Platform
                         </h1>
                         <p className="text-[8.5px] font-body text-slate-500 font-semibold">
-                          Descriptive Analytics & Labor Market Intelligence Report
+                          Platform Analytics & Performance Summary
                         </p>
                       </div>
                     </div>
                     <div className="text-right text-[8px] text-slate-600 space-y-0.5">
                       <p><span className="font-bold text-slate-900">Document ID:</span> SKP-ANL-{from.replace(/-/g, '')}-{to.replace(/-/g, '')}</p>
-                      <p><span className="font-bold text-slate-900">Document Classification:</span> Official Confidential Analytics</p>
+                      <p><span className="font-bold text-slate-900">Type:</span> Internal Analytics Summary</p>
                       <p><span className="font-bold text-slate-900">Generated:</span> {new Date().toLocaleString()}</p>
                     </div>
                   </div>
@@ -3653,33 +3653,11 @@ export default function AnalyticsDashboard() {
                   </table>
                 </div>
 
-                {/* Formal 3-Signer Institutional Sign-Off Block */}
-                <div className="pt-3 border-t-2 border-slate-300 grid grid-cols-3 gap-6 mb-2 print-avoid-break">
-                  <div>
-                    <p className="text-[7.5px] font-bold text-slate-400 uppercase tracking-wider mb-4">Prepared & Certified By:</p>
-                    <div className="border-b border-slate-400 w-32 mb-0.5"></div>
-                    <p className="text-[9px] font-bold text-slate-900">Platform Administrator</p>
-                    <p className="text-[7px] text-slate-500">SIKAP Operations & Governance</p>
-                  </div>
-                  <div>
-                    <p className="text-[7.5px] font-bold text-slate-400 uppercase tracking-wider mb-4">Reviewed & Endorsed By:</p>
-                    <div className="border-b border-slate-400 w-32 mb-0.5"></div>
-                    <p className="text-[9px] font-bold text-slate-900">Lead Data Specialist</p>
-                    <p className="text-[7.5px] text-slate-500">SIKAP Research & Analytics</p>
-                  </div>
-                  <div>
-                    <p className="text-[7.5px] font-bold text-slate-400 uppercase tracking-wider mb-4">Noted & Approved By:</p>
-                    <div className="border-b border-slate-400 w-32 mb-0.5"></div>
-                    <p className="text-[9px] font-bold text-slate-900">Project Adviser / Supervisor</p>
-                    <p className="text-[7.5px] text-slate-500">SIKAP Institutional Oversight</p>
-                  </div>
-                </div>
-
                 {/* Section 2 Running Footer */}
-                <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-[7.5px] text-slate-400 font-medium uppercase tracking-wider print-avoid-break">
+                <div className="pt-3 border-t border-slate-200 flex justify-between items-center text-[7.5px] text-slate-400 font-medium uppercase tracking-wider print-avoid-break">
                   <span>SIKAP: Skills and Job Matching Platform</span>
-                  <span>Document Classification: Official Institutional Record · Verified Tabular Analytics</span>
-                  <span>Section 2: Tabular Performance Ledgers</span>
+                  <span>Internal Analytics Summary · Tabular Performance Ledgers</span>
+                  <span>Section 2</span>
                 </div>
               </div>
             </div>

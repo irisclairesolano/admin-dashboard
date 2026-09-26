@@ -152,7 +152,7 @@ function LogsPageContent() {
         'SIKAP Administrative Activity Audit Trail',
         [
           ['Generated On:', formatCSVDate(new Date().toISOString())],
-          ['Report Classification:', 'Official SIKAP Audit Trail'],
+          ['Report Type:', 'Activity Audit Trail'],
           ['Total Audit Events:', String(exportLogs.length)],
           ['Action Filter:', actionFilter ? formatActionName(actionFilter) : 'ALL ACTIONS'],
         ],

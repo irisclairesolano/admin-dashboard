@@ -82,7 +82,7 @@ function ModerationPageContent() {
       'SIKAP Moderation & Safety Audit Report',
       [
         ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Report Classification:', 'Official SIKAP Moderation Record'],
+        ['Report Type:', 'Moderation Audit Summary'],
         ['Total Audit Records:', String(filteredReports.length)],
         ['Status Filter:', statusFilter.toUpperCase()],
       ],

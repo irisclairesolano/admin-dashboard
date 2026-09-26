@@ -87,7 +87,7 @@ function JobsPageContent() {
       'SIKAP Job Postings & Opportunities Masterlist',
       [
         ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Report Classification:', 'Official SIKAP Employment Record'],
+        ['Report Type:', 'Job Postings Directory'],
         ['Total Records Exported:', String(filteredJobs.length)],
         ['Status Filter:', statusFilter.toUpperCase()],
       ],

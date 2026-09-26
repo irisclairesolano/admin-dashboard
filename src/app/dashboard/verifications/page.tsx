@@ -103,7 +103,7 @@ function VerificationsPageContent() {
       'SIKAP Identity Verification Queue Masterlist',
       [
         ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Report Classification:', 'Official SIKAP Verification Record'],
+        ['Report Type:', 'Verification Queue Summary'],
         ['Total Pending Records:', String(pendingUsers.length)],
         ['Sort Order:', sortOrder.toUpperCase()],
       ],
