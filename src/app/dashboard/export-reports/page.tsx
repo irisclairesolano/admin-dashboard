@@ -629,8 +629,8 @@ export default function ExportReportsPage() {
         )}
       </div>
 
-      {/* ── KPI SUMMARY METRICS (SCREEN + PRINT) ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* ── KPI SUMMARY METRICS (SCREEN ONLY) ── */}
+      <div className="no-print print:hidden grid grid-cols-2 md:grid-cols-4 gap-4">
         {reportType === 'users' && (
           <>
             <StatCard title="Filtered Users" value={filteredUsers.length} iconClass="lni lni-users" />
