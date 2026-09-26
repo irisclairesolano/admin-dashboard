@@ -47,7 +47,7 @@ describe('VerificationModal Component', () => {
       id: 102,
       name: 'Juan Dela Cruz',
       email: 'juan@example.com',
-      role: 'employer',
+      role: 'worker',
       document_url: null,
       document_back_url: null,
       selfie_url: null,
@@ -57,7 +57,7 @@ describe('VerificationModal Component', () => {
 
     expect(screen.getByTestId('no-id-front')).toHaveTextContent('No Front ID uploaded');
     expect(screen.getByTestId('no-id-back')).toHaveTextContent('No Back ID uploaded');
-    expect(screen.getByTestId('no-selfie-id')).toHaveTextContent('Selfie not required for employers');
+    expect(screen.getByTestId('no-selfie-id')).toHaveTextContent('No selfie uploaded');
   });
 
   it('triggers the Approve callback when Approve button is clicked', () => {
@@ -186,8 +186,8 @@ describe('VerificationModal Component', () => {
     render(<VerificationModal user={employerWithDocs} onClose={vi.fn()} />);
 
     // Shows 2 documents count
-    expect(screen.getByText('Uploaded Business Documents')).toBeInTheDocument();
-    expect(screen.getByText('2 documents')).toBeInTheDocument();
+    expect(screen.getByText('Business Registration & Permits')).toBeInTheDocument();
+    expect(screen.getByText('2 documents attached')).toBeInTheDocument();
 
     // Click preview on the PDF document
     const previewPdfBtn = screen.getByText('Preview');
