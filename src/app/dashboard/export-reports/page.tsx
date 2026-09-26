@@ -391,13 +391,13 @@ export default function ExportReportsPage() {
   const getReportTitle = () => {
     switch (reportType) {
       case 'users':
-        return 'Registered Users & Demographics Masterlist';
+        return 'Registered Users & Demographics Summary';
       case 'jobs':
-        return 'Job Postings & Employment Demand Report';
+        return 'Job Postings & Employment Summary';
       case 'demographics':
         return 'Barangay-Level Coverage & Placement Summary';
       case 'verifications':
-        return 'Identity Verification & Compliance Audit Report';
+        return 'Identity Verification & Compliance Summary';
     }
   };
 
@@ -740,14 +740,9 @@ export default function ExportReportsPage() {
         )}
       </div>
 
-      {/* ── PRINT-ONLY OFFICIAL INSTITUTIONAL HEADER ── */}
+      {/* ── PRINT-ONLY SUMMARY HEADER ── */}
       <div className="hidden print:block text-center border-b-2 border-black pb-4 mb-6">
-        <div className="text-[11px] font-serif uppercase tracking-widest text-gray-700">Republic of the Philippines</div>
-        <div className="text-xs font-serif uppercase tracking-wider font-bold text-gray-900">Province of Sorsogon</div>
-        <div className="text-base font-serif font-black tracking-wide text-gray-950 mt-1">
-          SIKAP: Skills &amp; Inclusive Knowledge for Agricultural and Blue-Collar Placement
-        </div>
-        <div className="text-sm font-sans font-bold uppercase tracking-wider text-black mt-2 underline">
+        <div className="text-base font-sans font-bold uppercase tracking-wider text-black">
           {getReportTitle()}
         </div>
         <div className="flex justify-between items-center text-[10px] text-gray-600 font-sans mt-3 px-2">
