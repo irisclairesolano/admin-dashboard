@@ -355,12 +355,12 @@ function JobsPageContent() {
 
         {/* 6 Stat Cards: Total, Open, In Progress, Completed, Cancelled, Suspended & Archived */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 mb-4">
-          <StatCard title="Total Posts" value={activeJobs.length + archivedJobs.length} iconClass="lni lni-briefcase" onClick={() => setStatusFilter('All')} />
-          <StatCard title="Open" value={activeJobs.filter(j => j.status === 'open').length} iconClass="lni lni-play" onClick={() => setStatusFilter('Open')} />
-          <StatCard title="In Progress" value={activeJobs.filter(j => j.status === 'in_progress' || j.status === 'in progress').length} iconClass="lni lni-pause" onClick={() => setStatusFilter('In Progress')} />
-          <StatCard title="Completed" value={activeJobs.filter(j => j.status === 'completed').length} iconClass="lni lni-checkmark-circle" onClick={() => setStatusFilter('Completed')} />
-          <StatCard title="Cancelled" value={activeJobs.filter(j => j.status === 'cancelled').length} iconClass="lni lni-close" onClick={() => setStatusFilter('Cancelled')} />
-          <StatCard title="Suspended & Archived" value={activeJobs.filter(j => j.status === 'suspended').length + archivedJobs.length} iconClass="lni lni-trash-can" onClick={() => setStatusFilter(activeJobs.some(j => j.status === 'suspended') ? 'Suspended' : 'Archived')} />
+          <StatCard title="Total Posts" value={activeJobs.length + archivedJobs.length} iconClass="lni lni-briefcase" bg="from-slate-100 to-slate-200" iconColor="text-slate-700" onClick={() => setStatusFilter('All')} />
+          <StatCard title="Open" value={activeJobs.filter(j => j.status === 'open').length} iconClass="lni lni-play" bg="from-emerald-50 to-emerald-100" iconColor="text-emerald-700" onClick={() => setStatusFilter('Open')} />
+          <StatCard title="In Progress" value={activeJobs.filter(j => j.status === 'in_progress' || j.status === 'in progress').length} iconClass="lni lni-pause" bg="from-sky-50 to-sky-100" iconColor="text-sky-700" onClick={() => setStatusFilter('In Progress')} />
+          <StatCard title="Completed" value={activeJobs.filter(j => j.status === 'completed').length} iconClass="lni lni-checkmark-circle" bg="from-teal-50 to-teal-100" iconColor="text-teal-700" onClick={() => setStatusFilter('Completed')} />
+          <StatCard title="Cancelled" value={activeJobs.filter(j => j.status === 'cancelled').length} iconClass="lni lni-close" bg="from-rose-50 to-rose-100" iconColor="text-rose-700" onClick={() => setStatusFilter('Cancelled')} />
+          <StatCard title="Suspended & Archived" value={activeJobs.filter(j => j.status === 'suspended').length + archivedJobs.length} iconClass="lni lni-trash-can" bg="from-amber-50 to-amber-100" iconColor="text-amber-700" onClick={() => setStatusFilter(activeJobs.some(j => j.status === 'suspended') ? 'Suspended' : 'Archived')} />
         </div>
 
         {/* Status Switcher & Search Bar */}

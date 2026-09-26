@@ -26,6 +26,17 @@ function ArchivesPageContent() {
     id: number;
     name: string;
   } | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('admin_user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        setIsSuperAdmin(u.admin_role === 'superadmin' || u.role === 'superadmin');
+      }
+    } catch {}
+  }, []);
 
   const [alertConfig, setAlertConfig] = useState<{
     isOpen: boolean;
@@ -307,26 +318,30 @@ function ArchivesPageContent() {
                           {formatDate(user.deleted_at)}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <div className="flex justify-end space-x-1.5">
-                            <button
-                              disabled={actionLoading === `user-${user.id}`}
-                              onClick={() => handleRestoreUser(user.id)}
-                              className="p-1.5 rounded-lg bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border border-status-success/20 transition-all cursor-pointer"
-                              title="Restore User"
-                              aria-label="Restore User"
-                            >
-                              <i className="lni lni-arrow-left text-xs" />
-                            </button>
-                            <button
-                              disabled={actionLoading === `user-force-${user.id}`}
-                              onClick={() => handlePermanentDeleteUser(user.id, user.name)}
-                              className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all cursor-pointer"
-                              title="Permanently Delete User"
-                              aria-label="Permanently Delete User"
-                            >
-                              <i className="lni lni-trash-can text-xs" />
-                            </button>
-                          </div>
+                          {isSuperAdmin ? (
+                            <div className="flex justify-end space-x-1.5">
+                              <button
+                                disabled={actionLoading === `user-${user.id}`}
+                                onClick={() => handleRestoreUser(user.id)}
+                                className="p-1.5 rounded-lg bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border border-status-success/20 transition-all cursor-pointer"
+                                title="Restore User"
+                                aria-label="Restore User"
+                              >
+                                <i className="lni lni-arrow-left text-xs" />
+                              </button>
+                              <button
+                                disabled={actionLoading === `user-force-${user.id}`}
+                                onClick={() => handlePermanentDeleteUser(user.id, user.name)}
+                                className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all cursor-pointer"
+                                title="Permanently Delete User"
+                                aria-label="Permanently Delete User"
+                              >
+                                <i className="lni lni-trash-can text-xs" />
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-ink-muted/70 italic">Superadmin Only</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -370,26 +385,30 @@ function ArchivesPageContent() {
                           {formatDate(job.deleted_at)}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <div className="flex justify-end space-x-1.5">
-                            <button
-                              disabled={actionLoading === `job-${job.id}`}
-                              onClick={() => handleRestoreJob(job.id)}
-                              className="p-1.5 rounded-lg bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border border-status-success/20 transition-all cursor-pointer"
-                              title="Restore Job Post"
-                              aria-label="Restore Job Post"
-                            >
-                              <i className="lni lni-arrow-left text-xs" />
-                            </button>
-                            <button
-                              disabled={actionLoading === `job-force-${job.id}`}
-                              onClick={() => handlePermanentDeleteJob(job.id, job.title)}
-                              className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all cursor-pointer"
-                              title="Permanently Delete Job Post"
-                              aria-label="Permanently Delete Job Post"
-                            >
-                              <i className="lni lni-trash-can text-xs" />
-                            </button>
-                          </div>
+                          {isSuperAdmin ? (
+                            <div className="flex justify-end space-x-1.5">
+                              <button
+                                disabled={actionLoading === `job-${job.id}`}
+                                onClick={() => handleRestoreJob(job.id)}
+                                className="p-1.5 rounded-lg bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border border-status-success/20 transition-all cursor-pointer"
+                                title="Restore Job Post"
+                                aria-label="Restore Job Post"
+                              >
+                                <i className="lni lni-arrow-left text-xs" />
+                              </button>
+                              <button
+                                disabled={actionLoading === `job-force-${job.id}`}
+                                onClick={() => handlePermanentDeleteJob(job.id, job.title)}
+                                className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all cursor-pointer"
+                                title="Permanently Delete Job Post"
+                                aria-label="Permanently Delete Job Post"
+                              >
+                                <i className="lni lni-trash-can text-xs" />
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-ink-muted/70 italic">Superadmin Only</span>
+                          )}
                         </td>
                       </tr>
                     ))}

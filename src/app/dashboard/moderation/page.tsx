@@ -25,6 +25,9 @@ function ModerationPageContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [selectedReport, setSelectedReport] = useState<any | null>(null);
+  const [targetDetails, setTargetDetails] = useState<any | null>(null);
+  const [targetLoading, setTargetLoading] = useState(false);
+  const [suspensionReason, setSuspensionReason] = useState('');
   const [alertState, setAlertState] = useState<{
     open: boolean;
     title: string;
@@ -125,7 +128,49 @@ function ModerationPageContent() {
     fetchReports(false);
   }, [fetchReports]);
 
-  usePolling(() => fetchReports(true), 30000);
+  // Load detailed target info and preset suspension reason when a report modal is opened
+  useEffect(() => {
+    if (!selectedReport) {
+      setTargetDetails(null);
+      setSuspensionReason('');
+      return;
+    }
+
+    setSuspensionReason(selectedReport.description || '');
+
+    const type = (selectedReport.reportable_type || '').toLowerCase();
+    const id = selectedReport.reportable_id;
+    if (!id) return;
+
+    let isMounted = true;
+    setTargetLoading(true);
+
+    const loadTarget = async () => {
+      try {
+        if (type.includes('job')) {
+          const res = await adminApi.getJob(id, true);
+          if (isMounted) setTargetDetails(res.data?.job || res.data);
+        } else if (type.includes('user')) {
+          const res = await adminApi.getUserDetails(id);
+          if (isMounted) setTargetDetails(res.data?.user || res.data);
+        } else {
+          if (isMounted) setTargetDetails(null);
+        }
+      } catch {
+        if (isMounted) setTargetDetails(null);
+      } finally {
+        if (isMounted) setTargetLoading(false);
+      }
+    };
+
+    loadTarget();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedReport]);
+
+  usePolling(() => fetchReports(true), 15000);
 
   const handleResolve = (id: number, status: 'resolved' | 'dismissed') => {
     setAlertState({
@@ -138,6 +183,9 @@ function ModerationPageContent() {
           await adminApi.resolveReport(id, status);
           if (selectedReport && selectedReport.id === id) {
             setSelectedReport(null);
+          }
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('admin:refresh-notifications'));
           }
           await fetchReports(true);
         } catch (err: any) {
@@ -154,9 +202,10 @@ function ModerationPageContent() {
     });
   };
 
-  const handleModerateTarget = (targetType: string, targetId: number) => {
+  const handleModerateTarget = (targetType: string, targetId: number, customReason?: string) => {
     const isJob = targetType.toLowerCase().includes('job');
     const actionName = isJob ? 'Delete / Suspend Job Post' : 'Suspend User Account';
+    const reasonToUse = (customReason || suspensionReason).trim() || 'Moderation disciplinary action';
 
     setAlertState({
       open: true,
@@ -169,7 +218,7 @@ function ModerationPageContent() {
             if (isJob) {
               await adminApi.deleteJob(targetId);
             } else {
-              await adminApi.suspendUser(targetId);
+              await adminApi.suspendUser(targetId, true, 'forever', reasonToUse);
             }
           } catch (targetErr: any) {
             // F1: If target is already deleted / not found (404), continue and resolve report
@@ -188,6 +237,9 @@ function ModerationPageContent() {
           if (selectedReport) {
             await adminApi.resolveReport(selectedReport.id, 'resolved');
             setSelectedReport(null);
+          }
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('admin:refresh-notifications'));
           }
           await fetchReports(true);
         } catch (err: any) {
@@ -543,7 +595,7 @@ function ModerationPageContent() {
               </div>
             </div>
 
-            {/* Target Information & Navigation Link */}
+            {/* Target Information & Inline Content View */}
             <div className="p-5 rounded-2xl bg-gradient-to-br from-paper to-white border border-ink-faint/50 mb-6 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-xs font-body font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
@@ -560,6 +612,74 @@ function ModerationPageContent() {
                   <span className="font-bold">Privacy Guard:</span> For end-to-end user privacy, private message exchanges are sealed. The offending excerpt and sender identity have been captured above for moderation.
                 </div>
               )}
+
+              {/* Inline Target Preview */}
+              {targetLoading ? (
+                <div className="p-4 mb-3 rounded-xl bg-slate-50 border border-ink-faint/30 text-xs text-ink-muted text-center animate-pulse">
+                  Loading target item details...
+                </div>
+              ) : targetDetails ? (
+                <div className="p-4 mb-4 rounded-xl bg-slate-50/80 border border-ink-faint/40 text-xs font-body space-y-2">
+                  {/* If Job */}
+                  {selectedReport.reportable_type?.toLowerCase().includes('job') && (
+                    <>
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-bold text-ink text-sm">{targetDetails.title || 'Untitled Job'}</span>
+                        <span className="px-2 py-0.5 rounded bg-accent-sky text-primary-dark font-semibold text-[10px]">
+                          {targetDetails.category || 'General'}
+                        </span>
+                      </div>
+                      <p className="text-ink-soft text-xs line-clamp-3 leading-relaxed">
+                        {targetDetails.description || 'No description available.'}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-ink-muted border-t border-ink-faint/20">
+                        <span><strong>Employer:</strong> {targetDetails.employer?.name || 'Unknown'}</span>
+                        <span><strong>Location:</strong> {targetDetails.barangay ? `${targetDetails.barangay}, ` : ''}{targetDetails.municipality || 'Sorsogon'}</span>
+                        <span><strong>Status:</strong> <span className="uppercase font-semibold">{targetDetails.status}</span></span>
+                      </div>
+                    </>
+                  )}
+
+                  {/* If User */}
+                  {selectedReport.reportable_type?.toLowerCase().includes('user') && (
+                    <>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">
+                            {(targetDetails.name || 'U').charAt(0)}
+                          </div>
+                          <div>
+                            <div className="font-bold text-ink text-sm">{targetDetails.name}</div>
+                            <div className="text-[11px] text-ink-muted">{targetDetails.email}</div>
+                          </div>
+                        </div>
+                        <span className="px-2 py-0.5 rounded uppercase font-bold text-[10px] bg-slate-100 text-slate-700">
+                          {targetDetails.role}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3 pt-2 text-[11px] text-ink-muted border-t border-ink-faint/20">
+                        <span><strong>Phone:</strong> {targetDetails.phone_number || 'N/A'}</span>
+                        <span><strong>Location:</strong> {targetDetails.municipality || 'Sorsogon'}</span>
+                        <span><strong>Status:</strong> {targetDetails.is_suspended ? <span className="text-status-error font-bold">Suspended</span> : <span className="text-status-success font-bold">Active</span>}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : null}
+
+              {/* Suspension Reason Textarea */}
+              <div className="mb-4">
+                <label className="text-[11px] font-body font-bold text-ink-soft uppercase tracking-wider block mb-1">
+                  Disciplinary / Suspension Reason
+                </label>
+                <textarea
+                  rows={2}
+                  value={suspensionReason}
+                  onChange={(e) => setSuspensionReason(e.target.value)}
+                  placeholder="Specify violation or justification for suspension..."
+                  className="w-full p-2.5 bg-white border border-ink-faint/60 rounded-xl text-xs font-body text-ink focus:outline-none focus:border-ink/50"
+                />
+              </div>
 
               <div className="flex flex-wrap items-center gap-3">
                 <button
@@ -580,7 +700,7 @@ function ModerationPageContent() {
 
                 <button
                   type="button"
-                  onClick={() => handleModerateTarget(selectedReport.reportable_type, selectedReport.reportable_id)}
+                  onClick={() => handleModerateTarget(selectedReport.reportable_type, selectedReport.reportable_id, suspensionReason)}
                   disabled={actionLoading !== null}
                   className="px-4 py-2 rounded-xl bg-status-error/10 hover:bg-status-error text-status-error hover:text-white font-body font-bold text-xs border border-status-error/30 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                 >

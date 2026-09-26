@@ -1294,7 +1294,7 @@ export default function AnalyticsDashboard() {
           {activeTab === 'overview' && (
             <div className="space-y-4">
               {/* Thematic Operational Clusters (Executive Vitals) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 print-card-grid">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 print-card-grid print:hidden">
                 {/* Card 1: Ecosystem Growth */}
                 <div
                   role="button"
@@ -1392,7 +1392,7 @@ export default function AnalyticsDashboard() {
                     </div>
                   </div>
                   <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted font-numeric">
-                    <span>{((data?.kpis?.active_jobs?.value ?? 0) > 0 ? ((data?.kpis?.applications?.value ?? 0) / (data?.kpis?.active_jobs?.value || 1)).toFixed(1) : 0)} apps/post</span>
+                    <span>Platform demand ratio</span>
                     <HealthStatusBadge type="throughput" value={(data?.kpis?.active_jobs?.value ?? 0) > 0 ? ((data?.kpis?.applications?.value ?? 0) / (data?.kpis?.active_jobs?.value || 1)) : 0} />
                   </div>
                 </div>
@@ -1552,19 +1552,12 @@ export default function AnalyticsDashboard() {
                           Volume of worker applications filed compared to active job posts ({globalPreset}, {intervalFilter} grouping).
                         </p>
                       </div>
-                      <span className="self-start sm:self-auto px-2 py-0.5 bg-primary/10 text-primary rounded-md text-[10px] font-body font-bold uppercase tracking-wider">
-                        Core Flow
-                      </span>
                     </div>
 
                     <MetricHeaderStrip
                       items={[
                         { label: 'Applications Filed', value: data?.kpis?.applications?.value ?? 0, change: data?.kpis?.applications?.change, highlight: true },
                         { label: 'Job Posts', value: data?.kpis?.active_jobs?.value ?? 0, change: data?.kpis?.active_jobs?.change },
-                        {
-                          label: 'Avg Throughput',
-                          value: `${(data?.kpis?.active_jobs?.value ?? 0) > 0 ? ((data?.kpis?.applications?.value ?? 0) / (data?.kpis?.active_jobs?.value || 1)).toFixed(1) : (data?.kpis?.applications?.value ?? 0)} apps/post`,
-                        },
                       ]}
                     />
 
@@ -1856,10 +1849,6 @@ export default function AnalyticsDashboard() {
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold">
                         Granularity: <strong className="uppercase text-primary-dark">{intervalFilter}</strong>
-                      </span>
-                      <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1">
-                        <i className="lni lni-checkmark-circle text-xs" />
-                        <span>Reconciled</span>
                       </span>
                     </div>
                   </div>
@@ -2175,10 +2164,6 @@ export default function AnalyticsDashboard() {
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold">
                         Granularity: <strong className="uppercase text-primary-dark">{intervalFilter}</strong>
-                      </span>
-                      <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1">
-                        <i className="lni lni-checkmark-circle text-xs" />
-                        <span>Reconciled</span>
                       </span>
                     </div>
                   </div>
@@ -2573,10 +2558,6 @@ export default function AnalyticsDashboard() {
                           Geographic Locations
                         </button>
                       </div>
-                      <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1">
-                        <i className="lni lni-checkmark-circle text-xs" />
-                        <span>Reconciled</span>
-                      </span>
                     </div>
                   </div>
 
@@ -2829,7 +2810,9 @@ export default function AnalyticsDashboard() {
                             : <span className="text-xs text-ink-muted block mt-0.5 italic">No ratings yet</span>
                           }
                         </div>
-                        <div className="text-xl text-yellow-400">★</div>
+                        <div className="w-8 h-8 rounded-full bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-500 text-sm shadow-2xs">
+                          ★
+                        </div>
                       </div>
                       <div className="bg-slate-50/70 p-2.5 rounded-lg border border-ink-faint/30 flex items-center justify-between">
                         <div>
@@ -2839,7 +2822,9 @@ export default function AnalyticsDashboard() {
                             : <span className="text-xs text-ink-muted block mt-0.5 italic">No ratings yet</span>
                           }
                         </div>
-                        <div className="text-xl text-yellow-400">★</div>
+                        <div className="w-8 h-8 rounded-full bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-500 text-sm shadow-2xs">
+                          ★
+                        </div>
                       </div>
                     </div>
 

@@ -239,8 +239,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [newReportCount, latestReportAt, fetchNotifications]);
 
-  // Auto-refresh notifications every 30 seconds via shared hook
-  usePolling(() => fetchNotifications(true), 30000);
+  // Listen for real-time notification refresh events and window focus
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchNotifications(true);
+    };
+    window.addEventListener('admin:refresh-notifications', handleRefresh);
+    window.addEventListener('focus', handleRefresh);
+    return () => {
+      window.removeEventListener('admin:refresh-notifications', handleRefresh);
+      window.removeEventListener('focus', handleRefresh);
+    };
+  }, [fetchNotifications]);
+
+  // Auto-refresh notifications every 15 seconds via shared hook
+  usePolling(() => fetchNotifications(true), 15000);
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token');

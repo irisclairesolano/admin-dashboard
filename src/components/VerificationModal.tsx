@@ -242,7 +242,7 @@ export default function VerificationModal({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* Front ID */}
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-2 h-6">
                 <span className="font-body font-semibold text-ink-soft text-sm">Government ID (Front)</span>
                 {frontUrl && !imageErrors['front'] && (
                   <a
@@ -302,7 +302,7 @@ export default function VerificationModal({
 
             {/* Back ID */}
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-2 h-6">
                 <span className="font-body font-semibold text-ink-soft text-sm">Government ID (Back)</span>
                 {backUrl && !imageErrors['back'] && (
                   <a
@@ -362,7 +362,7 @@ export default function VerificationModal({
 
             {/* Selfie ID */}
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-2 h-6">
                 <span className="font-body font-semibold text-ink-soft text-sm">Selfie holding ID</span>
                 {selfieUrl && !imageErrors['selfie'] && (
                   <a

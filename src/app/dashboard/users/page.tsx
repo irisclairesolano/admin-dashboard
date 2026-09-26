@@ -562,36 +562,48 @@ function UsersContent() {
           title="Total Users"
           value={activeUsers.length + archivedUsers.length}
           iconClass="lni lni-users"
+          bg="from-slate-100 to-slate-200"
+          iconColor="text-slate-700"
           onClick={() => { setShowArchived(false); setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }}
         />
         <StatCard
           title="Workers"
           value={activeUsers.filter(u => u.role === 'worker').length}
           iconClass="lni lni-user"
+          bg="from-emerald-50 to-emerald-100"
+          iconColor="text-emerald-700"
           onClick={() => { setShowArchived(false); setRoleFilter('worker'); setFilter('all'); setCurrentPage(1); }}
         />
         <StatCard
           title="Employers"
           value={activeUsers.filter(u => u.role === 'employer').length}
           iconClass="lni lni-briefcase"
+          bg="from-amber-50 to-amber-100"
+          iconColor="text-amber-700"
           onClick={() => { setShowArchived(false); setRoleFilter('employer'); setFilter('all'); setCurrentPage(1); }}
         />
         <StatCard
           title="Admins"
           value={activeUsers.filter(u => u.role === 'admin').length}
           iconClass="lni lni-shield"
+          bg="from-indigo-50 to-indigo-100"
+          iconColor="text-indigo-700"
           onClick={() => { setShowArchived(false); setRoleFilter('admin'); setFilter('all'); setCurrentPage(1); }}
         />
         <StatCard
           title="Pending Review"
           value={activeUsers.filter(u => u.registration_status === 'pending_review' || (u.verification_status === 'pending' && u.document_url)).length}
           iconClass="lni lni-warning"
+          bg="from-orange-50 to-orange-100"
+          iconColor="text-orange-700"
           onClick={() => router.push('/dashboard/verifications')}
         />
         <StatCard
           title="Archived & Deleted"
           value={archivedUsers.length}
           iconClass="lni lni-trash-can"
+          bg="from-rose-50 to-rose-100"
+          iconColor="text-rose-700"
           onClick={() => { setShowArchived(true); setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }}
         />
       </div>
