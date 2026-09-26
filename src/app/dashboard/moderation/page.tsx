@@ -165,10 +165,24 @@ function ModerationPageContent() {
       onConfirm: async () => {
         try {
           setActionLoading(targetId);
-          if (isJob) {
-            await adminApi.deleteJob(targetId);
-          } else {
-            await adminApi.suspendUser(targetId);
+          try {
+            if (isJob) {
+              await adminApi.deleteJob(targetId);
+            } else {
+              await adminApi.suspendUser(targetId);
+            }
+          } catch (targetErr: any) {
+            // F1: If target is already deleted / not found (404), continue and resolve report
+            if (targetErr?.response?.status === 404) {
+              setAlertState({
+                open: true,
+                title: 'Target Already Deleted',
+                message: `The ${isJob ? 'job post' : 'user'} #${targetId} was already deleted or not found. The report has been marked as resolved.`,
+                onConfirm: () => {},
+              });
+            } else {
+              throw targetErr;
+            }
           }
           // Also automatically resolve the report
           if (selectedReport) {

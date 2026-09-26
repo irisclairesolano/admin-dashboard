@@ -228,7 +228,11 @@ export default function UserDetailDrawer({
                     <div className="w-1.5 h-1.5 bg-ink-faint rounded-full hidden sm:block" />
                     <div className="flex items-center gap-1.5">
                       <Star className="w-4 h-4 text-status-gold fill-status-gold" />
-                      <span>{Number(userDetailData.stats.average_rating).toFixed(2)} / 5.0 ({userDetailData.stats.reviews_count} reviews)</span>
+                      <span>
+                        {(userDetailData.stats.reviews_count ?? 0) === 0
+                          ? 'No ratings yet (0 reviews)'
+                          : `${Number(userDetailData.stats.average_rating).toFixed(2)} / 5.0 (${userDetailData.stats.reviews_count} reviews)`}
+                      </span>
                     </div>
                     {selectedDetailUser.role === 'employer' && (
                       <>

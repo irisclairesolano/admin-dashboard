@@ -20,6 +20,9 @@ const UserDetailDrawer = dynamic(() => import('@/components/users/UserDetailDraw
 const JobPreviewModal = dynamic(() => import('@/components/users/JobPreviewModal'), {
   ssr: false,
 });
+const SuspensionModal = dynamic(() => import('@/components/users/SuspensionModal'), {
+  ssr: false,
+});
 
 function UsersContent() {
   const searchParams = useSearchParams();
@@ -38,6 +41,8 @@ function UsersContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [selectedIdUser, setSelectedIdUser] = useState<any | null>(null);
+  const [suspensionModalUser, setSuspensionModalUser] = useState<any | null>(null);
+  const [suspensionSubmitting, setSuspensionSubmitting] = useState(false);
 
   // Sync search from URL query param
   useEffect(() => {
@@ -272,34 +277,69 @@ function UsersContent() {
     }
   }, [selectedDetailUser, activeTab]);
 
-  const handleSuspend = (id: number, currentStatus: boolean) => {
-    setAlertState({
-      open: true,
-      title: 'Update Suspension Status',
-      message: `Are you sure you want to ${currentStatus ? 'unsuspend' : 'suspend'} this user?`,
-      onConfirm: async () => {
-        const previousActive = [...activeUsers];
-        setActiveUsers((prev: any[]) => prev.map(u => u.id === id ? { ...u, is_suspended: !currentStatus } : u));
-        if (selectedDetailUser && selectedDetailUser.id === id) {
-          setSelectedDetailUser((prev: any) => prev ? { ...prev, is_suspended: !currentStatus } : null);
-        }
-        try {
-          setActionLoading(id);
-          await adminApi.suspendUser(id, !currentStatus);
-          await fetchUsers(); // Refresh list
-          if (selectedDetailUser && selectedDetailUser.id === id) {
-            fetchUserDetails(id); // Refresh drawer
+  const handleSuspend = (userOrId: any, currentStatus?: boolean) => {
+    const user = typeof userOrId === 'object' && userOrId !== null
+      ? userOrId
+      : activeUsers.find(u => u.id === userOrId);
+
+    if (!user) return;
+    const isCurrentlySuspended = typeof currentStatus === 'boolean' ? currentStatus : user.is_suspended;
+
+    if (!isCurrentlySuspended) {
+      setSuspensionModalUser(user);
+    } else {
+      setAlertState({
+        open: true,
+        title: 'Unsuspend User',
+        message: `Are you sure you want to unsuspend ${user.name}? This will restore their active status immediately.`,
+        onConfirm: async () => {
+          const previousActive = [...activeUsers];
+          setActiveUsers((prev: any[]) => prev.map(u => u.id === user.id ? { ...u, is_suspended: false } : u));
+          if (selectedDetailUser && selectedDetailUser.id === user.id) {
+            setSelectedDetailUser((prev: any) => prev ? { ...prev, is_suspended: false } : null);
           }
-        } catch (err: any) {
-          setActiveUsers(previousActive);
-          if (selectedDetailUser && selectedDetailUser.id === id) {
-            setSelectedDetailUser((prev: any) => prev ? { ...prev, is_suspended: currentStatus } : null);
+          try {
+            setActionLoading(user.id);
+            await adminApi.suspendUser(user.id, false);
+            await fetchUsers(); // Refresh list
+            if (selectedDetailUser && selectedDetailUser.id === user.id) {
+              fetchUserDetails(user.id); // Refresh drawer
+            }
+          } catch (err: any) {
+            setActiveUsers(previousActive);
+            if (selectedDetailUser && selectedDetailUser.id === user.id) {
+              setSelectedDetailUser((prev: any) => prev ? { ...prev, is_suspended: true } : null);
+            }
+            setAlertState({ open: true, title: 'Error', message: 'Failed to unsuspend user: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
+          } finally {
+            setActionLoading(null);
           }
-          setAlertState({ open: true, title: 'Error', message: 'Failed to update suspension status: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
-        } finally {
-          setActionLoading(null);
         }
-      } })
+      });
+    }
+  };
+
+  const handleConfirmSuspend = async (userId: number, duration: string, reason: string) => {
+    try {
+      setSuspensionSubmitting(true);
+      setActionLoading(userId);
+      await adminApi.suspendUser(userId, true, duration, reason);
+      setSuspensionModalUser(null);
+      await fetchUsers(true);
+      if (selectedDetailUser && selectedDetailUser.id === userId) {
+        fetchUserDetails(userId);
+      }
+    } catch (err: any) {
+      setAlertState({
+        open: true,
+        title: 'Suspension Failed',
+        message: 'Failed to suspend user: ' + (err.response?.data?.message || err.message),
+        onConfirm: () => setAlertState(s => ({ ...s, open: false }))
+      });
+    } finally {
+      setSuspensionSubmitting(false);
+      setActionLoading(null);
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -749,6 +789,15 @@ function UsersContent() {
         <JobPreviewModal
           selectedJob={selectedJob}
           onClose={() => setSelectedJob(null)}
+        />
+      )}
+      {/* Suspension Modal */}
+      {suspensionModalUser && (
+        <SuspensionModal
+          user={suspensionModalUser}
+          onClose={() => setSuspensionModalUser(null)}
+          onConfirm={handleConfirmSuspend}
+          loading={suspensionSubmitting}
         />
       )}
       <AlertDialog isOpen={alertState.open} title={alertState.title} message={alertState.message} onConfirm={() => { alertState.onConfirm(); setAlertState(s => ({...s, open: false})); }} onCancel={() => setAlertState(s => ({...s, open: false}))} confirmText="Confirm" cancelText="Cancel" />

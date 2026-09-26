@@ -252,9 +252,9 @@ export const adminApi = {
     return apiClient.get(`/admin/users/${id}/blocks`);
   },
   
-  suspendUser: async (id: number, is_suspended: boolean = true) => {
+  suspendUser: async (id: number, is_suspended: boolean = true, duration?: string, reason?: string) => {
     clearApiCache();
-    return apiClient.patch(`/admin/users/${id}`, { is_suspended });
+    return apiClient.patch(`/admin/users/${id}`, { is_suspended, duration, reason });
   },
   
   deleteUser: async (id: number) => {

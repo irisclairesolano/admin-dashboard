@@ -13,7 +13,10 @@ export interface User {
   verification_status: 'unverified' | 'pending' | 'approved' | 'rejected';
   verification_badge: boolean;
   is_suspended: boolean;
-  reputation_score: number;
+  suspended_until?: string;
+  is_permanently_banned?: boolean;
+  suspension_reason?: string;
+  reputation_score: number | null;
   registration_status?: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;

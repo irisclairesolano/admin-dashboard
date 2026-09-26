@@ -10,7 +10,7 @@ interface UserTableProps {
   actionLoading: number | null;
   onSelectUser: (user: User) => void;
   onVerify: (user: User) => void;
-  onSuspend: (id: number, isSuspended: boolean) => void;
+  onSuspend: (user: User) => void;
   onDelete: (id: number) => void;
   onRestore?: (id: number) => void;
 }
@@ -182,7 +182,7 @@ export default function UserTable({
                           )}
                           <button
                             disabled={actionLoading === user.id}
-                            onClick={() => onSuspend(user.id, user.is_suspended)}
+                            onClick={() => onSuspend(user)}
                             className={`w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg border transition-all text-center cursor-pointer ${
                               user.is_suspended
                                 ? 'bg-status-warning/15 border-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
