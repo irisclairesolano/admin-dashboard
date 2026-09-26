@@ -45,6 +45,15 @@ describe('ArchivesPage Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.setItem(
+      'admin_user',
+      JSON.stringify({
+        id: 1,
+        name: 'Super Admin',
+        email: 'admin@sikap.org',
+        admin_role: 'superadmin',
+      })
+    );
     vi.mocked(adminApi.getUsers).mockResolvedValue({
       data: { success: true, data: mockDeletedUsers },
     } as any);

@@ -143,11 +143,17 @@ describe('UsersPage Component', () => {
     const suspendButtons = screen.getAllByRole('button', { name: /suspend/i });
     fireEvent.click(suspendButtons[0]);
 
-    // Wait for the AlertDialog to render asynchronously, then confirm
-    const confirmBtn = await screen.findByRole('button', { name: /Confirm/i });
+    // Fill in suspension reason in the modal
+    const reasonInput = await screen.findByPlaceholderText(/Provide a clear explanation/i);
+    fireEvent.change(reasonInput, { target: { value: 'Violation of platform terms' } });
+
+    // Wait for the modal submit button and confirm
+    const confirmBtn = await screen.findByRole('button', { name: /Confirm Suspension/i });
     fireEvent.click(confirmBtn);
 
-    expect(adminApi.suspendUser).toHaveBeenCalledWith(1, true);
+    await waitFor(() => {
+      expect(adminApi.suspendUser).toHaveBeenCalledWith(1, true, '1_week', 'Violation of platform terms');
+    });
   });
 
   it('handles soft deleting a user', async () => {

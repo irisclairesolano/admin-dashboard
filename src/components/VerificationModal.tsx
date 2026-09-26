@@ -239,267 +239,430 @@ export default function VerificationModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {/* Front ID */}
-            <div>
-              <div className="flex items-center justify-between mb-2 h-6">
-                <span className="font-body font-semibold text-ink-soft text-sm">Government ID (Front)</span>
-                {frontUrl && !imageErrors['front'] && (
-                  <a
-                    href={frontUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
-                  >
-                    Open <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-              </div>
-              <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden relative">
-                {frontUrl ? (
-                  imageErrors['front'] ? (
-                    <div className="flex flex-col items-center justify-center text-center p-4">
-                      <AlertCircle className="w-8 h-8 text-status-warning mb-2" />
-                      <p className="text-xs font-semibold text-ink mb-1">Image preview failed</p>
-                      <p className="text-[11px] text-ink-muted mb-3 max-w-[180px] truncate">{frontUrl}</p>
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={frontUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
-                        >
-                          View Direct <ExternalLink className="w-3 h-3" />
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => handleRetryImage('front')}
-                          className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
-                          title="Retry preview"
-                        >
-                          <RefreshCw className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <Image
-                      src={frontUrl}
-                      alt="ID Front"
-                      width={400}
-                      height={300}
-                      unoptimized
-                      data-testid="id-front-img"
-                      onError={() => handleImageError('front')}
-                      onClick={() => handleOpenLightbox(frontUrl, 'Government ID (Front)', false)}
-                      className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
-                    />
-                  )
-                ) : (
-                  <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-id-front">No Front ID uploaded</p>
-                )}
-              </div>
-            </div>
-
-            {/* Back ID */}
-            <div>
-              <div className="flex items-center justify-between mb-2 h-6">
-                <span className="font-body font-semibold text-ink-soft text-sm">Government ID (Back)</span>
-                {backUrl && !imageErrors['back'] && (
-                  <a
-                    href={backUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
-                  >
-                    Open <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-              </div>
-              <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden relative">
-                {backUrl ? (
-                  imageErrors['back'] ? (
-                    <div className="flex flex-col items-center justify-center text-center p-4">
-                      <AlertCircle className="w-8 h-8 text-status-warning mb-2" />
-                      <p className="text-xs font-semibold text-ink mb-1">Image preview failed</p>
-                      <p className="text-[11px] text-ink-muted mb-3 max-w-[180px] truncate">{backUrl}</p>
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={backUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
-                        >
-                          View Direct <ExternalLink className="w-3 h-3" />
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => handleRetryImage('back')}
-                          className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
-                          title="Retry preview"
-                        >
-                          <RefreshCw className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <Image
-                      src={backUrl}
-                      alt="ID Back"
-                      width={400}
-                      height={300}
-                      unoptimized
-                      data-testid="id-back-img"
-                      onError={() => handleImageError('back')}
-                      onClick={() => handleOpenLightbox(backUrl, 'Government ID (Back)', false)}
-                      className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
-                    />
-                  )
-                ) : (
-                  <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-id-back">No Back ID uploaded</p>
-                )}
-              </div>
-            </div>
-
-            {/* Selfie ID */}
-            <div>
-              <div className="flex items-center justify-between mb-2 h-6">
-                <span className="font-body font-semibold text-ink-soft text-sm">Selfie holding ID</span>
-                {selfieUrl && !imageErrors['selfie'] && (
-                  <a
-                    href={selfieUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
-                  >
-                    Open <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-              </div>
-              <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden relative">
-                {selfieUrl ? (
-                  imageErrors['selfie'] ? (
-                    <div className="flex flex-col items-center justify-center text-center p-4">
-                      <AlertCircle className="w-8 h-8 text-status-warning mb-2" />
-                      <p className="text-xs font-semibold text-ink mb-1">Image preview failed</p>
-                      <p className="text-[11px] text-ink-muted mb-3 max-w-[180px] truncate">{selfieUrl}</p>
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={selfieUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
-                        >
-                          View Direct <ExternalLink className="w-3 h-3" />
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => handleRetryImage('selfie')}
-                          className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
-                          title="Retry preview"
-                        >
-                          <RefreshCw className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <Image
-                      src={selfieUrl}
-                      alt="Selfie holding ID"
-                      width={400}
-                      height={300}
-                      unoptimized
-                      data-testid="selfie-id-img"
-                      onError={() => handleImageError('selfie')}
-                      onClick={() => handleOpenLightbox(selfieUrl, 'Selfie holding ID', false)}
-                      className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
-                    />
-                  )
-                ) : (
-                  <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-selfie-id">
-                    {(currentUser.role || user.role) === 'employer' ? 'Selfie not required for employers' : 'No selfie uploaded'}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Business Documents for Employers */}
-          {(currentUser.role || user.role) === 'employer' && (() => {
+          {/* ADAPTIVE VERIFICATION LAYOUTS */}
+          {(() => {
+            const isEmployer = (currentUser.role || user.role) === 'employer';
             const docsSource = currentUser.business_documents || user.business_documents;
-            const docs: string[] = Array.isArray(docsSource)
+            const businessDocs: string[] = Array.isArray(docsSource)
               ? docsSource
               : typeof docsSource === 'string' && docsSource.trim()
               ? [docsSource]
               : [];
+            const hasPersonalId = Boolean(frontUrl || backUrl);
+            const hasBusinessDocs = businessDocs.length > 0;
 
-            return (
-              <div className="mt-6 border-t border-ink-faint pt-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-body font-bold text-ink text-sm">Uploaded Business Documents</h4>
-                  {docs.length > 0 && (
-                    <span className="text-xs text-ink-muted font-body">
-                      {docs.length} document{docs.length > 1 ? 's' : ''}
-                    </span>
-                  )}
-                </div>
-
-                {docs.length === 0 ? (
-                  <div className="bg-paper p-4 rounded-xl border border-ink-faint text-sm text-ink-muted flex items-center gap-2">
-                    <p className="text-xs text-ink-muted">No business documents uploaded yet by this employer.</p>
+            // 1. WORKER LAYOUT: 3-column personal ID (Front, Back, Selfie)
+            if (!isEmployer) {
+              return (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-body font-bold text-ink text-sm flex items-center gap-1.5">
+                      <i className="lni lni-user text-primary" />
+                      Personal Identification Documents
+                    </h4>
+                    <span className="text-xs text-ink-muted font-body">Government ID & Selfie</span>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {docs.map((docUrl, idx) => {
-                      const isPdf = typeof docUrl === 'string' && (docUrl.toLowerCase().endsWith('.pdf') || docUrl.includes('.pdf?'));
-                      return (
-                        <div key={idx} className="group relative">
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="font-body font-semibold text-ink-soft text-xs">Document #{idx + 1}</span>
-                            <span className="text-[10px] font-medium uppercase px-1.5 py-0.5 rounded bg-paper text-ink-muted border border-ink-faint">
-                              {isPdf ? 'PDF' : 'IMAGE'}
-                            </span>
-                          </div>
-                          <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[180px] flex items-center justify-center bg-black/5 overflow-hidden relative">
-                            {isPdf ? (
-                              <div className="flex flex-col items-center justify-center text-center p-3">
-                                <FileText className="w-10 h-10 text-primary mb-2" />
-                                <p className="text-xs font-semibold text-ink mb-2">Business Permit (PDF)</p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
+                    {/* Front ID */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2 h-6">
+                        <span className="font-body font-semibold text-ink-soft text-sm">Government ID (Front)</span>
+                        {frontUrl && !imageErrors['front'] && (
+                          <a
+                            href={frontUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
+                          >
+                            Open <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                      <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden relative">
+                        {frontUrl ? (
+                          imageErrors['front'] ? (
+                            <div className="flex flex-col items-center justify-center text-center p-4">
+                              <AlertCircle className="w-8 h-8 text-status-warning mb-2" />
+                              <p className="text-xs font-semibold text-ink mb-1">Image preview failed</p>
+                              <p className="text-[11px] text-ink-muted mb-3 max-w-[180px] truncate">{frontUrl}</p>
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={frontUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
+                                >
+                                  View Direct <ExternalLink className="w-3 h-3" />
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRetryImage('front')}
+                                  className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
+                                  title="Retry preview"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <Image
+                              src={frontUrl}
+                              alt="ID Front"
+                              width={400}
+                              height={300}
+                              unoptimized
+                              data-testid="id-front-img"
+                              onError={() => handleImageError('front')}
+                              onClick={() => handleOpenLightbox(frontUrl, 'Government ID (Front)', false)}
+                              className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
+                            />
+                          )
+                        ) : (
+                          <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-id-front">No Front ID uploaded</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Back ID */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2 h-6">
+                        <span className="font-body font-semibold text-ink-soft text-sm">Government ID (Back)</span>
+                        {backUrl && !imageErrors['back'] && (
+                          <a
+                            href={backUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
+                          >
+                            Open <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                      <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden relative">
+                        {backUrl ? (
+                          imageErrors['back'] ? (
+                            <div className="flex flex-col items-center justify-center text-center p-4">
+                              <AlertCircle className="w-8 h-8 text-status-warning mb-2" />
+                              <p className="text-xs font-semibold text-ink mb-1">Image preview failed</p>
+                              <p className="text-[11px] text-ink-muted mb-3 max-w-[180px] truncate">{backUrl}</p>
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={backUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
+                                >
+                                  View Direct <ExternalLink className="w-3 h-3" />
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRetryImage('back')}
+                                  className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
+                                  title="Retry preview"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <Image
+                              src={backUrl}
+                              alt="ID Back"
+                              width={400}
+                              height={300}
+                              unoptimized
+                              data-testid="id-back-img"
+                              onError={() => handleImageError('back')}
+                              onClick={() => handleOpenLightbox(backUrl, 'Government ID (Back)', false)}
+                              className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
+                            />
+                          )
+                        ) : (
+                          <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-id-back">No Back ID uploaded</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Selfie ID */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2 h-6">
+                        <span className="font-body font-semibold text-ink-soft text-sm">Selfie holding ID</span>
+                        {selfieUrl && !imageErrors['selfie'] && (
+                          <a
+                            href={selfieUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
+                          >
+                            Open <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                      <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[260px] flex items-center justify-center bg-black/5 overflow-hidden relative">
+                        {selfieUrl ? (
+                          imageErrors['selfie'] ? (
+                            <div className="flex flex-col items-center justify-center text-center p-4">
+                              <AlertCircle className="w-8 h-8 text-status-warning mb-2" />
+                              <p className="text-xs font-semibold text-ink mb-1">Image preview failed</p>
+                              <p className="text-[11px] text-ink-muted mb-3 max-w-[180px] truncate">{selfieUrl}</p>
+                              <div className="flex items-center gap-2">
+                                <a
+                                  href={selfieUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
+                                >
+                                  View Direct <ExternalLink className="w-3 h-3" />
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRetryImage('selfie')}
+                                  className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
+                                  title="Retry preview"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <Image
+                              src={selfieUrl}
+                              alt="Selfie holding ID"
+                              width={400}
+                              height={300}
+                              unoptimized
+                              data-testid="selfie-id-img"
+                              onError={() => handleImageError('selfie')}
+                              onClick={() => handleOpenLightbox(selfieUrl, 'Selfie holding ID', false)}
+                              className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
+                            />
+                          )
+                        ) : (
+                          <p className="text-ink-muted text-sm font-body font-medium" data-testid="no-selfie-id">No selfie uploaded</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            // 2. EMPLOYER LAYOUT: Purpose-fit sections for Representative ID + Business Documents
+            return (
+              <div className="space-y-6">
+                {/* Employer Section 1: Representative ID (2-column, no selfie placeholder) */}
+                {hasPersonalId ? (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-body font-bold text-ink text-sm flex items-center gap-1.5">
+                        <i className="lni lni-user text-primary" />
+                        Representative Government ID
+                      </h4>
+                      <span className="text-xs text-ink-muted font-body">Authorized Representative</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Front ID */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2 h-6">
+                          <span className="font-body font-semibold text-ink-soft text-sm">Government ID (Front)</span>
+                          {frontUrl && !imageErrors['front'] && (
+                            <a
+                              href={frontUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
+                            >
+                              Open <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                        </div>
+                        <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[220px] flex items-center justify-center bg-black/5 overflow-hidden relative">
+                          {frontUrl ? (
+                            imageErrors['front'] ? (
+                              <div className="flex flex-col items-center justify-center text-center p-4">
+                                <AlertCircle className="w-8 h-8 text-status-warning mb-2" />
+                                <p className="text-xs font-semibold text-ink mb-1">Image preview failed</p>
+                                <p className="text-[11px] text-ink-muted mb-3 max-w-[180px] truncate">{frontUrl}</p>
                                 <div className="flex items-center gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleOpenLightbox(docUrl, `Business Document #${idx + 1} (PDF)`, true)}
-                                    className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
-                                  >
-                                    Preview <ExternalLink className="w-3 h-3" />
-                                  </button>
                                   <a
-                                    href={docUrl}
+                                    href={frontUrl}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
-                                    title="Open direct"
+                                    className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
                                   >
-                                    <ExternalLink className="w-3.5 h-3.5" />
+                                    View Direct <ExternalLink className="w-3 h-3" />
                                   </a>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRetryImage('front')}
+                                    className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
+                                    title="Retry preview"
+                                  >
+                                    <RefreshCw className="w-3.5 h-3.5" />
+                                  </button>
                                 </div>
                               </div>
                             ) : (
                               <Image
-                                src={docUrl}
-                                alt={`Business Doc ${idx + 1}`}
+                                src={frontUrl}
+                                alt="ID Front"
                                 width={400}
                                 height={300}
                                 unoptimized
-                                onClick={() => handleOpenLightbox(docUrl, `Business Document #${idx + 1}`, false)}
+                                data-testid="id-front-img"
+                                onError={() => handleImageError('front')}
+                                onClick={() => handleOpenLightbox(frontUrl, 'Government ID (Front)', false)}
                                 className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
                               />
-                            )}
-                          </div>
+                            )
+                          ) : (
+                            <p className="text-ink-muted text-sm font-body font-medium">No Front ID uploaded</p>
+                          )}
                         </div>
-                      );
-                    })}
+                      </div>
+
+                      {/* Back ID */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2 h-6">
+                          <span className="font-body font-semibold text-ink-soft text-sm">Government ID (Back)</span>
+                          {backUrl && !imageErrors['back'] && (
+                            <a
+                              href={backUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
+                            >
+                              Open <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                        </div>
+                        <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[220px] flex items-center justify-center bg-black/5 overflow-hidden relative">
+                          {backUrl ? (
+                            imageErrors['back'] ? (
+                              <div className="flex flex-col items-center justify-center text-center p-4">
+                                <AlertCircle className="w-8 h-8 text-status-warning mb-2" />
+                                <p className="text-xs font-semibold text-ink mb-1">Image preview failed</p>
+                                <p className="text-[11px] text-ink-muted mb-3 max-w-[180px] truncate">{backUrl}</p>
+                                <div className="flex items-center gap-2">
+                                  <a
+                                    href={backUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
+                                  >
+                                    View Direct <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRetryImage('back')}
+                                    className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
+                                    title="Retry preview"
+                                  >
+                                    <RefreshCw className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <Image
+                                src={backUrl}
+                                alt="ID Back"
+                                width={400}
+                                height={300}
+                                unoptimized
+                                data-testid="id-back-img"
+                                onError={() => handleImageError('back')}
+                                onClick={() => handleOpenLightbox(backUrl, 'Government ID (Back)', false)}
+                                className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
+                              />
+                            )
+                          ) : (
+                            <p className="text-ink-muted text-sm font-body font-medium">No Back ID uploaded</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-paper/70 p-3 rounded-xl border border-ink-faint/60 text-xs text-ink-muted flex items-center gap-2">
+                    <i className="lni lni-information text-primary text-sm" />
+                    <span>Representative personal ID was not submitted for this employer entity.</span>
                   </div>
                 )}
+
+                {/* Employer Section 2: Business Registration Documents & Permits */}
+                <div className="border-t border-ink-faint pt-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-body font-bold text-ink text-sm flex items-center gap-1.5">
+                      <i className="lni lni-briefcase text-primary" />
+                      Business Registration & Permits
+                    </h4>
+                    {hasBusinessDocs && (
+                      <span className="text-xs text-ink-muted font-body">
+                        {businessDocs.length} document{businessDocs.length > 1 ? 's' : ''} attached
+                      </span>
+                    )}
+                  </div>
+
+                  {!hasBusinessDocs ? (
+                    <div className="bg-paper p-4 rounded-xl border border-ink-faint text-xs text-ink-muted flex items-center gap-2">
+                      <p>No business documents or permits uploaded yet by this employer.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {businessDocs.map((docUrl, idx) => {
+                        const isPdf = typeof docUrl === 'string' && (docUrl.toLowerCase().endsWith('.pdf') || docUrl.includes('.pdf?'));
+                        return (
+                          <div key={idx} className="group relative">
+                            <div className="flex items-center justify-between mb-1.5 h-6">
+                              <span className="font-body font-semibold text-ink-soft text-xs">Document #{idx + 1}</span>
+                              <span className="text-[10px] font-medium uppercase px-1.5 py-0.5 rounded bg-paper text-ink-muted border border-ink-faint">
+                                {isPdf ? 'PDF' : 'IMAGE'}
+                              </span>
+                            </div>
+                            <div className="bg-paper rounded-xl border border-ink-faint p-2 h-[180px] flex items-center justify-center bg-black/5 overflow-hidden relative">
+                              {isPdf ? (
+                                <div className="flex flex-col items-center justify-center text-center p-3">
+                                  <FileText className="w-10 h-10 text-primary mb-2" />
+                                  <p className="text-xs font-semibold text-ink mb-2">Business Permit (PDF)</p>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenLightbox(docUrl, `Business Document #${idx + 1} (PDF)`, true)}
+                                      className="px-2.5 py-1 text-xs bg-primary text-white rounded-lg font-medium inline-flex items-center gap-1 hover:bg-primary-dark transition-colors"
+                                    >
+                                      Preview <ExternalLink className="w-3 h-3" />
+                                    </button>
+                                    <a
+                                      href={docUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="p-1 text-ink-muted hover:text-ink rounded-lg border border-ink-faint hover:bg-white transition-colors"
+                                      title="Open direct"
+                                    >
+                                      <ExternalLink className="w-3.5 h-3.5" />
+                                    </a>
+                                  </div>
+                                </div>
+                              ) : (
+                                <Image
+                                  src={docUrl}
+                                  alt={`Business Doc ${idx + 1}`}
+                                  width={400}
+                                  height={300}
+                                  unoptimized
+                                  onClick={() => handleOpenLightbox(docUrl, `Business Document #${idx + 1}`, false)}
+                                  className="max-w-full max-h-full object-contain rounded-lg cursor-pointer hover:scale-105 transition-all"
+                                />
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })()}

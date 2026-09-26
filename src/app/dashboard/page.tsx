@@ -1391,9 +1391,9 @@ export default function AnalyticsDashboard() {
                       )}
                     </div>
                   </div>
-                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted font-numeric">
-                    <span>Platform demand ratio</span>
-                    <HealthStatusBadge type="throughput" value={(data?.kpis?.active_jobs?.value ?? 0) > 0 ? ((data?.kpis?.applications?.value ?? 0) / (data?.kpis?.active_jobs?.value || 1)) : 0} />
+                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
+                    <span>Candidate submissions</span>
+                    <span className="text-[10px] text-ink-muted/70 group-hover:text-primary-dark transition-colors">Applications →</span>
                   </div>
                 </div>
 
