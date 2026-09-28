@@ -119,7 +119,7 @@ function HealthStatusBadge({ type, value }: { type: 'throughput' | 'conversion' 
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          Healthy Liquidity
+          Plenty of applicants
         </span>
       );
     }
@@ -127,14 +127,14 @@ function HealthStatusBadge({ type, value }: { type: 'throughput' | 'conversion' 
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
           <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
-          Moderate Flow
+          Steady
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
         <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-        Under-subscribed
+        Not enough applicants
       </span>
     );
   }
@@ -144,7 +144,7 @@ function HealthStatusBadge({ type, value }: { type: 'throughput' | 'conversion' 
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          Strong Match Rate (≥20%)
+          Many jobs getting filled (20%+)
         </span>
       );
     }
@@ -152,14 +152,14 @@ function HealthStatusBadge({ type, value }: { type: 'throughput' | 'conversion' 
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
           <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
-          Average Match Rate
+          Some jobs getting filled
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
         <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-        Low Match Rate (&lt;10%)
+        Few jobs getting filled (under 10%)
       </span>
     );
   }
@@ -169,7 +169,7 @@ function HealthStatusBadge({ type, value }: { type: 'throughput' | 'conversion' 
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          Zero Incidents
+          No reports
         </span>
       );
     }
@@ -177,14 +177,14 @@ function HealthStatusBadge({ type, value }: { type: 'throughput' | 'conversion' 
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
           <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
-          Normal Variance
+          Just a few reports
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
         <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-        Requires Attention
+        Needs a look
       </span>
     );
   }
@@ -491,27 +491,27 @@ export default function AnalyticsDashboard() {
 
     const sections = [
       {
-        title: 'Section 1: Key Performance Indicators (KPIs)',
+        title: 'Section 1: Key Numbers',
         headers: ['Metric', 'Current Value', 'PoP Change (%)', 'Trend Direction'],
         rows: [
-          ['New Registrations', data.kpis?.total_users?.value ?? 0, `${data.kpis?.total_users?.change ?? 0}%`, (data.kpis?.total_users?.change ?? 0) >= 0 ? 'Growth' : 'Decline'],
+          ['New Sign-ups', data.kpis?.total_users?.value ?? 0, `${data.kpis?.total_users?.change ?? 0}%`, (data.kpis?.total_users?.change ?? 0) >= 0 ? 'Growth' : 'Decline'],
           ['Job Posts', data.kpis?.active_jobs?.value ?? 0, `${data.kpis?.active_jobs?.change ?? 0}%`, (data.kpis?.active_jobs?.change ?? 0) >= 0 ? 'Growth' : 'Decline'],
-          ['Applications', data.kpis?.applications?.value ?? 0, `${data.kpis?.applications?.change ?? 0}%`, (data.kpis?.applications?.change ?? 0) >= 0 ? 'Growth' : 'Decline'],
-          ['Reports Filed', data.kpis?.unresolved_reports?.value ?? 0, `${data.kpis?.unresolved_reports?.change ?? 0}%`, (data.kpis?.unresolved_reports?.change ?? 0) <= 0 ? 'Improvement' : 'Alert'],
+          ['Job Applications', data.kpis?.applications?.value ?? 0, `${data.kpis?.applications?.change ?? 0}%`, (data.kpis?.applications?.change ?? 0) >= 0 ? 'Growth' : 'Decline'],
+          ['Reports Received', data.kpis?.unresolved_reports?.value ?? 0, `${data.kpis?.unresolved_reports?.change ?? 0}%`, (data.kpis?.unresolved_reports?.change ?? 0) <= 0 ? 'Improvement' : 'Alert'],
         ]
       },
       {
-        title: 'Section 2: Detailed Chronological Platform Activity (Reconciled)',
+        title: 'Section 2: Full Activity Table',
         headers: [
-          'Time Period',
+          'Date',
           'New Workers',
           'New Employers',
-          'Total New Users',
+          'All New Users',
           'Job Posts',
-          'Applications',
-          'Accepted Applications',
-          'Completed Hires',
-          'Reports Filed'
+          'Job Applications',
+          'Hired',
+          'Finished Jobs',
+          'Reports Received'
         ],
         rows: (transformedDetailedTimeSeries || []).map((row: any) => [
           formatPeriodLabel(row.period, intervalFilter),
@@ -526,8 +526,8 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: 'Section 3: User Growth & Time-Series Activity',
-        headers: ['Time Interval', 'New Workers', 'New Employers'],
+        title: 'Section 3: Sign-ups Over Time',
+        headers: ['Date', 'New Workers', 'New Employers'],
         rows: (transformedUserGrowth || []).map((item: any) => [
           item.name || '',
           item.workers ?? 0,
@@ -535,8 +535,8 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: 'Section 4: Application Volume Time-Series',
-        headers: ['Time Interval', 'Applications', 'Job Posts'],
+        title: 'Section 4: Applications and Job Posts Over Time',
+        headers: ['Date', 'Applications', 'Job Posts'],
         rows: (transformedApplicationVolume || []).map((item: any) => [
           item.name || '',
           item.applications ?? 0,
@@ -544,8 +544,8 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: 'Section 5: 5-Stage Progressive Disclosure & Hiring Funnel',
-        headers: ['Funnel Stage', 'Volume Count', 'Conversion Rate (%)'],
+        title: 'Section 5: From Applying to Getting Hired',
+        headers: ['Step', 'Total', 'Hire Rate (%)'],
         rows: (funnelSteps || []).map((step: any) => [
           step.label || '',
           step.value ?? 0,
@@ -553,8 +553,8 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: 'Section 6: User Demographics & Verification Ratios',
-        headers: ['Demographic Group', 'Count', 'Percentage of Total'],
+        title: 'Section 6: Users and ID Checks',
+        headers: ['Group', 'Count', 'Share of Total'],
         rows: [
           ['Registered Workers', data.user_ratio?.workers ?? 0, `${data.user_ratio?.workers_pct ?? 0}%`],
           ['Registered Employers', data.user_ratio?.employers ?? 0, `${data.user_ratio?.employers_pct ?? 0}%`],
@@ -563,8 +563,8 @@ export default function AnalyticsDashboard() {
         ]
       },
       {
-        title: 'Section 7: Wage & Compensation by Trade Category',
-        headers: ['Trade Category', 'Average Wage (PHP)', 'Min Wage (PHP)', 'Max Wage (PHP)'],
+        title: 'Section 7: Pay by Job Category',
+        headers: ['Job Category', 'Average Wage (PHP)', 'Min Wage (PHP)', 'Max Wage (PHP)'],
         rows: (data.compensation?.categories && data.compensation.categories.length > 0)
           ? data.compensation.categories.map((c: any) => [
               c.category || 'General',
@@ -575,8 +575,8 @@ export default function AnalyticsDashboard() {
           : [['General Labor', formatCSVCurrency(data.compensation?.avg), formatCSVCurrency(data.compensation?.min), formatCSVCurrency(data.compensation?.max)]]
       },
       {
-        title: 'Section 8: Geographic Activity by Location',
-        headers: ['Location', 'Job Posts Count', 'Applications Count'],
+        title: 'Section 8: Activity by Area',
+        headers: ['Town / Area', 'Job Posts', 'Applications'],
         rows: (transformedGeographicActivity || []).map((g: any) => [
           g.name || 'Bulan',
           g.jobs ?? 0,
@@ -584,8 +584,8 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: 'Section 9: Moderation & Safety Violation Breakdown',
-        headers: ['Violation Type', 'Report Count'],
+        title: 'Section 9: Reports Received',
+        headers: ['Report Type', 'Number of Reports'],
         rows: (data.reports?.breakdown && data.reports.breakdown.length > 0)
           ? data.reports.breakdown.map((r: any) => [
               formatCSVStatus(r.type),
@@ -597,11 +597,11 @@ export default function AnalyticsDashboard() {
 
     exportMultiSectionCSV(
       `sikap_analytics_${from}_to_${to}`,
-      'SIKAP Platform Descriptive Analytics Report',
+      'SIKAP Platform Summary Report',
       [
         ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Reporting Period:', `${from} to ${to}`],
-        ['Aggregation Interval:', intervalFilter],
+        ['Dates:', `${from} to ${to}`],
+        ['Grouped by:', intervalFilter],
         ['Platform:', 'SIKAP: Skills & Job Matching Platform']
       ],
       sections
@@ -1132,7 +1132,7 @@ export default function AnalyticsDashboard() {
         <div className="sticky top-0 z-30 bg-paper/95 backdrop-blur-md border-b border-ink-faint/60 -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6 py-2 mb-3 no-print shadow-2xs flex flex-col gap-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div>
-              <h1 className="text-xl font-display font-bold text-ink tracking-tight">Analytics Overview</h1>
+              <h1 className="text-xl font-display font-bold text-ink tracking-tight">Overview</h1>
             </div>
 
           {/* Date Filter & Aggregation Components */}
@@ -1162,9 +1162,9 @@ export default function AnalyticsDashboard() {
           <div role="tablist" aria-label="Analytics sections" className="flex overflow-x-auto gap-1">
             {[
               { id: 'overview', label: 'Overview' },
-              { id: 'trends', label: 'Trends & Velocity' },
-              { id: 'distribution', label: 'Sectors & Wages' },
-              { id: 'health', label: 'Trust & Safety' },
+              { id: 'trends', label: 'Trends' },
+              { id: 'distribution', label: 'Jobs & Pay' },
+              { id: 'health', label: 'Reports & Safety' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1225,9 +1225,9 @@ export default function AnalyticsDashboard() {
 
       {/* Printable Report Header */}
       <div className="hidden print:block mb-8">
-        <h1 className="text-3xl font-bold font-display text-ink">SIKAP Platform Descriptive Analytics</h1>
+        <h1 className="text-3xl font-bold font-display text-ink">SIKAP Summary Report</h1>
         <p className="text-sm font-body text-ink-soft mt-1">
-          Reporting Period: {from} to {to} | Aggregate: {intervalFilter}
+          Dates: {from} to {to} | Grouped by: {intervalFilter}
         </p>
         <hr className="mt-4 border-gray-200" />
       </div>
@@ -1305,7 +1305,7 @@ export default function AnalyticsDashboard() {
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-ink-muted">New Registrations</span>
+                      <span className="text-xs font-semibold text-ink-muted">New Sign-ups</span>
                       <i className="lni lni-users text-sm text-primary-dark/80" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
@@ -1358,7 +1358,7 @@ export default function AnalyticsDashboard() {
                     </div>
                   </div>
                   <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
-                    <span>Active municipal listings</span>
+                    <span>Jobs open right now</span>
                     <span className="text-[10px] text-ink-muted/70 group-hover:text-primary-dark transition-colors">Jobs →</span>
                   </div>
                 </div>
@@ -1373,7 +1373,7 @@ export default function AnalyticsDashboard() {
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-ink-muted">Applications Filed</span>
+                      <span className="text-xs font-semibold text-ink-muted">Job Applications</span>
                       <i className="lni lni-files text-sm text-emerald-700/80" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
@@ -1392,7 +1392,7 @@ export default function AnalyticsDashboard() {
                     </div>
                   </div>
                   <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
-                    <span>Candidate submissions</span>
+                    <span>Workers who applied</span>
                     <span className="text-[10px] text-ink-muted/70 group-hover:text-primary-dark transition-colors">Applications →</span>
                   </div>
                 </div>
@@ -1407,7 +1407,7 @@ export default function AnalyticsDashboard() {
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-ink-muted">Reports Filed</span>
+                      <span className="text-xs font-semibold text-ink-muted">Reports Received</span>
                       <i className="lni lni-shield text-sm text-rose-700/80" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
@@ -1431,7 +1431,7 @@ export default function AnalyticsDashboard() {
                 <div className="flex flex-wrap items-center justify-between gap-3 px-3.5 py-2 bg-white/80 backdrop-blur-md rounded-xl border border-ink-faint/60 shadow-2xs text-xs">
                   <div className="flex items-center gap-2 text-ink-soft">
                     <i className="lni lni-comments text-primary-dark" />
-                    <span className="font-semibold text-ink">In-App Messaging:</span>
+                    <span className="font-semibold text-ink">Chats:</span>
                     <span className="font-numeric text-ink">
                       <b>{convStats.active_conversations.toLocaleString()}</b> active chats · <b>{convStats.messages_today.toLocaleString()}</b> today · <b>{convStats.avg_messages_per_hire}</b> avg/hire
                     </span>
@@ -1439,7 +1439,7 @@ export default function AnalyticsDashboard() {
 
                   <div className="flex items-center gap-4 text-xs font-semibold text-ink-soft">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-ink-muted">Fill Rate:</span>
+                      <span className="text-ink-muted">Jobs Filled:</span>
                       <span className="font-bold text-primary-dark font-numeric">{data?.fill_rate?.value ?? 0}%</span>
                       <HealthStatusBadge type="conversion" value={data?.fill_rate?.value ?? 0} />
                     </div>
@@ -1547,7 +1547,7 @@ export default function AnalyticsDashboard() {
                   <div className="bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0 print-chart-container">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
                       <div>
-                        <h3 className="font-display text-sm sm:text-base font-bold text-ink">Platform Activity & Application Flow</h3>
+                        <h3 className="font-display text-sm sm:text-base font-bold text-ink">What's Happening on SIKAP</h3>
                         <p className="text-[11px] text-ink-muted">
                           Volume of worker applications filed compared to active job posts ({globalPreset}, {intervalFilter} grouping).
                         </p>
@@ -1641,7 +1641,7 @@ export default function AnalyticsDashboard() {
                         items={[
                           { label: 'New Workers', value: data?.user_ratio?.workers ?? 0, highlight: true },
                           { label: 'New Employers', value: data?.user_ratio?.employers ?? 0 },
-                          { label: 'Verified Ratio', value: `${data?.user_ratio?.verified_pct ?? 0}%` },
+                          { label: 'Verified Users', value: `${data?.user_ratio?.verified_pct ?? 0}%` },
                         ]}
                       />
 
@@ -1681,8 +1681,8 @@ export default function AnalyticsDashboard() {
                     {/* Regional Activity by Municipality */}
                     <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
                       <div className="mb-2">
-                        <h3 className="font-display text-sm font-bold text-ink">Geographic Demand by Municipality</h3>
-                        <p className="text-[11px] text-ink-muted">Municipalities ranked by total job postings and worker applications.</p>
+                        <h3 className="font-display text-sm font-bold text-ink">Where the Jobs Are (by Town)</h3>
+                        <p className="text-[11px] text-ink-muted">Towns with the most job posts and applications.</p>
                       </div>
 
                       <MetricHeaderStrip
@@ -1724,8 +1724,8 @@ export default function AnalyticsDashboard() {
                     {/* Application-to-Hire Funnel */}
                     <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col justify-between">
                       <div>
-                        <h3 className="font-display text-sm font-bold text-ink mb-1">Application-to-Hire Funnel</h3>
-                        <p className="text-[11px] text-ink-muted mb-3">Pipeline mapping and conversions from submissions to closures.</p>
+                        <h3 className="font-display text-sm font-bold text-ink mb-1">From Applying to Getting Hired</h3>
+                        <p className="text-[11px] text-ink-muted mb-3">How many applicants move forward at each step.</p>
                         
                         <div className="space-y-3">
                           {funnelSteps.map((step, idx) => (
@@ -1778,24 +1778,24 @@ export default function AnalyticsDashboard() {
                     <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-display text-sm font-bold text-ink">Verification & Retention Summary</h3>
+                          <h3 className="font-display text-sm font-bold text-ink">ID Checks & Returning Workers</h3>
                           {data?.verification?.delayed_verifications > 0 && (
                             <span className="text-[10px] bg-status-error/10 text-status-error px-2 py-0.5 rounded-full font-bold border border-status-error/20 uppercase tracking-wider">
                               {data.verification.delayed_verifications} Delayed
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-ink-muted mb-3">Verification audit times and repeat worker metrics.</p>
+                        <p className="text-[11px] text-ink-muted mb-3">How fast IDs get checked and how many workers come back.</p>
 
                         <div className="grid grid-cols-2 gap-2 mb-3">
                           <div className="bg-white/70 p-2.5 rounded-lg border border-ink-faint/50 text-center">
-                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Avg Turnaround Time</span>
+                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Average Wait Time</span>
                             <strong className="text-lg font-numeric text-ink mt-0.5 block">
                               {data?.verification?.average_turnaround_seconds > 0 
                                 ? `${(data.verification.average_turnaround_seconds / 3600).toFixed(1)} hrs` 
                                 : 'N/A'}
                             </strong>
-                            <span className="text-[9px] text-ink-muted block">Upload to review</span>
+                            <span className="text-[9px] text-ink-muted block">From upload to admin check</span>
                           </div>
                           <div className="bg-white/70 p-2.5 rounded-lg border border-ink-faint/50 text-center">
                             <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Job Fill Rate</span>
@@ -1810,18 +1810,18 @@ export default function AnalyticsDashboard() {
                       </div>
 
                       <div className="mt-3 pt-3 border-t border-ink-faint/40">
-                        <h4 className="font-display text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-2">Worker Retention Rate</h4>
+                        <h4 className="font-display text-[11px] font-bold uppercase tracking-wider text-ink-muted mb-2">Workers Who Come Back</h4>
                         <div className="grid grid-cols-3 gap-2 text-center">
                           <div>
-                            <span className="text-[10px] text-ink-muted block">Active Applicants</span>
+                            <span className="text-[10px] text-ink-muted block">Workers Applying</span>
                             <strong className="text-base font-numeric text-ink block">{data?.worker_retention?.total_applicants ?? 0}</strong>
                           </div>
                           <div>
-                            <span className="text-[10px] text-ink-muted block">Returning Users</span>
+                            <span className="text-[10px] text-ink-muted block">Came Back</span>
                             <strong className="text-base font-numeric text-ink block">{data?.worker_retention?.returning_applicants ?? 0}</strong>
                           </div>
                           <div>
-                            <span className="text-[10px] text-ink-muted block">Retention Rate</span>
+                            <span className="text-[10px] text-ink-muted block">Come-back Rate</span>
                             <strong className="text-base font-numeric text-primary-dark block">{data?.worker_retention?.retention_rate ?? 0}%</strong>
                           </div>
                         </div>
@@ -1839,7 +1839,7 @@ export default function AnalyticsDashboard() {
                       <div className="flex items-center gap-2">
                         <i className="lni lni-layout text-primary-dark text-base" />
                         <h3 className="font-display text-sm sm:text-base font-bold text-ink">
-                          Detailed Analytics Report — Complete Platform Activity
+                          Full Table: Everything That Happened
                         </h3>
                       </div>
                       <p className="text-[11px] text-ink-muted mt-0.5">
@@ -1857,15 +1857,15 @@ export default function AnalyticsDashboard() {
                     <table className="w-full text-xs font-body text-left">
                       <thead>
                         <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-muted tracking-wider">
-                          <th className="py-2 px-3">Time Period</th>
+                          <th className="py-2 px-3">Date</th>
                           <th className="py-2 px-2.5 text-right">New Workers</th>
                           <th className="py-2 px-2.5 text-right">New Employers</th>
-                          <th className="py-2 px-2.5 text-right">Total New Users</th>
+                          <th className="py-2 px-2.5 text-right">All New Users</th>
                           <th className="py-2 px-2.5 text-right">Job Posts</th>
                           <th className="py-2 px-2.5 text-right">Applications</th>
-                          <th className="py-2 px-2.5 text-right text-sky-700">Accepted</th>
-                          <th className="py-2 px-2.5 text-right text-emerald-700">Completed Hires</th>
-                          <th className="py-2 px-3 text-right text-rose-600">Reports Filed</th>
+                          <th className="py-2 px-2.5 text-right text-sky-700">Hired</th>
+                          <th className="py-2 px-2.5 text-right text-emerald-700">Finished Jobs</th>
+                          <th className="py-2 px-3 text-right text-rose-600">Reports Received</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-ink-faint/20">
@@ -1945,7 +1945,7 @@ export default function AnalyticsDashboard() {
                     </table>
                   </div>
                   <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-0.5">
-                    <span>Reconciliation check: All column sums reconcile with database KPI metrics.</span>
+                    <span>Check: these totals match the numbers at the top.</span>
                     <button
                       onClick={handleExportCSV}
                       className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
@@ -2085,8 +2085,8 @@ export default function AnalyticsDashboard() {
                     <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
                       <div className="flex items-center justify-between mb-2">
                         <div>
-                          <h3 className="font-display text-sm font-bold text-ink">Application-to-Hire Conversion Velocity</h3>
-                          <p className="text-[11px] text-ink-muted">Applications against confirmed hires over time.</p>
+                          <h3 className="font-display text-sm font-bold text-ink">Applications vs. Hires Over Time</h3>
+                          <p className="text-[11px] text-ink-muted">How many people applied compared to how many got hired.</p>
                         </div>
                         <HealthStatusBadge
                           type="conversion"
@@ -2098,7 +2098,7 @@ export default function AnalyticsDashboard() {
                           { label: 'Applications Filed', value: detailedTotals.applications, highlight: true },
                           { label: 'Completed Hires', value: detailedTotals.completed_hires },
                           {
-                            label: 'Conversion Rate',
+                            label: 'Hire Rate',
                             value: `${detailedTotals.applications > 0 ? ((detailedTotals.completed_hires / detailedTotals.applications) * 100).toFixed(1) : '0.0'}%`
                           }
                         ]}
@@ -2154,11 +2154,11 @@ export default function AnalyticsDashboard() {
                       <div className="flex items-center gap-2">
                         <i className="lni lni-stats-up text-primary-dark text-base" />
                         <h3 className="font-display text-sm sm:text-base font-bold text-ink">
-                          Detailed Analytics Report — Activity Trends & Registration Velocity
+                          Full Table: Everything That Happened
                         </h3>
                       </div>
                       <p className="text-[11px] text-ink-muted mt-0.5">
-                        Chronological velocity metrics and application throughput per job post for <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong> ({globalPreset}).
+                        Breakdown of registration and job activity from <strong className="text-ink">{from}</strong> to <strong className="text-ink">{to}</strong>.
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -2172,27 +2172,23 @@ export default function AnalyticsDashboard() {
                     <table className="w-full text-xs font-body text-left">
                       <thead>
                         <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-muted tracking-wider">
-                          <th className="py-2 px-3">Time Period</th>
+                          <th className="py-2 px-3">Date</th>
                           <th className="py-2 px-2.5 text-right">Worker Signups</th>
                           <th className="py-2 px-2.5 text-right">Employer Signups</th>
-                          <th className="py-2 px-2.5 text-right">Total Registrations</th>
+                          <th className="py-2 px-2.5 text-right">All New Users</th>
                           <th className="py-2 px-2.5 text-right">Job Posts</th>
-                          <th className="py-2 px-2.5 text-right">Applications Filed</th>
-                          <th className="py-2 px-3 text-right">Throughput Ratio</th>
+                          <th className="py-2 px-3 text-right">Job Applications</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-ink-faint/20">
                         {transformedDetailedTimeSeries.length === 0 ? (
                           <tr>
-                            <td colSpan={7} className="py-6 text-center text-ink-muted">
+                            <td colSpan={6} className="py-6 text-center text-ink-muted">
                               No activity recorded yet for {from} to {to}. Data will display here in real-time as users interact.
                             </td>
                           </tr>
                         ) : (
                           transformedDetailedTimeSeries.map((row: any, idx: number) => {
-                            const ratio = row.job_posts > 0 
-                              ? `${(row.applications / row.job_posts).toFixed(1)} / post` 
-                              : (row.applications > 0 ? `${row.applications} / 0 posts` : '0.0');
                             return (
                               <tr key={idx} className="hover:bg-primary-soft/20 transition-colors">
                                 <td className="py-2 px-3 font-semibold text-ink whitespace-nowrap">
@@ -2210,11 +2206,8 @@ export default function AnalyticsDashboard() {
                                 <td className="py-2 px-2.5 text-right font-numeric text-ink">
                                   {(row.job_posts ?? 0).toLocaleString()}
                                 </td>
-                                <td className="py-2 px-2.5 text-right font-numeric text-ink">
+                                <td className="py-2 px-3 text-right font-numeric text-ink">
                                   {(row.applications ?? 0).toLocaleString()}
-                                </td>
-                                <td className="py-2 px-3 text-right font-numeric font-semibold text-primary-dark">
-                                  {ratio}
                                 </td>
                               </tr>
                             );
@@ -2239,13 +2232,8 @@ export default function AnalyticsDashboard() {
                             <td className="py-2 px-2.5 text-right font-numeric font-bold">
                               {detailedTotals.job_posts.toLocaleString()}
                             </td>
-                            <td className="py-2 px-2.5 text-right font-numeric font-bold text-primary-dark">
-                              {detailedTotals.applications.toLocaleString()}
-                            </td>
                             <td className="py-2 px-3 text-right font-numeric font-bold text-primary-dark">
-                              {detailedTotals.job_posts > 0 
-                                ? `${(detailedTotals.applications / detailedTotals.job_posts).toFixed(1)} / post` 
-                                : (detailedTotals.applications > 0 ? `${detailedTotals.applications} / 0 posts` : '0.0')}
+                              {detailedTotals.applications.toLocaleString()}
                             </td>
                           </tr>
                         </tfoot>
@@ -2253,7 +2241,7 @@ export default function AnalyticsDashboard() {
                     </table>
                   </div>
                   <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-0.5">
-                    <span>Reconciliation check: Worker and Employer signups match Total Registrations; Applications match funnel records.</span>
+                    <span>Check: these totals match the numbers at the top.</span>
                     <button
                       onClick={handleExportCSV}
                       className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
@@ -2282,7 +2270,7 @@ export default function AnalyticsDashboard() {
                         onChange={(e) => setDistRegionFilter(e.target.value)}
                         className="bg-white px-2 py-0.5 rounded-lg border border-ink-faint shadow-inner text-xs font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
                       >
-                        <option value="all">All Municipalities</option>
+                        <option value="all">All Towns</option>
                         {uniqueMunicipalities.map((muni) => (
                           <option key={muni} value={muni}>{muni}</option>
                         ))}
@@ -2350,13 +2338,13 @@ export default function AnalyticsDashboard() {
                     {/* Horizontal Skill Category Demand */}
                     <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
                       <div className="mb-2">
-                        <h3 className="font-display text-sm font-bold text-ink">Skill & Category Demand</h3>
+                        <h3 className="font-display text-sm font-bold text-ink">Most Wanted Skills</h3>
                         <p className="text-[11px] text-ink-muted">Platform job posts ranked descending by sector category.</p>
                       </div>
                       <MetricHeaderStrip
                         items={[
-                          { label: 'Active Sectors', value: transformedJobsData.length, highlight: true },
-                          { label: 'Top In-Demand', value: transformedJobsData[0]?.name || 'None' },
+                          { label: 'Job Categories', value: transformedJobsData.length, highlight: true },
+                          { label: 'Most Wanted', value: transformedJobsData[0]?.name || 'None' },
                           { label: 'Total Job Posts', value: transformedJobsData.reduce((acc: number, cur: any) => acc + (cur.jobs || 0), 0) }
                         ]}
                       />
@@ -2393,7 +2381,7 @@ export default function AnalyticsDashboard() {
                     {/* Skill Profile Distribution Donut Chart */}
                     <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col relative min-w-0">
                       <div className="mb-2">
-                        <h3 className="font-display text-sm font-bold text-ink">Skill Profile Distribution</h3>
+                        <h3 className="font-display text-sm font-bold text-ink">Worker Skills</h3>
                         <p className="text-[11px] text-ink-muted">Profile breakdown capped at Top 6 skills and grouped others.</p>
                       </div>
                       <MetricHeaderStrip
@@ -2482,7 +2470,7 @@ export default function AnalyticsDashboard() {
                   {/* Stacked Geographic Activity chart */}
                   <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0 print-chart-container">
                     <div className="mb-2">
-                      <h3 className="font-display text-sm font-bold text-ink">Geographic Activity Breakdown</h3>
+                      <h3 className="font-display text-sm font-bold text-ink">Activity by Area</h3>
                       <p className="text-[11px] text-ink-muted">
                         {distRegionFilter === 'all' 
                           ? 'Job Posts and Applications stacked on a single track per municipality.'
@@ -2491,8 +2479,8 @@ export default function AnalyticsDashboard() {
                     </div>
                     <MetricHeaderStrip
                       items={[
-                        { label: 'Tracked Areas', value: transformedGeographicActivity.length, highlight: true },
-                        { label: 'Lead Area', value: transformedGeographicActivity[0]?.name || 'None' },
+                        { label: 'Areas', value: transformedGeographicActivity.length, highlight: true },
+                        { label: 'Busiest Area', value: transformedGeographicActivity[0]?.name || 'None' },
                         { label: 'Job Posts', value: transformedGeographicActivity.reduce((acc: number, c: any) => acc + (c.jobs || 0), 0) },
                         { label: 'Applications', value: transformedGeographicActivity.reduce((acc: number, c: any) => acc + (c.applications || 0), 0) }
                       ]}
@@ -2568,7 +2556,7 @@ export default function AnalyticsDashboard() {
                         <thead>
                           <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-muted tracking-wider">
                             <th className="py-2 px-3 w-14">Rank</th>
-                            <th className="py-2 px-3">Trade Category / Sector</th>
+                            <th className="py-2 px-3">Type of Work</th>
                             <th className="py-2 px-3 text-right">Job Posts</th>
                             <th className="py-2 px-3 text-right">Share of Total</th>
                             <th className="py-2 px-3 text-right">Average Wage (PHP)</th>
@@ -2632,11 +2620,11 @@ export default function AnalyticsDashboard() {
                         <thead>
                           <tr className="bg-slate-50/80 border-b border-ink-faint/40 text-[10px] uppercase font-bold text-ink-muted tracking-wider">
                             <th className="py-2 px-3 w-14">Rank</th>
-                            <th className="py-2 px-3">Location (Municipality / Barangay)</th>
+                            <th className="py-2 px-3">Town / Barangay</th>
                             <th className="py-2 px-3 text-right">Job Posts</th>
-                            <th className="py-2 px-3 text-right">Applications Filed</th>
-                            <th className="py-2 px-3 text-right">Total Interactions</th>
-                            <th className="py-2 px-3 text-right">Regional Share</th>
+                            <th className="py-2 px-3 text-right">Job Applications</th>
+                            <th className="py-2 px-3 text-right">Total Activity</th>
+                            <th className="py-2 px-3 text-right">Share of All Activity</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-ink-faint/20">
@@ -2797,8 +2785,8 @@ export default function AnalyticsDashboard() {
                 <div className="bg-white/90 p-4 rounded-xl shadow-xs border border-ink-faint/30 flex flex-col justify-between">
                   <div>
                     <div className="mb-3">
-                      <h3 className="font-display text-sm font-bold text-ink">Two-Way Star Ratings</h3>
-                      <p className="text-[11px] text-ink-muted">Average user ratings for this period. <span className="italic">Adjust the date range above to view all-time data.</span></p>
+                      <h3 className="font-display text-sm font-bold text-ink">Star Ratings</h3>
+                      <p className="text-[11px] text-ink-muted">Average stars people gave in this period. <span className="italic">Change the dates above to see all-time.</span></p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mb-4">
@@ -2829,7 +2817,7 @@ export default function AnalyticsDashboard() {
                     </div>
 
                     <hr className="my-3 border-ink-faint/30" />
-                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-soft mb-2">Rating Star Distribution</h4>
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-soft mb-2">How Many of Each Star</h4>
                     <div className="space-y-1.5">
                       {[5, 4, 3, 2, 1].map((stars) => {
                         const matches = data?.ratings?.distribution?.find((d: any) => Math.round(d.rating) === stars);
@@ -3172,10 +3160,10 @@ export default function AnalyticsDashboard() {
                   <div className="my-2 flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200">
                     <div>
                       <h2 className="text-[11px] font-display font-bold text-slate-900 uppercase tracking-wider">
-                        {activeTab === 'overview' && 'Executive Platform Overview & Core Metrics'}
-                        {activeTab === 'trends' && 'Labor Supply & Application Growth Trends'}
-                        {activeTab === 'distribution' && 'Trade Category Demand & Geographic Labor Distribution'}
-                        {activeTab === 'health' && 'Platform Trust, Credential Compliance & Wage Benchmarks'}
+                        {activeTab === 'overview' && 'Overview & Key Numbers'}
+                        {activeTab === 'trends' && 'Applications & Hiring Trends'}
+                        {activeTab === 'distribution' && 'Jobs & Areas'}
+                        {activeTab === 'health' && 'Safety & Pay'}
                       </h2>
                     </div>
                     <div className="flex gap-1 text-[8px] font-medium text-slate-600">
@@ -3225,43 +3213,43 @@ export default function AnalyticsDashboard() {
                     </div>
 
                     <div className="p-2 bg-white rounded border border-slate-200">
-                      <p className="text-[7px] font-bold text-slate-500 uppercase">Placement Fill Rate</p>
+                      <p className="text-[7px] font-bold text-slate-500 uppercase">Jobs Filled</p>
                       <p className="text-sm font-black text-emerald-700 mt-0.5">{data?.fill_rate?.value ?? 0}%</p>
                       <p className="text-[7px] text-slate-500">Completed jobs / Total</p>
                     </div>
 
                     <div className="p-2 bg-white rounded border border-slate-200">
-                      <p className="text-[7px] font-bold text-slate-500 uppercase">Verification Rate</p>
+                      <p className="text-[7px] font-bold text-slate-500 uppercase">Verified Users</p>
                       <p className="text-sm font-black text-slate-900 mt-0.5">
                         {data?.verification?.total_verifications > 0
                           ? Math.round(((data.verification.total_verifications - (data.verification.pending_verifications || 0)) / data.verification.total_verifications) * 100)
                           : 100}%
                       </p>
-                      <p className="text-[7px] text-slate-500">ID compliance compliance</p>
+                      <p className="text-[7px] text-slate-500">Verified account rate</p>
                     </div>
 
                     <div className="p-2 bg-white rounded border border-slate-200">
-                      <p className="text-[7px] font-bold text-slate-500 uppercase">Review Latency</p>
+                      <p className="text-[7px] font-bold text-slate-500 uppercase">Average Wait</p>
                       <p className="text-sm font-black text-slate-900 mt-0.5">
                         {data?.verification?.average_turnaround_seconds
                           ? (data.verification.average_turnaround_seconds / 3600).toFixed(1)
                           : '0.0'}h
                       </p>
-                      <p className="text-[7px] text-slate-500">Average review turnaround</p>
+                      <p className="text-[7px] text-slate-500">From upload to admin check</p>
                     </div>
 
                     <div className="p-2 bg-white rounded border border-slate-200">
-                      <p className="text-[7px] font-bold text-slate-500 uppercase">Avg Wage Rate</p>
+                      <p className="text-[7px] font-bold text-slate-500 uppercase">Average Wage</p>
                       <p className="text-sm font-black text-slate-900 mt-0.5">
                         PHP {parseFloat(data?.compensation?.avg || 0).toFixed(2)}
                       </p>
-                      <p className="text-[7px] text-slate-500">Across trade categories</p>
+                      <p className="text-[7px] text-slate-500">Across all categories</p>
                     </div>
 
                     <div className="p-2 bg-white rounded border border-slate-200">
-                      <p className="text-[7px] font-bold text-slate-500 uppercase">Moderation</p>
+                      <p className="text-[7px] font-bold text-slate-500 uppercase">Reports Received</p>
                       <p className="text-sm font-black text-slate-900 mt-0.5">{data?.kpis?.unresolved_reports?.value ?? 0}</p>
-                      <p className="text-[7px] text-slate-500">Active safety reports</p>
+                      <p className="text-[7px] text-slate-500">Open user reports</p>
                     </div>
                   </div>
 
@@ -3271,7 +3259,7 @@ export default function AnalyticsDashboard() {
                     <div className="bg-white p-2 rounded border border-slate-200">
                       <div className="flex justify-between items-center mb-0.5">
                         <h3 className="text-[8.5px] font-display font-bold text-slate-900 uppercase tracking-wider">
-                          User Registration Velocity
+                          New Sign-ups Over Time
                         </h3>
                         <span className="text-[7px] text-slate-500">Workers vs Employers</span>
                       </div>
@@ -3292,7 +3280,7 @@ export default function AnalyticsDashboard() {
                     <div className="bg-white p-2 rounded border border-slate-200">
                       <div className="flex justify-between items-center mb-0.5">
                         <h3 className="text-[8.5px] font-display font-bold text-slate-900 uppercase tracking-wider">
-                          Application Volume Throughput
+                          Applications vs. Job Posts
                         </h3>
                         <span className="text-[7px] text-slate-500">Applications vs Job Posts</span>
                       </div>
@@ -3314,7 +3302,7 @@ export default function AnalyticsDashboard() {
                   <div className="grid grid-cols-3 gap-2">
                     <div className="col-span-2 bg-white p-2 rounded border border-slate-200">
                       <h3 className="text-[8.5px] font-display font-bold text-slate-900 mb-1 uppercase tracking-wider">
-                        4-Stage Recruitment Conversion Funnel
+                        From Applying to Getting Hired
                       </h3>
                       <div className="grid grid-cols-3 gap-1.5">
                         {funnelSteps.map((step, idx) => (
@@ -3328,10 +3316,10 @@ export default function AnalyticsDashboard() {
 
                     <div className="bg-white p-2 rounded border border-slate-200 flex flex-col justify-between">
                       <h3 className="text-[8.5px] font-display font-bold text-slate-900 uppercase tracking-wider">
-                        Verification SLA
+                        ID Checks
                       </h3>
                       <div className="flex justify-between items-center text-[7.5px]">
-                        <span className="text-slate-500">Avg Turnaround:</span>
+                        <span className="text-slate-500">Average Wait:</span>
                         <span className="font-bold text-slate-900">
                           {data?.verification?.average_turnaround_seconds ? (data.verification.average_turnaround_seconds / 3600).toFixed(1) : '0.0'}h
                         </span>
@@ -3351,7 +3339,7 @@ export default function AnalyticsDashboard() {
                 {/* Section 1 Running Footer */}
                 <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-[7.5px] text-slate-400 font-medium uppercase tracking-wider">
                   <span>SIKAP: Skills and Job Matching Platform</span>
-                  <span>Descriptive Analytics Report · Period: {from} to {to}</span>
+                  <span>Summary Report · Dates: {from} to {to}</span>
                   <span>Section 1: Executive Summary & Visual Trends</span>
                 </div>
               </div>
@@ -3361,15 +3349,15 @@ export default function AnalyticsDashboard() {
                 <div className="pb-2 mb-3 border-b-2 border-slate-300 flex items-center justify-between">
                   <div>
                     <h2 className="text-xs font-display font-black text-slate-900 uppercase tracking-wider">
-                      Section 2: Comprehensive Tabular Performance Ledgers & Regulatory Compliance Audit
+                      Section 2: Full Data Tables
                     </h2>
                     <p className="text-[8.5px] text-slate-500">
-                      Un-truncated tabular audit ledgers matching the evaluated date window ({from} to {to}) and {intervalFilter.toUpperCase()} aggregation parameters.
+                      All activity numbers from {from} to {to} grouped by {intervalFilter.toUpperCase()}.
                     </p>
                   </div>
                   <div className="text-right text-[8px] text-slate-500 font-medium">
                     <span className="px-2 py-0.5 bg-slate-100 rounded border border-slate-200 uppercase font-bold text-slate-700">
-                      Full Tabular Data Audit
+                      Full Data Tables
                     </span>
                   </div>
                 </div>
@@ -3378,7 +3366,7 @@ export default function AnalyticsDashboard() {
                 <div className="bg-white rounded-lg border border-slate-200 overflow-hidden mb-3 print-avoid-break">
                   <div className="px-2.5 py-1.5 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                     <h3 className="text-[8.5px] font-display font-bold text-slate-900 uppercase tracking-wider">
-                      1. Chronological Time-Series Activity Ledger ({intervalFilter.toUpperCase()} Aggregation)
+                      1. Activity Over Time ({intervalFilter.toUpperCase()})
                     </h3>
                     <span className="text-[7.5px] text-slate-500 font-medium">
                       Total Periods: {transformedDetailedTimeSeries.length}
@@ -3396,13 +3384,12 @@ export default function AnalyticsDashboard() {
                         <th className="text-right">Accepted</th>
                         <th className="text-right">Hires</th>
                         <th className="text-right">Reports</th>
-                        <th className="text-right">Throughput Ratio</th>
                       </tr>
                     </thead>
                     <tbody>
                       {transformedDetailedTimeSeries.length === 0 ? (
                         <tr>
-                          <td colSpan={10} className="text-center py-4 text-slate-400 font-medium text-[7pt]">
+                          <td colSpan={9} className="text-center py-4 text-slate-400 font-medium text-[7pt]">
                             No chronological ledger activity recorded for this period.
                           </td>
                         </tr>
@@ -3410,7 +3397,6 @@ export default function AnalyticsDashboard() {
                         transformedDetailedTimeSeries.map((row: any, idx: number) => {
                           const apps = row.applications || 0;
                           const jobs = row.job_posts || 0;
-                          const ratio = jobs > 0 ? (apps / jobs).toFixed(1) : '0.0';
                           return (
                             <tr key={idx}>
                               <td className="font-semibold text-slate-900">{row.period}</td>
@@ -3422,7 +3408,6 @@ export default function AnalyticsDashboard() {
                               <td className="text-right text-emerald-700">{(row.accepted_applications || 0).toLocaleString()}</td>
                               <td className="text-right font-bold text-emerald-700">{(row.completed_hires || 0).toLocaleString()}</td>
                               <td className="text-right text-rose-700">{(row.reports || 0).toLocaleString()}</td>
-                              <td className="text-right font-bold text-primary">{ratio} apps/job</td>
                             </tr>
                           );
                         })
@@ -3440,9 +3425,6 @@ export default function AnalyticsDashboard() {
                           <td className="text-right text-emerald-700">{detailedTotals.accepted_applications.toLocaleString()}</td>
                           <td className="text-right font-black text-emerald-700">{detailedTotals.completed_hires.toLocaleString()}</td>
                           <td className="text-right text-rose-700">{detailedTotals.reports.toLocaleString()}</td>
-                          <td className="text-right font-black text-primary">
-                            {detailedTotals.job_posts > 0 ? (detailedTotals.applications / detailedTotals.job_posts).toFixed(1) : '0.0'} apps/job
-                          </td>
                         </tr>
                       </tfoot>
                     )}
@@ -3455,7 +3437,7 @@ export default function AnalyticsDashboard() {
                   <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
                     <div className="px-2.5 py-1.5 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                       <h3 className="text-[8.5px] font-display font-bold text-slate-900 uppercase tracking-wider">
-                        2. Trade Category Wage Benchmarks
+                        2. Average Pay by Job Category
                       </h3>
                       <span className="text-[7.5px] text-slate-500 font-medium">
                         {filteredCompensationCategories.length} Categories
@@ -3464,9 +3446,9 @@ export default function AnalyticsDashboard() {
                     <table className="w-full text-left">
                       <thead>
                         <tr>
-                          <th>Trade Category</th>
-                          <th className="text-right">Average Daily Wage</th>
-                          <th className="text-right">Compensation Tier</th>
+                          <th>Job Category</th>
+                          <th className="text-right">Average Daily Pay</th>
+                          <th className="text-right">Pay Tier</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -3517,7 +3499,7 @@ export default function AnalyticsDashboard() {
                   <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
                     <div className="px-2.5 py-1.5 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                       <h3 className="text-[8.5px] font-display font-bold text-slate-900 uppercase tracking-wider">
-                        3. Geographic & Barangay Labor Activity
+                        3. Activity by Area
                       </h3>
                       <span className="text-[7.5px] text-slate-500 font-medium">
                         {transformedGeographicActivity.length} Locations
@@ -3579,21 +3561,21 @@ export default function AnalyticsDashboard() {
                 <div className="bg-white rounded-lg border border-slate-200 overflow-hidden mb-3 print-avoid-break">
                   <div className="px-2.5 py-1.5 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                     <h3 className="text-[8.5px] font-display font-bold text-slate-900 uppercase tracking-wider">
-                      4. Platform Safety, Incident Audits & Dispute Resolution
+                      4. User Reports & Safety
                     </h3>
                     <span className="text-[7.5px] text-slate-500 font-medium">
-                      Open Action Items: {data?.reports?.open_reports ?? 0}
+                      Open Reports: {data?.reports?.open_reports ?? 0}
                     </span>
                   </div>
                   <table className="w-full text-left">
                     <thead>
                       <tr>
                         <th>#</th>
-                        <th>Incident Classification / Violation Category</th>
-                        <th className="text-right">Incident Count</th>
-                        <th className="text-right">Share of Incidents</th>
-                        <th className="text-right">Average Resolution SLA</th>
-                        <th className="text-right">Compliance Status</th>
+                        <th>Report Type</th>
+                        <th className="text-right">Reports</th>
+                        <th className="text-right">Share</th>
+                        <th className="text-right">Average Wait</th>
+                        <th className="text-right">Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3656,7 +3638,7 @@ export default function AnalyticsDashboard() {
                 {/* Section 2 Running Footer */}
                 <div className="pt-3 border-t border-slate-200 flex justify-between items-center text-[7.5px] text-slate-400 font-medium uppercase tracking-wider print-avoid-break">
                   <span>SIKAP: Skills and Job Matching Platform</span>
-                  <span>Internal Analytics Summary · Tabular Performance Ledgers</span>
+                  <span>SIKAP Summary Report · Full Data Tables</span>
                   <span>Section 2</span>
                 </div>
               </div>

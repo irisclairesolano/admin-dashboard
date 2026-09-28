@@ -41,28 +41,28 @@ const categoryConfig: Record<'insight' | 'trend' | 'concern' | 'recommendation',
   badgeText: string;
 }> = {
   insight: {
-    label: 'Key Finding',
+    label: 'What we found',
     icon: CheckCircle2,
     accentBorder: 'border-l-emerald-500',
     badgeBg: 'bg-emerald-50 border-emerald-200/80',
     badgeText: 'text-emerald-800',
   },
   trend: {
-    label: 'Market Trend',
+    label: "What's changing",
     icon: TrendingUp,
     accentBorder: 'border-l-sky-500',
     badgeBg: 'bg-sky-50 border-sky-200/80',
     badgeText: 'text-sky-800',
   },
   concern: {
-    label: 'Area of Concern',
+    label: 'Needs a look',
     icon: AlertTriangle,
     accentBorder: 'border-l-rose-500',
     badgeBg: 'bg-rose-50 border-rose-200/80',
     badgeText: 'text-rose-800',
   },
   recommendation: {
-    label: 'Action Recommendation',
+    label: 'What to do',
     icon: Lightbulb,
     accentBorder: 'border-l-amber-500',
     badgeBg: 'bg-amber-50 border-amber-200/80',
@@ -105,7 +105,7 @@ function InsightStatCard({
               type="button"
               onClick={() => setShowData(!showData)}
               className="inline-flex items-center gap-1.5 text-xs font-body font-semibold text-ink-soft border border-ink-faint/60 bg-white px-2.5 py-1 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
-              title="Inspect statistical telemetry supporting this finding"
+              title="See the numbers behind this"
             >
               <Database className="w-3.5 h-3.5" />
               <span>{showData ? 'Hide Evidence' : 'View Evidence'}</span>
@@ -130,7 +130,7 @@ function InsightStatCard({
 
         {showData && item.supportingData && (
           <div className="p-3 rounded-xl bg-slate-50/90 border border-ink-faint/60 text-xs font-mono text-ink-soft leading-relaxed animate-fade-in shadow-inner">
-            <span className="font-bold text-ink-muted uppercase tracking-wider text-[9px] block mb-1">Telemetry Metrics</span>
+            <span className="font-bold text-ink-muted uppercase tracking-wider text-[9px] block mb-1">The Numbers Behind This</span>
             {item.supportingData}
           </div>
         )}
@@ -197,7 +197,7 @@ export function AIInsightsCard({
               AI Insights
             </h3>
             <p className="text-xs text-ink-muted font-body mt-0.5">
-              Automated analysis of labor market supply, demand shifts, and moderation safety.
+              Quick takeaways on jobs, applicants, and safety.
             </p>
           </div>
         </div>
@@ -223,11 +223,11 @@ export function AIInsightsCard({
           <div className="flex items-start gap-2.5 p-3 rounded-xl bg-status-error/8 border border-status-error/25 text-xs font-body shadow-2xs">
             <AlertTriangle className="w-4 h-4 text-status-error flex-shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-status-error mr-1.5">Data Integrity Notice:</span>
+              <span className="font-bold text-status-error mr-1.5">Heads up:</span>
               {testDataConcerns.map((item, i) => (
                 <span key={i} className="text-ink-soft">{item.text}{i < testDataConcerns.length - 1 ? ' · ' : ''}</span>
               ))}
-              <span className="block text-ink-muted mt-0.5 italic">Statistics on this page may not reflect real-world conditions.</span>
+              <span className="block text-ink-muted mt-0.5 italic">These numbers may not match what is really happening.</span>
             </div>
           </div>
         )}
@@ -237,8 +237,8 @@ export function AIInsightsCard({
           <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-900 text-xs font-body shadow-2xs">
             <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-amber-800 mr-1.5">Statistical Variance Notice:</span>
-              <span>{safeData.dataSufficiency.note ?? 'Data sample is limited for this period. Metric trends represent early directional signals.'}</span>
+              <span className="font-bold text-amber-800 mr-1.5">Small numbers:</span>
+              <span>{safeData.dataSufficiency.note ?? 'Not much activity recorded in this period yet. These numbers are just early signals.'}</span>
             </div>
           </div>
         )}
@@ -247,11 +247,11 @@ export function AIInsightsCard({
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-faint/30 pb-3">
           <div className="flex flex-wrap items-center gap-1.5">
             {[
-              { id: 'all', label: 'All Insights', count: totalInsights, icon: Layers },
-              { id: 'concerns', label: 'Concerns', count: allConcerns.length, icon: AlertTriangle, color: 'text-rose-600' },
-              { id: 'recommendations', label: 'Recommendations', count: recommendations.length, icon: Lightbulb, color: 'text-amber-600' },
-              { id: 'insights', label: 'Key Findings', count: keyInsights.length, icon: CheckCircle2, color: 'text-emerald-600' },
-              { id: 'trends', label: 'Trends', count: trends.length, icon: TrendingUp, color: 'text-sky-600' },
+              { id: 'all', label: 'All', count: totalInsights, icon: Layers },
+              { id: 'concerns', label: 'Problems', count: allConcerns.length, icon: AlertTriangle, color: 'text-rose-600' },
+              { id: 'recommendations', label: 'Suggestions', count: recommendations.length, icon: Lightbulb, color: 'text-amber-600' },
+              { id: 'insights', label: 'Findings', count: keyInsights.length, icon: CheckCircle2, color: 'text-emerald-600' },
+              { id: 'trends', label: 'Changes', count: trends.length, icon: TrendingUp, color: 'text-sky-600' },
             ].map(({ id, label, count, icon: Icon, color }) => (
               <button
                 key={id}
@@ -277,7 +277,7 @@ export function AIInsightsCard({
           </div>
 
           <div className="text-[11px] font-body text-ink-muted hidden sm:block">
-            High-signal platform intelligence
+            Helpful tips from your data
           </div>
         </div>
 
@@ -311,9 +311,9 @@ export function AIInsightsCard({
         {totalInsights === 0 && (
           <div className="py-12 text-center bg-white/70 rounded-xl border border-ink-faint/30">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
-            <h4 className="font-display font-bold text-ink text-sm">No Anomalies or Trends Identified</h4>
+            <h4 className="font-display font-bold text-ink text-sm">Nothing unusual found</h4>
             <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto">
-              System metrics for this period are within standard equilibrium with no urgent concerns flagged.
+              Everything looks normal for this period with no problems spotted.
             </p>
           </div>
         )}
