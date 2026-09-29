@@ -67,7 +67,7 @@ function JobsPageContent() {
       j.id,
       j.reference_number || `SKP-JOB-${j.id}`,
       j.title,
-      j.employer?.name || '',
+      j.employer?.name || 'Deleted Account',
       j.category,
       formatCSVCurrency(j.compensation),
       j.rate_unit ? String(j.rate_unit).replace(/_/g, ' ') : (j.duration_type ? String(j.duration_type).replace(/_/g, ' ') : 'per day'),
@@ -457,11 +457,11 @@ function JobsPageContent() {
                       <td className="px-4 py-3">
                         <div className="flex items-center">
                           <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-accent-peach to-accent-peachBright/50 flex items-center justify-center text-primary-dark font-body font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
-                            {(job.employer?.name || 'U').charAt(0)}
+                            {(job.employer?.name || 'Deleted Account').charAt(0)}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-body font-bold text-ink text-xs truncate">{job.employer?.name || 'Unknown'}</div>
-                            <div className="text-[10px] text-ink-soft truncate mt-0.5">{job.employer?.email}</div>
+                            <div className="font-body font-bold text-ink text-xs truncate">{job.employer?.name || 'Deleted Account'}</div>
+                            <div className="text-[10px] text-ink-soft truncate mt-0.5">{job.employer?.email || ''}</div>
                           </div>
                         </div>
                       </td>

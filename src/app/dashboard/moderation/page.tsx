@@ -408,11 +408,11 @@ function ModerationPageContent() {
                           {report.reporter ? (
                             <>
                               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-paper-cream to-ink-faint flex items-center justify-center text-ink font-body font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
-                                {(report.reporter?.name || 'U').charAt(0)}
+                                {(report.reporter?.name || 'Deleted Account').charAt(0)}
                               </div>
                               <div className="min-w-0">
-                                <div className="font-body font-bold text-ink text-xs truncate">{report.reporter?.name || 'Unknown'}</div>
-                                <div className="text-[10px] text-ink-soft truncate mt-0.5">{report.reporter?.email}</div>
+                                <div className="font-body font-bold text-ink text-xs truncate">{report.reporter?.name || 'Deleted Account'}</div>
+                                <div className="text-[10px] text-ink-soft truncate mt-0.5">{report.reporter?.email || ''}</div>
                               </div>
                             </>
                           ) : (
@@ -633,7 +633,7 @@ function ModerationPageContent() {
                         {targetDetails.description || 'No description available.'}
                       </p>
                       <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-ink-muted border-t border-ink-faint/20">
-                        <span><strong>Employer:</strong> {targetDetails.employer?.name || 'Unknown'}</span>
+                        <span><strong>Employer:</strong> {targetDetails.employer?.name || 'Deleted Account'}</span>
                         <span><strong>Location:</strong> {targetDetails.barangay ? `${targetDetails.barangay}, ` : ''}{targetDetails.municipality || 'Sorsogon'}</span>
                         <span><strong>Status:</strong> <span className="uppercase font-semibold">{targetDetails.status}</span></span>
                       </div>
@@ -646,10 +646,10 @@ function ModerationPageContent() {
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">
-                            {(targetDetails.name || 'U').charAt(0)}
+                            {(targetDetails.name || 'Deleted Account').charAt(0)}
                           </div>
                           <div>
-                            <div className="font-bold text-ink text-sm">{targetDetails.name}</div>
+                            <div className="font-bold text-ink text-sm">{targetDetails.name || 'Deleted Account'}</div>
                             <div className="text-[11px] text-ink-muted">{targetDetails.email}</div>
                           </div>
                         </div>

@@ -279,7 +279,7 @@ export default function ExportReportsPage() {
         j.reference_number || `SKP-JOB-${j.id}`,
         j.title || '',
         j.category?.name || j.category || 'General',
-        j.employer?.name || '',
+        j.employer?.name || 'Deleted Account',
         j.municipality || 'Bulan',
         j.barangay || '',
         formatCSVCurrency(j.compensation),
@@ -858,7 +858,7 @@ export default function ExportReportsPage() {
                           <div className="font-bold text-ink">{j.title}</div>
                           <div className="text-[10px] text-ink-muted font-mono">{j.reference_number || `#${j.id}`}</div>
                         </td>
-                        <td className="py-3 px-4 text-ink">{j.employer?.name || 'Unknown'}</td>
+                        <td className="py-3 px-4 text-ink">{j.employer?.name || 'Deleted Account'}</td>
                         <td className="py-3 px-4">
                           <span className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[10px] font-bold">
                             {j.category?.name || j.category || 'General'}

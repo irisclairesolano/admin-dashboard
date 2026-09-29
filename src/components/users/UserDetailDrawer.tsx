@@ -973,7 +973,7 @@ export default function UserDetailDrawer({
                               <div>
                                 <div className="font-bold text-ink group-hover/post:text-primary transition-colors">{item.job?.title || 'N/A'}</div>
                                 <div className="text-xs text-ink-muted mt-1">
-                                  Employer: {item.job?.employer?.name || 'N/A'} • Agreed Price: ₱{Number(item.final_agreed_price || item.job?.compensation).toLocaleString()}
+                                  Employer: {item.job?.employer?.name || 'Deleted Account'} • Agreed Price: ₱{Number(item.final_agreed_price || item.job?.compensation).toLocaleString()}
                                 </div>
                               </div>
                               <div className="text-right">
@@ -1028,9 +1028,9 @@ export default function UserDetailDrawer({
                         <div key={r.id} className="p-4 bg-paper rounded-2xl border border-ink-faint space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <Avatar name={r.reviewer?.name || 'System User'} url={r.reviewer?.avatar_url} size="sm" />
+                              <Avatar name={r.reviewer?.name || 'Deleted Account'} url={r.reviewer?.avatar_url} size="sm" />
                               <div>
-                                <div className="font-bold text-sm text-ink">{r.reviewer?.name || 'System User'}</div>
+                                <div className="font-bold text-sm text-ink">{r.reviewer?.name || 'Deleted Account'}</div>
                                 <div className="text-[10px] text-ink-muted uppercase font-semibold tracking-wider">{r.reviewer_role}</div>
                               </div>
                             </div>
@@ -1218,9 +1218,9 @@ export default function UserDetailDrawer({
                             {blocksData.blocked.map((item: any) => (
                               <div key={item.id} className="py-3 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                  <Avatar name={item.blocked?.name || 'User'} url={item.blocked?.avatar_url} size="sm" />
+                                  <Avatar name={item.blocked?.name || 'Deleted Account'} url={item.blocked?.avatar_url} size="sm" />
                                   <div>
-                                    <div className="font-semibold text-sm text-ink">{item.blocked?.name || `User ID: ${item.blocked_id}`}</div>
+                                    <div className="font-semibold text-sm text-ink">{item.blocked?.name || 'Deleted Account'}</div>
                                     <div className="text-xs text-ink-muted">{item.blocked?.email || ''} · <span className="capitalize">{item.blocked?.role || 'user'}</span></div>
                                   </div>
                                 </div>
@@ -1253,9 +1253,9 @@ export default function UserDetailDrawer({
                             {blocksData.blocked_by.map((item: any) => (
                               <div key={item.id} className="py-3 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                  <Avatar name={item.blocker?.name || 'User'} url={item.blocker?.avatar_url} size="sm" />
+                                  <Avatar name={item.blocker?.name || 'Deleted Account'} url={item.blocker?.avatar_url} size="sm" />
                                   <div>
-                                    <div className="font-semibold text-sm text-ink">{item.blocker?.name || `User ID: ${item.blocker_id}`}</div>
+                                    <div className="font-semibold text-sm text-ink">{item.blocker?.name || 'Deleted Account'}</div>
                                     <div className="text-xs text-ink-muted">{item.blocker?.email || ''} · <span className="capitalize">{item.blocker?.role || 'user'}</span></div>
                                   </div>
                                 </div>

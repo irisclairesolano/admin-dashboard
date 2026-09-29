@@ -288,7 +288,7 @@ export default function JobDetailModal({
                 <div className="hidden sm:flex items-center gap-2 ml-auto text-xs text-ink-muted">
                   <span>Employer:</span>
                   <span className="font-semibold text-ink truncate max-w-[140px]">
-                    {employer.name || 'Unknown'}
+                    {employer.name || 'Deleted Account'}
                   </span>
                 </div>
               </div>

@@ -379,7 +379,7 @@ function ArchivesPageContent() {
                           <span className="inline-block px-1.5 py-0.5 rounded bg-accent-sky text-primary-dark text-[9px] font-bold border border-white/50 mt-0.5">{job.category}</span>
                         </td>
                         <td className="px-4 py-3 text-xs text-ink font-bold truncate">
-                          {job.employer?.name || 'Unknown'}
+                          {job.employer?.name || 'Deleted Account'}
                         </td>
                         <td className="px-4 py-3 text-xs text-status-error font-numeric">
                           {formatDate(job.deleted_at)}
