@@ -12,6 +12,7 @@ import { useInactivityTimer } from '@/hooks/useInactivityTimer';
 import { TwoFactorSetupModal } from '@/components/TwoFactorSetupModal';
 import { ShieldCheck, ShieldAlert, KeyRound } from 'lucide-react';
 import { authStorage } from '@/lib/authStorage';
+import { humanizeModel } from '@/lib/constants';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 type PrefetchStatus = 'idle' | 'loading' | 'ready' | 'error';

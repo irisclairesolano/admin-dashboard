@@ -86,7 +86,7 @@ export default function JobDetailModal({
   // Fetch detailed job info (applications, reports, employerProfile)
   useEffect(() => {
     if (!job?.id) return;
-    if (applicationsData !== undefined && reportsData !== undefined && jobDetailData !== undefined) return;
+    if (applicationsData !== undefined && reportsData !== undefined) return;
 
     let isMounted = true;
     setDeepDataLoading(true);
