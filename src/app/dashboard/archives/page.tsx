@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
+import { authStorage } from '@/lib/authStorage';
 import StatCard from '@/components/StatCard';
 import StatusTabs from '@/components/StatusTabs';
 import { AlertDialog } from '@/components/AlertDialog';
@@ -30,9 +31,8 @@ function ArchivesPageContent() {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('admin_user');
-      if (stored) {
-        const u = JSON.parse(stored);
+      const u = authStorage.getUser<{ admin_role?: string; role?: string }>();
+      if (u) {
         setIsSuperAdmin(u.admin_role === 'superadmin' || u.role === 'superadmin');
       }
     } catch {}

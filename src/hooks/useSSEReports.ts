@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { authStorage } from '@/lib/authStorage';
 
 interface SSEReportState {
   newReportCount: number;
@@ -21,7 +22,7 @@ export function useSSEReports() {
 
   const fetchUnreadCount = useCallback(async () => {
     if (typeof window === 'undefined') return;
-    const token = localStorage.getItem('admin_token');
+    const token = authStorage.getToken();
     if (!token) return;
 
     try {
@@ -63,7 +64,7 @@ export function useSSEReports() {
 
   const clearCount = async () => {
     try {
-      const token = localStorage.getItem('admin_token');
+      const token = authStorage.getToken();
       const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://sikap-backend-singapore.onrender.com/api/v1';
       await fetch(`${apiBase}/admin/reports/stream/clear`, {
         method: 'POST',

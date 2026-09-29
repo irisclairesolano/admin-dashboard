@@ -1,6 +1,7 @@
 'use client';
 
 import { adminApi, warmUpServer } from '@/lib/api';
+import { authStorage } from '@/lib/authStorage';
 import {
   ShieldCheck,
   Lock,
@@ -68,10 +69,10 @@ export default function LoginPage() {
         return;
       }
 
-      localStorage.setItem('admin_token', res.data.token);
-      localStorage.setItem('admin_user', JSON.stringify(user));
+      authStorage.setToken(res.data.token);
+      authStorage.setUser(user);
       if (res.data.permissions) {
-        localStorage.setItem('admin_permissions', JSON.stringify(res.data.permissions));
+        authStorage.setPermissions(res.data.permissions);
       }
 
       router.push('/dashboard/verifications');
@@ -91,10 +92,10 @@ export default function LoginPage() {
       const res = await adminApi.mfaVerify(mfaToken, totpCode);
       const user = res.data.user;
 
-      localStorage.setItem('admin_token', res.data.token);
-      localStorage.setItem('admin_user', JSON.stringify(user));
+      authStorage.setToken(res.data.token);
+      authStorage.setUser(user);
       if (res.data.permissions) {
-        localStorage.setItem('admin_permissions', JSON.stringify(res.data.permissions));
+        authStorage.setPermissions(res.data.permissions);
       }
 
       router.push('/dashboard/verifications');

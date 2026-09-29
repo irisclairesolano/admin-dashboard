@@ -1,8 +1,14 @@
+export type UserRole = 'worker' | 'employer' | 'admin';
+export type VerificationStatus = 'unverified' | 'pending' | 'approved' | 'rejected' | 'correction_needed';
+export type JobStatus = 'open' | 'closed_in_progress' | 'in_progress' | 'completed' | 'cancelled' | 'suspended';
+export type ReportStatus = 'pending' | 'open' | 'resolved' | 'dismissed';
+export type SupportTicketStatus = 'open' | 'processing' | 'resolved';
+
 export interface User {
   id: number;
   name: string;
   email: string;
-  role: 'worker' | 'employer' | 'admin';
+  role: UserRole;
   phone?: string;
   barangay?: string;
   municipality?: string;
@@ -10,12 +16,13 @@ export interface User {
   document_back_url?: string;
   selfie_url?: string;
   business_documents?: string | string[];
-  verification_status: 'unverified' | 'pending' | 'approved' | 'rejected';
+  verification_status: VerificationStatus;
   verification_badge: boolean;
   is_suspended: boolean;
   suspended_until?: string;
   is_permanently_banned?: boolean;
   suspension_reason?: string;
+  rejection_reason?: string;
   reputation_score: number | null;
   registration_status?: string;
   emergency_contact_name?: string;
@@ -108,7 +115,7 @@ export interface JobPost {
   compensation: string;
   slots: number;
   accepted_count: number;
-  status: 'open' | 'closed_in_progress' | 'in_progress' | 'completed' | 'cancelled' | 'suspended';
+  status: JobStatus;
   tools_required?: string;
   applications_count?: number;
   reports_count?: number;
@@ -126,7 +133,7 @@ export interface Report {
   reportable_id: number;
   type: string;
   description: string;
-  status: 'pending' | 'open' | 'resolved' | 'dismissed';
+  status: ReportStatus;
   resolved_at?: string;
   reporter?: User;
   created_at: string;
@@ -137,7 +144,7 @@ export interface SupportTicket {
   user_id: number;
   subject: string;
   message: string;
-  status: 'open' | 'processing' | 'resolved';
+  status: SupportTicketStatus;
   admin_reply?: string;
   user?: User;
   created_at: string;

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { authStorage } from '@/lib/authStorage';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://sikap-backend-singapore.onrender.com/api/v1';
 
@@ -12,11 +13,9 @@ export const apiClient = axios.create({
 
 // Add interceptor to attach bearer token
 apiClient.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('admin_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  const token = authStorage.getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -30,8 +29,7 @@ apiClient.interceptors.response.use(
       const isAuthEndpoint = url.includes('/admin/auth/reauth') || url.includes('/admin/auth/login');
 
       if (!isAuthEndpoint && typeof window !== 'undefined') {
-        localStorage.removeItem('admin_token');
-        localStorage.removeItem('admin_user');
+        authStorage.clearSession();
         window.location.href = '/login';
       }
     }
@@ -46,9 +44,16 @@ const CACHE_TTL = 60 * 1000; // 60 seconds TTL (instant tab switching with backg
 export const clearApiCache = () => {
   apiCache.clear();
   if (typeof window !== 'undefined') {
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('api_cache_')) localStorage.removeItem(key);
-    });
+    try {
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith('api_cache_')) sessionStorage.removeItem(key);
+      });
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith('api_cache_')) localStorage.removeItem(key);
+      });
+    } catch {
+      // Ignore
+    }
   }
 };
 
@@ -61,20 +66,22 @@ const cachedGet = async (url: string) => {
     return memoryCached.data;
   }
 
-  // 2. Return from localStorage if fresh
+  // 2. Return from sessionStorage if fresh
   let localData: any = null;
   let isFresh = false;
   if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('api_cache_' + url);
-    const storedTime = localStorage.getItem('api_cache_time_' + url);
-    if (stored && storedTime) {
-      const age = now - parseInt(storedTime);
-      if (age < CACHE_TTL) {
-        isFresh = true;
-      }
-      try {
+    try {
+      const stored = sessionStorage.getItem('api_cache_' + url);
+      const storedTime = sessionStorage.getItem('api_cache_time_' + url);
+      if (stored && storedTime) {
+        const age = now - parseInt(storedTime);
+        if (age < CACHE_TTL) {
+          isFresh = true;
+        }
         localData = JSON.parse(stored);
-      } catch {}
+      }
+    } catch {
+      // Ignore
     }
   }
 
@@ -83,14 +90,16 @@ const cachedGet = async (url: string) => {
     apiCache.set(url, { data: payload, timestamp: Date.now() });
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem('api_cache_' + url, JSON.stringify(payload));
-        localStorage.setItem('api_cache_time_' + url, Date.now().toString());
+        sessionStorage.setItem('api_cache_' + url, JSON.stringify(payload));
+        sessionStorage.setItem('api_cache_time_' + url, Date.now().toString());
       } catch {
-        console.warn('Cache storage full, clearing old entries');
-        Object.keys(localStorage)
-          .filter(k => k.startsWith('api_cache_'))
-          .slice(0, 5)
-          .forEach(k => localStorage.removeItem(k));
+        // Cache full, clear older entries
+        try {
+          Object.keys(sessionStorage)
+            .filter((k) => k.startsWith('api_cache_'))
+            .slice(0, 5)
+            .forEach((k) => sessionStorage.removeItem(k));
+        } catch {}
       }
     }
     return response;
@@ -142,6 +151,7 @@ export const adminApi = {
 
   logout: async () => {
     clearApiCache();
+    authStorage.clearSession();
     try {
       await apiClient.post('/admin/auth/logout');
     } catch {}
@@ -152,16 +162,18 @@ export const adminApi = {
     if (forceRefresh) {
       apiCache.delete(url);
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('api_cache_' + url);
-        localStorage.removeItem('api_cache_time_' + url);
+        try {
+          sessionStorage.removeItem('api_cache_' + url);
+          sessionStorage.removeItem('api_cache_time_' + url);
+        } catch {}
       }
       const response = await apiClient.get(url);
       const payload = { data: response.data, status: response.status };
       apiCache.set(url, { data: payload, timestamp: Date.now() });
       if (typeof window !== 'undefined') {
         try {
-          localStorage.setItem('api_cache_' + url, JSON.stringify(payload));
-          localStorage.setItem('api_cache_time_' + url, Date.now().toString());
+          sessionStorage.setItem('api_cache_' + url, JSON.stringify(payload));
+          sessionStorage.setItem('api_cache_time_' + url, Date.now().toString());
         } catch {}
       }
       return response;

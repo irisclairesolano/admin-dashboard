@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { adminApi } from '@/lib/api';
+import { authStorage } from '@/lib/authStorage';
 import { Download } from 'lucide-react';
 import Avatar from '@/components/Avatar';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -42,8 +43,7 @@ function LogsPageContent() {
   // Client-side role guard: Super Admin only
   useEffect(() => {
     try {
-      const userStr = localStorage.getItem('admin_user');
-      const user = userStr ? JSON.parse(userStr) : null;
+      const user = authStorage.getUser<{ admin_role?: string }>();
       if (!user || user.admin_role !== 'superadmin') {
         setIsAuthorized(false);
         router.replace('/dashboard');

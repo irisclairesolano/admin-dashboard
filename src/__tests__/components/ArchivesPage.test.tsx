@@ -45,7 +45,7 @@ describe('ArchivesPage Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.setItem(
+    sessionStorage.setItem(
       'admin_user',
       JSON.stringify({
         id: 1,

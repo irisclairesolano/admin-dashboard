@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { adminApi } from '@/lib/api';
+import { authStorage } from '@/lib/authStorage';
 import { formatDate } from '@/lib/date';
 import StatCard from '@/components/StatCard';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus, formatCSVReputation, calculateNormalizedHourlyWage } from '@/lib/export/csv';
@@ -29,11 +30,8 @@ export default function ExportReportsPage() {
   // Load Admin name for official signatory
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('admin_user');
-      if (stored) {
-        const u = JSON.parse(stored);
-        if (u.name) setAdminName(u.name);
-      }
+      const u = authStorage.getUser<{ name?: string }>();
+      if (u?.name) setAdminName(u.name);
     } catch {}
   }, []);
 

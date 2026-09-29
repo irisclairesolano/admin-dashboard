@@ -11,7 +11,7 @@ import { usePolling } from '@/hooks/usePolling';
 import { useInactivityTimer } from '@/hooks/useInactivityTimer';
 import { TwoFactorSetupModal } from '@/components/TwoFactorSetupModal';
 import { ShieldCheck, ShieldAlert, KeyRound } from 'lucide-react';
-import { humanizeModel } from '@/lib/constants';
+import { authStorage } from '@/lib/authStorage';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 type PrefetchStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -81,8 +81,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // ── 10-Minute Inactivity Auto-Lockout ─────────────────────────────────────
   const handleInactivityLogout = () => {
-    localStorage.removeItem('admin_token');
-    localStorage.removeItem('admin_user');
+    authStorage.clearSession();
     router.push('/login?reason=inactivity');
   };
 
@@ -94,10 +93,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // ── Auth check ────────────────────────────────────────────────────────────
   useEffect(() => {
-    const token = localStorage.getItem('admin_token');
+    const token = authStorage.getToken();
     if (!token) { router.push('/login'); return; }
     try {
-      const user = JSON.parse(localStorage.getItem('admin_user') || '{}');
+      const user = authStorage.getUser<{ name?: string; admin_role?: string; two_factor_enabled?: boolean }>() || {};
       setAdminName(user.name || 'Admin');
       setAdminRole(user.admin_role === 'superadmin' ? 'superadmin' : 'moderator');
       setIs2faEnabled(!!user.two_factor_enabled);
@@ -210,7 +209,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (didPrefetch.current) return;
     didPrefetch.current = true;
 
-    const token = localStorage.getItem('admin_token');
+    const token = authStorage.getToken();
     if (!token) return;
 
     setPrefetchStatus('loading');
@@ -256,8 +255,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   usePolling(() => fetchNotifications(true), 15000);
 
   const handleLogout = () => {
-    localStorage.removeItem('admin_token');
-    localStorage.removeItem('admin_user');
+    authStorage.clearSession();
     router.push('/login');
   };
 
@@ -832,17 +830,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         onSuccess={() => {
           setIs2faEnabled(true);
           try {
-            const user = JSON.parse(localStorage.getItem('admin_user') || '{}');
+            const user = authStorage.getUser<Record<string, unknown>>() || {};
             user.two_factor_enabled = true;
-            localStorage.setItem('admin_user', JSON.stringify(user));
+            authStorage.setUser(user);
           } catch {}
         }}
         onDisableSuccess={() => {
           setIs2faEnabled(false);
           try {
-            const user = JSON.parse(localStorage.getItem('admin_user') || '{}');
+            const user = authStorage.getUser<Record<string, unknown>>() || {};
             user.two_factor_enabled = false;
-            localStorage.setItem('admin_user', JSON.stringify(user));
+            authStorage.setUser(user);
           } catch {}
         }}
       />
