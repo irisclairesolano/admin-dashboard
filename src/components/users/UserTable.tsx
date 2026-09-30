@@ -13,6 +13,10 @@ interface UserTableProps {
   onSuspend: (user: User) => void;
   onDelete: (id: number) => void;
   onRestore?: (id: number) => void;
+  selectedUserIds?: Set<number>;
+  onToggleSelectUser?: (id: number) => void;
+  onToggleSelectAll?: () => void;
+  isAllSelected?: boolean;
 }
 
 export default function UserTable({
@@ -24,6 +28,10 @@ export default function UserTable({
   onSuspend,
   onDelete,
   onRestore,
+  selectedUserIds,
+  onToggleSelectUser,
+  onToggleSelectAll,
+  isAllSelected = false,
 }: UserTableProps) {
   if (loading) {
     return (
@@ -44,24 +52,60 @@ export default function UserTable({
       <table className="w-full min-w-[800px] text-left font-body table-fixed border-collapse">
         <thead className="bg-white/50 border-b border-ink-faint/50">
           <tr>
+            {onToggleSelectUser && (
+              <th className="px-3 py-4 w-[4%] text-center">
+                <input
+                  type="checkbox"
+                  aria-label="Select all users"
+                  checked={isAllSelected}
+                  onChange={onToggleSelectAll}
+                  className="w-4 h-4 rounded border-ink-faint text-primary focus:ring-primary/30 cursor-pointer"
+                />
+              </th>
+            )}
             <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[8%]">User ID</th>
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[32%]">User Details</th>
+            <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[30%]">User Details</th>
             <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[18%]">Role & Status</th>
             <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[11%]">Joined</th>
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[15%]">Last Active</th>
+            <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[13%]">Last Active</th>
             <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[16%] text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-ink-faint/30">
           {paginatedUsers.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-8 py-16 text-center text-ink-soft">
+              <td colSpan={onToggleSelectUser ? 7 : 6} className="px-8 py-16 text-center text-ink-soft">
                 No users found
               </td>
             </tr>
           ) : (
-            paginatedUsers.map((user) => (
-              <tr key={user.id} className={`transition-colors duration-200 ${user.deleted_at ? 'bg-ink-faint/15 hover:bg-ink-faint/25' : user.is_suspended ? 'bg-status-error/5 hover:bg-status-error/10' : 'hover:bg-white/60'}`}>
+            paginatedUsers.map((user) => {
+              const isSelected = selectedUserIds?.has(user.id) ?? false;
+              return (
+              <tr
+                key={user.id}
+                className={`transition-colors duration-200 ${
+                  isSelected
+                    ? 'bg-primary/10 hover:bg-primary/15'
+                    : user.deleted_at
+                      ? 'bg-ink-faint/15 hover:bg-ink-faint/25'
+                      : user.is_suspended
+                        ? 'bg-status-error/5 hover:bg-status-error/10'
+                        : 'hover:bg-white/60'
+                }`}
+              >
+                {onToggleSelectUser && (
+                  <td className="px-3 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      aria-label={`Select user ${user.name}`}
+                      checked={isSelected}
+                      disabled={user.role === 'admin'}
+                      onChange={() => onToggleSelectUser(user.id)}
+                      className="w-4 h-4 rounded border-ink-faint text-primary focus:ring-primary/30 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    />
+                  </td>
+                )}
                 <td className="px-4 py-3.5 font-numeric text-xs font-semibold text-ink-muted">
                   #{user.id}
                 </td>
@@ -207,9 +251,10 @@ export default function UserTable({
                   )}
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
+            );
+          })
+        )}
+      </tbody>
       </table>
     </div>
   );

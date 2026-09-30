@@ -269,14 +269,29 @@ export const adminApi = {
     return apiClient.patch(`/admin/users/${id}`, { is_suspended, duration, reason });
   },
   
-  deleteUser: async (id: number) => {
+  deleteUser: async (id: number, reason?: string) => {
     clearApiCache();
-    return apiClient.delete(`/admin/users/${id}`);
+    return apiClient.delete(`/admin/users/${id}`, { data: { reason } });
   },
 
   restoreUser: async (id: number) => {
     clearApiCache();
     return apiClient.patch(`/admin/users/${id}/restore`);
+  },
+
+  // Blacklist & Restrictions
+  getBlacklist: async (type?: string, page: number = 1, search?: string) => {
+    const params = new URLSearchParams();
+    if (type && type !== 'all') params.append('type', type);
+    if (page) params.append('page', page.toString());
+    if (search) params.append('search', search);
+    const qs = params.toString();
+    return cachedGet(`/admin/blacklist${qs ? `?${qs}` : ''}`);
+  },
+
+  liftBlacklist: async (id: number) => {
+    clearApiCache();
+    return apiClient.post(`/admin/blacklist/${id}/lift`);
   },
 
   getJobs: async (
@@ -333,6 +348,16 @@ export const adminApi = {
   updateJobStatus: async (id: number, status: string) => {
     clearApiCache();
     return apiClient.patch(`/admin/jobs/${id}/status`, { status });
+  },
+
+  suspendJob: async (id: number, reason?: string) => {
+    clearApiCache();
+    return apiClient.patch(`/admin/jobs/${id}/status`, { status: 'suspended', reason });
+  },
+
+  unsuspendJob: async (id: number) => {
+    clearApiCache();
+    return apiClient.patch(`/admin/jobs/${id}/status`, { status: 'open' });
   },
 
   restoreJob: async (id: number) => {

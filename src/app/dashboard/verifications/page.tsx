@@ -296,7 +296,17 @@ function VerificationsPageContent() {
                       <div className="flex items-center">
                         <Avatar name={user.name} url={user.avatar_url} />
                         <div className="ml-3 truncate">
-                          <div className="font-body font-bold text-ink text-xs truncate">{user.name}</div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-body font-bold text-ink text-xs truncate">{user.name}</span>
+                            {user.blacklist_matches && user.blacklist_matches.length > 0 && (
+                              <span
+                                className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 border border-rose-200 px-1.5 py-0.5 rounded-full"
+                                title={`Possible Blacklist Match (${user.blacklist_matches.length})`}
+                              >
+                                ⚠️ Blacklist Match
+                              </span>
+                            )}
+                          </div>
                           <div className="text-[11px] text-ink-muted truncate">{user.email}</div>
                         </div>
                       </div>

@@ -23,6 +23,9 @@ const JobPreviewModal = dynamic(() => import('@/components/users/JobPreviewModal
 const SuspensionModal = dynamic(() => import('@/components/users/SuspensionModal'), {
   ssr: false,
 });
+const DeleteUserModal = dynamic(() => import('@/components/users/DeleteUserModal'), {
+  ssr: false,
+});
 
 function UsersContent() {
   const searchParams = useSearchParams();
@@ -43,6 +46,9 @@ function UsersContent() {
   const [selectedIdUser, setSelectedIdUser] = useState<any | null>(null);
   const [suspensionModalUser, setSuspensionModalUser] = useState<any | null>(null);
   const [suspensionSubmitting, setSuspensionSubmitting] = useState(false);
+  const [deleteModalUser, setDeleteModalUser] = useState<any | null>(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(new Set());
 
   // Sync search from URL query param
   useEffect(() => {
@@ -343,33 +349,42 @@ function UsersContent() {
   };
 
   const handleDelete = (id: number) => {
-    setAlertState({
-      open: true,
-      title: 'Delete User',
-      message: 'Are you sure you want to delete this user? This action can be undone later by restoring them from the archived list.',
-      onConfirm: async () => {
-        const previousActive = [...activeUsers];
-        const previousArchived = [...archivedUsers];
-        const target = activeUsers.find(u => u.id === id);
-        setActiveUsers(prev => prev.filter(u => u.id !== id));
-        if (target) {
-          setArchivedUsers(prev => [{ ...target, deleted_at: new Date().toISOString() }, ...prev]);
-        }
-        if (selectedDetailUser && selectedDetailUser.id === id) {
-          setSelectedDetailUser(null);
-        }
-        try {
-          setActionLoading(id);
-          await adminApi.deleteUser(id);
-          await fetchUsers(true); // Refresh list
-        } catch (err: any) {
-          setActiveUsers(previousActive);
-          setArchivedUsers(previousArchived);
-          setAlertState({ open: true, title: 'Error', message: 'Failed to delete user: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
-        } finally {
-          setActionLoading(null);
-        }
-      } })
+    const target = activeUsers.find(u => u.id === id) || archivedUsers.find(u => u.id === id) || (selectedDetailUser?.id === id ? selectedDetailUser : null);
+    if (target) {
+      setDeleteModalUser(target);
+    }
+  };
+
+  const handleConfirmDelete = async (userId: number, reason: string) => {
+    try {
+      setDeleteSubmitting(true);
+      setActionLoading(userId);
+      const previousActive = [...activeUsers];
+      const previousArchived = [...archivedUsers];
+      const target = activeUsers.find(u => u.id === userId);
+      setActiveUsers(prev => prev.filter(u => u.id !== userId));
+      if (target) {
+        setArchivedUsers(prev => [{ ...target, deleted_at: new Date().toISOString() }, ...prev]);
+      }
+      if (selectedDetailUser && selectedDetailUser.id === userId) {
+        setSelectedDetailUser(null);
+      }
+
+      await adminApi.deleteUser(userId, reason);
+      setDeleteModalUser(null);
+      await fetchUsers(true);
+    } catch (err: any) {
+      setAlertState({
+        open: true,
+        title: 'Delete Failed',
+        message: 'Failed to delete user: ' + (err.response?.data?.message || err.message),
+        onConfirm: () => setAlertState(s => ({ ...s, open: false }))
+      });
+      await fetchUsers(true);
+    } finally {
+      setDeleteSubmitting(false);
+      setActionLoading(null);
+    }
   };
 
   const handleRestore = (id: number) => {
@@ -527,6 +542,99 @@ function UsersContent() {
 
   const totalPages = Math.ceil(sortedUsers.length / itemsPerPage) || 1;
   const paginatedUsers = sortedUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const eligiblePaginatedUsers = useMemo(() => {
+    return paginatedUsers.filter((u: any) => u.role !== 'admin');
+  }, [paginatedUsers]);
+
+  const isAllSelected = useMemo(() => {
+    if (eligiblePaginatedUsers.length === 0) return false;
+    return eligiblePaginatedUsers.every((u: any) => selectedUserIds.has(u.id));
+  }, [eligiblePaginatedUsers, selectedUserIds]);
+
+  const handleToggleSelectUser = (id: number) => {
+    setSelectedUserIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedUserIds((prev) => {
+        const next = new Set(prev);
+        eligiblePaginatedUsers.forEach((u: any) => next.delete(u.id));
+        return next;
+      });
+    } else {
+      setSelectedUserIds((prev) => {
+        const next = new Set(prev);
+        eligiblePaginatedUsers.forEach((u: any) => next.add(u.id));
+        return next;
+      });
+    }
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedUserIds(new Set());
+  };
+
+  const handleBulkSuspend = (isSuspended: boolean) => {
+    const ids = Array.from(selectedUserIds);
+    if (ids.length === 0) return;
+
+    setAlertState({
+      open: true,
+      title: isSuspended ? 'Bulk Suspend Users' : 'Bulk Unsuspend Users',
+      message: `Are you sure you want to ${isSuspended ? 'suspend' : 'unsuspend'} ${ids.length} selected users?`,
+      onConfirm: async () => {
+        try {
+          await Promise.all(
+            ids.map((id) => adminApi.suspendUser(id, isSuspended, isSuspended ? 'Bulk admin action' : undefined))
+          );
+          setSelectedUserIds(new Set());
+          await fetchUsers(true);
+        } catch (err: any) {
+          setAlertState({
+            open: true,
+            title: 'Bulk Action Failed',
+            message: 'An error occurred during bulk operation: ' + (err.response?.data?.message || err.message),
+            onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
+          });
+        }
+      },
+    });
+  };
+
+  const handleBulkDelete = () => {
+    const ids = Array.from(selectedUserIds);
+    if (ids.length === 0) return;
+
+    setAlertState({
+      open: true,
+      title: 'Bulk Delete Users',
+      message: `Are you sure you want to delete ${ids.length} selected users? They can be restored in Archives.`,
+      onConfirm: async () => {
+        try {
+          await Promise.all(ids.map((id) => adminApi.deleteUser(id)));
+          setSelectedUserIds(new Set());
+          await fetchUsers(true);
+        } catch (err: any) {
+          setAlertState({
+            open: true,
+            title: 'Bulk Action Failed',
+            message: 'An error occurred during bulk deletion: ' + (err.response?.data?.message || err.message),
+            onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
+          });
+        }
+      },
+    });
+  };
 
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
@@ -711,6 +819,10 @@ function UsersContent() {
           onSuspend={handleSuspend}
           onDelete={handleDelete}
           onRestore={handleRestore}
+          selectedUserIds={selectedUserIds}
+          onToggleSelectUser={handleToggleSelectUser}
+          onToggleSelectAll={handleToggleSelectAll}
+          isAllSelected={isAllSelected}
         />
       </div>
 
@@ -811,6 +923,55 @@ function UsersContent() {
           onConfirm={handleConfirmSuspend}
           loading={suspensionSubmitting}
         />
+      )}
+      {/* Delete User Modal */}
+      {deleteModalUser && (
+        <DeleteUserModal
+          user={deleteModalUser}
+          onClose={() => setDeleteModalUser(null)}
+          onConfirm={handleConfirmDelete}
+          loading={deleteSubmitting}
+        />
+      )}
+      {/* Floating Bulk Actions Bar */}
+      {selectedUserIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-ink text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4 border border-white/20 animate-fade-in backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold font-numeric">
+              {selectedUserIds.size}
+            </span>
+            <span className="text-xs font-body font-semibold whitespace-nowrap">
+              {selectedUserIds.size === 1 ? 'user' : 'users'} selected
+            </span>
+          </div>
+          <div className="h-4 w-px bg-white/20" />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleBulkSuspend(true)}
+              className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-white border border-amber-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
+            >
+              Bulk Suspend
+            </button>
+            <button
+              onClick={() => handleBulkSuspend(false)}
+              className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
+            >
+              Bulk Unsuspend
+            </button>
+            <button
+              onClick={handleBulkDelete}
+              className="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white border border-rose-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
+            >
+              Bulk Delete
+            </button>
+            <button
+              onClick={handleDeselectAll}
+              className="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-xs font-body font-medium transition-all cursor-pointer ml-1 whitespace-nowrap"
+            >
+              Deselect
+            </button>
+          </div>
+        </div>
       )}
       <AlertDialog isOpen={alertState.open} title={alertState.title} message={alertState.message} onConfirm={() => { alertState.onConfirm(); setAlertState(s => ({...s, open: false})); }} onCancel={() => setAlertState(s => ({...s, open: false}))} confirmText="Confirm" cancelText="Cancel" />
     </div>

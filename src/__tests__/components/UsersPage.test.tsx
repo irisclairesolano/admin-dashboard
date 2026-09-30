@@ -167,16 +167,18 @@ describe('UsersPage Component', () => {
       expect(screen.getByText('Nena Cruz')).toBeInTheDocument();
     });
 
-    // Find all Delete buttons — use getAllByText for exact button text match
+    // Find all Delete buttons — use getAllByRole for table action buttons
     const deleteButtons = screen.getAllByRole('button', { name: /^delete$/i });
     // Click the first Delete button (Nena Cruz, id=1)
     fireEvent.click(deleteButtons[0]);
 
-    // Wait for the AlertDialog Confirm button to appear after state update
-    const confirmBtn = await screen.findByRole('button', { name: /Confirm/i });
-    fireEvent.click(confirmBtn);
+    // Wait for the Delete User button inside DeleteUserModal to appear
+    const confirmDeleteBtn = await screen.findByRole('button', { name: /Delete User/i });
+    fireEvent.click(confirmDeleteBtn);
 
-    expect(adminApi.deleteUser).toHaveBeenCalledWith(1);
+    await waitFor(() => {
+      expect(adminApi.deleteUser).toHaveBeenCalledWith(1, 'Violation of Terms & Community Guidelines');
+    });
   });
 
   it('clicking show archived includes archived users on the list alongside active users', async () => {

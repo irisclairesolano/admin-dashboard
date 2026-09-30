@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
@@ -28,6 +28,7 @@ function JobsPageContent() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedDetailJob, setSelectedDetailJob] = useState<any | null>(null);
   const [alertState, setAlertState] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void }>({ open: false, title: '', message: '', onConfirm: () => {} });
+  const [selectedJobIds, setSelectedJobIds] = useState<Set<number>>(new Set());
 
   const isArchivedView = statusFilter === 'Archived';
   const currentJobList = isArchivedView ? archivedJobs : activeJobs;
@@ -284,6 +285,94 @@ function JobsPageContent() {
   const goToPrev = () => setCurrentPage(p => Math.max(p - 1, 1));
   const goToNext = () => setCurrentPage(p => Math.min(p + 1, totalPages));
 
+  const isAllJobsSelected = useMemo(() => {
+    if (paginatedJobs.length === 0) return false;
+    return paginatedJobs.every((j: any) => selectedJobIds.has(j.id));
+  }, [paginatedJobs, selectedJobIds]);
+
+  const handleToggleSelectJob = (id: number) => {
+    setSelectedJobIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleToggleSelectAllJobs = () => {
+    if (isAllJobsSelected) {
+      setSelectedJobIds((prev) => {
+        const next = new Set(prev);
+        paginatedJobs.forEach((j: any) => next.delete(j.id));
+        return next;
+      });
+    } else {
+      setSelectedJobIds((prev) => {
+        const next = new Set(prev);
+        paginatedJobs.forEach((j: any) => next.add(j.id));
+        return next;
+      });
+    }
+  };
+
+  const handleDeselectAllJobs = () => {
+    setSelectedJobIds(new Set());
+  };
+
+  const handleBulkJobSuspendToggle = (suspend: boolean) => {
+    const ids = Array.from(selectedJobIds);
+    if (ids.length === 0) return;
+
+    setAlertState({
+      open: true,
+      title: suspend ? 'Bulk Suspend Jobs' : 'Bulk Unsuspend Jobs',
+      message: `Are you sure you want to ${suspend ? 'suspend' : 'unsuspend'} ${ids.length} selected jobs?`,
+      onConfirm: async () => {
+        try {
+          await Promise.all(
+            ids.map((id) =>
+              suspend ? adminApi.suspendJob(id, 'Bulk admin suspension') : adminApi.unsuspendJob(id)
+            )
+          );
+          setSelectedJobIds(new Set());
+          await fetchJobs(true);
+        } catch (err: any) {
+          setAlertState({
+            open: true,
+            title: 'Bulk Action Failed',
+            message: 'An error occurred during bulk operation: ' + (err.response?.data?.message || err.message),
+            onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
+          });
+        }
+      },
+    });
+  };
+
+  const handleBulkJobDelete = () => {
+    const ids = Array.from(selectedJobIds);
+    if (ids.length === 0) return;
+
+    setAlertState({
+      open: true,
+      title: 'Bulk Delete Jobs',
+      message: `Are you sure you want to delete ${ids.length} selected job postings? They can be restored in Archives.`,
+      onConfirm: async () => {
+        try {
+          await Promise.all(ids.map((id) => adminApi.deleteJob(id)));
+          setSelectedJobIds(new Set());
+          await fetchJobs(true);
+        } catch (err: any) {
+          setAlertState({
+            open: true,
+            title: 'Bulk Action Failed',
+            message: 'An error occurred during bulk deletion: ' + (err.response?.data?.message || err.message),
+            onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
+          });
+        }
+      },
+    });
+  };
+
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
@@ -399,18 +488,27 @@ function JobsPageContent() {
             <table className="w-full min-w-[760px] text-left font-body table-fixed border-collapse">
               <thead className="bg-slate-50/70 border-b border-ink-faint/30">
                 <tr>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[32%]">Job Details</th>
+                  <th className="px-3 py-3 w-[4%] text-center">
+                    <input
+                      type="checkbox"
+                      aria-label="Select all jobs"
+                      checked={isAllJobsSelected}
+                      onChange={handleToggleSelectAllJobs}
+                      className="w-4 h-4 rounded border-ink-faint text-primary focus:ring-primary/30 cursor-pointer"
+                    />
+                  </th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[30%]">Job Details</th>
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[18%]">Employer</th>
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[10%] text-center">Applicants</th>
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[12%] text-center">Posted Date</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[14%] text-center">Status</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[14%] text-right"></th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[12%] text-center">Status</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[13%] text-right"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-faint/20">
                 {paginatedJobs.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center text-ink-soft">
+                    <td colSpan={7} className="px-4 py-12 text-center text-ink-soft">
                       <div className="flex flex-col items-center justify-center">
                         <div className="w-12 h-12 bg-ink-faint/30 rounded-full flex items-center justify-center mb-3">
                           <i className="lni lni-briefcase text-xl text-ink-muted" />
@@ -420,12 +518,25 @@ function JobsPageContent() {
                     </td>
                   </tr>
                 ) : (
-                  paginatedJobs.map((job) => (
+                  paginatedJobs.map((job) => {
+                    const isSelected = selectedJobIds.has(job.id);
+                    return (
                     <tr
                       key={job.id}
                       onClick={() => setSelectedDetailJob(job)}
-                      className="hover:bg-slate-50/70 transition-colors duration-150 cursor-pointer"
+                      className={`transition-colors duration-150 cursor-pointer ${
+                        isSelected ? 'bg-primary/10 hover:bg-primary/15' : 'hover:bg-slate-50/70'
+                      }`}
                     >
+                      <td className="px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          aria-label={`Select job ${job.title}`}
+                          checked={isSelected}
+                          onChange={() => handleToggleSelectJob(job.id)}
+                          className="w-4 h-4 rounded border-ink-faint text-primary focus:ring-primary/30 cursor-pointer"
+                        />
+                      </td>
                       <td className="px-4 py-3">
                         <div className="font-body font-bold text-ink text-sm flex items-center flex-wrap gap-1.5">
                           <span>{job.title}</span>
@@ -519,9 +630,10 @@ function JobsPageContent() {
                         </div>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
+                  );
+                })
+              )}
+            </tbody>
             </table>
           </div>
         </div>
@@ -561,6 +673,47 @@ function JobsPageContent() {
           actionLoading={actionLoading}
           onRefresh={() => fetchJobs(true)}
         />
+      )}
+
+      {/* Floating Bulk Actions Bar */}
+      {selectedJobIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-ink text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4 border border-white/20 animate-fade-in backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold font-numeric">
+              {selectedJobIds.size}
+            </span>
+            <span className="text-xs font-body font-semibold whitespace-nowrap">
+              {selectedJobIds.size === 1 ? 'job' : 'jobs'} selected
+            </span>
+          </div>
+          <div className="h-4 w-px bg-white/20" />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleBulkJobSuspendToggle(true)}
+              className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-white border border-amber-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
+            >
+              Bulk Suspend
+            </button>
+            <button
+              onClick={() => handleBulkJobSuspendToggle(false)}
+              className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
+            >
+              Bulk Unsuspend
+            </button>
+            <button
+              onClick={handleBulkJobDelete}
+              className="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white border border-rose-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
+            >
+              Bulk Delete
+            </button>
+            <button
+              onClick={handleDeselectAllJobs}
+              className="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-xs font-body font-medium transition-all cursor-pointer ml-1 whitespace-nowrap"
+            >
+              Deselect
+            </button>
+          </div>
+        </div>
       )}
 
       <AlertDialog

@@ -21,6 +21,7 @@ import UserDetailDrawer from '../components/users/UserDetailDrawer';
 import JobPreviewModal from '../components/users/JobPreviewModal';
 import JobDetailModal from '../components/jobs/JobDetailModal';
 import SuspensionModal from '../components/users/SuspensionModal';
+import DeleteUserModal from '../components/users/DeleteUserModal';
 
 vi.mock('next/dynamic', () => {
   return {
@@ -40,6 +41,9 @@ vi.mock('next/dynamic', () => {
       }
       if (str.includes('SuspensionModal')) {
         return SuspensionModal;
+      }
+      if (str.includes('DeleteUserModal')) {
+        return DeleteUserModal;
       }
       return () => null;
     },

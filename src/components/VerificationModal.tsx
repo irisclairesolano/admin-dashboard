@@ -3,15 +3,30 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
-import { XCircle, ExternalLink, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCw, Download, FileText } from 'lucide-react';
+import { XCircle, ExternalLink, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCw, FileText } from 'lucide-react';
 import Tooltip from '@/components/Tooltip';
 import { adminApi } from '@/api/admin';
+
+export interface BlacklistMatch {
+  id: number;
+  user_id?: number | null;
+  name: string;
+  email?: string;
+  phone?: string;
+  type: 'banned' | 'suspended' | 'deleted_by_admin' | 'self_deleted';
+  reason?: string;
+  admin_name?: string;
+  created_at_formatted?: string;
+  matched_fields?: string[];
+  is_active?: boolean;
+}
 
 export interface User {
   id: number;
   name: string;
   email: string;
   role: string;
+  phone?: string | null;
   document_url?: string | null;
   document_front_url?: string | null;
   id_front_url?: string | null;
@@ -22,6 +37,7 @@ export interface User {
   business_documents?: string[] | string | null;
   updated_at?: string;
   registration_status?: string;
+  blacklist_matches?: BlacklistMatch[];
 }
 
 export interface VerificationModalProps {
@@ -238,6 +254,74 @@ export default function VerificationModal({
               </span>
             </div>
           </div>
+
+          {/* BLACKLIST / RESTRICTION MATCH WARNING BANNER */}
+          {(() => {
+            const matches = currentUser.blacklist_matches || user.blacklist_matches || [];
+            if (matches.length === 0) return null;
+
+            return (
+              <div className="mb-6 p-4 rounded-2xl border border-rose-200 bg-rose-50/90 shadow-sm animate-fade-in" data-testid="blacklist-warning-banner">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-xl bg-rose-100 text-rose-600 flex-shrink-0 mt-0.5">
+                    <AlertCircle className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="text-sm font-display font-bold text-rose-900">
+                        ⚠️ Possible Blacklist Match Detected
+                      </h4>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-200 text-rose-800 font-numeric">
+                        {matches.length} {matches.length === 1 ? 'Match' : 'Matches'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-rose-700 mb-3">
+                      This user shares contact or legal identity details with previously restricted accounts. Review ID photos carefully before approving.
+                    </p>
+
+                    <div className="space-y-2">
+                      {matches.map((m, idx) => {
+                        const typeLabel =
+                          m.type === 'banned'
+                            ? 'Banned'
+                            : m.type === 'suspended'
+                            ? 'Suspended'
+                            : m.type === 'deleted_by_admin'
+                            ? 'Deleted by Admin'
+                            : 'Self-Deleted';
+                        const matchFieldStr = m.matched_fields?.length ? `Matched fields: ${m.matched_fields.join(', ')}` : '';
+
+                        return (
+                          <div key={idx} className="bg-white/95 border border-rose-200/80 rounded-xl p-3 text-xs shadow-2xs">
+                            <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1">
+                              <span className="font-bold text-rose-900 flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />
+                                Possible match: {typeLabel.toLowerCase()} on {m.created_at_formatted || 'prior date'}
+                              </span>
+                              {m.admin_name && (
+                                <span className="text-[11px] text-ink-muted">
+                                  Action by {m.admin_name}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-ink font-medium mt-1">
+                              <span className="text-rose-800 font-bold">Reason: </span>
+                              {m.reason || 'No specific reason provided.'}
+                            </div>
+                            {matchFieldStr && (
+                              <div className="text-[11px] text-rose-600 mt-1 font-mono bg-rose-50 px-2 py-0.5 rounded inline-block">
+                                {matchFieldStr} ({m.name || ''}{m.email ? ` • ${m.email}` : ''}{m.phone ? ` • ${m.phone}` : ''})
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* ADAPTIVE VERIFICATION LAYOUTS */}
           {(() => {
@@ -825,19 +909,6 @@ export default function VerificationModal({
                   )}
                 </>
               )}
-
-              <a
-                href={lightboxDoc.url}
-                target="_blank"
-                rel="noreferrer"
-                download
-                data-testid="lightbox-download-btn"
-                className="p-2 bg-primary hover:bg-primary-dark rounded-xl text-white text-xs font-body font-semibold inline-flex items-center gap-1.5 transition-colors shadow-lg"
-                title="Download original file"
-              >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Download</span>
-              </a>
 
               <a
                 href={lightboxDoc.url}

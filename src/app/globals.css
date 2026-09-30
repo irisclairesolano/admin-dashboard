@@ -28,12 +28,18 @@
 }
 
 @media print {
+  @page {
+    margin: 12mm 15mm;
+  }
   body, html {
     height: auto !important;
     min-height: 100% !important;
     overflow: visible !important;
     background: #ffffff !important;
     color: #000000 !important;
+  }
+  a[href]:after {
+    content: none !important;
   }
   .no-print {
     display: none !important;

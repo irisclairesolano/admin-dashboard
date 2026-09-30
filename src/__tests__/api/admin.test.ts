@@ -144,7 +144,7 @@ describe('Admin API Suite', () => {
       expect(response.data.message).toBe('User verification rejected');
     });
 
-    it('should delete a user via DELETE /admin/users/:id', async () => {
+    it('should delete a user via DELETE /admin/users/:id with optional reason', async () => {
       vi.spyOn(apiClient, 'delete').mockResolvedValueOnce({
         data: { success: true, message: 'User deleted' },
         status: 200,
@@ -153,9 +153,9 @@ describe('Admin API Suite', () => {
         config: {} as any,
       });
 
-      const response = await adminApi.deleteUser(7);
+      const response = await adminApi.deleteUser(7, 'Violation of Terms');
 
-      expect(apiClient.delete).toHaveBeenCalledWith('/admin/users/7');
+      expect(apiClient.delete).toHaveBeenCalledWith('/admin/users/7', { data: { reason: 'Violation of Terms' } });
       expect(response.data.message).toBe('User deleted');
     });
 

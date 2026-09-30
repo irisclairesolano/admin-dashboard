@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import { authStorage } from '@/lib/authStorage';
@@ -9,6 +10,13 @@ import StatusTabs from '@/components/StatusTabs';
 import { AlertDialog } from '@/components/AlertDialog';
 import { ReAuthModal } from '@/components/ReAuthModal';
 import { formatDate } from '@/lib/date';
+
+const UserDetailDrawer = dynamic(() => import('@/components/users/UserDetailDrawer'), {
+  ssr: false,
+});
+const JobDetailModal = dynamic(() => import('@/components/jobs/JobDetailModal'), {
+  ssr: false,
+});
 
 function ArchivesPageContent() {
   const searchParams = useSearchParams();
@@ -22,6 +30,8 @@ function ArchivesPageContent() {
   const [userSearch, setUserSearch] = useState('');
   const [jobSearch, setJobSearch] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [selectedDetailUser, setSelectedDetailUser] = useState<any | null>(null);
+  const [selectedDetailJob, setSelectedDetailJob] = useState<any | null>(null);
   const [reAuthTarget, setReAuthTarget] = useState<{
     type: 'user' | 'job';
     id: number;
@@ -229,8 +239,8 @@ function ArchivesPageContent() {
 
       {/* 2 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-        <StatCard title="Deleted Users" value={users.length} iconClass="lni lni-user text-primary" />
-        <StatCard title="Deleted Jobs" value={jobs.length} iconClass="lni lni-briefcase text-primary" />
+        <StatCard title="Deleted Users" value={users.length} iconClass="lni lni-user text-status-error" />
+        <StatCard title="Deleted Jobs" value={jobs.length} iconClass="lni lni-briefcase text-status-error" />
       </div>
 
       {/* Tab Switcher & Search Bar */}
@@ -275,7 +285,7 @@ function ArchivesPageContent() {
         {activeTab === 'Deleted Users' ? (
           <div>
             <div className="px-4 py-2.5 border-b border-ink-faint/30 bg-slate-50/60 flex items-center">
-              <i className="lni lni-user text-primary mr-2 text-sm" />
+              <i className="lni lni-user text-status-error mr-2 text-sm" />
               <h2 className="font-display text-sm text-ink font-bold">Deleted Users List</h2>
             </div>
             {filteredUsers.length === 0 ? (
@@ -294,11 +304,15 @@ function ArchivesPageContent() {
                   </thead>
                   <tbody className="divide-y divide-ink-faint/20">
                     {filteredUsers.map(user => (
-                      <tr key={user.id} className="hover:bg-slate-50/70 transition-colors duration-150">
+                      <tr
+                        key={user.id}
+                        onClick={() => setSelectedDetailUser(user)}
+                        className="hover:bg-slate-50/70 transition-colors duration-150 cursor-pointer"
+                      >
                         <td className="px-4 py-3 text-xs font-numeric font-bold text-ink-muted">#{user.id}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center">
-                            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-ink-faint to-ink-muted/30 flex items-center justify-center text-ink font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
+                            <div className="h-8 w-8 rounded-lg bg-status-error/10 text-status-error border border-status-error/20 flex items-center justify-center font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
                               {(user.name || 'U').charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0">
@@ -317,7 +331,7 @@ function ArchivesPageContent() {
                         <td className="px-4 py-3 text-xs text-status-error font-numeric">
                           {formatDate(user.deleted_at)}
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                           {isSuperAdmin ? (
                             <div className="flex justify-end space-x-1.5">
                               <button
@@ -353,7 +367,7 @@ function ArchivesPageContent() {
         ) : (
           <div>
             <div className="px-4 py-2.5 border-b border-ink-faint/30 bg-slate-50/60 flex items-center">
-              <i className="lni lni-briefcase text-primary mr-2 text-sm" />
+              <i className="lni lni-briefcase text-status-error mr-2 text-sm" />
               <h2 className="font-display text-sm text-ink font-bold">Deleted Jobs List</h2>
             </div>
             {filteredJobs.length === 0 ? (
@@ -372,11 +386,15 @@ function ArchivesPageContent() {
                   </thead>
                   <tbody className="divide-y divide-ink-faint/20">
                     {filteredJobs.map(job => (
-                      <tr key={job.id} className="hover:bg-slate-50/70 transition-colors duration-150">
+                      <tr
+                        key={job.id}
+                        onClick={() => setSelectedDetailJob(job)}
+                        className="hover:bg-slate-50/70 transition-colors duration-150 cursor-pointer"
+                      >
                         <td className="px-4 py-3 text-xs font-numeric font-bold text-ink-muted">#{job.id}</td>
                         <td className="px-4 py-3">
                           <div className="font-bold text-ink text-xs truncate">{job.title}</div>
-                          <span className="inline-block px-1.5 py-0.5 rounded bg-accent-sky text-primary-dark text-[9px] font-bold border border-white/50 mt-0.5">{job.category}</span>
+                          <span className="inline-block px-1.5 py-0.5 rounded bg-status-error/10 text-status-error text-[9px] font-bold border border-status-error/20 mt-0.5">{job.category}</span>
                         </td>
                         <td className="px-4 py-3 text-xs text-ink font-bold truncate">
                           {job.employer?.name || 'Deleted Account'}
@@ -384,7 +402,7 @@ function ArchivesPageContent() {
                         <td className="px-4 py-3 text-xs text-status-error font-numeric">
                           {formatDate(job.deleted_at)}
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                           {isSuperAdmin ? (
                             <div className="flex justify-end space-x-1.5">
                               <button
@@ -419,6 +437,39 @@ function ArchivesPageContent() {
           </div>
         )}
       </div>
+
+      {/* User Detail Drawer */}
+      {selectedDetailUser && (
+        <UserDetailDrawer
+          selectedDetailUser={selectedDetailUser}
+          onClose={() => setSelectedDetailUser(null)}
+          onRestore={(id) => {
+            setSelectedDetailUser(null);
+            handleRestoreUser(id);
+          }}
+          onDelete={(id) => {
+            setSelectedDetailUser(null);
+            handlePermanentDeleteUser(id, selectedDetailUser.name);
+          }}
+        />
+      )}
+
+      {/* Job Detail Modal */}
+      {selectedDetailJob && (
+        <JobDetailModal
+          job={selectedDetailJob}
+          onClose={() => setSelectedDetailJob(null)}
+          onRestore={(id) => {
+            setSelectedDetailJob(null);
+            handleRestoreJob(id);
+          }}
+          onDelete={(id) => {
+            setSelectedDetailJob(null);
+            handlePermanentDeleteJob(id, selectedDetailJob.title);
+          }}
+          onRefresh={() => fetchArchives(true)}
+        />
+      )}
       <AlertDialog
         isOpen={alertConfig.isOpen}
         title={alertConfig.title}
