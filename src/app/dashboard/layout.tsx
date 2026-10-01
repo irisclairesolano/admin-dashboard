@@ -145,7 +145,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           description: `${r.reporter?.name ? `Reported by ${r.reporter.name}: ` : ''}${r.description || r.reason || 'Flagged content review needed.'}`,
           timestamp: r.created_at || new Date().toISOString(),
           priority: 'critical',
-          link: `/dashboard/moderation?search=${encodeURIComponent(r.reason || '')}`,
+          link: `/dashboard/moderation?search=${encodeURIComponent(r.description || r.type || '')}`,
           targetId: r.id,
         });
       });

@@ -9,6 +9,11 @@ import { humanizeModel } from '@/lib/constants';
 import { formatDate } from '@/lib/date';
 import { usePolling } from '@/hooks/usePolling';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus } from '@/lib/export/csv';
+import dynamic from 'next/dynamic';
+
+const JobDetailModal = dynamic(() => import('@/components/jobs/JobDetailModal'), {
+  ssr: false,
+});
 
 function ModerationPageContent() {
   const router = useRouter();
@@ -27,6 +32,7 @@ function ModerationPageContent() {
   const [selectedReport, setSelectedReport] = useState<any | null>(null);
   const [targetDetails, setTargetDetails] = useState<any | null>(null);
   const [targetLoading, setTargetLoading] = useState(false);
+  const [inspectedJob, setInspectedJob] = useState<any | null>(null);
   const [suspensionReason, setSuspensionReason] = useState('');
   const [alertState, setAlertState] = useState<{
     open: boolean;
@@ -682,6 +688,19 @@ function ModerationPageContent() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
+                {selectedReport.reportable_type?.toLowerCase().includes('job') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInspectedJob(targetDetails || { id: selectedReport.reportable_id });
+                    }}
+                    className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white font-body font-bold text-xs transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                  >
+                    <i className="lni lni-eye text-xs" />
+                    View Full Job Details
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => {
@@ -733,6 +752,14 @@ function ModerationPageContent() {
             </div>
           </div>
         </div>
+      )}
+
+      {inspectedJob && (
+        <JobDetailModal
+          job={inspectedJob}
+          onClose={() => setInspectedJob(null)}
+          onRefresh={() => fetchReports(true)}
+        />
       )}
 
       <AlertDialog

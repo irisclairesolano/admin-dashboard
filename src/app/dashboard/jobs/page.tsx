@@ -262,10 +262,14 @@ function JobsPageContent() {
   };
 
   const filteredJobs = currentJobList.filter(j => {
+    const term = searchTerm.toLowerCase().trim();
     const matchesSearch =
-      (j.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (j.employer?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (j.category || '').toLowerCase().includes(searchTerm.toLowerCase());
+      !term ||
+      (j.title || '').toLowerCase().includes(term) ||
+      (j.employer?.name || '').toLowerCase().includes(term) ||
+      (j.category || '').toLowerCase().includes(term) ||
+      String(j.id).includes(term) ||
+      (j.reference_number || '').toLowerCase().includes(term);
     
     if (statusFilter === 'All' || statusFilter === 'Archived') {
       return matchesSearch;
