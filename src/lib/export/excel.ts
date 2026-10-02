@@ -6,8 +6,10 @@ export interface ExportDataPayload {
   users: any[];
   jobs: any[];
   verifications: any[];
-  reports: any[];
+  reports?: any[];
   analytics?: any;
+  municipalSummary?: any[];
+  municipalOverview?: any[];
 }
 
 const NAVY = '1F3864';
@@ -29,7 +31,7 @@ function applyTitleBlock(worksheet: ExcelJS.Worksheet, title: string, subtitle: 
   for (let i = 1; i <= maxCol; i++) {
     const cell = titleRow.getCell(i);
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + NAVY } };
-    cell.font = { name: 'Arial', size: 16, bold: true, color: { argb: 'FF' + WHITE } };
+    cell.font = { name: 'Arial', size: 15, bold: true, color: { argb: 'FF' + WHITE } };
     cell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
   }
   titleRow.getCell(1).value = `  ${title.toUpperCase()}`;
@@ -83,13 +85,13 @@ function applyTableHeader(worksheet: ExcelJS.Worksheet, rowNumber: number, heade
 
 function formatStatusCell(cell: ExcelJS.Cell, status: string) {
   const s = String(status || '').toLowerCase();
-  if (['approved', 'active', 'open', 'completed', 'resolved', 'hired'].includes(s)) {
+  if (['approved', 'active', 'open', 'completed', 'resolved', 'hired', 'verified'].includes(s)) {
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + GREEN_FILL } };
     cell.font = { name: 'Arial', size: 9.5, bold: true, color: { argb: 'FF' + GREEN_TEXT } };
   } else if (['pending', 'pending_review', 'pending_email_verification', 'pending_id_upload', 'requested', 'offer_sent', 'in_progress', 'closed_in_progress', 'investigating'].includes(s)) {
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + YELLOW_FILL } };
     cell.font = { name: 'Arial', size: 9.5, bold: true, color: { argb: 'FF' + YELLOW_TEXT } };
-  } else if (['rejected', 'banned', 'suspended', 'cancelled', 'dismissed', 'inactive'].includes(s)) {
+  } else if (['rejected', 'banned', 'suspended', 'cancelled', 'dismissed', 'inactive', 'archived'].includes(s)) {
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + RED_FILL } };
     cell.font = { name: 'Arial', size: 9.5, bold: true, color: { argb: 'FF' + RED_TEXT } };
   } else {
@@ -130,7 +132,7 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   applyTitleBlock(
     ws1,
     'SIKAP PLATFORM MASTER REPORT',
-    `Complete Platform Snapshot  |  Generated ${timestamp}  |  Classification: Platform Master Database Snapshot`,
+    `Complete Platform Snapshot  |  Generated ${timestamp}  |  Classification: Official Administrative Masterlist`,
     8
   );
 
@@ -157,28 +159,28 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   kpiRow8.height = 32;
   // Users Count
   const cA8 = kpiRow8.getCell(1);
-  cA8.value = { formula: `COUNTA(Users!A7:A${Math.max(lastUserRow, 200)})`, result: users.length };
+  cA8.value = { formula: `COUNTA('Users Masterlist'!A7:A${Math.max(lastUserRow, 200)})`, result: users.length };
   cA8.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FF' + NAVY } };
   cA8.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
   cA8.alignment = { vertical: 'middle', horizontal: 'center' };
 
   // Jobs Count
   const cC8 = kpiRow8.getCell(3);
-  cC8.value = { formula: `COUNTA(Jobs!A6:A${Math.max(lastJobRow, 200)})`, result: jobs.length };
+  cC8.value = { formula: `COUNTA('Jobs & Placements'!A6:A${Math.max(lastJobRow, 200)})`, result: jobs.length };
   cC8.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FF' + NAVY } };
   cC8.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
   cC8.alignment = { vertical: 'middle', horizontal: 'center' };
 
   // Pending Verif
   const cE8 = kpiRow8.getCell(5);
-  cE8.value = { formula: `COUNTIF(Verification!D6:D200,"*pending*")`, result: verifications.filter((v) => String(v.verification_status).includes('pending')).length };
+  cE8.value = { formula: `COUNTIF('Verification Audit'!D6:D200,"*pending*")`, result: verifications.filter((v) => String(v.verification_status || v.status).includes('pending')).length };
   cE8.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FF' + NAVY } };
   cE8.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
   cE8.alignment = { vertical: 'middle', horizontal: 'center' };
 
   // Reports Count
   const cG8 = kpiRow8.getCell(7);
-  cG8.value = { formula: `COUNTA(Reports!A6:A200)`, result: reports.length };
+  cG8.value = { formula: `COUNTA('Community Reports'!A6:A200)`, result: reports.length };
   cG8.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FF' + NAVY } };
   cG8.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
   cG8.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -208,7 +210,7 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   const totalSlotsReq = jobs.reduce((acc, j) => acc + (Number(j.slots) || 1), 0);
   const totalSlotsHired = jobs.reduce((acc, j) => acc + (Number(j.filled_slots ?? j.accepted_count) || 0), 0);
   const cA12 = kpiRow12.getCell(1);
-  cA12.value = { formula: `IFERROR(SUM(Jobs!K6:K200)/SUM(Jobs!J6:J200),0)`, result: totalSlotsReq ? totalSlotsHired / totalSlotsReq : 0 };
+  cA12.value = { formula: `IFERROR(SUM('Jobs & Placements'!K6:K200)/SUM('Jobs & Placements'!J6:J200),0)`, result: totalSlotsReq ? totalSlotsHired / totalSlotsReq : 0 };
   cA12.numFmt = '0.0%';
   cA12.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FF' + NAVY } };
   cA12.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
@@ -222,7 +224,7 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
     ? validHourlyJobs.reduce((acc, w) => acc + w, 0) / validHourlyJobs.length
     : 0;
   const cC12 = kpiRow12.getCell(3);
-  cC12.value = { formula: `IFERROR(AVERAGE(Jobs!I6:I200),0)`, result: avgHourlyComp };
+  cC12.value = { formula: `IFERROR(AVERAGE('Jobs & Placements'!I6:I200),0)`, result: avgHourlyComp };
   cC12.numFmt = '₱#,##0.00';
   cC12.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FF' + NAVY } };
   cC12.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
@@ -230,7 +232,7 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
 
   // Open Jobs
   const cE12 = kpiRow12.getCell(5);
-  cE12.value = { formula: `COUNTIF(Jobs!L6:L200,"*open*")`, result: jobs.filter((j) => String(j.status).includes('open')).length };
+  cE12.value = { formula: `COUNTIF('Jobs & Placements'!L6:L200,"*open*")`, result: jobs.filter((j) => String(j.status).includes('open')).length };
   cE12.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FF' + NAVY } };
   cE12.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
   cE12.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -238,7 +240,7 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   // Applications
   const totalApps = jobs.reduce((acc, j) => acc + (Number(j.applications_count) || 0), 0);
   const cG12 = kpiRow12.getCell(7);
-  cG12.value = { formula: `SUM(Jobs!M6:M200)`, result: totalApps };
+  cG12.value = { formula: `SUM('Jobs & Placements'!M6:M200)`, result: totalApps };
   cG12.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FF' + NAVY } };
   cG12.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
   cG12.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -265,9 +267,9 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   const adminCount = users.filter((u) => u.role === 'admin').length;
 
   const roles = [
-    { role: 'Worker', countFormula: `COUNTIF(Users!C7:C200,"worker")`, countVal: workerCount },
-    { role: 'Employer', countFormula: `COUNTIF(Users!C7:C200,"employer")`, countVal: employerCount },
-    { role: 'Admin', countFormula: `COUNTIF(Users!C7:C200,"admin")`, countVal: adminCount },
+    { role: 'Worker', countFormula: `COUNTIF('Users Masterlist'!C7:C200,"worker")`, countVal: workerCount },
+    { role: 'Employer', countFormula: `COUNTIF('Users Masterlist'!C7:C200,"employer")`, countVal: employerCount },
+    { role: 'Admin', countFormula: `COUNTIF('Users Masterlist'!C7:C200,"admin")`, countVal: adminCount },
   ];
 
   roles.forEach((r, idx) => {
@@ -286,7 +288,7 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
     c2.alignment = { vertical: 'middle', horizontal: 'center' };
 
     const c3 = rRow.getCell(3);
-    c3.value = { formula: `IFERROR(B${rowNum}/COUNTA(Users!A7:A200),0)`, result: users.length ? r.countVal / users.length : 0 };
+    c3.value = { formula: `IFERROR(B${rowNum}/COUNTA('Users Masterlist'!A7:A200),0)`, result: users.length ? r.countVal / users.length : 0 };
     c3.numFmt = '0.0%';
     c3.font = { name: 'Arial', size: 10 };
     c3.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -347,9 +349,9 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   });
 
   // =========================================================================
-  // SHEET 2: USERS DIRECTORY
+  // SHEET 2: USERS MASTERLIST
   // =========================================================================
-  const ws2 = workbook.addWorksheet('Users', {
+  const ws2 = workbook.addWorksheet('Users Masterlist', {
     views: [{ state: 'frozen', ySplit: 5, showGridLines: true }],
   });
   ws2.columns = [
@@ -413,23 +415,23 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   });
 
   // =========================================================================
-  // SHEET 3: JOBS DIRECTORY
+  // SHEET 3: JOBS & PLACEMENTS
   // =========================================================================
-  const ws3 = workbook.addWorksheet('Jobs', {
+  const ws3 = workbook.addWorksheet('Jobs & Placements', {
     views: [{ state: 'frozen', ySplit: 5, showGridLines: true }],
   });
   ws3.columns = [
     { width: 10 }, { width: 22 }, { width: 32 }, { width: 24 },
-    { width: 18 }, { width: 20 }, { width: 16 }, { width: 16 },
-    { width: 22 }, { width: 14 }, { width: 14 }, { width: 18 },
-    { width: 14 }, { width: 22 }, { width: 14 },
+    { width: 18 }, { width: 18 }, { width: 18 }, { width: 20 },
+    { width: 16 }, { width: 16 }, { width: 22 }, { width: 14 },
+    { width: 14 }, { width: 18 }, { width: 14 }, { width: 22 }, { width: 14 },
   ];
 
-  applyTitleBlock(ws3, 'JOB POSTINGS & OPPORTUNITIES', 'All job listings created by employers across the platform', 15);
+  applyTitleBlock(ws3, 'JOB POSTINGS & OPPORTUNITIES', 'All job listings created by employers across the platform', 17);
   applyTableHeader(ws3, 5, [
     'Job ID', 'Reference Code', 'Job Title', 'Employer', 'Category',
-    'Offered Comp (PHP)', 'Rate Unit', 'Duration', 'Hourly Wage (PHP/hr)',
-    'Slots Required', 'Slots Hired', 'Status', 'Applications', 'Date Posted', 'Fill %',
+    'Municipality', 'Barangay', 'Offered Comp (PHP)', 'Rate Unit', 'Duration',
+    'Hourly Wage (PHP/hr)', 'Slots Required', 'Slots Hired', 'Status', 'Applications', 'Date Posted', 'Fill %',
   ]);
 
   jobs.forEach((j, idx) => {
@@ -441,43 +443,46 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
     row.getCell(2).value = j.reference_number || `SKP-JOB-${j.id}`;
     row.getCell(3).value = j.title || '';
     row.getCell(4).value = j.employer?.name || '';
-    row.getCell(5).value = j.category || 'General';
+    row.getCell(5).value = j.category?.name || j.category || 'General';
+    row.getCell(6).value = j.municipality || 'Bulan';
+    row.getCell(7).value = j.barangay || '';
 
-    const compCell = row.getCell(6);
+    const compCell = row.getCell(8);
     compCell.value = parseFloat(j.compensation) || 0;
     compCell.numFmt = '₱#,##0.00';
 
-    row.getCell(7).value = j.rate_unit ? String(j.rate_unit).replace(/_/g, ' ') : (j.duration_type ? String(j.duration_type).replace(/_/g, ' ') : 'per day');
-    row.getCell(8).value = j.duration ? String(j.duration) : 'N/A';
+    row.getCell(9).value = j.rate_unit ? String(j.rate_unit).replace(/_/g, ' ') : (j.duration_type ? String(j.duration_type).replace(/_/g, ' ') : 'per day');
+    row.getCell(10).value = j.duration ? String(j.duration) : 'N/A';
 
-    const hourlyCell = row.getCell(9);
+    const hourlyCell = row.getCell(11);
     hourlyCell.value = calculateNormalizedHourlyWage(j.compensation, j.rate_unit, j.duration, j.duration_unit, j.duration_type);
     hourlyCell.numFmt = '₱#,##0.00';
 
     const slotsReq = Number(j.slots) || 1;
     const slotsHired = Number(j.filled_slots ?? j.accepted_count) || 0;
 
-    row.getCell(10).value = slotsReq;
-    row.getCell(11).value = slotsHired;
+    row.getCell(12).value = slotsReq;
+    row.getCell(13).value = slotsHired;
 
-    const statusCell = row.getCell(12);
-    statusCell.value = j.status || 'open';
-    formatStatusCell(statusCell, j.status || 'open');
+    const statusCell = row.getCell(14);
+    const jobStatus = j.deleted_at ? 'archived' : (j.status || 'open');
+    statusCell.value = jobStatus;
+    formatStatusCell(statusCell, jobStatus);
 
-    row.getCell(13).value = Number(j.applications_count) || 0;
+    row.getCell(15).value = Number(j.applications_count) || 0;
 
     if (j.created_at) {
-      row.getCell(14).value = new Date(j.created_at);
-      row.getCell(14).numFmt = 'yyyy-mm-dd hh:mm';
+      row.getCell(16).value = new Date(j.created_at);
+      row.getCell(16).numFmt = 'yyyy-mm-dd hh:mm';
     }
 
-    const fillCell = row.getCell(15);
-    fillCell.value = { formula: `IFERROR(K${rNum}/J${rNum},0)`, result: slotsReq ? slotsHired / slotsReq : 0 };
+    const fillCell = row.getCell(17);
+    fillCell.value = { formula: `IFERROR(M${rNum}/L${rNum},0)`, result: slotsReq ? slotsHired / slotsReq : 0 };
     fillCell.numFmt = '0.0%';
 
     if (idx % 2 === 1) {
-      for (let c = 1; c <= 15; c++) {
-        if (c !== 12) {
+      for (let c = 1; c <= 17; c++) {
+        if (c !== 14) {
           row.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + LIGHT_GRAY } };
         }
       }
@@ -485,20 +490,218 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   });
 
   // =========================================================================
-  // SHEET 4: VERIFICATION AUDIT
+  // SHEET 4: MUNICIPAL DEMOGRAPHICS
   // =========================================================================
-  const ws4 = workbook.addWorksheet('Verification', {
+  const wsDemo = workbook.addWorksheet('Municipal Demographics', {
+    views: [{ state: 'frozen', ySplit: 5, showGridLines: true }],
+  });
+  wsDemo.columns = [
+    { width: 22 }, { width: 24 }, { width: 18 }, { width: 20 },
+    { width: 20 }, { width: 16 }, { width: 22 }, { width: 24 },
+  ];
+
+  applyTitleBlock(
+    wsDemo,
+    'MUNICIPAL & BARANGAY DEMOGRAPHICS MASTER SUMMARY',
+    `Workforce, employer density, and platform engagement across Bulan and neighboring municipalities | Generated ${timestamp}`,
+    8
+  );
+
+  // Compute Demographics Aggregation if not provided in payload
+  const demoSummaryMap = new Map<string, { municipality: string; barangay: string; workers: number; employers: number; jobs: number }>();
+  users.forEach((u) => {
+    const m = u.municipality || 'Bulan';
+    const b = u.barangay || 'Unspecified';
+    const key = `${m}-${b}`;
+    if (!demoSummaryMap.has(key)) {
+      demoSummaryMap.set(key, { municipality: m, barangay: b, workers: 0, employers: 0, jobs: 0 });
+    }
+    const entry = demoSummaryMap.get(key)!;
+    if (u.role === 'employer') entry.employers += 1;
+    else entry.workers += 1;
+  });
+
+  jobs.forEach((j) => {
+    const m = j.municipality || 'Bulan';
+    const b = j.barangay || 'Unspecified';
+    const key = `${m}-${b}`;
+    if (!demoSummaryMap.has(key)) {
+      demoSummaryMap.set(key, { municipality: m, barangay: b, workers: 0, employers: 0, jobs: 0 });
+    }
+    demoSummaryMap.get(key)!.jobs += 1;
+  });
+
+  const demoSummaryList = payload.municipalSummary || Array.from(demoSummaryMap.values()).sort((a, b) => {
+    if (a.municipality !== b.municipality) return a.municipality.localeCompare(b.municipality);
+    return (b.workers + b.employers + b.jobs) - (a.workers + a.employers + a.jobs);
+  });
+
+  const demoOverviewMap = new Map<string, {
+    municipality: string;
+    barangaysCount: number;
+    workers: number;
+    employers: number;
+    jobs: number;
+    totalImpact: number;
+  }>();
+
+  demoSummaryList.forEach((row) => {
+    if (!demoOverviewMap.has(row.municipality)) {
+      demoOverviewMap.set(row.municipality, {
+        municipality: row.municipality,
+        barangaysCount: 0,
+        workers: 0,
+        employers: 0,
+        jobs: 0,
+        totalImpact: 0,
+      });
+    }
+    const entry = demoOverviewMap.get(row.municipality)!;
+    entry.barangaysCount += 1;
+    entry.workers += row.workers;
+    entry.employers += row.employers;
+    entry.jobs += row.jobs;
+    entry.totalImpact += row.workers + row.employers + row.jobs;
+  });
+
+  const demoOverviewList = payload.municipalOverview || Array.from(demoOverviewMap.values()).sort((a, b) => b.totalImpact - a.totalImpact);
+  const totalDemoPlatformActivity = demoSummaryList.reduce((acc, b) => acc + b.workers + b.employers + b.jobs, 0);
+
+  // SECTION 1: EXECUTIVE MUNICIPAL SUMMARY
+  applySectionHeader(wsDemo, 5, 'EXECUTIVE MUNICIPAL COVERAGE SUMMARY', 8);
+  wsDemo.getRow(6).height = 6;
+
+  applyTableHeader(wsDemo, 7, [
+    'Municipality', 'Active Barangays', 'Registered Workers', 'Registered Employers',
+    'Total Registered Users', 'Jobs Posted', 'Total Platform Activity', 'Activity Share (%)',
+  ]);
+
+  let curDemoRow = 8;
+  demoOverviewList.forEach((m, idx) => {
+    const row = wsDemo.getRow(curDemoRow);
+    row.height = 20;
+
+    const c1 = row.getCell(1);
+    c1.value = m.municipality;
+    c1.font = { name: 'Arial', size: 10, bold: true };
+
+    row.getCell(2).value = m.barangaysCount;
+    row.getCell(3).value = m.workers;
+    row.getCell(4).value = m.employers;
+    row.getCell(5).value = m.workers + m.employers;
+    row.getCell(6).value = m.jobs;
+    row.getCell(7).value = m.totalImpact;
+
+    const c8 = row.getCell(8);
+    c8.value = totalDemoPlatformActivity > 0 ? m.totalImpact / totalDemoPlatformActivity : 0;
+    c8.numFmt = '0.0%';
+
+    if (idx % 2 === 1) {
+      for (let c = 1; c <= 8; c++) {
+        row.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + LIGHT_GRAY } };
+      }
+    }
+
+    for (let c = 1; c <= 8; c++) {
+      row.getCell(c).border = {
+        bottom: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+        left: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+        right: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+      };
+    }
+    curDemoRow++;
+  });
+
+  // GRAND TOTAL ROW FOR MUNICIPALITIES
+  const grandTotalRow = wsDemo.getRow(curDemoRow);
+  grandTotalRow.height = 24;
+  grandTotalRow.getCell(1).value = 'GRAND TOTAL (ALL MUNICIPALITIES)';
+  grandTotalRow.getCell(1).font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF' + NAVY } };
+  grandTotalRow.getCell(2).value = demoSummaryList.length;
+  grandTotalRow.getCell(3).value = demoOverviewList.reduce((acc, m) => acc + m.workers, 0);
+  grandTotalRow.getCell(4).value = demoOverviewList.reduce((acc, m) => acc + m.employers, 0);
+  grandTotalRow.getCell(5).value = demoOverviewList.reduce((acc, m) => acc + m.workers + m.employers, 0);
+  grandTotalRow.getCell(6).value = demoOverviewList.reduce((acc, m) => acc + m.jobs, 0);
+  grandTotalRow.getCell(7).value = totalDemoPlatformActivity;
+  grandTotalRow.getCell(8).value = 1.0;
+  grandTotalRow.getCell(8).numFmt = '0.0%';
+
+  for (let c = 1; c <= 8; c++) {
+    const cell = grandTotalRow.getCell(c);
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
+    cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF' + NAVY } };
+    cell.border = {
+      top: { style: 'medium', color: { argb: 'FF' + NAVY } },
+      bottom: { style: 'medium', color: { argb: 'FF' + NAVY } },
+      left: { style: 'thin', color: { argb: 'FFD9D9D9' } },
+      right: { style: 'thin', color: { argb: 'FFD9D9D9' } },
+    };
+  }
+  curDemoRow += 2;
+
+  // SECTION 2: BARANGAY DEMOGRAPHICS BREAKDOWN
+  applySectionHeader(wsDemo, curDemoRow, 'DETAILED BARANGAY-LEVEL DEMOGRAPHICS BREAKDOWN', 8);
+  curDemoRow++;
+  wsDemo.getRow(curDemoRow).height = 6;
+  curDemoRow++;
+
+  applyTableHeader(wsDemo, curDemoRow, [
+    'Municipality', 'Barangay', 'Registered Workers', 'Registered Employers',
+    'Total Users', 'Jobs Posted', 'Total Platform Activity', 'Municipal Share (%)',
+  ]);
+  curDemoRow++;
+
+  demoSummaryList.forEach((b, idx) => {
+    const row = wsDemo.getRow(curDemoRow);
+    row.height = 20;
+
+    const munTotal = demoOverviewList.find((m) => m.municipality === b.municipality)?.totalImpact || 1;
+    const bTotal = b.workers + b.employers + b.jobs;
+
+    row.getCell(1).value = b.municipality;
+    row.getCell(2).value = b.barangay;
+    row.getCell(3).value = b.workers;
+    row.getCell(4).value = b.employers;
+    row.getCell(5).value = b.workers + b.employers;
+    row.getCell(6).value = b.jobs;
+    row.getCell(7).value = bTotal;
+
+    const c8 = row.getCell(8);
+    c8.value = munTotal > 0 ? bTotal / munTotal : 0;
+    c8.numFmt = '0.0%';
+
+    if (idx % 2 === 1) {
+      for (let c = 1; c <= 8; c++) {
+        row.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + LIGHT_GRAY } };
+      }
+    }
+
+    for (let c = 1; c <= 8; c++) {
+      row.getCell(c).border = {
+        bottom: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+        left: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+        right: { style: 'thin', color: { argb: 'FFE0E0E0' } },
+      };
+    }
+    curDemoRow++;
+  });
+
+  // =========================================================================
+  // SHEET 5: VERIFICATION AUDIT
+  // =========================================================================
+  const ws4 = workbook.addWorksheet('Verification Audit', {
     views: [{ state: 'frozen', ySplit: 5, showGridLines: true }],
   });
   ws4.columns = [
     { width: 10 }, { width: 24 }, { width: 14 }, { width: 20 },
-    { width: 12 }, { width: 12 }, { width: 12 }, { width: 28 }, { width: 22 },
+    { width: 18 }, { width: 18 }, { width: 12 }, { width: 12 },
+    { width: 12 }, { width: 28 }, { width: 22 },
   ];
 
-  applyTitleBlock(ws4, 'IDENTITY VERIFICATION & CREDENTIAL AUDIT', 'Government ID review queue for worker/employer verification', 9);
+  applyTitleBlock(ws4, 'IDENTITY VERIFICATION & CREDENTIAL AUDIT', 'Government ID review queue for worker/employer verification', 11);
   applyTableHeader(ws4, 5, [
     'User ID', 'Full Name', 'Role', 'Verification Status',
-    'Front ID', 'Back ID', 'Selfie', 'Rejection Reason', 'Submission Date',
+    'Municipality', 'Barangay', 'Front ID', 'Back ID', 'Selfie', 'Rejection Reason', 'Submission Date',
   ]);
 
   if (verifications.length > 0) {
@@ -512,21 +715,24 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
       row.getCell(3).value = v.role ? v.role.toLowerCase() : 'user';
 
       const sCell = row.getCell(4);
-      sCell.value = v.verification_status || 'approved';
-      formatStatusCell(sCell, v.verification_status || 'approved');
+      const vStatus = v.verification_status || (v.registration_status === 'approved' ? 'approved' : 'pending');
+      sCell.value = vStatus;
+      formatStatusCell(sCell, vStatus);
 
-      row.getCell(5).value = v.document_url ? 'Yes' : 'No';
-      row.getCell(6).value = v.document_back_url ? 'Yes' : 'No';
-      row.getCell(7).value = v.selfie_url ? 'Yes' : 'No';
-      row.getCell(8).value = v.rejection_reason || 'N/A';
+      row.getCell(5).value = v.municipality || 'Bulan';
+      row.getCell(6).value = v.barangay || '';
+      row.getCell(7).value = v.document_url ? 'Yes' : 'No';
+      row.getCell(8).value = v.document_back_url ? 'Yes' : 'No';
+      row.getCell(9).value = v.selfie_url ? 'Yes' : 'No';
+      row.getCell(10).value = v.rejection_reason || 'N/A';
 
-      if (v.created_at) {
-        row.getCell(9).value = new Date(v.created_at);
-        row.getCell(9).numFmt = 'yyyy-mm-dd hh:mm';
+      if (v.created_at || v.updated_at) {
+        row.getCell(11).value = new Date(v.created_at || v.updated_at);
+        row.getCell(11).numFmt = 'yyyy-mm-dd hh:mm';
       }
 
       if (idx % 2 === 1) {
-        for (let c = 1; c <= 9; c++) {
+        for (let c = 1; c <= 11; c++) {
           if (c !== 4) {
             row.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + LIGHT_GRAY } };
           }
@@ -542,9 +748,9 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   }
 
   // =========================================================================
-  // SHEET 5: INCIDENT & MODERATION REPORTS
+  // SHEET 6: COMMUNITY REPORTS
   // =========================================================================
-  const ws5 = workbook.addWorksheet('Reports', {
+  const ws5 = workbook.addWorksheet('Community Reports', {
     views: [{ state: 'frozen', ySplit: 5, showGridLines: true }],
   });
   ws5.columns = [
@@ -601,7 +807,7 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   }
 
   // =========================================================================
-  // SHEET 6: WAGE & TRADE CATEGORY BENCHMARKS
+  // SHEET 7: WAGE BENCHMARKS
   // =========================================================================
   const ws6 = workbook.addWorksheet('Wage Benchmarks', {
     views: [{ state: 'frozen', ySplit: 5, showGridLines: true }],
@@ -623,7 +829,8 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   // Extract distinct categories from jobs list
   const categorySet = new Set<string>();
   jobs.forEach((j) => {
-    if (j.category) categorySet.add(j.category.trim());
+    const catName = j.category?.name || j.category;
+    if (catName) categorySet.add(String(catName).trim());
   });
   if (categorySet.size === 0) {
     categorySet.add('Construction');
@@ -644,24 +851,24 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
     c1.font = { name: 'Arial', size: 10, bold: true };
     c1.alignment = { vertical: 'middle', horizontal: 'left' };
 
-    // Live Count formula referencing Jobs!E6:E200
+    // Live Count formula referencing 'Jobs & Placements'!E6:E200
     const c2 = row.getCell(2);
     c2.value = {
-      formula: `COUNTIF(Jobs!E6:E${Math.max(lastJobRow, 200)}, A${rNum})`,
-      result: jobs.filter((j) => (j.category || '').trim() === cat).length,
+      formula: `COUNTIF('Jobs & Placements'!E6:E${Math.max(lastJobRow, 200)}, A${rNum})`,
+      result: jobs.filter((j) => (j.category?.name || j.category || '').trim() === cat).length,
     };
     c2.font = { name: 'Arial', size: 10 };
     c2.alignment = { vertical: 'middle', horizontal: 'center' };
 
-    // Live Average formula referencing Jobs!F6:F200 and Jobs!E6:E200
-    const catJobs = jobs.filter((j) => (j.category || '').trim() === cat && parseFloat(j.compensation) > 0);
+    // Live Average formula referencing 'Jobs & Placements'!H6:H200 and 'Jobs & Placements'!E6:E200
+    const catJobs = jobs.filter((j) => (j.category?.name || j.category || '').trim() === cat && parseFloat(j.compensation) > 0);
     const catAvg = catJobs.length > 0 ? catJobs.reduce((acc, j) => acc + parseFloat(j.compensation), 0) / catJobs.length : 0;
     const catMin = catJobs.length > 0 ? Math.min(...catJobs.map((j) => parseFloat(j.compensation))) : 0;
     const catMax = catJobs.length > 0 ? Math.max(...catJobs.map((j) => parseFloat(j.compensation))) : 0;
 
     const c3 = row.getCell(3);
     c3.value = {
-      formula: `IFERROR(AVERAGEIF(Jobs!E6:E${Math.max(lastJobRow, 200)}, A${rNum}, Jobs!F6:F${Math.max(lastJobRow, 200)}), 0)`,
+      formula: `IFERROR(AVERAGEIF('Jobs & Placements'!E6:E${Math.max(lastJobRow, 200)}, A${rNum}, 'Jobs & Placements'!H6:H${Math.max(lastJobRow, 200)}), 0)`,
       result: catAvg,
     };
     c3.numFmt = '₱#,##0.00';
@@ -670,7 +877,7 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
 
     const c4 = row.getCell(4);
     c4.value = {
-      formula: `IFERROR(MINIFS(Jobs!F6:F${Math.max(lastJobRow, 200)}, Jobs!E6:E${Math.max(lastJobRow, 200)}, A${rNum}), 0)`,
+      formula: `IFERROR(MINIFS('Jobs & Placements'!H6:H${Math.max(lastJobRow, 200)}, 'Jobs & Placements'!E6:E${Math.max(lastJobRow, 200)}, A${rNum}), 0)`,
       result: catMin,
     };
     c4.numFmt = '₱#,##0.00';
@@ -679,7 +886,7 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
 
     const c5 = row.getCell(5);
     c5.value = {
-      formula: `IFERROR(MAXIFS(Jobs!F6:F${Math.max(lastJobRow, 200)}, Jobs!E6:E${Math.max(lastJobRow, 200)}, A${rNum}), 0)`,
+      formula: `IFERROR(MAXIFS('Jobs & Placements'!H6:H${Math.max(lastJobRow, 200)}, 'Jobs & Placements'!E6:E${Math.max(lastJobRow, 200)}, A${rNum}), 0)`,
       result: catMax,
     };
     c5.numFmt = '₱#,##0.00';

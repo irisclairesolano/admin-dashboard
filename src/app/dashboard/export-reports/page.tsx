@@ -6,6 +6,7 @@ import { authStorage } from '@/lib/authStorage';
 import { formatDate } from '@/lib/date';
 import StatCard from '@/components/StatCard';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus, formatCSVReputation, calculateNormalizedHourlyWage } from '@/lib/export/csv';
+import { generateMasterExcelWorkbook, downloadExcelBlob } from '@/lib/export/excel';
 
 type ReportType = 'users' | 'jobs' | 'demographics' | 'verifications';
 type DatePreset = 'all' | 'today' | '7days' | '30days' | 'year' | 'custom';
@@ -26,6 +27,7 @@ export default function ExportReportsPage() {
   const [jobs, setJobs] = useState<any[]>([]);
   const [verifications, setVerifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [error, setError] = useState('');
   const [adminName, setAdminName] = useState('Admin');
 
@@ -551,6 +553,30 @@ export default function ExportReportsPage() {
     }
   };
 
+  const handleExportMasterExcel = async () => {
+    try {
+      setIsExportingExcel(true);
+      const dateStamp = new Date().toISOString().split('T')[0];
+
+      const blob = await generateMasterExcelWorkbook({
+        users: filteredUsers.length > 0 && (roleFilter !== 'all' || statusFilter !== 'all' || datePreset !== 'all' || searchQuery) ? filteredUsers : users,
+        jobs: filteredJobs.length > 0 && (categoryFilter !== 'all' || statusFilter !== 'all' || datePreset !== 'all' || searchQuery) ? filteredJobs : jobs,
+        verifications: filteredVerifications.length > 0 && (statusFilter !== 'all' || roleFilter !== 'all' || datePreset !== 'all' || searchQuery) ? filteredVerifications : verifications,
+        reports: [],
+        municipalSummary,
+        municipalOverview,
+      });
+
+      const filename = `SIKAP_Reports_Master_Workbook_${dateStamp}.xlsx`;
+      downloadExcelBlob(blob, filename);
+    } catch (err) {
+      console.error('Failed to export Excel workbook:', err);
+      alert('Failed to generate Excel report. Please try again.');
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
   const getReportTitle = () => {
     switch (reportType) {
       case 'users':
@@ -589,13 +615,23 @@ export default function ExportReportsPage() {
           </button>
 
           <button
+            onClick={handleExportMasterExcel}
+            disabled={loading || isExportingExcel}
+            className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            title="Export full multi-tab formatted Excel workbook with Users, Jobs, Demographics, and Verifications (.xlsx)"
+          >
+            <i className={`lni ${isExportingExcel ? 'lni-reload animate-spin' : 'lni-empty-file'} text-xs`} />
+            {isExportingExcel ? 'Generating Workbook...' : 'Export Workbook (Excel)'}
+          </button>
+
+          <button
             onClick={handleExportCSV}
             disabled={loading}
             className="px-3.5 py-2 bg-slate-700 hover:bg-slate-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-            title="Export filtered records of current tab as CSV"
+            title="Export formatted multi-section CSV of current tab"
           >
             <i className="lni lni-download text-xs" />
-            Export Masterlist (CSV)
+            Export Tab (CSV)
           </button>
 
           <button
