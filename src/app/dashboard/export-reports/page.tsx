@@ -8,7 +8,7 @@ import StatCard from '@/components/StatCard';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus, formatCSVReputation, calculateNormalizedHourlyWage } from '@/lib/export/csv';
 import { generateMasterExcelWorkbook, downloadExcelBlob } from '@/lib/export/excel';
 
-type ReportType = 'users' | 'jobs' | 'demographics' | 'verifications';
+type ReportType = 'users' | 'jobs' | 'demographics' | 'verifications' | 'moderation';
 type DatePreset = 'all' | 'today' | '7days' | '30days' | 'year' | 'custom';
 
 export default function ExportReportsPage() {
@@ -26,6 +26,7 @@ export default function ExportReportsPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [verifications, setVerifications] = useState<any[]>([]);
+  const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [error, setError] = useState('');
@@ -44,19 +45,22 @@ export default function ExportReportsPage() {
     setLoading(true);
     setError('');
     try {
-      const [usersRes, jobsRes, verifRes] = await Promise.all([
+      const [usersRes, jobsRes, verifRes, reportsRes] = await Promise.all([
         adminApi.getUsers({ all: true, forceRefresh: true }),
         adminApi.getJobs({ all: true, forceRefresh: true }),
         adminApi.getVerifications({ all: true, status: 'all', forceRefresh: true }),
+        adminApi.getReports('all', 1, '', true, true).catch(() => ({ data: [] })),
       ]);
 
       const fetchedUsers = usersRes.data?.data || usersRes.data || [];
       const fetchedJobs = jobsRes.data?.data || jobsRes.data || [];
       const fetchedVerifs = verifRes.data?.data || verifRes.data || [];
+      const fetchedReports = reportsRes.data?.data || reportsRes.data || [];
 
       setUsers(fetchedUsers);
       setJobs(fetchedJobs);
       setVerifications(fetchedVerifs.length > 0 ? fetchedVerifs : fetchedUsers.filter((u: any) => u.role !== 'admin'));
+      setReports(fetchedReports);
     } catch (err: any) {
       console.error('Failed to load report data:', err);
       setError(err.message || 'Unable to load report data. Please try again.');
@@ -289,6 +293,31 @@ export default function ExportReportsPage() {
     });
   }, [verifications, users, isWithinDateRange, roleFilter, statusFilter, searchQuery]);
 
+  // 5. Moderation Reports
+  const filteredReports = useMemo(() => {
+    return reports.filter((r) => {
+      if (!isWithinDateRange(r.created_at || r.updated_at)) return false;
+      if (statusFilter !== 'all') {
+        const s = (r.status || '').toLowerCase();
+        if (statusFilter === 'open' || statusFilter === 'pending') {
+          if (s !== 'open' && s !== 'pending') return false;
+        } else if (statusFilter === 'resolved' && s !== 'resolved') {
+          return false;
+        } else if (statusFilter === 'dismissed' && s !== 'dismissed') {
+          return false;
+        }
+      }
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchesType = (r.type || '').toLowerCase().includes(q);
+        const matchesReporter = (r.reporter?.name || '').toLowerCase().includes(q);
+        const matchesDesc = (r.description || '').toLowerCase().includes(q);
+        if (!matchesType && !matchesReporter && !matchesDesc) return false;
+      }
+      return true;
+    });
+  }, [reports, isWithinDateRange, statusFilter, searchQuery]);
+
   // Extract unique categories for job filter
   const jobCategories = useMemo(() => {
     const set = new Set<string>();
@@ -501,7 +530,7 @@ export default function ExportReportsPage() {
           }
         ]
       );
-    } else {
+    } else if (reportType === 'verifications') {
       const headers = [
         'User ID',
         'Full Name',
@@ -550,7 +579,144 @@ export default function ExportReportsPage() {
           }
         ]
       );
+    } else if (reportType === 'moderation') {
+      const headers = [
+        'Report ID',
+        'Violation Type',
+        'Target Type',
+        'Target ID',
+        'Reporter Name',
+        'Reporter Email',
+        'Incident Description',
+        'Status',
+        'Date Logged',
+        'Date Resolved'
+      ];
+      const rows = filteredReports.map((r) => [
+        r.id,
+        formatCSVStatus(r.type),
+        r.reportable_type ? r.reportable_type.replace(/_/g, ' ') : 'N/A',
+        r.reportable_id ?? 'N/A',
+        r.reporter?.name || 'Anonymous',
+        r.reporter?.email || 'N/A',
+        r.description || '',
+        formatCSVStatus(r.status),
+        formatCSVDate(r.created_at),
+        formatCSVDate(r.resolved_at)
+      ]);
+
+      exportMultiSectionCSV(
+        `SIKAP_MODERATION_REPORTS_${dateStamp}`,
+        'SIKAP Community Moderation & Incident Reports Summary',
+        [
+          ['Generated On:', timestamp],
+          ['Generated By:', adminName],
+          ['Report Type:', 'Community Moderation Queue'],
+          ['Total Reports Audited:', String(filteredReports.length)],
+          ['Status Filter:', statusFilter.toUpperCase()],
+          ['Date Scope:', datePreset.toUpperCase()]
+        ],
+        [
+          {
+            title: 'Moderation Reports Masterlist',
+            headers,
+            rows
+          }
+        ]
+      );
     }
+  };
+
+  const handleExportDemographicsCSV = () => {
+    const dateStamp = new Date().toISOString().split('T')[0];
+    const timestamp = formatCSVDate(new Date().toISOString());
+    const totalPlatformActivity = municipalSummary.reduce((acc, b) => acc + b.workers + b.employers + b.jobs, 0);
+
+    const municipalHeaders = [
+      'Municipality',
+      'Active Barangays Count',
+      'Registered Workers',
+      'Registered Employers',
+      'Total Registered Users',
+      'Jobs Posted',
+      'Total Platform Activity',
+      'Activity Share (%)'
+    ];
+    const municipalRows = municipalOverview.map((m) => [
+      m.municipality,
+      m.barangaysCount,
+      m.workers,
+      m.employers,
+      m.workers + m.employers,
+      m.jobs,
+      m.totalImpact,
+      totalPlatformActivity > 0 ? `${((m.totalImpact / totalPlatformActivity) * 100).toFixed(1)}%` : '0.0%'
+    ]);
+
+    municipalRows.push([
+      'GRAND TOTAL (ALL MUNICIPALITIES)',
+      municipalSummary.length,
+      municipalOverview.reduce((acc, m) => acc + m.workers, 0),
+      municipalOverview.reduce((acc, m) => acc + m.employers, 0),
+      municipalOverview.reduce((acc, m) => acc + m.workers + m.employers, 0),
+      municipalOverview.reduce((acc, m) => acc + m.jobs, 0),
+      totalPlatformActivity,
+      '100.0%'
+    ]);
+
+    const barangayHeaders = [
+      'Municipality',
+      'Barangay',
+      'Registered Workers',
+      'Registered Employers',
+      'Total Users',
+      'Jobs Posted',
+      'Total Platform Impact',
+      'Municipal Share (%)'
+    ];
+    const barangayRows = municipalSummary.map((b) => {
+      const munTotal = municipalOverview.find((m) => m.municipality === b.municipality)?.totalImpact || 1;
+      const bTotal = b.workers + b.employers + b.jobs;
+      return [
+        b.municipality,
+        b.barangay,
+        b.workers,
+        b.employers,
+        b.workers + b.employers,
+        b.jobs,
+        bTotal,
+        munTotal > 0 ? `${((bTotal / munTotal) * 100).toFixed(1)}%` : '0.0%'
+      ];
+    });
+
+    exportMultiSectionCSV(
+      `SIKAP_DEMOGRAPHICS_FILTERED_${municipalityFilter}_${barangayFilter}_${dateStamp}`,
+      'SIKAP Municipal & Barangay Demographics Report',
+      [
+        ['Generated On:', timestamp],
+        ['Generated By:', adminName],
+        ['Report Type:', 'Filtered Municipal & Barangay Demographics'],
+        ['Municipality Filter:', municipalityFilter === 'all' ? 'All Municipalities' : municipalityFilter],
+        ['Barangay Filter:', barangayFilter === 'all' ? 'All Barangays' : barangayFilter],
+        ['Date Scope:', datePreset.toUpperCase()],
+        ['Active Municipalities Covered:', String(municipalOverview.length)],
+        ['Active Barangays Covered:', String(municipalSummary.length)],
+        ['Total Registered Users:', String(municipalSummary.reduce((acc, m) => acc + m.workers + m.employers, 0))],
+        ['Total Jobs Posted:', String(municipalSummary.reduce((acc, m) => acc + m.jobs, 0))]
+      ],
+      [
+        {
+          title: 'Executive Municipal Coverage Summary',
+          headers: municipalHeaders,
+          rows: municipalRows
+        },
+        {
+          title: 'Barangay-Level Demographics Breakdown',
+          headers: barangayHeaders,
+          rows: barangayRows
+        }
+      ]
+    );
   };
 
   const handleExportMasterExcel = async () => {
@@ -562,7 +728,7 @@ export default function ExportReportsPage() {
         users: filteredUsers.length > 0 && (roleFilter !== 'all' || statusFilter !== 'all' || datePreset !== 'all' || searchQuery) ? filteredUsers : users,
         jobs: filteredJobs.length > 0 && (categoryFilter !== 'all' || statusFilter !== 'all' || datePreset !== 'all' || searchQuery) ? filteredJobs : jobs,
         verifications: filteredVerifications.length > 0 && (statusFilter !== 'all' || roleFilter !== 'all' || datePreset !== 'all' || searchQuery) ? filteredVerifications : verifications,
-        reports: [],
+        reports: filteredReports.length > 0 || statusFilter !== 'all' || searchQuery ? filteredReports : reports,
         municipalSummary,
         municipalOverview,
       });
@@ -587,6 +753,8 @@ export default function ExportReportsPage() {
         return 'Municipal & Barangay Demographics Summary';
       case 'verifications':
         return 'Identity Verification & Compliance Summary';
+      case 'moderation':
+        return 'Community Moderation & Incident Reports';
     }
   };
 
@@ -617,21 +785,11 @@ export default function ExportReportsPage() {
           <button
             onClick={handleExportMasterExcel}
             disabled={loading || isExportingExcel}
-            className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             title="Export full multi-tab formatted Excel workbook with Users, Jobs, Demographics, and Verifications (.xlsx)"
           >
             <i className={`lni ${isExportingExcel ? 'lni-reload animate-spin' : 'lni-empty-file'} text-xs`} />
             {isExportingExcel ? 'Generating Workbook...' : 'Export Workbook (Excel)'}
-          </button>
-
-          <button
-            onClick={handleExportCSV}
-            disabled={loading}
-            className="px-3.5 py-2 bg-slate-700 hover:bg-slate-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-            title="Export formatted multi-section CSV of current tab"
-          >
-            <i className="lni lni-download text-xs" />
-            Export Tab (CSV)
           </button>
 
           <button
@@ -650,7 +808,7 @@ export default function ExportReportsPage() {
       <div className="no-print bg-white/80 backdrop-blur-md rounded-2xl p-2 border border-white/60 shadow-xs flex flex-wrap gap-2">
         <button
           onClick={() => setReportType('users')}
-          className={`flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-[150px] py-2.5 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
             reportType === 'users'
               ? 'bg-ink text-white shadow-sm'
               : 'text-ink-soft hover:text-ink hover:bg-white/60'
@@ -662,7 +820,7 @@ export default function ExportReportsPage() {
 
         <button
           onClick={() => setReportType('jobs')}
-          className={`flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-[150px] py-2.5 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
             reportType === 'jobs'
               ? 'bg-ink text-white shadow-sm'
               : 'text-ink-soft hover:text-ink hover:bg-white/60'
@@ -674,7 +832,7 @@ export default function ExportReportsPage() {
 
         <button
           onClick={() => setReportType('demographics')}
-          className={`flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-[150px] py-2.5 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
             reportType === 'demographics'
               ? 'bg-ink text-white shadow-sm'
               : 'text-ink-soft hover:text-ink hover:bg-white/60'
@@ -686,7 +844,7 @@ export default function ExportReportsPage() {
 
         <button
           onClick={() => setReportType('verifications')}
-          className={`flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-[150px] py-2.5 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
             reportType === 'verifications'
               ? 'bg-ink text-white shadow-sm'
               : 'text-ink-soft hover:text-ink hover:bg-white/60'
@@ -694,6 +852,18 @@ export default function ExportReportsPage() {
         >
           <i className="lni lni-shield text-sm" />
           Verification Audit ({verifications.length})
+        </button>
+
+        <button
+          onClick={() => setReportType('moderation')}
+          className={`flex-1 min-w-[150px] py-2.5 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            reportType === 'moderation'
+              ? 'bg-ink text-white shadow-sm'
+              : 'text-ink-soft hover:text-ink hover:bg-white/60'
+          }`}
+        >
+          <i className="lni lni-bullhorn text-sm" />
+          Moderation Reports ({reports.length})
         </button>
       </div>
 
@@ -842,6 +1012,13 @@ export default function ExportReportsPage() {
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>
                     <option value="rejected">Rejected</option>
+                  </>
+                )}
+                {reportType === 'moderation' && (
+                  <>
+                    <option value="open">Open / Investigating</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="dismissed">Dismissed</option>
                   </>
                 )}
               </select>
@@ -1000,6 +1177,39 @@ export default function ExportReportsPage() {
               iconClass="lni lni-cross-circle"
               bg="from-rose-50 to-rose-100"
               iconColor="text-rose-700"
+            />
+          </>
+        )}
+
+        {reportType === 'moderation' && (
+          <>
+            <StatCard
+              title="Total Incident Reports"
+              value={filteredReports.length}
+              iconClass="lni lni-bullhorn"
+              bg="from-slate-50 to-slate-100"
+              iconColor="text-slate-700"
+            />
+            <StatCard
+              title="Open / Pending"
+              value={filteredReports.filter((r) => r.status === 'open' || r.status === 'pending' || r.status === 'investigating').length}
+              iconClass="lni lni-warning"
+              bg="from-rose-50 to-rose-100"
+              iconColor="text-rose-700"
+            />
+            <StatCard
+              title="Resolved"
+              value={filteredReports.filter((r) => r.status === 'resolved').length}
+              iconClass="lni lni-checkmark-circle"
+              bg="from-emerald-50 to-emerald-100"
+              iconColor="text-emerald-700"
+            />
+            <StatCard
+              title="Dismissed"
+              value={filteredReports.filter((r) => r.status === 'dismissed').length}
+              iconClass="lni lni-cross-circle"
+              bg="from-gray-50 to-gray-100"
+              iconColor="text-gray-700"
             />
           </>
         )}
@@ -1165,13 +1375,23 @@ export default function ExportReportsPage() {
                 {/* Interactive Municipal Overview Grid (Screen Only) */}
                 {municipalOverview.length > 0 && (
                   <div className="no-print p-4 bg-slate-50/70 border-b border-ink-faint/30">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-display font-bold text-ink uppercase tracking-wider">
-                        Municipal Coverage Summary ({municipalOverview.length} Municipalities)
-                      </span>
-                      <span className="text-[11px] text-ink-muted">
-                        Click any card to focus on that municipality
-                      </span>
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                      <div>
+                        <span className="text-xs font-display font-bold text-ink uppercase tracking-wider block">
+                          Municipal Coverage Summary ({municipalOverview.length} Municipalities)
+                        </span>
+                        <span className="text-[11px] text-ink-muted">
+                          Click any card to focus on that municipality
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleExportDemographicsCSV}
+                        className="no-print px-3.5 py-1.5 bg-slate-700 hover:bg-slate-800 text-white font-body text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                        title="Export current filtered municipal & barangay demographics as CSV"
+                      >
+                        <i className="lni lni-download text-xs" />
+                        Export Demographics (CSV)
+                      </button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                       {municipalOverview.map((m) => {
@@ -1413,6 +1633,70 @@ export default function ExportReportsPage() {
                         </tr>
                       );
                     })
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {/* 5. MODERATION REPORTS TABLE */}
+            {reportType === 'moderation' && (
+              <table className="w-full text-left font-body text-xs border-collapse">
+                <thead>
+                  <tr className="bg-ink/5 border-b border-ink-faint/50 text-ink-soft uppercase text-[10px] font-bold tracking-wider">
+                    <th className="py-3.5 px-4">Report ID</th>
+                    <th className="py-3.5 px-4">Violation Type</th>
+                    <th className="py-3.5 px-4">Target Entity</th>
+                    <th className="py-3.5 px-4">Reporter</th>
+                    <th className="py-3.5 px-4">Incident Description</th>
+                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4">Date Logged</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-ink-faint/30">
+                  {filteredReports.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-ink-muted">
+                        No incident or moderation reports match the selected filters.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredReports.map((r) => (
+                      <tr key={r.id} className="hover:bg-paper/40 transition-colors">
+                        <td className="py-3 px-4 font-mono font-bold text-ink">#{r.id}</td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold capitalize">
+                            {formatCSVStatus(r.type)}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-ink-soft">
+                          <span className="capitalize font-semibold text-ink">
+                            {r.reportable_type ? r.reportable_type.replace(/_/g, ' ') : 'N/A'}
+                          </span>
+                          {r.reportable_id && <span className="text-ink-muted text-[10px] ml-1">#{r.reportable_id}</span>}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="font-bold text-ink">{r.reporter?.name || 'Anonymous'}</div>
+                          {r.reporter?.email && <div className="text-[10px] text-ink-muted">{r.reporter.email}</div>}
+                        </td>
+                        <td className="py-3 px-4 text-ink max-w-xs truncate" title={r.description}>
+                          {r.description || '—'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                              r.status === 'resolved'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : r.status === 'dismissed'
+                                ? 'bg-slate-100 text-slate-700'
+                                : 'bg-rose-100 text-rose-800'
+                            }`}
+                          >
+                            {r.status || 'open'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-ink-muted">{formatDate(r.created_at)}</td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>

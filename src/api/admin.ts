@@ -381,7 +381,7 @@ export const adminApi = {
     return apiClient.patch(`/admin/jobs/${id}/restore`);
   },
 
-  getReports: async (status: string = 'open', page: number = 1, search: string = '', all: boolean = false) => {
+  getReports: async (status: string = 'open', page: number = 1, search: string = '', all: boolean = false, forceRefresh: boolean = false) => {
     const params = new URLSearchParams();
     if (status) params.append('status', status);
     if (all) {
@@ -390,7 +390,13 @@ export const adminApi = {
       params.append('page', page.toString());
     }
     if (search) params.append('search', search);
-    return cachedGet(`/admin/reports?${params.toString()}`);
+    const qs = params.toString();
+    const url = `/admin/reports${qs ? `?${qs}` : ''}`;
+    if (forceRefresh) {
+      clearApiCache();
+      return apiClient.get(url);
+    }
+    return cachedGet(url);
   },
   
   resolveReport: async (id: number, status: 'resolved' | 'dismissed') => {
