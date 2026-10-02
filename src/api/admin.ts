@@ -420,7 +420,7 @@ export const adminApi = {
     return apiClient.patch(`/admin/support/${id}/status`, { status });
   },
 
-  getLogs: async (page: number = 1, search?: string, action?: string, dateFrom?: string, dateTo?: string, all: boolean = false) => {
+  getLogs: async (page: number = 1, search?: string, action?: string, dateFrom?: string, dateTo?: string, all: boolean = false, adminName?: string) => {
     const params = new URLSearchParams();
     if (all) {
       params.append('all', '1');
@@ -429,8 +429,15 @@ export const adminApi = {
     }
     if (search) params.append('search', search);
     if (action) params.append('action', action);
-    if (dateFrom) params.append('date_from', dateFrom);
-    if (dateTo) params.append('date_to', dateTo);
+    if (dateFrom) {
+      params.append('from', dateFrom);
+      params.append('date_from', dateFrom);
+    }
+    if (dateTo) {
+      params.append('to', dateTo);
+      params.append('date_to', dateTo);
+    }
+    if (adminName) params.append('admin_name', adminName);
     return cachedGet(`/admin/logs?${params.toString()}`);
   },
 

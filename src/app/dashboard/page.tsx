@@ -310,6 +310,7 @@ export default function AnalyticsDashboard() {
   const [trendsRoleFilter, setTrendsRoleFilter] = useState<'all' | 'worker' | 'employer'>('all');
   const [trendsVolumeFilter, setTrendsVolumeFilter] = useState<'all' | 'applications' | 'hires'>('all');
   const [distRegionFilter, setDistRegionFilter] = useState<string>('all');
+  const [distBarangayFilter, setDistBarangayFilter] = useState<string>('all');
   const [distLimitFilter, setDistLimitFilter] = useState<number>(6);
   const [healthWageFilter, setHealthWageFilter] = useState<'all' | 'low' | 'mid' | 'high'>('all');
   const [healthReportFilter, setHealthReportFilter] = useState<'all' | 'pending' | 'resolved'>('all');
@@ -608,6 +609,39 @@ export default function AnalyticsDashboard() {
     );
   };
 
+  const handleExportGeographicCSV = () => {
+    if (!data?.geographic_activity) return;
+
+    const exportRows = (distRegionFilter === 'all'
+      ? data.geographic_activity
+      : data.geographic_activity.filter((item: any) => item.municipality === distRegionFilter && (distBarangayFilter === 'all' || item.barangay === distBarangayFilter))
+    ).map((item: any) => [
+      item.municipality || 'Unknown',
+      item.barangay || 'All',
+      item.job_postings ?? 0,
+      item.total_applications ?? 0,
+      (parseInt(item.job_postings || 0) + parseInt(item.total_applications || 0)),
+    ]);
+
+    exportMultiSectionCSV(
+      `sikap_demographics_${distRegionFilter}_${distBarangayFilter}_${from}_to_${to}`,
+      'SIKAP Regional & Municipal Demographics Report',
+      [
+        ['Generated On:', formatCSVDate(new Date().toISOString())],
+        ['Dates:', `${from} to ${to}`],
+        ['Municipality Filter:', distRegionFilter === 'all' ? 'All Municipalities' : distRegionFilter],
+        ['Barangay Filter:', distBarangayFilter === 'all' ? 'All Barangays' : distBarangayFilter],
+      ],
+      [
+        {
+          title: 'Municipal & Barangay Demographics',
+          headers: ['Municipality', 'Barangay', 'Job Posts', 'Applications', 'Total Activity'],
+          rows: exportRows,
+        },
+      ]
+    );
+  };
+
 
   const handleExportMasterExcel = async () => {
     try {
@@ -708,12 +742,13 @@ export default function AnalyticsDashboard() {
     let list: any[] = [];
     if (distRegionFilter === 'all') {
       // Group and aggregate by municipality to prevent duplicate chaotic barangay bars
-      const grouped: { [key: string]: { name: string; jobs: number; applications: number } } = {};
+      const grouped: { [key: string]: { name: string; municipality: string; jobs: number; applications: number } } = {};
       data.geographic_activity.forEach((item: any) => {
         const muni = item.municipality || 'Unknown';
         if (!grouped[muni]) {
           grouped[muni] = {
             name: muni,
+            municipality: muni,
             jobs: 0,
             applications: 0
           };
@@ -723,14 +758,17 @@ export default function AnalyticsDashboard() {
       });
       list = Object.values(grouped);
     } else {
-      // Show barangays of the selected municipality
-      list = data.geographic_activity
-        .filter((item: any) => item.municipality === distRegionFilter)
-        .map((item: any) => ({
-          name: item.barangay || 'Unknown',
-          jobs: parseInt(item.job_postings || 0),
-          applications: parseInt(item.total_applications || 0)
-        }));
+      // Show barangays of the selected municipality with optional barangay filter
+      let filtered = data.geographic_activity.filter((item: any) => item.municipality === distRegionFilter);
+      if (distBarangayFilter !== 'all') {
+        filtered = filtered.filter((item: any) => item.barangay === distBarangayFilter);
+      }
+      list = filtered.map((item: any) => ({
+        name: item.barangay || 'Unknown',
+        municipality: item.municipality || distRegionFilter,
+        jobs: parseInt(item.job_postings || 0),
+        applications: parseInt(item.total_applications || 0)
+      }));
     }
 
     list.sort((a: any, b: any) => {
@@ -742,7 +780,18 @@ export default function AnalyticsDashboard() {
       return 0;
     });
 
-    return list.slice(0, distLimitFilter);
+    return distLimitFilter === 10 ? list : list.slice(0, distLimitFilter);
+  })();
+
+  const availableBarangays = (() => {
+    if (!data?.geographic_activity || distRegionFilter === 'all') return [];
+    const set = new Set<string>();
+    data.geographic_activity.forEach((item: any) => {
+      if (item.municipality === distRegionFilter && item.barangay) {
+        set.add(item.barangay);
+      }
+    });
+    return Array.from(set).sort();
   })();
 
   // Application Volume respects global date & aggregation parameters
@@ -2267,15 +2316,35 @@ export default function AnalyticsDashboard() {
                       <select
                         aria-label="Filter by municipality"
                         value={distRegionFilter}
-                        onChange={(e) => setDistRegionFilter(e.target.value)}
+                        onChange={(e) => {
+                          setDistRegionFilter(e.target.value);
+                          setDistBarangayFilter('all');
+                        }}
                         className="bg-white px-2 py-0.5 rounded-lg border border-ink-faint shadow-inner text-xs font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
                       >
-                        <option value="all">All Towns</option>
+                        <option value="all">All Municipalities</option>
                         {uniqueMunicipalities.map((muni) => (
                           <option key={muni} value={muni}>{muni}</option>
                         ))}
                       </select>
                     </div>
+
+                    {distRegionFilter !== 'all' && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-ink-muted">Barangay:</span>
+                        <select
+                          aria-label="Filter by barangay"
+                          value={distBarangayFilter}
+                          onChange={(e) => setDistBarangayFilter(e.target.value)}
+                          className="bg-white px-2 py-0.5 rounded-lg border border-ink-faint shadow-inner text-xs font-semibold text-ink-soft outline-none focus:border-ink cursor-pointer"
+                        >
+                          <option value="all">All Barangays</option>
+                          {availableBarangays.map((b) => (
+                            <option key={b} value={b}>{b}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-1.5">
                       <span className="font-semibold text-ink-muted">Limit:</span>
@@ -2690,11 +2759,11 @@ export default function AnalyticsDashboard() {
                   <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-0.5">
                     <span>Reconciliation check: Job Posts and Applications reconcile with database totals for this time window.</span>
                     <button
-                      onClick={handleExportCSV}
+                      onClick={distTableView === 'geographic' ? handleExportGeographicCSV : handleExportCSV}
                       className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
                     >
                       <i className="lni lni-download text-xs" />
-                      Export Table as CSV
+                      {distTableView === 'geographic' ? 'Export Demographics CSV' : 'Export Table as CSV'}
                     </button>
                   </div>
                 </div>

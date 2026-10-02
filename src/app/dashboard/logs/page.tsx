@@ -24,6 +24,7 @@ function LogsPageContent() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [actionFilter, setActionFilter] = useState('');
+  const [adminNameFilter, setAdminNameFilter] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,6 +40,7 @@ function LogsPageContent() {
   });
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const debouncedAdminName = useDebounce(adminNameFilter, 300);
 
   // Client-side role guard: Super Admin only
   useEffect(() => {
@@ -70,7 +72,9 @@ function LogsPageContent() {
         debouncedSearchTerm,
         actionFilter,
         dateFrom || undefined,
-        dateTo || undefined
+        dateTo || undefined,
+        false,
+        debouncedAdminName || undefined
       );
       setLogs(res.data.data || []);
       setTotalPages(res.data.last_page || 1);
@@ -79,7 +83,7 @@ function LogsPageContent() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, debouncedSearchTerm, actionFilter, dateFrom, dateTo]);
+  }, [currentPage, debouncedSearchTerm, actionFilter, dateFrom, dateTo, debouncedAdminName]);
 
   useEffect(() => {
     if (isAuthorized) {
@@ -91,6 +95,17 @@ function LogsPageContent() {
     e.preventDefault();
     setCurrentPage(1);
   };
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setActionFilter('');
+    setAdminNameFilter('');
+    setDateFrom('');
+    setDateTo('');
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters = !!(searchTerm || actionFilter || adminNameFilter || dateFrom || dateTo);
 
   const getActionBadgeColor = (action: string) => {
     const style = ACTION_TYPES[action] ?? DEFAULT_ACTION_BADGE;
@@ -113,7 +128,8 @@ function LogsPageContent() {
         actionFilter,
         dateFrom || undefined,
         dateTo || undefined,
-        true // all matching logs
+        true, // all matching logs
+        debouncedAdminName || undefined
       );
       const exportLogs = res.data?.data || logs;
       if (exportLogs.length === 0) {
@@ -213,11 +229,11 @@ function LogsPageContent() {
             {exporting ? 'Exporting...' : 'Export CSV'}
           </button>
           
-          <form onSubmit={handleSearchSubmit} className="relative w-full md:w-60 group">
+          <form onSubmit={handleSearchSubmit} className="relative w-full md:w-72 group">
             <input
               type="text"
-              placeholder="Search description..."
-              aria-label="Search description"
+              placeholder="Search activity, admin, or target..."
+              aria-label="Search audit logs"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -230,7 +246,7 @@ function LogsPageContent() {
         </div>
       </div>
 
-      {/* Date Range Inputs & Action Filter */}
+      {/* Date Range Inputs & Action Filter & Admin Filter */}
       <div className="flex flex-wrap gap-2.5 items-center mb-4 font-body text-xs">
         <div className="flex items-center space-x-1.5 bg-white border border-ink-faint/40 px-2.5 py-1 rounded-lg shadow-2xs">
           <span className="text-[11px] text-ink-muted font-semibold">From:</span>
@@ -254,6 +270,18 @@ function LogsPageContent() {
           />
         </div>
 
+        <div className="flex items-center space-x-1.5 bg-white border border-ink-faint/40 px-2.5 py-1 rounded-lg shadow-2xs">
+          <span className="text-[11px] text-ink-muted font-semibold">Admin:</span>
+          <input
+            type="text"
+            aria-label="Filter by admin name"
+            placeholder="Any admin..."
+            value={adminNameFilter}
+            onChange={(e) => { setAdminNameFilter(e.target.value); setCurrentPage(1); }}
+            className="bg-transparent text-xs text-ink outline-none border-none font-semibold w-28 placeholder:text-ink-muted placeholder:font-normal"
+          />
+        </div>
+
         <select
           value={actionFilter}
           aria-label="Filter by action"
@@ -268,6 +296,17 @@ function LogsPageContent() {
             <option key={act} value={act}>{formatActionName(act)}</option>
           ))}
         </select>
+
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={handleClearFilters}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-ink-soft text-[11px] font-semibold transition-colors cursor-pointer"
+          >
+            <i className="lni lni-reload text-[10px]" />
+            Clear Filters
+          </button>
+        )}
       </div>
 
       {/* Table Section */}
