@@ -157,9 +157,25 @@ export const adminApi = {
     } catch {}
   },
   
-  getVerifications: async (all: boolean = false, forceRefresh: boolean = false) => {
-    const url = `/admin/verifications${all ? '?all=1' : ''}`;
-    if (forceRefresh) {
+  getVerifications: async (
+    allOrOptions: boolean | { status?: string; all?: boolean; forceRefresh?: boolean } = false,
+    forceRefresh: boolean = false
+  ) => {
+    let url = '/admin/verifications';
+    let shouldForce = forceRefresh;
+
+    if (typeof allOrOptions === 'boolean') {
+      url = `/admin/verifications${allOrOptions ? '?all=1&status=all' : ''}`;
+    } else if (typeof allOrOptions === 'object' && allOrOptions !== null) {
+      const params = new URLSearchParams();
+      if (allOrOptions.status) params.append('status', allOrOptions.status);
+      if (allOrOptions.all) params.append('all', '1');
+      const qs = params.toString();
+      url = `/admin/verifications${qs ? `?${qs}` : ''}`;
+      if (allOrOptions.forceRefresh) shouldForce = true;
+    }
+
+    if (shouldForce) {
       apiCache.delete(url);
       if (typeof window !== 'undefined') {
         try {

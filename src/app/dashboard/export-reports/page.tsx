@@ -45,12 +45,16 @@ export default function ExportReportsPage() {
       const [usersRes, jobsRes, verifRes] = await Promise.all([
         adminApi.getUsers({ all: true, forceRefresh: true }),
         adminApi.getJobs({ all: true, forceRefresh: true }),
-        adminApi.getVerifications(true),
+        adminApi.getVerifications({ all: true, status: 'all', forceRefresh: true }),
       ]);
 
-      setUsers(usersRes.data?.data || usersRes.data || []);
-      setJobs(jobsRes.data?.data || jobsRes.data || []);
-      setVerifications(verifRes.data?.data || verifRes.data || []);
+      const fetchedUsers = usersRes.data?.data || usersRes.data || [];
+      const fetchedJobs = jobsRes.data?.data || jobsRes.data || [];
+      const fetchedVerifs = verifRes.data?.data || verifRes.data || [];
+
+      setUsers(fetchedUsers);
+      setJobs(fetchedJobs);
+      setVerifications(fetchedVerifs.length > 0 ? fetchedVerifs : fetchedUsers.filter((u: any) => u.role !== 'admin'));
     } catch (err: any) {
       console.error('Failed to load report data:', err);
       setError(err.message || 'Unable to load report data. Please try again.');
@@ -218,25 +222,70 @@ export default function ExportReportsPage() {
     return list;
   }, [users, jobs, isWithinDateRange, municipalityFilter, barangayFilter, searchQuery]);
 
+  // Grouped Municipal Overview for Executive Demographics & Multi-section Export
+  const municipalOverview = useMemo(() => {
+    const map = new Map<string, {
+      municipality: string;
+      barangaysCount: number;
+      workers: number;
+      employers: number;
+      jobs: number;
+      totalImpact: number;
+    }>();
+
+    municipalSummary.forEach((row) => {
+      if (!map.has(row.municipality)) {
+        map.set(row.municipality, {
+          municipality: row.municipality,
+          barangaysCount: 0,
+          workers: 0,
+          employers: 0,
+          jobs: 0,
+          totalImpact: 0,
+        });
+      }
+      const entry = map.get(row.municipality)!;
+      entry.barangaysCount += 1;
+      entry.workers += row.workers;
+      entry.employers += row.employers;
+      entry.jobs += row.jobs;
+      entry.totalImpact += row.workers + row.employers + row.jobs;
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.totalImpact - a.totalImpact);
+  }, [municipalSummary]);
+
   // Backward-compatible alias for any residual references
   const barangaySummary = municipalSummary;
 
   // 4. Verifications Audit
   const filteredVerifications = useMemo(() => {
-    return verifications.filter((v) => {
+    const sourceList = verifications && verifications.length > 0 ? verifications : users.filter((u) => u.role !== 'admin');
+    return sourceList.filter((v) => {
       if (!isWithinDateRange(v.created_at || v.updated_at)) return false;
       if (roleFilter !== 'all' && v.role !== roleFilter) return false;
-      if (statusFilter !== 'all' && v.verification_status !== statusFilter) return false;
+      
+      const vStatus = (v.verification_status || (v.registration_status === 'approved' ? 'approved' : 'pending')).toLowerCase();
+      if (statusFilter !== 'all') {
+        if (statusFilter === 'approved' || statusFilter === 'verified') {
+          if (vStatus !== 'approved') return false;
+        } else if (statusFilter === 'rejected') {
+          if (vStatus !== 'rejected') return false;
+        } else if (statusFilter === 'pending') {
+          if (vStatus !== 'pending' && vStatus !== 'pending_review' && vStatus !== 'pending_id_upload') return false;
+        }
+      }
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesName = (v.name || '').toLowerCase().includes(q);
         const matchesEmail = (v.email || '').toLowerCase().includes(q);
-        if (!matchesName && !matchesEmail) return false;
+        const matchesLoc = (v.barangay || '').toLowerCase().includes(q) || (v.municipality || '').toLowerCase().includes(q);
+        if (!matchesName && !matchesEmail && !matchesLoc) return false;
       }
       return true;
     });
-  }, [verifications, isWithinDateRange, roleFilter, statusFilter, searchQuery]);
+  }, [verifications, users, isWithinDateRange, roleFilter, statusFilter, searchQuery]);
 
   // Extract unique categories for job filter
   const jobCategories = useMemo(() => {
@@ -360,33 +409,93 @@ export default function ExportReportsPage() {
         ]
       );
     } else if (reportType === 'demographics') {
-      const headers = ['Municipality', 'Barangay', 'Registered Workers', 'Registered Employers', 'Jobs Posted', 'Total Platform Activity'];
-      const rows = municipalSummary.map((b) => [
-        b.municipality,
-        b.barangay,
-        b.workers,
-        b.employers,
-        b.jobs,
-        b.workers + b.employers + b.jobs
+      const totalPlatformActivity = municipalSummary.reduce((acc, b) => acc + b.workers + b.employers + b.jobs, 0);
+
+      // Section 1: Executive Municipal Summary
+      const municipalHeaders = [
+        'Municipality',
+        'Active Barangays Count',
+        'Registered Workers',
+        'Registered Employers',
+        'Total Registered Users',
+        'Jobs Posted',
+        'Total Platform Activity',
+        'Activity Share (%)'
+      ];
+      const municipalRows = municipalOverview.map((m) => [
+        m.municipality,
+        m.barangaysCount,
+        m.workers,
+        m.employers,
+        m.workers + m.employers,
+        m.jobs,
+        m.totalImpact,
+        totalPlatformActivity > 0 ? `${((m.totalImpact / totalPlatformActivity) * 100).toFixed(1)}%` : '0.0%'
       ]);
+
+      // Grand Total Row
+      municipalRows.push([
+        'GRAND TOTAL (ALL MUNICIPALITIES)',
+        municipalSummary.length,
+        municipalOverview.reduce((acc, m) => acc + m.workers, 0),
+        municipalOverview.reduce((acc, m) => acc + m.employers, 0),
+        municipalOverview.reduce((acc, m) => acc + m.workers + m.employers, 0),
+        municipalOverview.reduce((acc, m) => acc + m.jobs, 0),
+        totalPlatformActivity,
+        '100.0%'
+      ]);
+
+      // Section 2: Detailed Barangay Demographics Breakdown
+      const barangayHeaders = [
+        'Municipality',
+        'Barangay',
+        'Registered Workers',
+        'Registered Employers',
+        'Total Users',
+        'Jobs Posted',
+        'Total Platform Activity',
+        'Municipal Activity Share (%)'
+      ];
+      const barangayRows = municipalSummary.map((b) => {
+        const munTotal = municipalOverview.find((m) => m.municipality === b.municipality)?.totalImpact || 1;
+        const bTotal = b.workers + b.employers + b.jobs;
+        return [
+          b.municipality,
+          b.barangay,
+          b.workers,
+          b.employers,
+          b.workers + b.employers,
+          b.jobs,
+          bTotal,
+          munTotal > 0 ? `${((bTotal / munTotal) * 100).toFixed(1)}%` : '0.0%'
+        ];
+      });
 
       exportMultiSectionCSV(
         `SIKAP_MUNICIPAL_DEMOGRAPHICS_REPORT_${dateStamp}`,
-        'SIKAP Municipal & Barangay Demographics Summary',
+        'SIKAP Municipal & Barangay Demographics Master Summary',
         [
           ['Generated On:', timestamp],
           ['Generated By:', adminName],
-          ['Report Type:', 'Municipal & Barangay Demographics'],
+          ['Report Type:', 'Municipal & Barangay Demographics Analysis'],
           ['Municipality Filter:', municipalityFilter.toUpperCase()],
           ['Barangay Filter:', barangayFilter.toUpperCase()],
           ['Date Scope:', datePreset.toUpperCase()],
-          ['Total Locations Covered:', String(municipalSummary.length)]
+          ['Total Municipalities Covered:', String(municipalOverview.length)],
+          ['Total Barangays Covered:', String(municipalSummary.length)],
+          ['Total Registered Platform Population:', String(municipalSummary.reduce((acc, m) => acc + m.workers + m.employers, 0))],
+          ['Total Jobs Posted in Scope:', String(municipalSummary.reduce((acc, m) => acc + m.jobs, 0))]
         ],
         [
           {
-            title: 'Municipal Demographics',
-            headers,
-            rows
+            title: 'Executive Municipal Coverage Summary',
+            headers: municipalHeaders,
+            rows: municipalRows
+          },
+          {
+            title: 'Barangay-Level Demographics Breakdown',
+            headers: barangayHeaders,
+            rows: barangayRows
           }
         ]
       );
@@ -396,19 +505,23 @@ export default function ExportReportsPage() {
         'Full Name',
         'Role',
         'Email Address',
+        'Municipality',
+        'Barangay',
         'Verification Status',
-        'Front ID',
-        'Back ID',
-        'Selfie',
+        'Front ID Submitted',
+        'Back ID Submitted',
+        'Selfie Submitted',
         'Rejection Reason',
-        'Submission Date'
+        'Date Registered / Submitted'
       ];
       const rows = filteredVerifications.map((v) => [
         v.id,
         v.name || '',
         v.role || '',
         v.email || '',
-        formatCSVStatus(v.verification_status),
+        v.municipality || 'Bulan',
+        v.barangay || '',
+        formatCSVStatus(v.verification_status || (v.registration_status === 'approved' ? 'approved' : 'pending')),
         v.document_url ? 'Yes' : 'No',
         v.document_back_url ? 'Yes' : 'No',
         v.selfie_url ? 'Yes' : 'No',
@@ -422,8 +535,8 @@ export default function ExportReportsPage() {
         [
           ['Generated On:', timestamp],
           ['Generated By:', adminName],
-          ['Report Type:', 'Verification Queue Summary'],
-          ['Total Records Included:', String(filteredVerifications.length)],
+          ['Report Type:', 'Verification Audit Summary'],
+          ['Total Records Audited:', String(filteredVerifications.length)],
           ['Verification Filter:', statusFilter.toUpperCase()],
           ['Date Scope:', datePreset.toUpperCase()]
         ],
@@ -1010,42 +1123,163 @@ export default function ExportReportsPage() {
               </table>
             )}
 
-            {/* 3. MUNICIPAL & BARANGAY DEMOGRAPHICS TABLE */}
+            {/* 3. MUNICIPAL & BARANGAY DEMOGRAPHICS VIEW */}
             {reportType === 'demographics' && (
-              <table className="w-full text-left font-body text-xs border-collapse">
-                <thead>
-                  <tr className="bg-ink/5 border-b border-ink-faint/50 text-ink-soft uppercase text-[10px] font-bold tracking-wider">
-                    <th className="py-3.5 px-4">Municipality</th>
-                    <th className="py-3.5 px-4">Barangay</th>
-                    <th className="py-3.5 px-4 text-center">Registered Workers</th>
-                    <th className="py-3.5 px-4 text-center">Registered Employers</th>
-                    <th className="py-3.5 px-4 text-center">Jobs Posted</th>
-                    <th className="py-3.5 px-4 text-center">Total Platform Impact</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-ink-faint/30">
-                  {municipalSummary.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="py-12 text-center text-ink-muted">
-                        No municipal/barangay records found matching the filters.
-                      </td>
+              <div className="space-y-6">
+                {/* Interactive Municipal Overview Grid (Screen Only) */}
+                {municipalOverview.length > 0 && (
+                  <div className="no-print p-4 bg-slate-50/70 border-b border-ink-faint/30">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-display font-bold text-ink uppercase tracking-wider">
+                        Municipal Coverage Summary ({municipalOverview.length} Municipalities)
+                      </span>
+                      <span className="text-[11px] text-ink-muted">
+                        Click any card to focus on that municipality
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {municipalOverview.map((m) => {
+                        const isSelected = municipalityFilter === m.municipality;
+                        const totalAct = municipalSummary.reduce((acc, b) => acc + b.workers + b.employers + b.jobs, 0);
+                        const sharePercent = totalAct > 0 ? ((m.totalImpact / totalAct) * 100).toFixed(1) : '0.0';
+                        return (
+                          <div
+                            key={m.municipality}
+                            onClick={() => {
+                              if (isSelected) {
+                                setMunicipalityFilter('all');
+                              } else {
+                                setMunicipalityFilter(m.municipality);
+                              }
+                              setBarangayFilter('all');
+                            }}
+                            className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-primary/10 border-primary shadow-sm ring-2 ring-primary/20'
+                                : 'bg-white hover:bg-slate-50 border-ink-faint/40 shadow-xs'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="font-bold text-sm text-ink">{m.municipality}</span>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                                {m.barangaysCount} {m.barangaysCount === 1 ? 'Brgy' : 'Brgys'}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-1 text-center my-2 text-[11px] bg-slate-50/90 rounded-lg p-1.5 border border-ink-faint/20">
+                              <div>
+                                <div className="text-[9px] text-ink-muted font-bold uppercase">Workers</div>
+                                <div className="font-bold text-sky-700">{m.workers}</div>
+                              </div>
+                              <div>
+                                <div className="text-[9px] text-ink-muted font-bold uppercase">Empl.</div>
+                                <div className="font-bold text-amber-700">{m.employers}</div>
+                              </div>
+                              <div>
+                                <div className="text-[9px] text-ink-muted font-bold uppercase">Jobs</div>
+                                <div className="font-bold text-emerald-700">{m.jobs}</div>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between text-[10px] text-ink-muted mt-1">
+                              <span>Total Platform Impact:</span>
+                              <span className="font-bold text-ink">{m.totalImpact} ({sharePercent}%)</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Print-Only Municipal Summary Table */}
+                <div className="hidden print:block mb-6">
+                  <h3 className="text-xs font-bold uppercase tracking-wider mb-2 text-black">
+                    Executive Municipal Coverage Summary
+                  </h3>
+                  <table className="w-full text-left font-sans text-[11px] border border-black border-collapse mb-4">
+                    <thead>
+                      <tr className="bg-gray-100 border-b border-black text-black uppercase font-bold text-[10px]">
+                        <th className="py-2 px-3 border-r border-black">Municipality</th>
+                        <th className="py-2 px-3 text-center border-r border-black">Barangays</th>
+                        <th className="py-2 px-3 text-center border-r border-black">Workers</th>
+                        <th className="py-2 px-3 text-center border-r border-black">Employers</th>
+                        <th className="py-2 px-3 text-center border-r border-black">Jobs</th>
+                        <th className="py-2 px-3 text-center border-r border-black">Total Impact</th>
+                        <th className="py-2 px-3 text-center">Share (%)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-300">
+                      {municipalOverview.map((m, idx) => {
+                        const totalAct = municipalSummary.reduce((acc, b) => acc + b.workers + b.employers + b.jobs, 0);
+                        const sharePercent = totalAct > 0 ? ((m.totalImpact / totalAct) * 100).toFixed(1) : '0.0';
+                        return (
+                          <tr key={idx} className="border-b border-gray-200">
+                            <td className="py-1.5 px-3 font-bold border-r border-black">{m.municipality}</td>
+                            <td className="py-1.5 px-3 text-center border-r border-black">{m.barangaysCount}</td>
+                            <td className="py-1.5 px-3 text-center border-r border-black">{m.workers}</td>
+                            <td className="py-1.5 px-3 text-center border-r border-black">{m.employers}</td>
+                            <td className="py-1.5 px-3 text-center border-r border-black">{m.jobs}</td>
+                            <td className="py-1.5 px-3 text-center font-bold border-r border-black">{m.totalImpact}</td>
+                            <td className="py-1.5 px-3 text-center">{sharePercent}%</td>
+                          </tr>
+                        );
+                      })}
+                      <tr className="bg-gray-100 font-bold border-t-2 border-black">
+                        <td className="py-2 px-3 border-r border-black">GRAND TOTAL</td>
+                        <td className="py-2 px-3 text-center border-r border-black">{municipalSummary.length}</td>
+                        <td className="py-2 px-3 text-center border-r border-black">{municipalOverview.reduce((acc, m) => acc + m.workers, 0)}</td>
+                        <td className="py-2 px-3 text-center border-r border-black">{municipalOverview.reduce((acc, m) => acc + m.employers, 0)}</td>
+                        <td className="py-2 px-3 text-center border-r border-black">{municipalOverview.reduce((acc, m) => acc + m.jobs, 0)}</td>
+                        <td className="py-2 px-3 text-center border-r border-black">{municipalSummary.reduce((acc, b) => acc + b.workers + b.employers + b.jobs, 0)}</td>
+                        <td className="py-2 px-3 text-center">100.0%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Detailed Barangay Demographics Table */}
+                <table className="w-full text-left font-body text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-ink/5 border-b border-ink-faint/50 text-ink-soft uppercase text-[10px] font-bold tracking-wider">
+                      <th className="py-3.5 px-4">Municipality</th>
+                      <th className="py-3.5 px-4">Barangay</th>
+                      <th className="py-3.5 px-4 text-center">Registered Workers</th>
+                      <th className="py-3.5 px-4 text-center">Registered Employers</th>
+                      <th className="py-3.5 px-4 text-center">Jobs Posted</th>
+                      <th className="py-3.5 px-4 text-center">Total Platform Impact</th>
                     </tr>
-                  ) : (
-                    municipalSummary.map((b, idx) => (
-                      <tr key={idx} className="hover:bg-paper/40 transition-colors">
-                        <td className="py-3 px-4 font-bold text-ink">{b.municipality}</td>
-                        <td className="py-3 px-4 text-ink-soft">{b.barangay}</td>
-                        <td className="py-3 px-4 text-center font-bold text-sky-700">{b.workers}</td>
-                        <td className="py-3 px-4 text-center font-bold text-amber-700">{b.employers}</td>
-                        <td className="py-3 px-4 text-center font-bold text-emerald-700">{b.jobs}</td>
-                        <td className="py-3 px-4 text-center font-bold text-ink">
-                          {b.workers + b.employers + b.jobs}
+                  </thead>
+                  <tbody className="divide-y divide-ink-faint/30">
+                    {municipalSummary.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-12 text-center text-ink-muted">
+                          No municipal/barangay records found matching the filters.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      municipalSummary.map((b, idx) => (
+                        <tr key={idx} className="hover:bg-paper/40 transition-colors">
+                          <td className="py-3 px-4 font-bold text-ink">{b.municipality}</td>
+                          <td className="py-3 px-4 text-ink-soft">{b.barangay}</td>
+                          <td className="py-3 px-4 text-center font-bold text-sky-700">
+                            <span className="px-2 py-0.5 rounded-md bg-sky-50">{b.workers}</span>
+                          </td>
+                          <td className="py-3 px-4 text-center font-bold text-amber-700">
+                            <span className="px-2 py-0.5 rounded-md bg-amber-50">{b.employers}</span>
+                          </td>
+                          <td className="py-3 px-4 text-center font-bold text-emerald-700">
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-50">{b.jobs}</span>
+                          </td>
+                          <td className="py-3 px-4 text-center font-bold text-ink">
+                            <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800">
+                              {b.workers + b.employers + b.jobs}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             )}
 
             {/* 4. VERIFICATIONS AUDIT TABLE */}
@@ -1055,7 +1289,9 @@ export default function ExportReportsPage() {
                   <tr className="bg-ink/5 border-b border-ink-faint/50 text-ink-soft uppercase text-[10px] font-bold tracking-wider">
                     <th className="py-3.5 px-4">Applicant</th>
                     <th className="py-3.5 px-4">Role</th>
-                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4">Location</th>
+                    <th className="py-3.5 px-4 text-center">ID / Docs Submitted</th>
+                    <th className="py-3.5 px-4">Verification Status</th>
                     <th className="py-3.5 px-4">Rejection Notes</th>
                     <th className="py-3.5 px-4">Submission Date</th>
                   </tr>
@@ -1063,37 +1299,84 @@ export default function ExportReportsPage() {
                 <tbody className="divide-y divide-ink-faint/30">
                   {filteredVerifications.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-12 text-center text-ink-muted">
+                      <td colSpan={7} className="py-12 text-center text-ink-muted">
                         No verification records match the selected filters.
                       </td>
                     </tr>
                   ) : (
-                    filteredVerifications.map((v) => (
-                      <tr key={v.id} className="hover:bg-paper/40 transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="font-bold text-ink">{v.name}</div>
-                          <div className="text-[10px] text-ink-muted">{v.email}</div>
-                        </td>
-                        <td className="py-3 px-4 capitalize">{v.role}</td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                              v.verification_status === 'approved'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : v.verification_status === 'rejected'
-                                ? 'bg-rose-100 text-rose-800'
-                                : 'bg-amber-100 text-amber-800'
-                            }`}
-                          >
-                            {v.verification_status}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-ink-muted italic">
-                          {v.rejection_reason || '—'}
-                        </td>
-                        <td className="py-3 px-4 text-ink-muted">{formatDate(v.created_at || v.updated_at)}</td>
-                      </tr>
-                    ))
+                    filteredVerifications.map((v) => {
+                      const vStat = (v.verification_status || (v.registration_status === 'approved' ? 'approved' : 'pending')).toLowerCase();
+                      const hasFront = !!v.document_url;
+                      const hasBack = !!v.document_back_url;
+                      const hasSelfie = !!v.selfie_url;
+                      const hasBusiness = !!(v.business_documents && (Array.isArray(v.business_documents) ? v.business_documents.length > 0 : true));
+                      return (
+                        <tr key={v.id} className="hover:bg-paper/40 transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="font-bold text-ink">{v.name || 'Unnamed'}</div>
+                            <div className="text-[10px] text-ink-muted">{v.email}</div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-bold capitalize ${
+                                v.role === 'employer'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-sky-100 text-sky-800'
+                              }`}
+                            >
+                              {v.role}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-ink-soft text-[11px]">
+                            {v.barangay ? `${v.barangay}, ` : ''}{v.municipality || 'Bulan'}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <div className="inline-flex items-center gap-1.5 text-[10px]">
+                              {v.role === 'employer' ? (
+                                hasBusiness ? (
+                                  <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold">
+                                    <i className="lni lni-checkmark mr-1" />Business Permit
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-500">
+                                    No Permit
+                                  </span>
+                                )
+                              ) : (
+                                <>
+                                  <span className={`px-1.5 py-0.5 rounded font-semibold ${hasFront ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-400'}`}>
+                                    Front
+                                  </span>
+                                  <span className={`px-1.5 py-0.5 rounded font-semibold ${hasBack ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-400'}`}>
+                                    Back
+                                  </span>
+                                  <span className={`px-1.5 py-0.5 rounded font-semibold ${hasSelfie ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-400'}`}>
+                                    Selfie
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                vStat === 'approved'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : vStat === 'rejected'
+                                  ? 'bg-rose-100 text-rose-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}
+                            >
+                              {vStat}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-ink-muted italic text-[11px]">
+                            {v.rejection_reason || '—'}
+                          </td>
+                          <td className="py-3 px-4 text-ink-muted">{formatDate(v.created_at || v.updated_at)}</td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
