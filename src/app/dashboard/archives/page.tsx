@@ -239,8 +239,22 @@ function ArchivesPageContent() {
 
       {/* 2 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-        <StatCard title="Deleted Users" value={users.length} iconClass="lni lni-user text-status-error" />
-        <StatCard title="Deleted Jobs" value={jobs.length} iconClass="lni lni-briefcase text-status-error" />
+        <StatCard
+          title="Deleted Users"
+          value={users.length}
+          iconClass="lni lni-user"
+          bg="from-rose-50 to-rose-100"
+          iconColor="text-rose-600"
+          onClick={() => setActiveTab('Deleted Users')}
+        />
+        <StatCard
+          title="Deleted Jobs"
+          value={jobs.length}
+          iconClass="lni lni-briefcase"
+          bg="from-amber-50 to-amber-100"
+          iconColor="text-amber-600"
+          onClick={() => setActiveTab('Deleted Jobs')}
+        />
       </div>
 
       {/* Tab Switcher & Search Bar */}

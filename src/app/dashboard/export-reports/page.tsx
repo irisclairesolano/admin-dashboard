@@ -17,6 +17,8 @@ export default function ExportReportsPage() {
   const [customEndDate, setCustomEndDate] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'worker' | 'employer'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [municipalityFilter, setMunicipalityFilter] = useState<string>('all');
+  const [barangayFilter, setBarangayFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -137,16 +139,51 @@ export default function ExportReportsPage() {
     });
   }, [jobs, isWithinDateRange, categoryFilter, statusFilter, searchQuery]);
 
-  // 3. Barangay Demographics Aggregation
-  const barangaySummary = useMemo(() => {
-    const map = new Map<string, { barangay: string; municipality: string; workers: number; employers: number; jobs: number }>();
+  // Extract unique municipalities for demographic & location filters
+  const uniqueMunicipalities = useMemo(() => {
+    const set = new Set<string>();
+    users.forEach((u) => {
+      if (u.municipality) set.add(u.municipality);
+    });
+    jobs.forEach((j) => {
+      if (j.municipality) set.add(j.municipality);
+    });
+    if (set.size === 0) {
+      set.add('Bulan');
+    }
+    return Array.from(set).sort();
+  }, [users, jobs]);
+
+  // Extract available barangays (cascading from selected municipality if filtered)
+  const availableBarangays = useMemo(() => {
+    const set = new Set<string>();
+    users.forEach((u) => {
+      if (municipalityFilter === 'all' || u.municipality === municipalityFilter) {
+        if (u.barangay) set.add(u.barangay);
+      }
+    });
+    jobs.forEach((j) => {
+      if (municipalityFilter === 'all' || j.municipality === municipalityFilter) {
+        if (j.barangay) set.add(j.barangay);
+      }
+    });
+    return Array.from(set).sort();
+  }, [users, jobs, municipalityFilter]);
+
+  // 3. Municipal & Barangay Demographics Aggregation
+  const municipalSummary = useMemo(() => {
+    const map = new Map<string, { municipality: string; barangay: string; workers: number; employers: number; jobs: number }>();
 
     users.forEach((u) => {
+      if (!isWithinDateRange(u.created_at)) return;
+      const m = u.municipality || 'Bulan';
       const b = u.barangay || 'Unspecified';
-      const m = u.municipality || 'Sorsogon';
-      const key = `${b}-${m}`;
+      if (municipalityFilter !== 'all' && m !== municipalityFilter) return;
+      if (barangayFilter !== 'all' && b !== barangayFilter) return;
+
+      const key = `${m}-${b}`;
       if (!map.has(key)) {
-        map.set(key, { barangay: b, municipality: m, workers: 0, employers: 0, jobs: 0 });
+        map.set(key, { municipality: m, barangay: b, workers: 0, employers: 0, jobs: 0 });
       }
       const entry = map.get(key)!;
       if (u.role === 'employer') entry.employers += 1;
@@ -154,23 +191,35 @@ export default function ExportReportsPage() {
     });
 
     jobs.forEach((j) => {
+      if (!isWithinDateRange(j.created_at)) return;
+      const m = j.municipality || 'Bulan';
       const b = j.barangay || 'Unspecified';
-      const m = j.municipality || 'Sorsogon';
-      const key = `${b}-${m}`;
+      if (municipalityFilter !== 'all' && m !== municipalityFilter) return;
+      if (barangayFilter !== 'all' && b !== barangayFilter) return;
+
+      const key = `${m}-${b}`;
       if (!map.has(key)) {
-        map.set(key, { barangay: b, municipality: m, workers: 0, employers: 0, jobs: 0 });
+        map.set(key, { municipality: m, barangay: b, workers: 0, employers: 0, jobs: 0 });
       }
       map.get(key)!.jobs += 1;
     });
 
-    let list = Array.from(map.values()).sort((a, b) => (b.workers + b.employers + b.jobs) - (a.workers + a.employers + a.jobs));
+    let list = Array.from(map.values()).sort((a, b) => {
+      if (a.municipality !== b.municipality) {
+        return a.municipality.localeCompare(b.municipality);
+      }
+      return (b.workers + b.employers + b.jobs) - (a.workers + a.employers + a.jobs);
+    });
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter((item) => item.barangay.toLowerCase().includes(q) || item.municipality.toLowerCase().includes(q));
     }
     return list;
-  }, [users, jobs, searchQuery]);
+  }, [users, jobs, isWithinDateRange, municipalityFilter, barangayFilter, searchQuery]);
+
+  // Backward-compatible alias for any residual references
+  const barangaySummary = municipalSummary;
 
   // 4. Verifications Audit
   const filteredVerifications = useMemo(() => {
@@ -311,10 +360,10 @@ export default function ExportReportsPage() {
         ]
       );
     } else if (reportType === 'demographics') {
-      const headers = ['Barangay', 'Municipality', 'Registered Workers', 'Registered Employers', 'Jobs Posted', 'Total Platform Activity'];
-      const rows = barangaySummary.map((b) => [
-        b.barangay,
+      const headers = ['Municipality', 'Barangay', 'Registered Workers', 'Registered Employers', 'Jobs Posted', 'Total Platform Activity'];
+      const rows = municipalSummary.map((b) => [
         b.municipality,
+        b.barangay,
         b.workers,
         b.employers,
         b.jobs,
@@ -322,17 +371,20 @@ export default function ExportReportsPage() {
       ]);
 
       exportMultiSectionCSV(
-        `SIKAP_DEMOGRAPHICS_REPORT_${dateStamp}`,
-        'SIKAP Barangay-Level Coverage & Placement Summary',
+        `SIKAP_MUNICIPAL_DEMOGRAPHICS_REPORT_${dateStamp}`,
+        'SIKAP Municipal & Barangay Demographics Summary',
         [
           ['Generated On:', timestamp],
           ['Generated By:', adminName],
-          ['Report Type:', 'Demographics Summary'],
-          ['Total Barangays Covered:', String(barangaySummary.length)]
+          ['Report Type:', 'Municipal & Barangay Demographics'],
+          ['Municipality Filter:', municipalityFilter.toUpperCase()],
+          ['Barangay Filter:', barangayFilter.toUpperCase()],
+          ['Date Scope:', datePreset.toUpperCase()],
+          ['Total Locations Covered:', String(municipalSummary.length)]
         ],
         [
           {
-            title: 'Barangay Demographics',
+            title: 'Municipal Demographics',
             headers,
             rows
           }
@@ -393,7 +445,7 @@ export default function ExportReportsPage() {
       case 'jobs':
         return 'Job Postings & Employment Summary';
       case 'demographics':
-        return 'Barangay-Level Coverage & Placement Summary';
+        return 'Municipal & Barangay Demographics Summary';
       case 'verifications':
         return 'Identity Verification & Compliance Summary';
     }
@@ -480,7 +532,7 @@ export default function ExportReportsPage() {
           }`}
         >
           <i className="lni lni-map-marker text-sm" />
-          Barangay Demographics
+          Municipal Demographics
         </button>
 
         <button
@@ -536,6 +588,46 @@ export default function ExportReportsPage() {
             </select>
           </div>
 
+          {/* Contextual filter: Municipality (for Demographics) */}
+          {reportType === 'demographics' && (
+            <>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-body font-semibold text-ink-muted">Municipality:</span>
+                <select
+                  value={municipalityFilter}
+                  onChange={(e) => {
+                    setMunicipalityFilter(e.target.value);
+                    setBarangayFilter('all');
+                  }}
+                  className="px-3 py-2 bg-white/90 border border-ink-faint/60 rounded-xl text-xs font-body font-semibold text-ink focus:outline-none focus:border-primary cursor-pointer max-w-[170px]"
+                >
+                  <option value="all">All Municipalities</option>
+                  {uniqueMunicipalities.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-body font-semibold text-ink-muted">Barangay:</span>
+                <select
+                  value={barangayFilter}
+                  onChange={(e) => setBarangayFilter(e.target.value)}
+                  className="px-3 py-2 bg-white/90 border border-ink-faint/60 rounded-xl text-xs font-body font-semibold text-ink focus:outline-none focus:border-primary cursor-pointer max-w-[170px]"
+                >
+                  <option value="all">All Barangays</option>
+                  {availableBarangays.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
+
           {/* Contextual filter: Role (for Users & Verifications) */}
           {(reportType === 'users' || reportType === 'verifications') && (
             <div className="flex items-center gap-1.5">
@@ -571,39 +663,41 @@ export default function ExportReportsPage() {
             </div>
           )}
 
-          {/* Status filter */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-body font-semibold text-ink-muted">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 bg-white/90 border border-ink-faint/60 rounded-xl text-xs font-body font-semibold text-ink focus:outline-none focus:border-primary cursor-pointer"
-            >
-              <option value="all">All Statuses</option>
-              {reportType === 'users' && (
-                <>
-                  <option value="verified">Approved / Verified</option>
-                  <option value="pending">Pending Review</option>
-                  <option value="rejected">Rejected</option>
-                </>
-              )}
-              {reportType === 'jobs' && (
-                <>
-                  <option value="open">Open / Active</option>
-                  <option value="completed">Completed</option>
-                  <option value="suspended">Suspended</option>
-                  <option value="cancelled">Cancelled</option>
-                </>
-              )}
-              {reportType === 'verifications' && (
-                <>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                </>
-              )}
-            </select>
-          </div>
+          {/* Status filter (for Users, Jobs, Verifications) */}
+          {reportType !== 'demographics' && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-body font-semibold text-ink-muted">Status:</span>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 bg-white/90 border border-ink-faint/60 rounded-xl text-xs font-body font-semibold text-ink focus:outline-none focus:border-primary cursor-pointer"
+              >
+                <option value="all">All Statuses</option>
+                {reportType === 'users' && (
+                  <>
+                    <option value="verified">Approved / Verified</option>
+                    <option value="pending">Pending Review</option>
+                    <option value="rejected">Rejected</option>
+                  </>
+                )}
+                {reportType === 'jobs' && (
+                  <>
+                    <option value="open">Open / Active</option>
+                    <option value="completed">Completed</option>
+                    <option value="suspended">Suspended</option>
+                    <option value="cancelled">Cancelled</option>
+                  </>
+                )}
+                {reportType === 'verifications' && (
+                  <>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                  </>
+                )}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Custom date range picker if selected */}
@@ -631,26 +725,32 @@ export default function ExportReportsPage() {
       <div className="no-print print:hidden grid grid-cols-2 md:grid-cols-4 gap-4">
         {reportType === 'users' && (
           <>
-            <StatCard title="Filtered Users" value={filteredUsers.length} iconClass="lni lni-users" />
+            <StatCard
+              title="Filtered Users"
+              value={filteredUsers.length}
+              iconClass="lni lni-users"
+              bg="from-slate-50 to-slate-100"
+              iconColor="text-slate-700"
+            />
             <StatCard
               title="Workers"
               value={filteredUsers.filter((u) => u.role === 'worker').length}
               iconClass="lni lni-user"
-              bg="from-accent-sky to-accent-skyDeep/40"
+              bg="from-sky-50 to-sky-100"
               iconColor="text-sky-700"
             />
             <StatCard
               title="Employers"
               value={filteredUsers.filter((u) => u.role === 'employer').length}
               iconClass="lni lni-briefcase"
-              bg="from-accent-peach to-accent-peachBright"
+              bg="from-amber-50 to-amber-100"
               iconColor="text-amber-700"
             />
             <StatCard
               title="Verified Rate"
               value={`${filteredUsers.length ? Math.round((filteredUsers.filter((u) => u.verification_status === 'approved').length / filteredUsers.length) * 100) : 0}%`}
               iconClass="lni lni-checkmark-circle"
-              bg="from-accent-mint to-accent-mintDeep/40"
+              bg="from-emerald-50 to-emerald-100"
               iconColor="text-emerald-700"
             />
           </>
@@ -658,26 +758,32 @@ export default function ExportReportsPage() {
 
         {reportType === 'jobs' && (
           <>
-            <StatCard title="Filtered Jobs" value={filteredJobs.length} iconClass="lni lni-briefcase" />
+            <StatCard
+              title="Filtered Jobs"
+              value={filteredJobs.length}
+              iconClass="lni lni-briefcase"
+              bg="from-slate-50 to-slate-100"
+              iconColor="text-slate-700"
+            />
             <StatCard
               title="Open Positions"
               value={filteredJobs.filter((j) => j.status === 'open').length}
               iconClass="lni lni-radio-button"
-              bg="from-accent-mint to-accent-mintDeep/40"
+              bg="from-emerald-50 to-emerald-100"
               iconColor="text-emerald-700"
             />
             <StatCard
               title="Completed Hires"
               value={filteredJobs.filter((j) => j.status === 'completed').length}
               iconClass="lni lni-checkmark-circle"
-              bg="from-accent-sky to-accent-skyDeep/40"
+              bg="from-sky-50 to-sky-100"
               iconColor="text-sky-700"
             />
             <StatCard
               title="Total Slots"
               value={filteredJobs.reduce((acc, j) => acc + (j.slots || 1), 0)}
               iconClass="lni lni-target"
-              bg="from-accent-peach to-accent-peachBright"
+              bg="from-amber-50 to-amber-100"
               iconColor="text-amber-700"
             />
           </>
@@ -685,26 +791,32 @@ export default function ExportReportsPage() {
 
         {reportType === 'demographics' && (
           <>
-            <StatCard title="Total Barangays" value={barangaySummary.length} iconClass="lni lni-map" />
             <StatCard
-              title="Total Population"
-              value={users.length}
-              iconClass="lni lni-users"
-              bg="from-accent-sky to-accent-skyDeep/40"
+              title="Locations Covered"
+              value={municipalSummary.length}
+              iconClass="lni lni-map"
+              bg="from-sky-50 to-sky-100"
               iconColor="text-sky-700"
             />
             <StatCard
-              title="Top Location"
-              value={barangaySummary[0]?.barangay || 'N/A'}
+              title="Registered Population"
+              value={municipalSummary.reduce((acc, m) => acc + m.workers + m.employers, 0)}
+              iconClass="lni lni-users"
+              bg="from-indigo-50 to-indigo-100"
+              iconColor="text-indigo-700"
+            />
+            <StatCard
+              title="Top Barangay"
+              value={municipalSummary[0]?.barangay || 'N/A'}
               iconClass="lni lni-star"
-              bg="from-accent-peach to-accent-peachBright"
+              bg="from-amber-50 to-amber-100"
               iconColor="text-amber-700"
             />
             <StatCard
               title="Total Jobs Posted"
-              value={jobs.length}
+              value={municipalSummary.reduce((acc, m) => acc + m.jobs, 0)}
               iconClass="lni lni-briefcase"
-              bg="from-accent-mint to-accent-mintDeep/40"
+              bg="from-emerald-50 to-emerald-100"
               iconColor="text-emerald-700"
             />
           </>
@@ -712,26 +824,32 @@ export default function ExportReportsPage() {
 
         {reportType === 'verifications' && (
           <>
-            <StatCard title="Audited Records" value={filteredVerifications.length} iconClass="lni lni-shield" />
+            <StatCard
+              title="Audited Records"
+              value={filteredVerifications.length}
+              iconClass="lni lni-shield"
+              bg="from-slate-50 to-slate-100"
+              iconColor="text-slate-700"
+            />
             <StatCard
               title="Approved"
               value={filteredVerifications.filter((v) => v.verification_status === 'approved').length}
               iconClass="lni lni-checkmark-circle"
-              bg="from-accent-mint to-accent-mintDeep/40"
+              bg="from-emerald-50 to-emerald-100"
               iconColor="text-emerald-700"
             />
             <StatCard
               title="Pending Review"
               value={filteredVerifications.filter((v) => v.verification_status === 'pending').length}
               iconClass="lni lni-timer"
-              bg="from-accent-peach to-accent-peachBright"
+              bg="from-amber-50 to-amber-100"
               iconColor="text-amber-700"
             />
             <StatCard
               title="Rejected"
               value={filteredVerifications.filter((v) => v.verification_status === 'rejected').length}
               iconClass="lni lni-cross-circle"
-              bg="from-rose-100 to-rose-200"
+              bg="from-rose-50 to-rose-100"
               iconColor="text-rose-700"
             />
           </>
@@ -892,13 +1010,13 @@ export default function ExportReportsPage() {
               </table>
             )}
 
-            {/* 3. BARANGAY DEMOGRAPHICS TABLE */}
+            {/* 3. MUNICIPAL & BARANGAY DEMOGRAPHICS TABLE */}
             {reportType === 'demographics' && (
               <table className="w-full text-left font-body text-xs border-collapse">
                 <thead>
                   <tr className="bg-ink/5 border-b border-ink-faint/50 text-ink-soft uppercase text-[10px] font-bold tracking-wider">
-                    <th className="py-3.5 px-4">Barangay</th>
                     <th className="py-3.5 px-4">Municipality</th>
+                    <th className="py-3.5 px-4">Barangay</th>
                     <th className="py-3.5 px-4 text-center">Registered Workers</th>
                     <th className="py-3.5 px-4 text-center">Registered Employers</th>
                     <th className="py-3.5 px-4 text-center">Jobs Posted</th>
@@ -906,17 +1024,17 @@ export default function ExportReportsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ink-faint/30">
-                  {barangaySummary.length === 0 ? (
+                  {municipalSummary.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-12 text-center text-ink-muted">
-                        No barangay records found.
+                        No municipal/barangay records found matching the filters.
                       </td>
                     </tr>
                   ) : (
-                    barangaySummary.map((b, idx) => (
+                    municipalSummary.map((b, idx) => (
                       <tr key={idx} className="hover:bg-paper/40 transition-colors">
-                        <td className="py-3 px-4 font-bold text-ink">{b.barangay}</td>
-                        <td className="py-3 px-4 text-ink-soft">{b.municipality}</td>
+                        <td className="py-3 px-4 font-bold text-ink">{b.municipality}</td>
+                        <td className="py-3 px-4 text-ink-soft">{b.barangay}</td>
                         <td className="py-3 px-4 text-center font-bold text-sky-700">{b.workers}</td>
                         <td className="py-3 px-4 text-center font-bold text-amber-700">{b.employers}</td>
                         <td className="py-3 px-4 text-center font-bold text-emerald-700">{b.jobs}</td>
