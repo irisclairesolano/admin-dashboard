@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo, Suspense, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, Suspense, useCallback, useDeferredValue } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { AlertDialog } from '@/components/AlertDialog';
 import dynamic from 'next/dynamic';
@@ -37,6 +37,7 @@ function UsersContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState(urlSearch);
+  const deferredSearchTerm = useDeferredValue(searchTerm);
   const [filter, setFilter] = useState<'all' | 'verified' | 'unverified' | 'rejected'>('all');
   const [roleFilter, setRoleFilter] = useState<'all' | 'worker' | 'employer' | 'admin'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'created_at' | 'rating'>('created_at');
@@ -505,40 +506,46 @@ function UsersContent() {
     );
   };
 
-  const filteredUsers = users.filter(u => {
-    const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredUsers = useMemo(() => {
+    const q = deferredSearchTerm.trim().toLowerCase();
+    return users.filter(u => {
+      const matchesSearch = !q ||
+        (u.name && u.name.toLowerCase().includes(q)) ||
+        (u.email && u.email.toLowerCase().includes(q));
 
-    if (!matchesSearch) return false;
-    if (roleFilter !== 'all' && u.role !== roleFilter) return false;
+      if (!matchesSearch) return false;
+      if (roleFilter !== 'all' && u.role !== roleFilter) return false;
 
-    if (filter === 'all') return true;
-    if (filter === 'verified') return u.verification_status === 'approved';
-    if (filter === 'rejected') return u.verification_status === 'rejected' || u.registration_status === 'rejected';
-    if (filter === 'unverified') return u.verification_status !== 'approved' && u.verification_status !== 'rejected' && u.registration_status !== 'rejected';
+      if (filter === 'all') return true;
+      if (filter === 'verified') return u.verification_status === 'approved';
+      if (filter === 'rejected') return u.verification_status === 'rejected' || u.registration_status === 'rejected';
+      if (filter === 'unverified') return u.verification_status !== 'approved' && u.verification_status !== 'rejected' && u.registration_status !== 'rejected';
 
-    return true;
-  });
+      return true;
+    });
+  }, [users, deferredSearchTerm, roleFilter, filter]);
 
-  const sortedUsers = [...filteredUsers].sort((a: any, b: any) => {
-    let aVal: any;
-    let bVal: any;
+  const sortedUsers = useMemo(() => {
+    return [...filteredUsers].sort((a: any, b: any) => {
+      let aVal: any;
+      let bVal: any;
 
-    if (sortBy === 'name') {
-      aVal = a.name.toLowerCase();
-      bVal = b.name.toLowerCase();
-    } else if (sortBy === 'created_at') {
-      aVal = new Date(a.created_at || 0).getTime();
-      bVal = new Date(b.created_at || 0).getTime();
-    } else if (sortBy === 'rating') {
-      aVal = a.reputation_score || a.rating || 0;
-      bVal = b.reputation_score || b.rating || 0;
-    }
+      if (sortBy === 'name') {
+        aVal = a.name.toLowerCase();
+        bVal = b.name.toLowerCase();
+      } else if (sortBy === 'created_at') {
+        aVal = new Date(a.created_at || 0).getTime();
+        bVal = new Date(b.created_at || 0).getTime();
+      } else if (sortBy === 'rating') {
+        aVal = a.reputation_score || a.rating || 0;
+        bVal = b.reputation_score || b.rating || 0;
+      }
 
-    if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
-    if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
-    return 0;
-  });
+      if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [filteredUsers, sortBy, sortOrder]);
 
   const totalPages = Math.ceil(sortedUsers.length / itemsPerPage) || 1;
   const paginatedUsers = sortedUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);

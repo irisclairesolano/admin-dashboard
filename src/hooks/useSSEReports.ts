@@ -52,12 +52,30 @@ export function useSSEReports() {
     // Initial fetch
     fetchUnreadCount();
 
-    // Lightweight 20-second background polling
-    timerRef.current = setInterval(fetchUnreadCount, 20000);
+    // Lightweight 20-second background polling (pauses when tab is hidden)
+    const tick = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      fetchUnreadCount();
+    };
+
+    timerRef.current = setInterval(tick, 20000);
+
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchUnreadCount();
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
 
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
+      }
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
       }
     };
   }, [fetchUnreadCount]);

@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useDeferredValue } from 'react';
 import { adminApi } from '@/lib/api';
 import { authStorage } from '@/lib/authStorage';
 import { formatDate } from '@/lib/date';
 import StatCard from '@/components/StatCard';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus, formatCSVReputation, calculateNormalizedHourlyWage } from '@/lib/export/csv';
-import { generateMasterExcelWorkbook, downloadExcelBlob } from '@/lib/export/excel';
 
 type ReportType = 'users' | 'jobs' | 'demographics' | 'verifications' | 'moderation';
 type DatePreset = 'all' | 'today' | '7days' | '30days' | 'year' | 'custom';
@@ -22,6 +21,7 @@ export default function ExportReportsPage() {
   const [barangayFilter, setBarangayFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const [users, setUsers] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
@@ -30,6 +30,7 @@ export default function ExportReportsPage() {
   const [loading, setLoading] = useState(true);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [error, setError] = useState('');
+  const [exportError, setExportError] = useState('');
   const [adminName, setAdminName] = useState('Admin');
 
   // Load Admin name for official signatory
@@ -41,15 +42,15 @@ export default function ExportReportsPage() {
   }, []);
 
   // Fetch all necessary data
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (isManualRefresh: boolean = false) => {
     setLoading(true);
     setError('');
     try {
       const [usersRes, jobsRes, verifRes, reportsRes] = await Promise.all([
-        adminApi.getUsers({ all: true, forceRefresh: true }),
-        adminApi.getJobs({ all: true, forceRefresh: true }),
-        adminApi.getVerifications({ all: true, status: 'all', forceRefresh: true }),
-        adminApi.getReports('all', 1, '', true, true).catch(() => ({ data: [] })),
+        adminApi.getUsers({ all: true, forceRefresh: isManualRefresh }),
+        adminApi.getJobs({ all: true, forceRefresh: isManualRefresh }),
+        adminApi.getVerifications({ all: true, status: 'all', forceRefresh: isManualRefresh }),
+        adminApi.getReports('all', 1, '', true, isManualRefresh).catch(() => ({ data: [] })),
       ]);
 
       const fetchedUsers = usersRes.data?.data || usersRes.data || [];
@@ -70,7 +71,7 @@ export default function ExportReportsPage() {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    fetchData(false);
   }, [fetchData]);
 
   // Date filtering helper
@@ -118,8 +119,8 @@ export default function ExportReportsPage() {
       if (statusFilter === 'pending' && u.verification_status !== 'pending') return false;
       if (statusFilter === 'rejected' && u.verification_status !== 'rejected') return false;
 
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+      if (deferredSearchQuery.trim()) {
+        const q = deferredSearchQuery.toLowerCase();
         const matchesName = (u.name || '').toLowerCase().includes(q);
         const matchesEmail = (u.email || '').toLowerCase().includes(q);
         const matchesLoc = (u.barangay || '').toLowerCase().includes(q) || (u.municipality || '').toLowerCase().includes(q);
@@ -127,7 +128,7 @@ export default function ExportReportsPage() {
       }
       return true;
     });
-  }, [users, isWithinDateRange, roleFilter, statusFilter, searchQuery]);
+  }, [users, isWithinDateRange, roleFilter, statusFilter, deferredSearchQuery]);
 
   // 2. Jobs Postings & Placements
   const filteredJobs = useMemo(() => {
@@ -137,8 +138,8 @@ export default function ExportReportsPage() {
       if (statusFilter === 'archived') return !!j.deleted_at;
       if (statusFilter !== 'all' && j.status !== statusFilter) return false;
 
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+      if (deferredSearchQuery.trim()) {
+        const q = deferredSearchQuery.toLowerCase();
         const matchesTitle = (j.title || '').toLowerCase().includes(q);
         const matchesEmployer = (j.employer?.name || '').toLowerCase().includes(q);
         const matchesLoc = (j.barangay || '').toLowerCase().includes(q) || (j.municipality || '').toLowerCase().includes(q);
@@ -147,7 +148,7 @@ export default function ExportReportsPage() {
       }
       return true;
     });
-  }, [jobs, isWithinDateRange, categoryFilter, statusFilter, searchQuery]);
+  }, [jobs, isWithinDateRange, categoryFilter, statusFilter, deferredSearchQuery]);
 
   // Extract unique municipalities for demographic & location filters
   const uniqueMunicipalities = useMemo(() => {
@@ -221,12 +222,12 @@ export default function ExportReportsPage() {
       return (b.workers + b.employers + b.jobs) - (a.workers + a.employers + a.jobs);
     });
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    if (deferredSearchQuery.trim()) {
+      const q = deferredSearchQuery.toLowerCase();
       list = list.filter((item) => item.barangay.toLowerCase().includes(q) || item.municipality.toLowerCase().includes(q));
     }
     return list;
-  }, [users, jobs, isWithinDateRange, municipalityFilter, barangayFilter, searchQuery]);
+  }, [users, jobs, isWithinDateRange, municipalityFilter, barangayFilter, deferredSearchQuery]);
 
   // Grouped Municipal Overview for Executive Demographics & Multi-section Export
   const municipalOverview = useMemo(() => {
@@ -282,8 +283,8 @@ export default function ExportReportsPage() {
         }
       }
 
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+      if (deferredSearchQuery.trim()) {
+        const q = deferredSearchQuery.toLowerCase();
         const matchesName = (v.name || '').toLowerCase().includes(q);
         const matchesEmail = (v.email || '').toLowerCase().includes(q);
         const matchesLoc = (v.barangay || '').toLowerCase().includes(q) || (v.municipality || '').toLowerCase().includes(q);
@@ -291,7 +292,7 @@ export default function ExportReportsPage() {
       }
       return true;
     });
-  }, [verifications, users, isWithinDateRange, roleFilter, statusFilter, searchQuery]);
+  }, [verifications, users, isWithinDateRange, roleFilter, statusFilter, deferredSearchQuery]);
 
   // 5. Moderation Reports
   const filteredReports = useMemo(() => {
@@ -307,8 +308,8 @@ export default function ExportReportsPage() {
           return false;
         }
       }
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+      if (deferredSearchQuery.trim()) {
+        const q = deferredSearchQuery.toLowerCase();
         const matchesType = (r.type || '').toLowerCase().includes(q);
         const matchesReporter = (r.reporter?.name || '').toLowerCase().includes(q);
         const matchesDesc = (r.description || '').toLowerCase().includes(q);
@@ -316,7 +317,7 @@ export default function ExportReportsPage() {
       }
       return true;
     });
-  }, [reports, isWithinDateRange, statusFilter, searchQuery]);
+  }, [reports, isWithinDateRange, statusFilter, deferredSearchQuery]);
 
   // Extract unique categories for job filter
   const jobCategories = useMemo(() => {
@@ -722,13 +723,15 @@ export default function ExportReportsPage() {
   const handleExportMasterExcel = async () => {
     try {
       setIsExportingExcel(true);
+      setExportError('');
       const dateStamp = new Date().toISOString().split('T')[0];
 
+      const { generateMasterExcelWorkbook, downloadExcelBlob } = await import('@/lib/export/excel');
       const blob = await generateMasterExcelWorkbook({
-        users: filteredUsers.length > 0 && (roleFilter !== 'all' || statusFilter !== 'all' || datePreset !== 'all' || searchQuery) ? filteredUsers : users,
-        jobs: filteredJobs.length > 0 && (categoryFilter !== 'all' || statusFilter !== 'all' || datePreset !== 'all' || searchQuery) ? filteredJobs : jobs,
-        verifications: filteredVerifications.length > 0 && (statusFilter !== 'all' || roleFilter !== 'all' || datePreset !== 'all' || searchQuery) ? filteredVerifications : verifications,
-        reports: filteredReports.length > 0 || statusFilter !== 'all' || searchQuery ? filteredReports : reports,
+        users: filteredUsers.length > 0 && (roleFilter !== 'all' || statusFilter !== 'all' || datePreset !== 'all' || deferredSearchQuery) ? filteredUsers : users,
+        jobs: filteredJobs.length > 0 && (categoryFilter !== 'all' || statusFilter !== 'all' || datePreset !== 'all' || deferredSearchQuery) ? filteredJobs : jobs,
+        verifications: filteredVerifications.length > 0 && (statusFilter !== 'all' || roleFilter !== 'all' || datePreset !== 'all' || deferredSearchQuery) ? filteredVerifications : verifications,
+        reports: filteredReports.length > 0 || statusFilter !== 'all' || deferredSearchQuery ? filteredReports : reports,
         municipalSummary,
         municipalOverview,
       });
@@ -737,7 +740,7 @@ export default function ExportReportsPage() {
       downloadExcelBlob(blob, filename);
     } catch (err) {
       console.error('Failed to export Excel workbook:', err);
-      alert('Failed to generate Excel report. Please try again.');
+      setExportError('Failed to generate Excel report. Please try again.');
     } finally {
       setIsExportingExcel(false);
     }
@@ -773,7 +776,7 @@ export default function ExportReportsPage() {
 
         <div className="flex flex-wrap items-center gap-2.5">
           <button
-            onClick={fetchData}
+            onClick={() => fetchData(true)}
             disabled={loading}
             className="px-3.5 py-2 bg-white border border-ink-faint text-ink hover:bg-paper font-body text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             title="Reload latest records"
@@ -803,6 +806,24 @@ export default function ExportReportsPage() {
           </button>
         </div>
       </div>
+
+      {/* ── EXPORT ERROR NOTIFICATION (HIDDEN IN PRINT) ── */}
+      {exportError && (
+        <div className="no-print flex items-center justify-between p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl shadow-xs animate-fade-in">
+          <div className="flex items-center gap-2">
+            <i className="lni lni-warning text-base text-red-500" />
+            <span>{exportError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setExportError('')}
+            className="text-red-500 hover:text-red-700 p-1 cursor-pointer"
+            aria-label="Dismiss error"
+          >
+            <i className="lni lni-close text-xs" />
+          </button>
+        </div>
+      )}
 
       {/* ── REPORT TYPE SELECTOR TABS (HIDDEN IN PRINT) ── */}
       <div className="no-print bg-white/80 backdrop-blur-md rounded-2xl p-2 border border-white/60 shadow-xs flex flex-wrap gap-2">
@@ -1399,8 +1420,10 @@ export default function ExportReportsPage() {
                         const totalAct = municipalSummary.reduce((acc, b) => acc + b.workers + b.employers + b.jobs, 0);
                         const sharePercent = totalAct > 0 ? ((m.totalImpact / totalAct) * 100).toFixed(1) : '0.0';
                         return (
-                          <div
+                          <button
+                            type="button"
                             key={m.municipality}
+                            aria-pressed={isSelected}
                             onClick={() => {
                               if (isSelected) {
                                 setMunicipalityFilter('all');
@@ -1409,7 +1432,7 @@ export default function ExportReportsPage() {
                               }
                               setBarangayFilter('all');
                             }}
-                            className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                            className={`p-3.5 rounded-xl border transition-all text-left w-full focus:outline-none focus:ring-2 focus:ring-primary ${
                               isSelected
                                 ? 'bg-primary/10 border-primary shadow-sm ring-2 ring-primary/20'
                                 : 'bg-white hover:bg-slate-50 border-ink-faint/40 shadow-xs'
@@ -1439,7 +1462,7 @@ export default function ExportReportsPage() {
                               <span>Total Platform Impact:</span>
                               <span className="font-bold text-ink">{m.totalImpact} ({sharePercent}%)</span>
                             </div>
-                          </div>
+                          </button>
                         );
                       })}
                     </div>

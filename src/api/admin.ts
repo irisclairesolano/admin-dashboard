@@ -41,20 +41,116 @@ apiClient.interceptors.response.use(
 const apiCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 60 * 1000; // 60 seconds TTL (instant tab switching with background revalidation)
 
-export const clearApiCache = () => {
-  apiCache.clear();
+// Identical GETs that are already on the wire share one promise (avoids duplicate requests
+// when e.g. the layout badge and a page both ask for the same endpoint at mount).
+const inFlight = new Map<string, Promise<any>>();
+
+// Large payloads (all=1 masterlists) are kept in memory only: serialising them into
+// sessionStorage blocks the main thread and quickly exhausts the storage quota.
+const MAX_PERSIST_CHARS = 200_000;
+
+const SESSION_PREFIX = 'api_cache_';
+const SESSION_TIME_PREFIX = 'api_cache_time_';
+
+const urlFromStorageKey = (key: string): string | null => {
+  if (key.startsWith(SESSION_TIME_PREFIX)) return key.slice(SESSION_TIME_PREFIX.length);
+  if (key.startsWith(SESSION_PREFIX)) return key.slice(SESSION_PREFIX.length);
+  return null;
+};
+
+/**
+ * Clears cached GET responses.
+ * - No argument: clears everything (logout / login / tests).
+ * - With prefixes: only entries whose URL starts with one of the prefixes are dropped,
+ *   so unrelated sections stay warm after a mutation.
+ */
+export const clearApiCache = (prefixes?: string[]) => {
+  const matches = (url: string) => !prefixes || prefixes.some((p) => url.startsWith(p));
+
+  Array.from(apiCache.keys()).forEach((url) => {
+    if (matches(url)) apiCache.delete(url);
+  });
+  Array.from(inFlight.keys()).forEach((url) => {
+    if (matches(url)) inFlight.delete(url);
+  });
+
   if (typeof window !== 'undefined') {
     try {
       Object.keys(sessionStorage).forEach((key) => {
-        if (key.startsWith('api_cache_')) sessionStorage.removeItem(key);
+        const url = urlFromStorageKey(key);
+        if (url !== null && matches(url)) sessionStorage.removeItem(key);
       });
-      Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith('api_cache_')) localStorage.removeItem(key);
-      });
+      if (!prefixes) {
+        Object.keys(localStorage).forEach((key) => {
+          if (key.startsWith(SESSION_PREFIX)) localStorage.removeItem(key);
+        });
+      }
     } catch {
       // Ignore
     }
   }
+};
+
+// Cache invalidation groups used after mutations
+const INVALIDATE = {
+  users: ['/admin/users', '/admin/verifications', '/admin/blacklist', '/admin/jobs', '/admin/reports', '/admin/analytics', '/admin/logs'],
+  verification: ['/admin/users', '/admin/verifications', '/admin/analytics', '/admin/logs'],
+  jobs: ['/admin/jobs', '/admin/users', '/admin/reports', '/admin/analytics', '/admin/logs'],
+  reports: ['/admin/reports', '/admin/analytics', '/admin/logs'],
+  support: ['/admin/support', '/admin/logs'],
+  profanity: ['/admin/profanity-words', '/admin/logs'],
+};
+
+/** Runs a mutation, then invalidates only the related cache entries once it succeeds. */
+const mutate = async <T>(request: Promise<T>, prefixes: string[]): Promise<T> => {
+  const result = await request;
+  clearApiCache(prefixes);
+  return result;
+};
+
+const storeResponse = (url: string, response: { data: any; status: number }) => {
+  const payload = { data: response.data, status: response.status };
+  apiCache.set(url, { data: payload, timestamp: Date.now() });
+
+  if (typeof window === 'undefined' || url.includes('all=1')) return;
+  try {
+    const serialized = JSON.stringify(payload);
+    if (serialized.length > MAX_PERSIST_CHARS) return;
+    sessionStorage.setItem(SESSION_PREFIX + url, serialized);
+    sessionStorage.setItem(SESSION_TIME_PREFIX + url, Date.now().toString());
+  } catch {
+    // Quota exceeded: drop persisted entries; the in-memory cache still works.
+    try {
+      Object.keys(sessionStorage)
+        .filter((k) => k.startsWith(SESSION_PREFIX))
+        .forEach((k) => sessionStorage.removeItem(k));
+    } catch {}
+  }
+};
+
+const fetchAndStore = (url: string): Promise<any> => {
+  const existing = inFlight.get(url);
+  if (existing) return existing;
+
+  const promise = apiClient
+    .get(url)
+    .then((response) => {
+      storeResponse(url, response);
+      return response;
+    })
+    .finally(() => {
+      inFlight.delete(url);
+    });
+
+  inFlight.set(url, promise);
+  return promise;
+};
+
+/** Bypasses the cache for one URL only (does not wipe unrelated cached sections). */
+const freshGet = (url: string) => {
+  apiCache.delete(url);
+  inFlight.delete(url);
+  return fetchAndStore(url);
 };
 
 const cachedGet = async (url: string) => {
@@ -71,8 +167,8 @@ const cachedGet = async (url: string) => {
   let isFresh = false;
   if (typeof window !== 'undefined') {
     try {
-      const stored = sessionStorage.getItem('api_cache_' + url);
-      const storedTime = sessionStorage.getItem('api_cache_time_' + url);
+      const stored = sessionStorage.getItem(SESSION_PREFIX + url);
+      const storedTime = sessionStorage.getItem(SESSION_TIME_PREFIX + url);
       if (stored && storedTime) {
         const age = now - parseInt(storedTime);
         if (age < CACHE_TTL) {
@@ -85,25 +181,7 @@ const cachedGet = async (url: string) => {
     }
   }
 
-  const fetchPromise = apiClient.get(url).then(response => {
-    const payload = { data: response.data, status: response.status };
-    apiCache.set(url, { data: payload, timestamp: Date.now() });
-    if (typeof window !== 'undefined') {
-      try {
-        sessionStorage.setItem('api_cache_' + url, JSON.stringify(payload));
-        sessionStorage.setItem('api_cache_time_' + url, Date.now().toString());
-      } catch {
-        // Cache full, clear older entries
-        try {
-          Object.keys(sessionStorage)
-            .filter((k) => k.startsWith('api_cache_'))
-            .slice(0, 5)
-            .forEach((k) => sessionStorage.removeItem(k));
-        } catch {}
-      }
-    }
-    return response;
-  });
+  const fetchPromise = fetchAndStore(url);
 
   if (localData && isFresh) {
     fetchPromise.catch(console.error); // Revalidate quietly
@@ -176,30 +254,13 @@ export const adminApi = {
     }
 
     if (shouldForce) {
-      apiCache.delete(url);
-      if (typeof window !== 'undefined') {
-        try {
-          sessionStorage.removeItem('api_cache_' + url);
-          sessionStorage.removeItem('api_cache_time_' + url);
-        } catch {}
-      }
-      const response = await apiClient.get(url);
-      const payload = { data: response.data, status: response.status };
-      apiCache.set(url, { data: payload, timestamp: Date.now() });
-      if (typeof window !== 'undefined') {
-        try {
-          sessionStorage.setItem('api_cache_' + url, JSON.stringify(payload));
-          sessionStorage.setItem('api_cache_time_' + url, Date.now().toString());
-        } catch {}
-      }
-      return response;
+      return freshGet(url);
     }
     return cachedGet(url);
   },
   
   verifyUser: async (id: number, status: 'approved' | 'rejected', rejection_reason?: string) => {
-    clearApiCache();
-    return apiClient.patch(`/admin/users/${id}/verify`, { status, rejection_reason });
+    return mutate(apiClient.patch(`/admin/users/${id}/verify`, { status, rejection_reason }), INVALIDATE.verification);
   },
   
   getUsers: async (
@@ -231,8 +292,7 @@ export const adminApi = {
     }
 
     if (shouldForce) {
-      clearApiCache();
-      return apiClient.get(url);
+      return freshGet(url);
     }
     return cachedGet(url);
   },
@@ -281,18 +341,15 @@ export const adminApi = {
   },
   
   suspendUser: async (id: number, is_suspended: boolean = true, duration?: string, reason?: string) => {
-    clearApiCache();
-    return apiClient.patch(`/admin/users/${id}`, { is_suspended, duration, reason });
+    return mutate(apiClient.patch(`/admin/users/${id}`, { is_suspended, duration, reason }), INVALIDATE.users);
   },
   
   deleteUser: async (id: number, reason?: string) => {
-    clearApiCache();
-    return apiClient.delete(`/admin/users/${id}`, { data: { reason } });
+    return mutate(apiClient.delete(`/admin/users/${id}`, { data: { reason } }), INVALIDATE.users);
   },
 
   restoreUser: async (id: number) => {
-    clearApiCache();
-    return apiClient.patch(`/admin/users/${id}/restore`);
+    return mutate(apiClient.patch(`/admin/users/${id}/restore`), INVALIDATE.users);
   },
 
   // Blacklist & Restrictions
@@ -306,8 +363,7 @@ export const adminApi = {
   },
 
   liftBlacklist: async (id: number) => {
-    clearApiCache();
-    return apiClient.post(`/admin/blacklist/${id}/lift`);
+    return mutate(apiClient.post(`/admin/blacklist/${id}/lift`), INVALIDATE.users);
   },
 
   getJobs: async (
@@ -341,8 +397,7 @@ export const adminApi = {
     }
 
     if (shouldForce) {
-      clearApiCache();
-      return apiClient.get(url);
+      return freshGet(url);
     }
     return cachedGet(url);
   },
@@ -350,35 +405,29 @@ export const adminApi = {
   getJob: async (id: number, forceRefresh: boolean = false) => {
     const url = `/admin/jobs/${id}`;
     if (forceRefresh) {
-      clearApiCache();
-      return apiClient.get(url);
+      return freshGet(url);
     }
     return cachedGet(url);
   },
 
   deleteJob: async (id: number) => {
-    clearApiCache();
-    return apiClient.delete(`/admin/jobs/${id}`);
+    return mutate(apiClient.delete(`/admin/jobs/${id}`), INVALIDATE.jobs);
   },
 
   updateJobStatus: async (id: number, status: string) => {
-    clearApiCache();
-    return apiClient.patch(`/admin/jobs/${id}/status`, { status });
+    return mutate(apiClient.patch(`/admin/jobs/${id}/status`, { status }), INVALIDATE.jobs);
   },
 
   suspendJob: async (id: number, reason?: string) => {
-    clearApiCache();
-    return apiClient.patch(`/admin/jobs/${id}/status`, { status: 'suspended', reason });
+    return mutate(apiClient.patch(`/admin/jobs/${id}/status`, { status: 'suspended', reason }), INVALIDATE.jobs);
   },
 
   unsuspendJob: async (id: number) => {
-    clearApiCache();
-    return apiClient.patch(`/admin/jobs/${id}/status`, { status: 'open' });
+    return mutate(apiClient.patch(`/admin/jobs/${id}/status`, { status: 'open' }), INVALIDATE.jobs);
   },
 
   restoreJob: async (id: number) => {
-    clearApiCache();
-    return apiClient.patch(`/admin/jobs/${id}/restore`);
+    return mutate(apiClient.patch(`/admin/jobs/${id}/restore`), INVALIDATE.jobs);
   },
 
   getReports: async (status: string = 'open', page: number = 1, search: string = '', all: boolean = false, forceRefresh: boolean = false) => {
@@ -393,15 +442,13 @@ export const adminApi = {
     const qs = params.toString();
     const url = `/admin/reports${qs ? `?${qs}` : ''}`;
     if (forceRefresh) {
-      clearApiCache();
-      return apiClient.get(url);
+      return freshGet(url);
     }
     return cachedGet(url);
   },
   
   resolveReport: async (id: number, status: 'resolved' | 'dismissed') => {
-    clearApiCache();
-    return apiClient.patch(`/admin/reports/${id}`, { status });
+    return mutate(apiClient.patch(`/admin/reports/${id}`, { status }), INVALIDATE.reports);
   },
 
   getAnalytics: async (from?: string, to?: string, interval?: string, forceRefresh: boolean = false) => {
@@ -412,7 +459,7 @@ export const adminApi = {
     const queryString = params.toString();
     const url = `/admin/analytics${queryString ? `?${queryString}` : ''}`;
     if (forceRefresh) {
-      return apiClient.get(url);
+      return freshGet(url);
     }
     return cachedGet(url);
   },
@@ -433,13 +480,11 @@ export const adminApi = {
   },
   
   replyToTicket: async (id: number, admin_reply: string) => {
-    clearApiCache();
-    return apiClient.post(`/admin/support/${id}/reply`, { admin_reply });
+    return mutate(apiClient.post(`/admin/support/${id}/reply`, { admin_reply }), INVALIDATE.support);
   },
 
   updateSupportTicketStatus: async (id: number, status: 'open' | 'processing' | 'resolved') => {
-    clearApiCache();
-    return apiClient.patch(`/admin/support/${id}/status`, { status });
+    return mutate(apiClient.patch(`/admin/support/${id}/status`, { status }), INVALIDATE.support);
   },
 
   getLogs: async (page: number = 1, search?: string, action?: string, dateFrom?: string, dateTo?: string, all: boolean = false, adminName?: string) => {
@@ -467,21 +512,17 @@ export const adminApi = {
     return cachedGet('/admin/profanity-words');
   },
   addProfanityWord: async (word: string, action: 'block' | 'flag' = 'block') => {
-    clearApiCache();
-    return apiClient.post('/admin/profanity-words', { word, action });
+    return mutate(apiClient.post('/admin/profanity-words', { word, action }), INVALIDATE.profanity);
   },
   deleteProfanityWord: async (id: number) => {
-    clearApiCache();
-    return apiClient.delete(`/admin/profanity-words/${id}`);
+    return mutate(apiClient.delete(`/admin/profanity-words/${id}`), INVALIDATE.profanity);
   },
 
   permanentDeleteUser: async (id: number) => {
-    clearApiCache();
-    return apiClient.delete(`/admin/users/${id}/force`);
+    return mutate(apiClient.delete(`/admin/users/${id}/force`), INVALIDATE.users);
   },
   permanentDeleteJob: async (id: number) => {
-    clearApiCache();
-    return apiClient.delete(`/admin/jobs/${id}/force`);
+    return mutate(apiClient.delete(`/admin/jobs/${id}/force`), INVALIDATE.jobs);
   },
 
   // ─── Messaging Stats (aggregate only — no message content) ───────────────

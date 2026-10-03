@@ -11,7 +11,6 @@ import { useRouter } from 'next/navigation';
 import { AIInsightsCard, InsightsData } from '@/components/AIInsightsCard';
 import { CHART_COLORS } from '@/lib/constants';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus } from '@/lib/export/csv';
-import { generateMasterExcelWorkbook, downloadExcelBlob } from '@/lib/export/excel';
 
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
@@ -658,6 +657,7 @@ export default function AnalyticsDashboard() {
       const verifList: any[] = verifRes.data?.data || verifRes.data || [];
       const reportsList: any[] = reportsRes.data?.data || reportsRes.data || [];
 
+      const { generateMasterExcelWorkbook, downloadExcelBlob } = await import('@/lib/export/excel');
       const blob = await generateMasterExcelWorkbook({
         users: usersList,
         jobs: jobsList,
