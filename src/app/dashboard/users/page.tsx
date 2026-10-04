@@ -10,6 +10,8 @@ import StatCard from '@/components/StatCard';
 import UserTable from '@/components/users/UserTable';
 import { Download, ArrowLeft, ArrowRight } from 'lucide-react';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus, formatCSVReputation } from '@/lib/export/csv';
+import { useUndoToast } from '@/hooks/useUndoToast';
+import { UndoToast } from '@/components/UndoToast';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
@@ -61,6 +63,13 @@ function UsersContent() {
     actionType: 'delete',
   });
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
+  const {
+    activeAction,
+    secondsRemaining,
+    scheduleUndoAction,
+    handleUndo,
+    handleDismissNow,
+  } = useUndoToast();
 
   // Sync search from URL query param
   useEffect(() => {
@@ -306,33 +315,44 @@ function UsersContent() {
     if (!isCurrentlySuspended) {
       setSuspensionModalUser(user);
     } else {
-      setAlertState({
-        open: true,
-        title: 'Unsuspend User',
-        message: `Are you sure you want to unsuspend ${user.name}? This will restore their active status immediately.`,
-        onConfirm: async () => {
-          const previousActive = [...activeUsers];
-          setActiveUsers((prev: any[]) => prev.map(u => u.id === user.id ? { ...u, is_suspended: false } : u));
-          if (selectedDetailUser && selectedDetailUser.id === user.id) {
-            setSelectedDetailUser((prev: any) => prev ? { ...prev, is_suspended: false } : null);
-          }
+      const previousActive = [...activeUsers];
+      const previousDetail = selectedDetailUser;
+      setActiveUsers((prev: any[]) => prev.map(u => u.id === user.id ? { ...u, is_suspended: false } : u));
+      if (selectedDetailUser && selectedDetailUser.id === user.id) {
+        setSelectedDetailUser((prev: any) => prev ? { ...prev, is_suspended: false } : null);
+      }
+
+      scheduleUndoAction({
+        id: `user-unsuspend-${user.id}`,
+        message: `Unsuspended "${user.name}"`,
+        subtext: 'Account privileges restored. Click Undo within 5s to cancel.',
+        timerSeconds: 5,
+        onUndo: () => {
+          setActiveUsers(previousActive);
+          setSelectedDetailUser(previousDetail);
+        },
+        onCommit: async () => {
           try {
             setActionLoading(user.id);
             await adminApi.suspendUser(user.id, false);
-            await fetchUsers(); // Refresh list
+            const res = await adminApi.getUsers({ trashed: false, all: true, forceRefresh: true });
+            setActiveUsers(res.data?.data || []);
             if (selectedDetailUser && selectedDetailUser.id === user.id) {
-              fetchUserDetails(user.id); // Refresh drawer
+              fetchUserDetails(user.id);
             }
           } catch (err: any) {
             setActiveUsers(previousActive);
-            if (selectedDetailUser && selectedDetailUser.id === user.id) {
-              setSelectedDetailUser((prev: any) => prev ? { ...prev, is_suspended: true } : null);
-            }
-            setAlertState({ open: true, title: 'Error', message: 'Failed to unsuspend user: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
+            setSelectedDetailUser(previousDetail);
+            setAlertState({
+              open: true,
+              title: 'Unsuspend Failed',
+              message: 'Failed to unsuspend user: ' + (err.response?.data?.message || err.message),
+              onConfirm: () => setAlertState(s => ({ ...s, open: false })),
+            });
           } finally {
             setActionLoading(null);
           }
-        }
+        },
       });
     }
   };
@@ -402,33 +422,53 @@ function UsersContent() {
   };
 
   const handleRestore = (id: number) => {
-    setAlertState({
-      open: true,
-      title: 'Restore User',
-      message: 'Are you sure you want to restore this user?',
-      onConfirm: async () => {
-        const previousArchived = [...archivedUsers];
-        const previousActive = [...activeUsers];
-        const target = archivedUsers.find(u => u.id === id);
-        setArchivedUsers(prev => prev.filter(u => u.id !== id));
-        if (target) {
-          setActiveUsers(prev => [{ ...target, deleted_at: null }, ...prev]);
-        }
-        if (selectedDetailUser && selectedDetailUser.id === id) {
-          setSelectedDetailUser(null);
-        }
+    const target = archivedUsers.find(u => u.id === id);
+    if (!target) return;
+    const userName = target.name || `User #${id}`;
+    const previousArchived = [...archivedUsers];
+    const previousActive = [...activeUsers];
+    const previousDetail = selectedDetailUser;
+
+    setArchivedUsers(prev => prev.filter(u => u.id !== id));
+    setActiveUsers(prev => [{ ...target, deleted_at: null }, ...prev]);
+    if (selectedDetailUser && selectedDetailUser.id === id) {
+      setSelectedDetailUser(null);
+    }
+
+    scheduleUndoAction({
+      id: `user-restore-${id}`,
+      message: `Restored "${userName}"`,
+      subtext: 'User returned to active registry. Click Undo within 5s to cancel.',
+      timerSeconds: 5,
+      onUndo: () => {
+        setArchivedUsers(previousArchived);
+        setActiveUsers(previousActive);
+        setSelectedDetailUser(previousDetail);
+      },
+      onCommit: async () => {
         try {
           setActionLoading(id);
           await adminApi.restoreUser(id);
-          await fetchUsers(true); // Refresh list
+          const [activeRes, archivedRes] = await Promise.all([
+            adminApi.getUsers({ trashed: false, all: true, forceRefresh: true }),
+            adminApi.getUsers({ trashed: true, all: true, forceRefresh: true }),
+          ]);
+          setActiveUsers(activeRes.data?.data || []);
+          setArchivedUsers(archivedRes.data?.data || []);
         } catch (err: any) {
           setArchivedUsers(previousArchived);
           setActiveUsers(previousActive);
-          setAlertState({ open: true, title: 'Error', message: 'Failed to restore user: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
+          setAlertState({
+            open: true,
+            title: 'Restore Failed',
+            message: 'Failed to restore user: ' + (err.response?.data?.message || err.message),
+            onConfirm: () => setAlertState(s => ({ ...s, open: false })),
+          });
         } finally {
           setActionLoading(null);
         }
-      } })
+      },
+    });
   };
 
   const handleManualVerify = async (id: number, status: 'approved' | 'rejected', reason?: string) => {
@@ -1062,6 +1102,12 @@ function UsersContent() {
         </div>
       )}
       <AlertDialog isOpen={alertState.open} title={alertState.title} message={alertState.message} onConfirm={() => { alertState.onConfirm(); setAlertState(s => ({...s, open: false})); }} onCancel={() => setAlertState(s => ({...s, open: false}))} confirmText="Confirm" cancelText="Cancel" />
+      <UndoToast
+        action={activeAction}
+        secondsRemaining={secondsRemaining}
+        onUndo={handleUndo}
+        onDismiss={handleDismissNow}
+      />
     </div>
   );
 }

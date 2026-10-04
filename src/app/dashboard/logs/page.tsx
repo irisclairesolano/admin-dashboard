@@ -114,6 +114,7 @@ function LogsPageContent() {
 
   const formatActionName = (action: string) => {
     return action
+      .replace(/\./g, ' ')
       .replace(/_/g, ' ')
       .replace(/\b\w/g, (char) => char.toUpperCase());
   };
@@ -292,7 +293,7 @@ function LogsPageContent() {
           className="px-2.5 py-1 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer shadow-2xs"
         >
           <option value="">All Actions</option>
-          {Object.keys(ACTION_TYPES).map(act => (
+          {Array.from(new Set(Object.keys(ACTION_TYPES).filter((k) => !k.includes('.')))).map((act) => (
             <option key={act} value={act}>{formatActionName(act)}</option>
           ))}
         </select>

@@ -10,11 +10,12 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { usePolling } from '@/hooks/usePolling';
 import { useInactivityTimer } from '@/hooks/useInactivityTimer';
 import { TwoFactorSetupModal } from '@/components/TwoFactorSetupModal';
-import { ShieldCheck, ShieldAlert, KeyRound } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, KeyRound, Volume2, VolumeX } from 'lucide-react';
 import { authStorage } from '@/lib/authStorage';
 import { humanizeModel } from '@/lib/constants';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { CommandPalette } from '@/components/CommandPalette';
+import { playModerationAlertChime } from '@/lib/sound';
 
 type PrefetchStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -59,6 +60,41 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [, setIsSyncing] = useState(false);
   const [readNotifications, setReadNotifications] = useLocalStorage<string[]>('admin_read_notifications', []);
+  const [soundAlertsEnabled, setSoundAlertsEnabled] = useLocalStorage<boolean>('admin_sound_alerts_enabled', true);
+  const [desktopPermission, setDesktopPermission] = useState<NotificationPermission>('default');
+  const [showPermissionBanner, setShowPermissionBanner] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setDesktopPermission(Notification.permission);
+      const dismissed = sessionStorage.getItem('admin_notif_banner_dismissed');
+      if (Notification.permission === 'default' && !dismissed) {
+        setShowPermissionBanner(true);
+      }
+    }
+  }, []);
+
+  const requestDesktopNotifications = async () => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      try {
+        const permission = await Notification.requestPermission();
+        setDesktopPermission(permission);
+        setShowPermissionBanner(false);
+        if (permission === 'granted') {
+          triggerBrowserNotification('Notifications Enabled', 'You will receive real-time moderation and verification alerts.', '/dashboard');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const dismissNotificationBanner = () => {
+    setShowPermissionBanner(false);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('admin_notif_banner_dismissed', 'true');
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -80,6 +116,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { newReportCount, latestReportAt, clearCount: clearSSECount } = useSSEReports();
 
   const triggerBrowserNotification = useCallback((title: string, body: string, url: string) => {
+    if (soundAlertsEnabled) {
+      playModerationAlertChime();
+    }
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
       try {
         const notif = new Notification(title, { body, icon: '/favicon.ico' });
@@ -91,7 +130,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         console.error('Browser notification error', err);
       }
     }
-  }, [router]);
+  }, [router, soundAlertsEnabled]);
 
   // ── 10-Minute Inactivity Auto-Lockout ─────────────────────────────────────
   const handleInactivityLogout = () => {
@@ -249,8 +288,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (newReportCount > 0) {
       fetchNotifications(true);
+      if (soundAlertsEnabled) {
+        playModerationAlertChime();
+      }
     }
-  }, [newReportCount, latestReportAt, fetchNotifications]);
+  }, [newReportCount, latestReportAt, fetchNotifications, soundAlertsEnabled]);
 
   // Listen for real-time notification refresh events and window focus
   useEffect(() => {
@@ -835,12 +877,56 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-2.5">
+            {/* Audio Alerts Toggle */}
+            <button
+              type="button"
+              onClick={() => setSoundAlertsEnabled((prev) => !prev)}
+              className="p-2.5 bg-white/70 hover:bg-white text-ink hover:text-primary rounded-2xl border border-white/60 hover:border-primary/30 shadow-sm transition-all flex items-center justify-center cursor-pointer"
+              title={soundAlertsEnabled ? 'Mute alert sounds' : 'Enable alert sounds'}
+              aria-label={soundAlertsEnabled ? 'Mute alert sounds' : 'Enable alert sounds'}
+            >
+              {soundAlertsEnabled ? (
+                <Volume2 className="w-5 h-5 text-primary" />
+              ) : (
+                <VolumeX className="w-5 h-5 text-ink-muted" />
+              )}
+            </button>
+
             {/* Action Center / Notifications Button on Content Side */}
             <NotificationButton />
             {/* Admin Profile Menu */}
             <AdminProfileMenu />
           </div>
         </header>
+
+        {/* Desktop Notification Opt-in Banner */}
+        {showPermissionBanner && desktopPermission === 'default' && (
+          <div className="bg-primary/10 border-b border-primary/20 px-4 py-2.5 text-xs text-ink flex items-center justify-between gap-3 shrink-0">
+            <div className="flex items-center gap-2">
+              <i className="lni lni-alarm text-primary text-sm" />
+              <span>
+                Enable desktop notifications to receive immediate alerts for urgent reports and verifications even in background tabs.
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={requestDesktopNotifications}
+                className="px-3 py-1 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-primary-hover transition-colors shadow-2xs cursor-pointer"
+              >
+                Enable Alerts
+              </button>
+              <button
+                type="button"
+                onClick={dismissNotificationBanner}
+                className="text-ink-muted hover:text-ink p-1 rounded transition-colors cursor-pointer"
+                aria-label="Dismiss banner"
+              >
+                <i className="lni lni-close text-xs" />
+              </button>
+            </div>
+          </div>
+        )}
 
         <main className="flex-1 w-full mx-auto relative overflow-y-auto pt-16 lg:pt-0">
           <div className="p-3 sm:p-4 md:p-6 animate-fade-in max-w-[1560px] mx-auto">

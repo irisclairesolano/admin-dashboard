@@ -46,6 +46,24 @@ export const DEFAULT_BADGE_CLASS = 'bg-ink-faint/50 text-ink-soft border border-
 export type ActionBadgeStyle = { bg: string; text: string };
 
 export const ACTION_TYPES: Record<string, ActionBadgeStyle> = {
+  // Backend underscore actions (as logged by Laravel)
+  'approve_user':          { bg: 'bg-status-success/15',  text: 'text-status-success' },
+  'reject_user':           { bg: 'bg-status-error/15',    text: 'text-status-error' },
+  'correction_user':       { bg: 'bg-status-warning/20',  text: 'text-status-warning' },
+  'suspend_user':          { bg: 'bg-status-warning/20',  text: 'text-status-warning' },
+  'unsuspend_user':        { bg: 'bg-status-success/15',  text: 'text-status-success' },
+  'delete_user':           { bg: 'bg-status-error/15',    text: 'text-status-error' },
+  'restore_user':          { bg: 'bg-primary/15',         text: 'text-primary-dark' },
+  'suspend_job':           { bg: 'bg-status-warning/20',  text: 'text-status-warning' },
+  'unsuspend_job':         { bg: 'bg-status-success/15',  text: 'text-status-success' },
+  'delete_job':            { bg: 'bg-status-error/15',    text: 'text-status-error' },
+  'restore_job':           { bg: 'bg-primary/15',         text: 'text-primary-dark' },
+  'lift_blacklist':        { bg: 'bg-status-success/15',  text: 'text-status-success' },
+  'resolve_report':        { bg: 'bg-status-success/15',  text: 'text-status-success' },
+  'dismiss_report':        { bg: 'bg-ink-faint/50',       text: 'text-ink-soft' },
+  'admin_login':           { bg: 'bg-ink-faint/40',       text: 'text-ink-soft' },
+
+  // Dot notation aliases
   'user.approved':         { bg: 'bg-status-success/15',  text: 'text-status-success' },
   'user.rejected':         { bg: 'bg-status-error/15',    text: 'text-status-error' },
   'user.suspended':        { bg: 'bg-status-warning/20',  text: 'text-status-warning' },

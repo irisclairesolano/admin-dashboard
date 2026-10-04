@@ -78,7 +78,7 @@ describe('JobsPage Component', () => {
     });
   });
 
-  it('handles suspending a job post', async () => {
+  it('handles suspending a job post with optimistic update and undo toast', async () => {
     vi.mocked(adminApi.updateJobStatus).mockResolvedValue({
       data: { success: true, message: 'Status updated' },
     } as any);
@@ -92,14 +92,18 @@ describe('JobsPage Component', () => {
     const suspendButtons = screen.getAllByTitle(/suspend/i);
     fireEvent.click(suspendButtons[0]);
 
-    // Click custom AlertDialog confirm button
-    const confirmBtn = screen.getByText('Confirm');
-    fireEvent.click(confirmBtn);
+    // Shows Undo toast immediately
+    expect(screen.getByText(/Suspended "Senior House Painter"/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /undo/i })).toBeInTheDocument();
+
+    // Dismissing / committing the toast invokes API
+    const commitBtn = screen.getByLabelText('Commit now');
+    fireEvent.click(commitBtn);
 
     expect(adminApi.updateJobStatus).toHaveBeenCalledWith(1, 'suspended');
   });
 
-  it('handles deleting a job post', async () => {
+  it('handles deleting a job post with optimistic update and undo toast', async () => {
     vi.mocked(adminApi.deleteJob).mockResolvedValue({
       data: { success: true, message: 'Job deleted' },
     } as any);
@@ -113,11 +117,37 @@ describe('JobsPage Component', () => {
     const deleteButtons = screen.getAllByTitle(/delete/i);
     fireEvent.click(deleteButtons[0]);
 
-    // Click custom AlertDialog confirm button
-    const confirmBtn = screen.getByText('Confirm');
-    fireEvent.click(confirmBtn);
+    // Shows Undo toast immediately
+    expect(screen.getByText(/Archived "Senior House Painter"/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /undo/i })).toBeInTheDocument();
+
+    // Commit via commit/dismiss button
+    const commitBtn = screen.getByLabelText('Commit now');
+    fireEvent.click(commitBtn);
 
     expect(adminApi.deleteJob).toHaveBeenCalledWith(1);
+  });
+
+  it('allows undoing an action via Undo toast before committing', async () => {
+    render(<JobsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Senior House Painter')).toBeInTheDocument();
+    });
+
+    const deleteButtons = screen.getAllByTitle(/delete/i);
+    fireEvent.click(deleteButtons[0]);
+
+    // Optimistically removed
+    expect(screen.queryByText('Senior House Painter')).not.toBeInTheDocument();
+
+    // Click Undo
+    const undoBtn = screen.getByRole('button', { name: /undo/i });
+    fireEvent.click(undoBtn);
+
+    // Restored to active table
+    expect(screen.getByText('Senior House Painter')).toBeInTheDocument();
+    expect(adminApi.deleteJob).not.toHaveBeenCalled();
   });
 
   it('opens centered job details modal when clicking a job row', async () => {

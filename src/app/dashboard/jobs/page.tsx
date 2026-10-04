@@ -11,6 +11,8 @@ import { formatDate } from '@/lib/date';
 import { STATUS_BADGE_MAP, DEFAULT_BADGE_CLASS } from '@/lib/constants';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus, calculateNormalizedHourlyWage } from '@/lib/export/csv';
 import BulkJobActionModal, { BulkJobActionType } from '@/components/jobs/BulkJobActionModal';
+import { useUndoToast } from '@/hooks/useUndoToast';
+import { UndoToast } from '@/components/UndoToast';
 
 const JobDetailModal = dynamic(() => import('@/components/jobs/JobDetailModal'), {
   ssr: false,
@@ -38,6 +40,14 @@ function JobsPageContent() {
     actionType: 'delete',
   });
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
+
+  const {
+    activeAction,
+    secondsRemaining,
+    scheduleUndoAction,
+    handleUndo,
+    handleDismissNow,
+  } = useUndoToast();
 
   const isArchivedView = statusFilter === 'Archived';
   const currentJobList = isArchivedView ? archivedJobs : activeJobs;
@@ -157,34 +167,49 @@ function JobsPageContent() {
   }, [selectedDetailJob]);
 
   const handleDelete = (id: number) => {
-    setAlertState({
-      open: true,
-      title: 'Delete Job Post',
-      message: 'Are you sure you want to soft delete this job post? It will be removed from public view.',
-      onConfirm: async () => {
-        const previousActive = [...activeJobs];
-        const previousArchived = [...archivedJobs];
-        const target = activeJobs.find(j => j.id === id);
-        setActiveJobs(prev => prev.filter(j => j.id !== id));
-        if (target) {
-          setArchivedJobs(prev => [{ ...target, deleted_at: new Date().toISOString() }, ...prev]);
-        }
-        if (selectedDetailJob?.id === id) {
-          setSelectedDetailJob(null);
-        }
-        
+    const target = activeJobs.find(j => j.id === id);
+    if (!target) return;
+    const jobTitle = target.title || `Job #${id}`;
+    const previousActive = [...activeJobs];
+    const previousArchived = [...archivedJobs];
+    const previousDetail = selectedDetailJob;
+
+    // Optimistically remove from active, add to archived
+    setActiveJobs(prev => prev.filter(j => j.id !== id));
+    setArchivedJobs(prev => [{ ...target, deleted_at: new Date().toISOString() }, ...prev]);
+    if (selectedDetailJob?.id === id) {
+      setSelectedDetailJob(null);
+    }
+
+    scheduleUndoAction({
+      id: `job-delete-${id}`,
+      message: `Archived "${jobTitle}"`,
+      subtext: 'Moved to archives. Click Undo within 5s to cancel.',
+      timerSeconds: 5,
+      onUndo: () => {
+        setActiveJobs(previousActive);
+        setArchivedJobs(previousArchived);
+        setSelectedDetailJob(previousDetail);
+      },
+      onCommit: async () => {
         try {
           setActionLoading(id);
           await adminApi.deleteJob(id);
-          await fetchJobs(true);
+          const [activeRes, archivedRes] = await Promise.all([
+            adminApi.getJobs({ trashed: false, all: true, forceRefresh: true }),
+            adminApi.getJobs({ trashed: true, all: true, forceRefresh: true }),
+          ]);
+          setActiveJobs(activeRes.data?.data || []);
+          setArchivedJobs(archivedRes.data?.data || []);
         } catch (err: any) {
           setActiveJobs(previousActive);
           setArchivedJobs(previousArchived);
+          setSelectedDetailJob(previousDetail);
           setAlertState({
             open: true,
-            title: 'Error',
+            title: 'Delete Failed',
             message: 'Failed to delete job: ' + (err.response?.data?.message || err.message),
-            onConfirm: () => {},
+            onConfirm: () => setAlertState(s => ({ ...s, open: false })),
           });
         } finally {
           setActionLoading(null);
@@ -194,34 +219,47 @@ function JobsPageContent() {
   };
 
   const handleRestore = (id: number) => {
-    setAlertState({
-      open: true,
-      title: 'Restore Job Post',
-      message: 'Are you sure you want to restore this job post? It will become visible again on the platform.',
-      onConfirm: async () => {
-        const previousArchived = [...archivedJobs];
-        const previousActive = [...activeJobs];
-        const target = archivedJobs.find(j => j.id === id);
-        setArchivedJobs(prev => prev.filter(j => j.id !== id));
-        if (target) {
-          setActiveJobs(prev => [{ ...target, deleted_at: null }, ...prev]);
-        }
-        if (selectedDetailJob?.id === id) {
-          setSelectedDetailJob(null);
-        }
+    const target = archivedJobs.find(j => j.id === id);
+    if (!target) return;
+    const jobTitle = target.title || `Job #${id}`;
+    const previousArchived = [...archivedJobs];
+    const previousActive = [...activeJobs];
+    const previousDetail = selectedDetailJob;
 
+    setArchivedJobs(prev => prev.filter(j => j.id !== id));
+    setActiveJobs(prev => [{ ...target, deleted_at: null }, ...prev]);
+    if (selectedDetailJob?.id === id) {
+      setSelectedDetailJob(null);
+    }
+
+    scheduleUndoAction({
+      id: `job-restore-${id}`,
+      message: `Restored "${jobTitle}"`,
+      subtext: 'Returned to active listings. Click Undo within 5s to cancel.',
+      timerSeconds: 5,
+      onUndo: () => {
+        setArchivedJobs(previousArchived);
+        setActiveJobs(previousActive);
+        setSelectedDetailJob(previousDetail);
+      },
+      onCommit: async () => {
         try {
           setActionLoading(id);
           await adminApi.restoreJob(id);
-          await fetchJobs(true);
+          const [activeRes, archivedRes] = await Promise.all([
+            adminApi.getJobs({ trashed: false, all: true, forceRefresh: true }),
+            adminApi.getJobs({ trashed: true, all: true, forceRefresh: true }),
+          ]);
+          setActiveJobs(activeRes.data?.data || []);
+          setArchivedJobs(archivedRes.data?.data || []);
         } catch (err: any) {
           setArchivedJobs(previousArchived);
           setActiveJobs(previousActive);
           setAlertState({
             open: true,
-            title: 'Error',
+            title: 'Restore Failed',
             message: 'Failed to restore job: ' + (err.response?.data?.message || err.message),
-            onConfirm: () => {},
+            onConfirm: () => setAlertState(s => ({ ...s, open: false })),
           });
         } finally {
           setActionLoading(null);
@@ -233,35 +271,44 @@ function JobsPageContent() {
   const handleSuspendToggle = (id: number, currentStatus: string) => {
     const isSuspended = currentStatus === 'suspended';
     const newStatus = isSuspended ? 'open' : 'suspended';
-    const actionText = isSuspended ? 'unsuspend' : 'suspend';
+    const actionLabel = isSuspended ? 'Unsuspended' : 'Suspended';
+    const target = activeJobs.find(j => j.id === id);
+    const jobTitle = target?.title || `Job #${id}`;
 
-    setAlertState({
-      open: true,
-      title: `${isSuspended ? 'Unsuspend' : 'Suspend'} Job Post`,
-      message: `Are you sure you want to ${actionText} this job post?`,
-      onConfirm: async () => {
-        const previousActive = [...activeJobs];
-        setActiveJobs(prev =>
-          prev.map(j => (j.id === id ? { ...j, status: newStatus } : j))
-        );
-        if (selectedDetailJob?.id === id) {
-          setSelectedDetailJob((prev: any) => prev ? { ...prev, status: newStatus } : null);
-        }
+    const previousActive = [...activeJobs];
+    const previousDetail = selectedDetailJob;
 
+    // Immediate optimistic update
+    setActiveJobs(prev =>
+      prev.map(j => (j.id === id ? { ...j, status: newStatus } : j))
+    );
+    if (selectedDetailJob?.id === id) {
+      setSelectedDetailJob((prev: any) => prev ? { ...prev, status: newStatus } : null);
+    }
+
+    scheduleUndoAction({
+      id: `job-suspend-${id}`,
+      message: `${actionLabel} "${jobTitle}"`,
+      subtext: isSuspended ? 'Job is now public and accepting applications' : 'Job post has been hidden from public feed',
+      timerSeconds: 5,
+      onUndo: () => {
+        setActiveJobs(previousActive);
+        setSelectedDetailJob(previousDetail);
+      },
+      onCommit: async () => {
         try {
           setActionLoading(id);
           await adminApi.updateJobStatus(id, newStatus);
-          await fetchJobs(true);
+          const res = await adminApi.getJobs({ trashed: false, all: true, forceRefresh: true });
+          setActiveJobs(res.data?.data || []);
         } catch (err: any) {
           setActiveJobs(previousActive);
-          if (selectedDetailJob?.id === id) {
-            setSelectedDetailJob((prev: any) => prev ? { ...prev, status: currentStatus } : null);
-          }
+          setSelectedDetailJob(previousDetail);
           setAlertState({
             open: true,
-            title: 'Error',
-            message: `Failed to ${actionText} job: ` + (err.response?.data?.message || err.message),
-            onConfirm: () => {},
+            title: 'Action Failed',
+            message: `Failed to update job status: ${err.response?.data?.message || err.message}`,
+            onConfirm: () => setAlertState(s => ({ ...s, open: false })),
           });
         } finally {
           setActionLoading(null);
@@ -810,6 +857,13 @@ function JobsPageContent() {
         onCancel={() => setAlertState(s => ({...s, open: false}))}
         confirmText="Confirm"
         cancelText="Cancel"
+      />
+
+      <UndoToast
+        action={activeAction}
+        secondsRemaining={secondsRemaining}
+        onUndo={handleUndo}
+        onDismiss={handleDismissNow}
       />
     </>
   );
