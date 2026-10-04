@@ -60,7 +60,7 @@ function VerificationsPageContent() {
   const [error, setError] = useState('');
   const [reviewUser, setReviewUser] = useState<any | null>(null);
   const [actionLoading, setActionLoading] = useState<'approved' | 'rejected' | null>(null);
-  const [statusTab, setStatusTab] = useState<'pending' | 'rejected' | 'all'>('pending');
+  const [statusTab, setStatusTab] = useState<'pending' | 'rejected' | 'approved' | 'all'>('pending');
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [slaFilter, setSlaFilter] = useState<'all' | 'overdue' | 'urgent' | 'priority' | 'normal'>('all');
@@ -271,7 +271,9 @@ function VerificationsPageContent() {
       ? allPendingUsers
       : statusTab === 'rejected'
         ? allRejectedUsers
-        : users;
+        : statusTab === 'approved'
+          ? allApprovedUsers
+          : users;
 
   const displayedUsers = currentTabUsers
     .filter((u) => {
@@ -437,6 +439,27 @@ function VerificationsPageContent() {
             }`}
           >
             {allRejectedUsers.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => {
+            setStatusTab('approved');
+            setCurrentPage(1);
+          }}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-body font-bold transition-all cursor-pointer ${
+            statusTab === 'approved'
+              ? 'bg-emerald-600 text-white shadow-2xs'
+              : 'bg-white/80 text-ink-muted hover:text-ink hover:bg-white border border-ink-faint/40'
+          }`}
+        >
+          <span>Approved</span>
+          <span
+            className={`px-1.5 py-0.5 rounded-full text-[10px] font-numeric font-bold ${
+              statusTab === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'
+            }`}
+          >
+            {allApprovedUsers.length}
           </span>
         </button>
 
