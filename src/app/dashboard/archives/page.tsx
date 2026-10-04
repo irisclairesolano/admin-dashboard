@@ -38,6 +38,7 @@ function ArchivesPageContent() {
     name: string;
   } | null>(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     try {
@@ -94,9 +95,13 @@ function ArchivesPageContent() {
     }
   }, [urlSearch, activeTab]);
 
-  const fetchArchives = async (forceRefresh: boolean = false) => {
+  const fetchArchives = async (forceRefresh: boolean = false, isSilent: boolean = false) => {
     try {
-      setLoading(true);
+      if (!isSilent) {
+        setLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
       const [usersRes, jobsRes] = await Promise.all([
         adminApi.getUsers(true, forceRefresh), // trashed users
         adminApi.getJobs(true, forceRefresh),  // trashed jobs
@@ -104,9 +109,13 @@ function ArchivesPageContent() {
       setUsers(usersRes.data.data || []);
       setJobs(jobsRes.data.data || []);
     } catch (err: any) {
-      setError(err.message || 'Failed to load archives');
+      if (!isSilent) setError(err.message || 'Failed to load archives');
     } finally {
-      setLoading(false);
+      if (!isSilent) {
+        setLoading(false);
+      } else {
+        setIsRefreshing(false);
+      }
     }
   };
 
@@ -124,7 +133,7 @@ function ArchivesPageContent() {
         try {
           setActionLoading(`user-${id}`);
           await adminApi.restoreUser(id);
-          await fetchArchives(true);
+          await fetchArchives(true, true);
         } catch (err: any) {
           setUsers(previousUsers);
           showAlert('Error', 'Failed to restore user: ' + (err.response?.data?.message || err.message));
@@ -153,7 +162,7 @@ function ArchivesPageContent() {
         try {
           setActionLoading(`job-${id}`);
           await adminApi.restoreJob(id);
-          await fetchArchives(true);
+          await fetchArchives(true, true);
         } catch (err: any) {
           setJobs(previousJobs);
           showAlert('Error', 'Failed to restore job: ' + (err.response?.data?.message || err.message));
@@ -183,7 +192,7 @@ function ArchivesPageContent() {
       try {
         setActionLoading(`user-force-${id}`);
         await adminApi.permanentDeleteUser(id);
-        await fetchArchives(true);
+        await fetchArchives(true, true);
       } catch (err: any) {
         setUsers(previousUsers);
         showAlert('Error', 'Failed to permanently delete user: ' + (err.response?.data?.message || err.message));
@@ -196,7 +205,7 @@ function ArchivesPageContent() {
       try {
         setActionLoading(`job-force-${id}`);
         await adminApi.permanentDeleteJob(id);
-        await fetchArchives(true);
+        await fetchArchives(true, true);
       } catch (err: any) {
         setJobs(previousJobs);
         showAlert('Error', 'Failed to permanently delete job: ' + (err.response?.data?.message || err.message));
@@ -229,11 +238,12 @@ function ArchivesPageContent() {
           </p>
         </div>
         <button 
-          onClick={() => fetchArchives(true)}
-          className="flex items-center px-3 py-1.5 bg-white rounded-lg text-ink-soft hover:text-ink font-body font-semibold hover:bg-slate-50 border border-ink-faint/40 shadow-2xs transition-colors text-xs cursor-pointer"
+          onClick={() => fetchArchives(true, true)}
+          disabled={isRefreshing}
+          className="flex items-center px-3 py-1.5 bg-white rounded-lg text-ink-soft hover:text-ink font-body font-semibold hover:bg-slate-50 border border-ink-faint/40 shadow-2xs transition-colors text-xs cursor-pointer disabled:opacity-60"
         >
-          <i className="lni lni-reload mr-1.5 text-xs" />
-          Refresh
+          <i className={`lni lni-reload mr-1.5 text-xs ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
 
@@ -481,7 +491,7 @@ function ArchivesPageContent() {
             setSelectedDetailJob(null);
             handlePermanentDeleteJob(id, selectedDetailJob.title);
           }}
-          onRefresh={() => fetchArchives(true)}
+          onRefresh={() => fetchArchives(true, true)}
         />
       )}
       <AlertDialog
