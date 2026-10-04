@@ -22,7 +22,6 @@ import {
   ShieldCheck,
   Layers,
 } from 'lucide-react';
-import Image from 'next/image';
 import Avatar from '@/components/Avatar';
 import { adminApi } from '@/lib/api';
 import { formatDate } from '@/lib/date';
@@ -59,7 +58,11 @@ export default function JobDetailModal({
   const [internalJobData, setInternalJobData] = useState<any>(null);
   const [internalApplications, setInternalApplications] = useState<any[]>([]);
   const [internalReports, setInternalReports] = useState<any[]>([]);
-  const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
+  const [lightboxMedia, setLightboxMedia] = useState<{
+    type: 'image' | 'video';
+    url: string;
+    title: string;
+  } | null>(null);
 
   const applications = applicationsData ?? internalApplications;
   const reports = reportsData ?? internalReports;
@@ -72,8 +75,8 @@ export default function JobDetailModal({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (lightboxImage) {
-          setLightboxImage(null);
+        if (lightboxMedia) {
+          setLightboxMedia(null);
         } else {
           onClose();
         }
@@ -81,7 +84,7 @@ export default function JobDetailModal({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, lightboxImage]);
+  }, [onClose, lightboxMedia]);
 
   // Fetch detailed job info (applications, reports, employerProfile)
   useEffect(() => {
@@ -155,18 +158,40 @@ export default function JobDetailModal({
     currentJob.duration_type
   );
 
-  // Photos parsing
+  // Photos and Worksites media parsing
+  const rawPhotos = currentJob.photos || currentJob.worksite_photos || currentJob.images || currentJob.job_photos || [];
   let photos: string[] = [];
-  if (Array.isArray(currentJob.photos)) {
-    photos = currentJob.photos;
-  } else if (typeof currentJob.photos === 'string' && currentJob.photos.trim() !== '') {
+  if (Array.isArray(rawPhotos)) {
+    photos = rawPhotos
+      .map((p: any) => (typeof p === 'string' ? p : p?.url || p?.uri || ''))
+      .filter((url: string) => typeof url === 'string' && url.trim().length > 0);
+  } else if (typeof rawPhotos === 'string' && rawPhotos.trim() !== '') {
     try {
-      const parsed = JSON.parse(currentJob.photos);
-      if (Array.isArray(parsed)) photos = parsed;
+      const parsed = JSON.parse(rawPhotos);
+      if (Array.isArray(parsed)) {
+        photos = parsed
+          .map((p: any) => (typeof p === 'string' ? p : p?.url || p?.uri || ''))
+          .filter((url: string) => typeof url === 'string' && url.trim().length > 0);
+      } else if (typeof parsed === 'string' && parsed.trim().length > 0) {
+        photos = [parsed.trim()];
+      }
     } catch {
-      photos = [currentJob.photos];
+      photos = [rawPhotos.trim()];
     }
   }
+
+  if (photos.length === 0 && currentJob.image_url && typeof currentJob.image_url === 'string' && currentJob.image_url.trim().length > 0) {
+    photos = [currentJob.image_url.trim()];
+  }
+
+  const videoUrl =
+    typeof currentJob.video_url === 'string' && currentJob.video_url.trim().length > 0
+      ? currentJob.video_url.trim()
+      : typeof currentJob.video === 'string' && currentJob.video.trim().length > 0
+      ? currentJob.video.trim()
+      : null;
+
+  const hasMedia = photos.length > 0 || !!videoUrl;
 
   const reportsCount = reports.length > 0 ? reports.length : currentJob.reports_count ?? 0;
   const appsCount = applications.length > 0 ? applications.length : currentJob.applications_count ?? 0;
@@ -473,31 +498,62 @@ export default function JobDetailModal({
                 </div>
               </div>
 
-              {/* Photos Gallery */}
-              {photos.length > 0 && (
+              {/* Photos & Worksite Media Gallery */}
+              {hasMedia && (
                 <div>
-                  <h4 className="text-xs font-bold text-ink-soft uppercase tracking-wider mb-2">
-                    Worksite / Job Media ({photos.length})
+                  <h4 className="text-xs font-bold text-ink-soft uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <span>Worksite / Job Media</span>
+                    <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold">
+                      {photos.length + (videoUrl ? 1 : 0)}
+                    </span>
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {photos.map((photoUrl, index) => (
                       <div
                         key={index}
-                        onClick={() => setLightboxImage({ url: photoUrl, title: `${currentJob.title} - Photo #${index + 1}` })}
+                        onClick={() =>
+                          setLightboxMedia({
+                            type: 'image',
+                            url: photoUrl,
+                            title: `${currentJob.title} - Photo #${index + 1}`,
+                          })
+                        }
                         className="group relative h-28 rounded-xl overflow-hidden border border-ink-faint bg-paper cursor-pointer hover:shadow-md transition-all"
                       >
-                        <Image
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
                           src={photoUrl}
                           alt={`Job photo ${index + 1}`}
-                          fill
-                          unoptimized
-                          className="object-cover group-hover:scale-105 transition-transform duration-200"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%2394a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>';
+                          }}
                         />
-                        <div className="absolute inset-0 bg-ink/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                        <div className="absolute inset-0 bg-ink/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
                           <Eye className="w-5 h-5" />
                         </div>
                       </div>
                     ))}
+
+                    {videoUrl && (
+                      <div
+                        onClick={() =>
+                          setLightboxMedia({
+                            type: 'video',
+                            url: videoUrl,
+                            title: `${currentJob.title} - Worksite Video`,
+                          })
+                        }
+                        className="group relative h-28 rounded-xl overflow-hidden border border-primary/30 bg-ink text-white cursor-pointer hover:shadow-md transition-all flex flex-col items-center justify-center p-2"
+                      >
+                        <div className="w-9 h-9 rounded-full bg-primary/80 group-hover:bg-primary flex items-center justify-center text-white transition-transform group-hover:scale-110 mb-1">
+                          <Eye className="w-4 h-4 ml-0.5" />
+                        </div>
+                        <span className="text-[10px] font-bold text-white/90 uppercase tracking-wider">
+                          Play Video
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -831,37 +887,56 @@ export default function JobDetailModal({
       </div>
 
       {/* Fullscreen Lightbox Modal */}
-      {lightboxImage && (
+      {lightboxMedia && (
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="job-lightbox-title"
           className="fixed inset-0 bg-black/90 z-[120] flex flex-col items-center justify-center p-4 backdrop-blur-md animate-fade-in"
-          onClick={() => setLightboxImage(null)}
+          onClick={() => setLightboxMedia(null)}
         >
           <div className="absolute top-4 left-0 right-0 px-6 flex justify-between items-center text-white z-10">
-            <h4 id="job-lightbox-title" className="font-display text-lg font-bold tracking-wide">
-              {lightboxImage.title}
+            <h4 id="job-lightbox-title" className="font-display text-lg font-bold tracking-wide truncate max-w-md">
+              {lightboxMedia.title}
             </h4>
-            <button
-              onClick={() => setLightboxImage(null)}
-              className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all flex items-center justify-center cursor-pointer"
-              aria-label="Close image viewer"
-            >
-              <XCircle className="w-8 h-8" />
-            </button>
+            <div className="flex items-center gap-3">
+              <a
+                href={lightboxMedia.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-xs font-semibold text-white/80 hover:text-white underline px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition"
+              >
+                Open Original ↗
+              </a>
+              <button
+                onClick={() => setLightboxMedia(null)}
+                className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all flex items-center justify-center cursor-pointer"
+                aria-label="Close media viewer"
+              >
+                <XCircle className="w-8 h-8" />
+              </button>
+            </div>
           </div>
 
           <div className="w-full h-full max-w-5xl max-h-[80vh] flex items-center justify-center p-4">
-            <Image
-              src={lightboxImage.url}
-              alt={lightboxImage.title}
-              width={800}
-              height={600}
-              unoptimized
-              className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-scale-up"
-              onClick={(e) => e.stopPropagation()}
-            />
+            {lightboxMedia.type === 'video' ? (
+              <video
+                src={lightboxMedia.url}
+                controls
+                autoPlay
+                className="max-w-full max-h-full rounded-2xl shadow-2xl animate-scale-up"
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={lightboxMedia.url}
+                alt={lightboxMedia.title}
+                className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl animate-scale-up"
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
           </div>
 
           <p className="text-white/60 text-xs font-body mt-4">

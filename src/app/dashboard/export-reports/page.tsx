@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback, useDeferredValue } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useDeferredValue, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import { authStorage } from '@/lib/authStorage';
 import { formatDate } from '@/lib/date';
@@ -10,24 +11,87 @@ import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatu
 type ReportType = 'users' | 'jobs' | 'demographics' | 'verifications' | 'moderation';
 type DatePreset = 'all' | 'today' | '7days' | '30days' | 'year' | 'custom';
 
-export default function ExportReportsPage() {
-  const [reportType, setReportType] = useState<ReportType>('users');
-  const [datePreset, setDatePreset] = useState<DatePreset>('all');
-  const [customStartDate, setCustomStartDate] = useState('');
-  const [customEndDate, setCustomEndDate] = useState('');
-  const [roleFilter, setRoleFilter] = useState<'all' | 'worker' | 'employer'>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [municipalityFilter, setMunicipalityFilter] = useState<string>('all');
-  const [barangayFilter, setBarangayFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+function ReportSkeletonTable({ columns = 6 }: { columns?: number }) {
+  return (
+    <div className="p-4 space-y-3 animate-pulse">
+      <div className="h-9 bg-slate-100 rounded-lg w-full mb-3" />
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="flex items-center gap-4 py-3 border-b border-slate-100">
+          {[...Array(columns)].map((_, j) => (
+            <div
+              key={j}
+              className="h-4 bg-slate-200/70 rounded"
+              style={{ width: `${j === 0 ? 30 : j === 1 ? 20 : 15}%` }}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ExportReportsContent() {
+  const searchParams = useSearchParams();
+  const [reportType, setReportType] = useState<ReportType>(() => (searchParams.get('tab') as ReportType) || 'users');
+  const [datePreset, setDatePreset] = useState<DatePreset>(() => (searchParams.get('preset') as DatePreset) || 'all');
+  const [customStartDate, setCustomStartDate] = useState(() => searchParams.get('start') || '');
+  const [customEndDate, setCustomEndDate] = useState(() => searchParams.get('end') || '');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'worker' | 'employer'>(() => (searchParams.get('role') as any) || 'all');
+  const [categoryFilter, setCategoryFilter] = useState(() => searchParams.get('category') || 'all');
+  const [municipalityFilter, setMunicipalityFilter] = useState(() => searchParams.get('municipality') || 'all');
+  const [barangayFilter, setBarangayFilter] = useState(() => searchParams.get('barangay') || 'all');
+  const [statusFilter, setStatusFilter] = useState(() => searchParams.get('status') || 'all');
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || '');
   const deferredSearchQuery = useDeferredValue(searchQuery);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 25;
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  useEffect(() => {
+    const handleBeforePrint = () => setIsPrinting(true);
+    const handleAfterPrint = () => setIsPrinting(false);
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, []);
+
+  // Sync tab & filter state into URL parameters (U3)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams();
+    if (reportType !== 'users') params.set('tab', reportType);
+    if (datePreset !== 'all') params.set('preset', datePreset);
+    if (customStartDate) params.set('start', customStartDate);
+    if (customEndDate) params.set('end', customEndDate);
+    if (roleFilter !== 'all') params.set('role', roleFilter);
+    if (categoryFilter !== 'all') params.set('category', categoryFilter);
+    if (municipalityFilter !== 'all') params.set('municipality', municipalityFilter);
+    if (barangayFilter !== 'all') params.set('barangay', barangayFilter);
+    if (statusFilter !== 'all') params.set('status', statusFilter);
+    if (searchQuery.trim()) params.set('q', searchQuery.trim());
+
+    const qs = params.toString();
+    const newUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+    window.history.replaceState(null, '', newUrl);
+  }, [reportType, datePreset, customStartDate, customEndDate, roleFilter, categoryFilter, municipalityFilter, barangayFilter, statusFilter, searchQuery]);
+
+  // Reset page number on filter changes (P3)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [reportType, datePreset, customStartDate, customEndDate, roleFilter, categoryFilter, municipalityFilter, barangayFilter, statusFilter, deferredSearchQuery]);
 
   const [users, setUsers] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [verifications, setVerifications] = useState<any[]>([]);
   const [reports, setReports] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [loadingVerifs, setLoadingVerifs] = useState(true);
+  const [loadingReports, setLoadingReports] = useState(true);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [error, setError] = useState('');
   const [exportError, setExportError] = useState('');
@@ -41,33 +105,45 @@ export default function ExportReportsPage() {
     } catch {}
   }, []);
 
-  // Fetch all necessary data
+  // Fetch all necessary data with independent progress (U4)
   const fetchData = useCallback(async (isManualRefresh: boolean = false) => {
-    setLoading(true);
     setError('');
-    try {
-      const [usersRes, jobsRes, verifRes, reportsRes] = await Promise.all([
-        adminApi.getUsers({ all: true, forceRefresh: isManualRefresh }),
-        adminApi.getJobs({ all: true, forceRefresh: isManualRefresh }),
-        adminApi.getVerifications({ all: true, status: 'all', forceRefresh: isManualRefresh }),
-        adminApi.getReports('all', 1, '', true, isManualRefresh).catch(() => ({ data: [] })),
-      ]);
+    setLoadingUsers(true);
+    setLoadingJobs(true);
+    setLoadingVerifs(true);
+    setLoadingReports(true);
 
-      const fetchedUsers = usersRes.data?.data || usersRes.data || [];
-      const fetchedJobs = jobsRes.data?.data || jobsRes.data || [];
-      const fetchedVerifs = verifRes.data?.data || verifRes.data || [];
-      const fetchedReports = reportsRes.data?.data || reportsRes.data || [];
+    const loadUsers = adminApi.getUsers({ all: true, forceRefresh: isManualRefresh })
+      .then((res) => {
+        const list = res.data?.data || res.data || [];
+        setUsers(list);
+        setVerifications((prev) => (prev.length > 0 ? prev : list.filter((u: any) => u.role !== 'admin')));
+      })
+      .catch((err) => {
+        console.error('Failed to load users:', err);
+        setError(err.message || 'Unable to load user records.');
+      })
+      .finally(() => setLoadingUsers(false));
 
-      setUsers(fetchedUsers);
-      setJobs(fetchedJobs);
-      setVerifications(fetchedVerifs.length > 0 ? fetchedVerifs : fetchedUsers.filter((u: any) => u.role !== 'admin'));
-      setReports(fetchedReports);
-    } catch (err: any) {
-      console.error('Failed to load report data:', err);
-      setError(err.message || 'Unable to load report data. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    const loadJobs = adminApi.getJobs({ all: true, forceRefresh: isManualRefresh })
+      .then((res) => setJobs(res.data?.data || res.data || []))
+      .catch((err) => console.error('Failed to load jobs:', err))
+      .finally(() => setLoadingJobs(false));
+
+    const loadVerifs = adminApi.getVerifications({ all: true, status: 'all', forceRefresh: isManualRefresh })
+      .then((res) => {
+        const list = res.data?.data || res.data || [];
+        if (list.length > 0) setVerifications(list);
+      })
+      .catch((err) => console.error('Failed to load verifications:', err))
+      .finally(() => setLoadingVerifs(false));
+
+    const loadReports = adminApi.getReports('all', 1, '', true, isManualRefresh)
+      .then((res) => setReports(res.data?.data || res.data || []))
+      .catch(() => setReports([]))
+      .finally(() => setLoadingReports(false));
+
+    await Promise.allSettled([loadUsers, loadJobs, loadVerifs, loadReports]);
   }, []);
 
   useEffect(() => {
@@ -261,9 +337,6 @@ export default function ExportReportsPage() {
 
     return Array.from(map.values()).sort((a, b) => b.totalImpact - a.totalImpact);
   }, [municipalSummary]);
-
-  // Backward-compatible alias for any residual references
-  const barangaySummary = municipalSummary;
 
   // 4. Verifications Audit
   const filteredVerifications = useMemo(() => {
@@ -783,6 +856,16 @@ export default function ExportReportsPage() {
           >
             <i className={`lni lni-reload text-xs ${loading ? 'animate-spin' : ''}`} />
             Refresh
+          </button>
+
+          <button
+            onClick={handleExportCSV}
+            disabled={loading}
+            className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            title="Export active report view as CSV (.csv)"
+          >
+            <i className="lni lni-download text-xs" />
+            Export CSV
           </button>
 
           <button

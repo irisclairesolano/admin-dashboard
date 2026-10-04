@@ -368,11 +368,11 @@ function UsersContent() {
   };
 
   const handleConfirmDelete = async (userId: number, reason: string) => {
+    const previousActive = [...activeUsers];
+    const previousArchived = [...archivedUsers];
     try {
       setDeleteSubmitting(true);
       setActionLoading(userId);
-      const previousActive = [...activeUsers];
-      const previousArchived = [...archivedUsers];
       const target = activeUsers.find(u => u.id === userId);
       setActiveUsers(prev => prev.filter(u => u.id !== userId));
       if (target) {
@@ -386,6 +386,8 @@ function UsersContent() {
       setDeleteModalUser(null);
       await fetchUsers(true);
     } catch (err: any) {
+      setActiveUsers(previousActive);
+      setArchivedUsers(previousArchived);
       setAlertState({
         open: true,
         title: 'Delete Failed',
