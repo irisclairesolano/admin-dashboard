@@ -11,6 +11,37 @@ import { useRouter } from 'next/navigation';
 import { AIInsightsCard, InsightsData } from '@/components/AIInsightsCard';
 import { CHART_COLORS } from '@/lib/constants';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus } from '@/lib/export/csv';
+import dynamic from 'next/dynamic';
+
+const ApplicationVolumeChart = dynamic(
+  () => import('@/components/dashboard/ApplicationVolumeChart'),
+  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 rounded-xl" /> }
+);
+
+const UserGrowthChart = dynamic(
+  () => import('@/components/dashboard/UserGrowthChart'),
+  { ssr: false, loading: () => <div className="h-48 w-full animate-pulse bg-slate-100 rounded-xl" /> }
+);
+
+const ConversionVelocityChart = dynamic(
+  () => import('@/components/dashboard/ConversionVelocityChart'),
+  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 rounded-xl" /> }
+);
+
+const JobsDistributionChart = dynamic(
+  () => import('@/components/dashboard/JobsDistributionChart'),
+  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 rounded-xl" /> }
+);
+
+const SkillDistributionPieChart = dynamic(
+  () => import('@/components/dashboard/SkillDistributionPieChart'),
+  { ssr: false, loading: () => <div className="h-48 w-full animate-pulse bg-slate-100 rounded-xl" /> }
+);
+
+const GeographicActivityChart = dynamic(
+  () => import('@/components/dashboard/GeographicActivityChart'),
+  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 rounded-xl" /> }
+);
 
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
@@ -1616,64 +1647,12 @@ export default function AnalyticsDashboard() {
                         message="Activity will appear here as workers browse and apply to published job posts."
                       />
                     ) : (
-                      <div className="h-56 w-full min-w-0 font-numeric">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={transformedApplicationVolume} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <defs>
-                              <linearGradient id="colorAppsOverview" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#3E7648" stopOpacity={0.35}/>
-                                <stop offset="95%" stopColor="#3E7648" stopOpacity={0.02}/>
-                              </linearGradient>
-                              <linearGradient id="colorJobsOverview" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#0284C7" stopOpacity={0.4}/>
-                                <stop offset="95%" stopColor="#0284C7" stopOpacity={0.02}/>
-                              </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.6} />
-                            <XAxis
-                              dataKey="name"
-                              axisLine={false}
-                              tickLine={false}
-                              tick={{ fill: '#8C7B6A', fontSize: 11 }}
-                              tickFormatter={(val) => formatAxisTick(val, intervalFilter)}
-                              dy={6}
-                            />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                            <Tooltip
-                              shared
-                              contentStyle={{
-                                borderRadius: '12px',
-                                border: '1px solid rgba(255,255,255,0.7)',
-                                boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)',
-                                backgroundColor: 'rgba(255, 255, 255, 0.96)',
-                                backdropFilter: 'blur(8px)',
-                              }}
-                              labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
-                            />
-                            <Legend wrapperStyle={{ paddingTop: 6, fontSize: 11 }} />
-                            <Area
-                              type="monotone"
-                              dataKey="applications"
-                              name="Applications Filed"
-                              stroke="#3E7648"
-                              strokeWidth={2.2}
-                              fillOpacity={1}
-                              fill="url(#colorAppsOverview)"
-                              activeDot={{ r: 5, strokeWidth: 0 }}
-                            />
-                            <Area
-                              type="monotone"
-                              dataKey="jobs"
-                              name="Job Posts"
-                              stroke="#0284C7"
-                              strokeWidth={2.2}
-                              fillOpacity={1}
-                              fill="url(#colorJobsOverview)"
-                              activeDot={{ r: 5, strokeWidth: 0 }}
-                            />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </div>
+                      <ApplicationVolumeChart
+                        data={transformedApplicationVolume}
+                        intervalFilter={intervalFilter}
+                        formatAxisTick={formatAxisTick}
+                        formatPeriodLabel={formatPeriodLabel}
+                      />
                     )}
                   </div>
 
@@ -1700,30 +1679,13 @@ export default function AnalyticsDashboard() {
                           message="New account signups will populate here as workers and employers join."
                         />
                       ) : (
-                        <div className="h-48 w-full min-w-0 font-numeric">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                              <XAxis
-                                dataKey="name"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: '#8C7B6A', fontSize: 10 }}
-                                tickFormatter={(val) => formatAxisTick(val, intervalFilter)}
-                                dy={6}
-                              />
-                              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                              <Tooltip
-                                cursor={{ fill: '#FDF8F0' }}
-                                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.7)', backgroundColor: 'rgba(255, 255, 255, 0.96)' }}
-                                labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
-                              />
-                              <Legend wrapperStyle={{ paddingTop: 6, fontSize: 11 }} />
-                              <Bar dataKey="workers" name="Workers" fill="#3E7648" radius={[4, 4, 0, 0]} />
-                              <Bar dataKey="employers" name="Employers" fill="#0284C7" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
+                        <UserGrowthChart
+                          data={transformedUserGrowth}
+                          intervalFilter={intervalFilter}
+                          formatAxisTick={formatAxisTick}
+                          formatPeriodLabel={formatPeriodLabel}
+                          heightClass="h-48"
+                        />
                       )}
                     </div>
 
@@ -1748,22 +1710,10 @@ export default function AnalyticsDashboard() {
                           message="Geographic labor activity will display as job postings and applications are created."
                         />
                       ) : (
-                        <div className="h-48 w-full min-w-0 font-numeric">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={transformedGeographicActivity.slice(0, 6)} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} dy={6} />
-                              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                              <Tooltip
-                                cursor={{ fill: '#FDF8F0' }}
-                                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.7)', backgroundColor: 'rgba(255, 255, 255, 0.96)' }}
-                              />
-                              <Legend wrapperStyle={{ paddingTop: 6, fontSize: 11 }} />
-                              <Bar dataKey="jobs" name="Job Posts" fill="#0284C7" radius={[4, 4, 0, 0]} />
-                              <Bar dataKey="applications" name="Applications" fill="#3E7648" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
+                        <GeographicActivityChart
+                          data={transformedGeographicActivity.slice(0, 6)}
+                          heightClass="h-48"
+                        />
                       )}
                     </div>
                   </div>
@@ -2090,44 +2040,12 @@ export default function AnalyticsDashboard() {
                           { label: 'Employers', value: detailedTotals.new_employers }
                         ]}
                       />
-                      <div className="h-56 w-full min-w-0 font-numeric">
-                        {transformedUserGrowth.length === 0 || transformedUserGrowth.every((i: any) => (i.workers || 0) === 0 && (i.employers || 0) === 0) ? (
-                          <ChartEmptyState
-                            title="No User Registrations"
-                            message={`No new user registrations recorded between ${from} and ${to}.`}
-                          />
-                        ) : (
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={transformedUserGrowth} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} tickFormatter={(val) => formatAxisTick(val, intervalFilter)} dy={6} />
-                              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                              <Tooltip 
-                                cursor={{ fill: '#FDF8F0' }}
-                                labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
-                                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
-                              />
-                              <Legend wrapperStyle={{ paddingTop: 6, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
-                              {(trendsRoleFilter === 'all' || trendsRoleFilter === 'worker') && (
-                                <Bar dataKey="workers" name="Workers" fill="url(#colorWorkers)" radius={[4, 4, 0, 0]} />
-                              )}
-                              {(trendsRoleFilter === 'all' || trendsRoleFilter === 'employer') && (
-                                <Bar dataKey="employers" name="Employers" fill="url(#colorEmployers)" radius={[4, 4, 0, 0]} />
-                              )}
-                              <defs>
-                                <linearGradient id="colorWorkers" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="0%" stopColor="#FFB6C1" stopOpacity={1}/>
-                                  <stop offset="100%" stopColor="#FFB6C1" stopOpacity={0.7}/>
-                                </linearGradient>
-                                <linearGradient id="colorEmployers" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="0%" stopColor="#87CEEB" stopOpacity={1}/>
-                                  <stop offset="100%" stopColor="#87CEEB" stopOpacity={0.7}/>
-                                </linearGradient>
-                              </defs>
-                            </BarChart>
-                          </ResponsiveContainer>
-                        )}
-                      </div>
+                      <UserGrowthChart
+                        data={transformedUserGrowth}
+                        intervalFilter={intervalFilter}
+                        roleFilter={trendsRoleFilter}
+                        heightClass="h-56"
+                      />
                     </div>
 
                     {/* Application-to-Hire Conversion Velocity Area Chart */}
@@ -2152,44 +2070,12 @@ export default function AnalyticsDashboard() {
                           }
                         ]}
                       />
-                      <div className="h-56 w-full min-w-0 font-numeric">
-                        {transformedConversionVelocity.length === 0 || transformedConversionVelocity.every((i: any) => (i.applications || 0) === 0 && (i.completed_hires || 0) === 0) ? (
-                          <ChartEmptyState
-                            title="No Conversion Activity"
-                            message={`No applications or completed hires recorded between ${from} and ${to}.`}
-                          />
-                        ) : (
-                          <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={transformedConversionVelocity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                              <defs>
-                                <linearGradient id="colorAppsVelocity" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#FFB6C1" stopOpacity={0.35}/>
-                                  <stop offset="95%" stopColor="#FFB6C1" stopOpacity={0}/>
-                                </linearGradient>
-                                <linearGradient id="colorHiresVelocity" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.35}/>
-                                  <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
-                                </linearGradient>
-                              </defs>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} tickFormatter={(val) => formatAxisTick(val, intervalFilter)} dy={6} />
-                              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                              <Tooltip 
-                                shared
-                                labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
-                                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
-                              />
-                              <Legend wrapperStyle={{ paddingTop: 6, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
-                              {(trendsVolumeFilter === 'all' || trendsVolumeFilter === 'applications') && (
-                                <Area type="monotone" dataKey="applications" name="Applications Filed" stroke="#FFB6C1" strokeWidth={2.5} fillOpacity={1} fill="url(#colorAppsVelocity)" activeDot={{ r: 5, strokeWidth: 0 }} />
-                              )}
-                              {(trendsVolumeFilter === 'all' || trendsVolumeFilter === 'hires') && (
-                                <Area type="monotone" dataKey="completed_hires" name="Completed Hires" stroke="#10B981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorHiresVelocity)" activeDot={{ r: 5, strokeWidth: 0 }} />
-                              )}
-                            </AreaChart>
-                          </ResponsiveContainer>
-                        )}
-                      </div>
+                      <ConversionVelocityChart
+                        data={transformedConversionVelocity}
+                        intervalFilter={intervalFilter}
+                        trendsVolumeFilter={trendsVolumeFilter}
+                        heightClass="h-56"
+                      />
                     </div>
                   </div>
                 </>
@@ -2417,34 +2303,10 @@ export default function AnalyticsDashboard() {
                           { label: 'Total Job Posts', value: transformedJobsData.reduce((acc: number, cur: any) => acc + (cur.jobs || 0), 0) }
                         ]}
                       />
-                      <div className="h-56 w-full min-w-0 font-numeric">
-                        {transformedJobsData.length === 0 || transformedJobsData.every((i: any) => (i.jobs || 0) === 0) ? (
-                          <ChartEmptyState
-                            title="No Category Demand Recorded"
-                            message={`No job posts categorized between ${from} and ${to}.`}
-                          />
-                        ) : (
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={transformedJobsData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E8DFCE" opacity={0.5} />
-                              <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} allowDecimals={false} />
-                              <YAxis
-                                dataKey="name"
-                                type="category"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: '#8C7B6A', fontSize: 10 }}
-                                width={95}
-                                tickFormatter={(value) => (value.length > 12 ? `${value.slice(0, 12)}...` : value)}
-                              />
-                              <Tooltip 
-                                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
-                              />
-                              <Bar dataKey="jobs" name="Job Posts" fill="#3E7648" radius={[0, 4, 4, 0]} barSize={14} />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        )}
-                      </div>
+                      <JobsDistributionChart
+                        data={transformedJobsData}
+                        heightClass="h-56"
+                      />
                     </div>
 
                     {/* Skill Profile Distribution Donut Chart */}
@@ -2460,79 +2322,20 @@ export default function AnalyticsDashboard() {
                           { label: 'Unique Skills', value: transformedSkillDistribution.length }
                         ]}
                       />
-                      <div className="h-48 w-full min-w-0 relative flex items-center justify-center">
-                        {transformedSkillDistribution.length === 0 || transformedSkillDistribution.every((i: any) => (i.value || 0) === 0) ? (
+                      {transformedSkillDistribution.length === 0 || transformedSkillDistribution.every((i: any) => (i.value || 0) === 0) ? (
+                        <div className="h-48 w-full min-w-0 relative flex items-center justify-center">
                           <ChartEmptyState
                             title="No Skill Profiles"
                             message="Worker skill profile distribution will appear as workers register on SIKAP."
                           />
-                        ) : (
-                          <>
-                            <ResponsiveContainer width="100%" height="100%">
-                              <PieChart>
-                                <RechartsPie
-                                  data={transformedSkillDistribution}
-                                  cx="50%"
-                                  cy="50%"
-                                  innerRadius={55}
-                                  outerRadius={80}
-                                  paddingAngle={3}
-                                  dataKey="value"
-                                  label={false}
-                                  activeIndex={activePieIndex !== null ? activePieIndex : undefined}
-                                  activeShape={renderActiveShape}
-                                  onMouseEnter={(_: any, index: number) => setActivePieIndex(index)}
-                                  onMouseLeave={() => setActivePieIndex(null)}
-                                >
-                                  {transformedSkillDistribution.map((entry: any, index: number) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} className="cursor-pointer" />
-                                  ))}
-                                </RechartsPie>
-                                <Tooltip 
-                                  contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
-                                />
-                              </PieChart>
-                            </ResponsiveContainer>
-
-                            {/* Donut Center Display */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-4">
-                              {activePieIndex !== null && transformedSkillDistribution[activePieIndex] ? (
-                                <>
-                                  <span className="text-[10px] font-bold text-ink-muted uppercase max-w-[90px] truncate">
-                                    {transformedSkillDistribution[activePieIndex].name}
-                                  </span>
-                                  <strong className="text-lg font-numeric text-ink">
-                                    {((transformedSkillDistribution[activePieIndex].value / (data?.user_ratio?.workers || 1)) * 100).toFixed(0)}%
-                                  </strong>
-                                  <span className="text-[9px] text-ink-muted">
-                                    {transformedSkillDistribution[activePieIndex].value} workers
-                                  </span>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="text-[10px] font-semibold text-ink-muted uppercase">Workers</span>
-                                  <strong className="text-xl font-numeric text-ink">{data?.user_ratio?.workers ?? 0}</strong>
-                                </>
-                              )}
-                            </div>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Clean swatch-only legend underneath */}
-                      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 mt-2 text-xs font-semibold text-ink-soft">
-                        {transformedSkillDistribution.map((entry: any, idx: number) => (
-                          <div
-                            key={idx}
-                            className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
-                            onMouseEnter={() => setActivePieIndex(idx)}
-                            onMouseLeave={() => setActivePieIndex(null)}
-                          >
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></span>
-                            <span className={activePieIndex === idx ? 'text-ink font-bold' : ''}>{entry.name}</span>
-                          </div>
-                        ))}
-                      </div>
+                        </div>
+                      ) : (
+                        <SkillDistributionPieChart
+                          data={transformedSkillDistribution}
+                          totalWorkers={data?.user_ratio?.workers ?? 0}
+                          colors={COLORS}
+                        />
+                      )}
                     </div>
                   </div>
 
@@ -2554,29 +2357,11 @@ export default function AnalyticsDashboard() {
                         { label: 'Applications', value: transformedGeographicActivity.reduce((acc: number, c: any) => acc + (c.applications || 0), 0) }
                       ]}
                     />
-                    <div className="h-56 w-full min-w-0 font-numeric">
-                      {transformedGeographicActivity.length === 0 || transformedGeographicActivity.every((i: any) => (i.jobs || 0) === 0 && (i.applications || 0) === 0) ? (
-                        <ChartEmptyState
-                          title="No Regional Activity"
-                          message={`No geographic job posts or applications recorded for ${from} to ${to}.`}
-                        />
-                      ) : (
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={transformedGeographicActivity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.5} />
-                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} dy={6} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
-                            <Tooltip 
-                              cursor={{ fill: '#FDF8F0' }}
-                              contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.5)', boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)', backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }}
-                            />
-                            <Legend wrapperStyle={{ paddingTop: 6, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
-                            <Bar dataKey="jobs" name="Job Posts" fill="#87CEEB" stackId="a" radius={[0, 0, 0, 0]} />
-                            <Bar dataKey="applications" name="Applications" fill="#90EE90" stackId="a" radius={[4, 4, 0, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      )}
-                    </div>
+                    <GeographicActivityChart
+                      data={transformedGeographicActivity}
+                      stacked={true}
+                      heightClass="h-56"
+                    />
                   </div>
                 </>
               )}

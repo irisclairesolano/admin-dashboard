@@ -100,7 +100,10 @@ function formatStatusCell(cell: ExcelJS.Cell, status: string) {
   cell.alignment = { vertical: 'middle', horizontal: 'center' };
 }
 
-export async function generateMasterExcelWorkbook(payload: ExportDataPayload): Promise<Blob> {
+export async function generateMasterExcelWorkbook(
+  payload: ExportDataPayload,
+  onProgress?: (stage: string) => void
+): Promise<Blob> {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'SIKAP Skills & Job Matching Platform';
   workbook.lastModifiedBy = 'SIKAP Platform Administrator';
@@ -121,6 +124,9 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   // =========================================================================
   // SHEET 1: EXECUTIVE SUMMARY
   // =========================================================================
+  onProgress?.('Executive Summary');
+  await new Promise<void>((r) => setTimeout(r, 0));
+
   const ws1 = workbook.addWorksheet('Executive Summary', {
     views: [{ showGridLines: true }],
   });
@@ -351,6 +357,9 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   // =========================================================================
   // SHEET 2: USERS MASTERLIST
   // =========================================================================
+  onProgress?.('Users Masterlist');
+  await new Promise<void>((r) => setTimeout(r, 0));
+
   const ws2 = workbook.addWorksheet('Users Masterlist', {
     views: [{ state: 'frozen', ySplit: 5, showGridLines: true }],
   });
@@ -417,6 +426,9 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   // =========================================================================
   // SHEET 3: JOBS & PLACEMENTS
   // =========================================================================
+  onProgress?.('Jobs & Placements');
+  await new Promise<void>((r) => setTimeout(r, 0));
+
   const ws3 = workbook.addWorksheet('Jobs & Placements', {
     views: [{ state: 'frozen', ySplit: 5, showGridLines: true }],
   });
@@ -492,6 +504,9 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   // =========================================================================
   // SHEET 4: MUNICIPAL DEMOGRAPHICS
   // =========================================================================
+  onProgress?.('Municipal Demographics');
+  await new Promise<void>((r) => setTimeout(r, 0));
+
   const wsDemo = workbook.addWorksheet('Municipal Demographics', {
     views: [{ state: 'frozen', ySplit: 5, showGridLines: true }],
   });
@@ -689,6 +704,9 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   // =========================================================================
   // SHEET 5: VERIFICATION AUDIT
   // =========================================================================
+  onProgress?.('Verification Audit');
+  await new Promise<void>((r) => setTimeout(r, 0));
+
   const ws4 = workbook.addWorksheet('Verification Audit', {
     views: [{ state: 'frozen', ySplit: 5, showGridLines: true }],
   });
@@ -750,6 +768,9 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   // =========================================================================
   // SHEET 6: COMMUNITY REPORTS
   // =========================================================================
+  onProgress?.('Community Reports');
+  await new Promise<void>((r) => setTimeout(r, 0));
+
   const ws5 = workbook.addWorksheet('Community Reports', {
     views: [{ state: 'frozen', ySplit: 5, showGridLines: true }],
   });
@@ -809,6 +830,9 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   // =========================================================================
   // SHEET 7: WAGE BENCHMARKS
   // =========================================================================
+  onProgress?.('Wage Benchmarks');
+  await new Promise<void>((r) => setTimeout(r, 0));
+
   const ws6 = workbook.addWorksheet('Wage Benchmarks', {
     views: [{ state: 'frozen', ySplit: 5, showGridLines: true }],
   });
@@ -916,6 +940,9 @@ export async function generateMasterExcelWorkbook(payload: ExportDataPayload): P
   cNote.font = { name: 'Arial', size: 9, italic: true, color: { argb: 'FF7F7F7F' } };
 
   // Generate buffer and return as Blob
+  onProgress?.('Compiling Workbook');
+  await new Promise<void>((r) => setTimeout(r, 0));
+
   const buffer = await workbook.xlsx.writeBuffer();
   return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }
