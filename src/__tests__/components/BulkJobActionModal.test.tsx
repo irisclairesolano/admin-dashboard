@@ -99,4 +99,32 @@ describe('BulkJobActionModal Component', () => {
       expect(onConfirm).toHaveBeenCalledWith([1, 2], 'Reported scam duplicate listings');
     });
   });
+
+  it('handles bulk unsuspend without requiring a typing keyword', async () => {
+    const onConfirm = vi.fn().mockResolvedValue(undefined);
+    const onClose = vi.fn();
+
+    render(
+      <BulkJobActionModal
+        isOpen={true}
+        actionType="unsuspend"
+        selectedJobs={mockJobs}
+        onClose={onClose}
+        onConfirm={onConfirm}
+      />
+    );
+
+    expect(screen.getByText('Bulk Unsuspend Job Postings')).toBeInTheDocument();
+    // Keyword input should NOT exist for unsuspend
+    expect(screen.queryByPlaceholderText(/in capital letters/i)).not.toBeInTheDocument();
+
+    const submitBtn = screen.getByRole('button', { name: /Unsuspend 2 Jobs/i });
+    expect(submitBtn).not.toBeDisabled();
+
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(onConfirm).toHaveBeenCalledWith([1, 2], expect.stringContaining('Investigation cleared / Approved after review'));
+    });
+  });
 });

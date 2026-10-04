@@ -355,16 +355,54 @@ function JobsPageContent() {
   const handleConfirmBulkJobAction = async (jobIds: number[], reason: string) => {
     try {
       setBulkActionLoading(true);
-      if (bulkModalState.actionType === 'delete') {
-        await Promise.all(jobIds.map((id) => adminApi.deleteJob(id, reason)));
-      } else if (bulkModalState.actionType === 'suspend') {
-        await Promise.all(jobIds.map((id) => adminApi.suspendJob(id, reason)));
-      } else if (bulkModalState.actionType === 'unsuspend') {
-        await Promise.all(jobIds.map((id) => adminApi.unsuspendJob(id)));
+      const action = bulkModalState.actionType;
+
+      if (action === 'delete') {
+        try {
+          await adminApi.bulkDeleteJobs(jobIds, reason);
+        } catch {
+          // Fallback to batched individual calls
+          const results = await Promise.allSettled(jobIds.map((id) => adminApi.deleteJob(id, reason)));
+          const failures = results.filter((r) => r.status === 'rejected');
+          if (failures.length === jobIds.length) {
+            throw new Error('All job deletion requests failed.');
+          }
+        }
+      } else if (action === 'suspend') {
+        try {
+          await adminApi.bulkUpdateJobStatus(jobIds, 'suspended', reason);
+        } catch {
+          // Fallback to batched individual calls
+          const results = await Promise.allSettled(jobIds.map((id) => adminApi.suspendJob(id, reason)));
+          const failures = results.filter((r) => r.status === 'rejected');
+          if (failures.length === jobIds.length) {
+            throw new Error('All job suspension requests failed.');
+          }
+        }
+      } else if (action === 'unsuspend') {
+        try {
+          await adminApi.bulkUpdateJobStatus(jobIds, 'open', reason);
+        } catch {
+          // Fallback to batched individual calls
+          const results = await Promise.allSettled(jobIds.map((id) => adminApi.unsuspendJob(id, reason)));
+          const failures = results.filter((r) => r.status === 'rejected');
+          if (failures.length === jobIds.length) {
+            throw new Error('All job unsuspend requests failed.');
+          }
+        }
       }
+
       setSelectedJobIds(new Set());
       setBulkModalState((prev) => ({ ...prev, isOpen: false }));
       await fetchJobs(true);
+
+      const actionLabel = action === 'delete' ? 'archived' : action === 'suspend' ? 'suspended' : 'unsuspended and restored to open status';
+      setAlertState({
+        open: true,
+        title: 'Bulk Action Successful',
+        message: `Successfully ${actionLabel} ${jobIds.length} job post${jobIds.length === 1 ? '' : 's'}.`,
+        onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
+      });
     } catch (err: any) {
       setAlertState({
         open: true,

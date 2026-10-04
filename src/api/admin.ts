@@ -343,9 +343,17 @@ export const adminApi = {
   suspendUser: async (id: number, is_suspended: boolean = true, duration?: string, reason?: string) => {
     return mutate(apiClient.patch(`/admin/users/${id}`, { is_suspended, duration, reason }), INVALIDATE.users);
   },
+
+  bulkUpdateUserStatus: async (ids: number[], is_suspended: boolean, duration?: string, reason?: string) => {
+    return mutate(apiClient.patch('/admin/users/bulk-status', { ids, is_suspended, duration, reason }), INVALIDATE.users);
+  },
   
   deleteUser: async (id: number, reason?: string) => {
     return mutate(apiClient.delete(`/admin/users/${id}`, { data: { reason } }), INVALIDATE.users);
+  },
+
+  bulkDeleteUsers: async (ids: number[], reason?: string) => {
+    return mutate(apiClient.post('/admin/users/bulk-delete', { ids, reason }), INVALIDATE.users);
   },
 
   restoreUser: async (id: number) => {
@@ -422,8 +430,16 @@ export const adminApi = {
     return mutate(apiClient.patch(`/admin/jobs/${id}/status`, { status: 'suspended', reason }), INVALIDATE.jobs);
   },
 
-  unsuspendJob: async (id: number) => {
-    return mutate(apiClient.patch(`/admin/jobs/${id}/status`, { status: 'open' }), INVALIDATE.jobs);
+  unsuspendJob: async (id: number, reason?: string) => {
+    return mutate(apiClient.patch(`/admin/jobs/${id}/status`, { status: 'open', reason }), INVALIDATE.jobs);
+  },
+
+  bulkUpdateJobStatus: async (ids: number[], status: string, reason?: string) => {
+    return mutate(apiClient.patch('/admin/jobs/bulk-status', { ids, status, reason }), INVALIDATE.jobs);
+  },
+
+  bulkDeleteJobs: async (ids: number[], reason?: string) => {
+    return mutate(apiClient.post('/admin/jobs/bulk-delete', { ids, reason }), INVALIDATE.jobs);
   },
 
   restoreJob: async (id: number) => {

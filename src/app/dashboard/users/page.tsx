@@ -627,16 +627,51 @@ function UsersContent() {
   const handleConfirmBulkUserAction = async (userIds: number[], reason: string, duration?: string) => {
     try {
       setBulkActionLoading(true);
-      if (bulkModalState.actionType === 'delete') {
-        await Promise.all(userIds.map((id) => adminApi.deleteUser(id, reason)));
-      } else if (bulkModalState.actionType === 'suspend') {
-        await Promise.all(userIds.map((id) => adminApi.suspendUser(id, true, duration, reason)));
-      } else if (bulkModalState.actionType === 'unsuspend') {
-        await Promise.all(userIds.map((id) => adminApi.suspendUser(id, false, undefined, reason)));
+      const action = bulkModalState.actionType;
+
+      if (action === 'delete') {
+        try {
+          await adminApi.bulkDeleteUsers(userIds, reason);
+        } catch {
+          const results = await Promise.allSettled(userIds.map((id) => adminApi.deleteUser(id, reason)));
+          const failures = results.filter((r) => r.status === 'rejected');
+          if (failures.length === userIds.length) {
+            throw new Error('All user deletion requests failed.');
+          }
+        }
+      } else if (action === 'suspend') {
+        try {
+          await adminApi.bulkUpdateUserStatus(userIds, true, duration, reason);
+        } catch {
+          const results = await Promise.allSettled(userIds.map((id) => adminApi.suspendUser(id, true, duration, reason)));
+          const failures = results.filter((r) => r.status === 'rejected');
+          if (failures.length === userIds.length) {
+            throw new Error('All user suspension requests failed.');
+          }
+        }
+      } else if (action === 'unsuspend') {
+        try {
+          await adminApi.bulkUpdateUserStatus(userIds, false, undefined, reason);
+        } catch {
+          const results = await Promise.allSettled(userIds.map((id) => adminApi.suspendUser(id, false, undefined, reason)));
+          const failures = results.filter((r) => r.status === 'rejected');
+          if (failures.length === userIds.length) {
+            throw new Error('All user unsuspend requests failed.');
+          }
+        }
       }
+
       setSelectedUserIds(new Set());
       setBulkModalState((prev) => ({ ...prev, isOpen: false }));
       await fetchUsers(true);
+
+      const actionLabel = action === 'delete' ? 'archived' : action === 'suspend' ? 'suspended' : 'unsuspended';
+      setAlertState({
+        open: true,
+        title: 'Bulk Action Successful',
+        message: `Successfully ${actionLabel} ${userIds.length} user account${userIds.length === 1 ? '' : 's'}.`,
+        onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
+      });
     } catch (err: any) {
       setAlertState({
         open: true,
