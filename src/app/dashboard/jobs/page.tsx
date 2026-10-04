@@ -10,6 +10,7 @@ import { AlertDialog } from '@/components/AlertDialog';
 import { formatDate } from '@/lib/date';
 import { STATUS_BADGE_MAP, DEFAULT_BADGE_CLASS } from '@/lib/constants';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus, calculateNormalizedHourlyWage } from '@/lib/export/csv';
+import BulkJobActionModal, { BulkJobActionType } from '@/components/jobs/BulkJobActionModal';
 
 const JobDetailModal = dynamic(() => import('@/components/jobs/JobDetailModal'), {
   ssr: false,
@@ -29,6 +30,14 @@ function JobsPageContent() {
   const [selectedDetailJob, setSelectedDetailJob] = useState<any | null>(null);
   const [alertState, setAlertState] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void }>({ open: false, title: '', message: '', onConfirm: () => {} });
   const [selectedJobIds, setSelectedJobIds] = useState<Set<number>>(new Set());
+  const [bulkModalState, setBulkModalState] = useState<{
+    isOpen: boolean;
+    actionType: BulkJobActionType;
+  }>({
+    isOpen: false,
+    actionType: 'delete',
+  });
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
 
   const isArchivedView = statusFilter === 'Archived';
   const currentJobList = isArchivedView ? archivedJobs : activeJobs;
@@ -323,58 +332,49 @@ function JobsPageContent() {
     setSelectedJobIds(new Set());
   };
 
-  const handleBulkJobSuspendToggle = (suspend: boolean) => {
-    const ids = Array.from(selectedJobIds);
-    if (ids.length === 0) return;
+  const selectedJobsList = useMemo(() => {
+    return currentJobList.filter((j) => selectedJobIds.has(j.id));
+  }, [currentJobList, selectedJobIds]);
 
-    setAlertState({
-      open: true,
-      title: suspend ? 'Bulk Suspend Jobs' : 'Bulk Unsuspend Jobs',
-      message: `Are you sure you want to ${suspend ? 'suspend' : 'unsuspend'} ${ids.length} selected jobs?`,
-      onConfirm: async () => {
-        try {
-          await Promise.all(
-            ids.map((id) =>
-              suspend ? adminApi.suspendJob(id, 'Bulk admin suspension') : adminApi.unsuspendJob(id)
-            )
-          );
-          setSelectedJobIds(new Set());
-          await fetchJobs(true);
-        } catch (err: any) {
-          setAlertState({
-            open: true,
-            title: 'Bulk Action Failed',
-            message: 'An error occurred during bulk operation: ' + (err.response?.data?.message || err.message),
-            onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
-          });
-        }
-      },
+  const handleBulkJobSuspendToggle = (suspend: boolean) => {
+    if (selectedJobIds.size === 0) return;
+    setBulkModalState({
+      isOpen: true,
+      actionType: suspend ? 'suspend' : 'unsuspend',
     });
   };
 
   const handleBulkJobDelete = () => {
-    const ids = Array.from(selectedJobIds);
-    if (ids.length === 0) return;
-
-    setAlertState({
-      open: true,
-      title: 'Bulk Delete Jobs',
-      message: `Are you sure you want to delete ${ids.length} selected job postings? They can be restored in Archives.`,
-      onConfirm: async () => {
-        try {
-          await Promise.all(ids.map((id) => adminApi.deleteJob(id)));
-          setSelectedJobIds(new Set());
-          await fetchJobs(true);
-        } catch (err: any) {
-          setAlertState({
-            open: true,
-            title: 'Bulk Action Failed',
-            message: 'An error occurred during bulk deletion: ' + (err.response?.data?.message || err.message),
-            onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
-          });
-        }
-      },
+    if (selectedJobIds.size === 0) return;
+    setBulkModalState({
+      isOpen: true,
+      actionType: 'delete',
     });
+  };
+
+  const handleConfirmBulkJobAction = async (jobIds: number[], reason: string) => {
+    try {
+      setBulkActionLoading(true);
+      if (bulkModalState.actionType === 'delete') {
+        await Promise.all(jobIds.map((id) => adminApi.deleteJob(id, reason)));
+      } else if (bulkModalState.actionType === 'suspend') {
+        await Promise.all(jobIds.map((id) => adminApi.suspendJob(id, reason)));
+      } else if (bulkModalState.actionType === 'unsuspend') {
+        await Promise.all(jobIds.map((id) => adminApi.unsuspendJob(id)));
+      }
+      setSelectedJobIds(new Set());
+      setBulkModalState((prev) => ({ ...prev, isOpen: false }));
+      await fetchJobs(true);
+    } catch (err: any) {
+      setAlertState({
+        open: true,
+        title: 'Bulk Action Failed',
+        message: 'An error occurred during bulk operation: ' + (err.response?.data?.message || err.message),
+        onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
+      });
+    } finally {
+      setBulkActionLoading(false);
+    }
   };
 
   // Reset page when filters change
@@ -718,6 +718,17 @@ function JobsPageContent() {
             </button>
           </div>
         </div>
+      )}
+
+      {bulkModalState.isOpen && (
+        <BulkJobActionModal
+          isOpen={bulkModalState.isOpen}
+          actionType={bulkModalState.actionType}
+          selectedJobs={selectedJobsList}
+          onClose={() => setBulkModalState((prev) => ({ ...prev, isOpen: false }))}
+          onConfirm={handleConfirmBulkJobAction}
+          loading={bulkActionLoading}
+        />
       )}
 
       <AlertDialog

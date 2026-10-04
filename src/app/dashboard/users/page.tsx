@@ -26,6 +26,9 @@ const SuspensionModal = dynamic(() => import('@/components/users/SuspensionModal
 const DeleteUserModal = dynamic(() => import('@/components/users/DeleteUserModal'), {
   ssr: false,
 });
+const BulkUserActionModal = dynamic(() => import('@/components/users/BulkUserActionModal'), {
+  ssr: false,
+});
 
 function UsersContent() {
   const searchParams = useSearchParams();
@@ -50,6 +53,14 @@ function UsersContent() {
   const [deleteModalUser, setDeleteModalUser] = useState<any | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
   const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(new Set());
+  const [bulkModalState, setBulkModalState] = useState<{
+    isOpen: boolean;
+    actionType: 'delete' | 'suspend' | 'unsuspend';
+  }>({
+    isOpen: false,
+    actionType: 'delete',
+  });
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
 
   // Sync search from URL query param
   useEffect(() => {
@@ -591,56 +602,49 @@ function UsersContent() {
     setSelectedUserIds(new Set());
   };
 
-  const handleBulkSuspend = (isSuspended: boolean) => {
-    const ids = Array.from(selectedUserIds);
-    if (ids.length === 0) return;
+  const selectedUsersList = useMemo(() => {
+    return users.filter((u) => selectedUserIds.has(u.id));
+  }, [users, selectedUserIds]);
 
-    setAlertState({
-      open: true,
-      title: isSuspended ? 'Bulk Suspend Users' : 'Bulk Unsuspend Users',
-      message: `Are you sure you want to ${isSuspended ? 'suspend' : 'unsuspend'} ${ids.length} selected users?`,
-      onConfirm: async () => {
-        try {
-          await Promise.all(
-            ids.map((id) => adminApi.suspendUser(id, isSuspended, isSuspended ? 'Bulk admin action' : undefined))
-          );
-          setSelectedUserIds(new Set());
-          await fetchUsers(true);
-        } catch (err: any) {
-          setAlertState({
-            open: true,
-            title: 'Bulk Action Failed',
-            message: 'An error occurred during bulk operation: ' + (err.response?.data?.message || err.message),
-            onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
-          });
-        }
-      },
+  const handleBulkSuspend = (isSuspended: boolean) => {
+    if (selectedUserIds.size === 0) return;
+    setBulkModalState({
+      isOpen: true,
+      actionType: isSuspended ? 'suspend' : 'unsuspend',
     });
   };
 
   const handleBulkDelete = () => {
-    const ids = Array.from(selectedUserIds);
-    if (ids.length === 0) return;
-
-    setAlertState({
-      open: true,
-      title: 'Bulk Delete Users',
-      message: `Are you sure you want to delete ${ids.length} selected users? They can be restored in Archives.`,
-      onConfirm: async () => {
-        try {
-          await Promise.all(ids.map((id) => adminApi.deleteUser(id)));
-          setSelectedUserIds(new Set());
-          await fetchUsers(true);
-        } catch (err: any) {
-          setAlertState({
-            open: true,
-            title: 'Bulk Action Failed',
-            message: 'An error occurred during bulk deletion: ' + (err.response?.data?.message || err.message),
-            onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
-          });
-        }
-      },
+    if (selectedUserIds.size === 0) return;
+    setBulkModalState({
+      isOpen: true,
+      actionType: 'delete',
     });
+  };
+
+  const handleConfirmBulkUserAction = async (userIds: number[], reason: string, duration?: string) => {
+    try {
+      setBulkActionLoading(true);
+      if (bulkModalState.actionType === 'delete') {
+        await Promise.all(userIds.map((id) => adminApi.deleteUser(id, reason)));
+      } else if (bulkModalState.actionType === 'suspend') {
+        await Promise.all(userIds.map((id) => adminApi.suspendUser(id, true, duration, reason)));
+      } else if (bulkModalState.actionType === 'unsuspend') {
+        await Promise.all(userIds.map((id) => adminApi.suspendUser(id, false, undefined, reason)));
+      }
+      setSelectedUserIds(new Set());
+      setBulkModalState((prev) => ({ ...prev, isOpen: false }));
+      await fetchUsers(true);
+    } catch (err: any) {
+      setAlertState({
+        open: true,
+        title: 'Bulk Action Failed',
+        message: 'An error occurred during bulk operation: ' + (err.response?.data?.message || err.message),
+        onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
+      });
+    } finally {
+      setBulkActionLoading(false);
+    }
   };
 
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
@@ -938,6 +942,16 @@ function UsersContent() {
           onClose={() => setDeleteModalUser(null)}
           onConfirm={handleConfirmDelete}
           loading={deleteSubmitting}
+        />
+      )}
+      {bulkModalState.isOpen && (
+        <BulkUserActionModal
+          isOpen={bulkModalState.isOpen}
+          actionType={bulkModalState.actionType}
+          selectedUsers={selectedUsersList}
+          onClose={() => setBulkModalState((prev) => ({ ...prev, isOpen: false }))}
+          onConfirm={handleConfirmBulkUserAction}
+          loading={bulkActionLoading}
         />
       )}
       {/* Floating Bulk Actions Bar */}

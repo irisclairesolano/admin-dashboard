@@ -410,12 +410,12 @@ export const adminApi = {
     return cachedGet(url);
   },
 
-  deleteJob: async (id: number) => {
-    return mutate(apiClient.delete(`/admin/jobs/${id}`), INVALIDATE.jobs);
+  deleteJob: async (id: number, reason?: string) => {
+    return mutate(apiClient.delete(`/admin/jobs/${id}`, { data: { reason } }), INVALIDATE.jobs);
   },
 
-  updateJobStatus: async (id: number, status: string) => {
-    return mutate(apiClient.patch(`/admin/jobs/${id}/status`, { status }), INVALIDATE.jobs);
+  updateJobStatus: async (id: number, status: string, reason?: string) => {
+    return mutate(apiClient.patch(`/admin/jobs/${id}/status`, { status, reason }), INVALIDATE.jobs);
   },
 
   suspendJob: async (id: number, reason?: string) => {
