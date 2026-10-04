@@ -402,6 +402,129 @@ function ExportReportsContent() {
     return Array.from(set);
   }, [jobs]);
 
+  const isLoadingActiveTab = useMemo(() => {
+    switch (reportType) {
+      case 'users': return loadingUsers;
+      case 'jobs': return loadingJobs;
+      case 'demographics': return loadingUsers || loadingJobs;
+      case 'verifications': return loadingVerifs || loadingUsers;
+      case 'moderation': return loadingReports;
+      default: return false;
+    }
+  }, [reportType, loadingUsers, loadingJobs, loadingVerifs, loadingReports]);
+
+  const isAnyLoading = loadingUsers || loadingJobs || loadingVerifs || loadingReports;
+
+  // Pagination calculations (P3)
+  const paginatedUsers = useMemo(() => {
+    if (isPrinting) return filteredUsers;
+    return filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  }, [filteredUsers, currentPage, isPrinting, pageSize]);
+
+  const paginatedJobs = useMemo(() => {
+    if (isPrinting) return filteredJobs;
+    return filteredJobs.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  }, [filteredJobs, currentPage, isPrinting, pageSize]);
+
+  const paginatedDemographics = useMemo(() => {
+    if (isPrinting) return municipalSummary;
+    return municipalSummary.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  }, [municipalSummary, currentPage, isPrinting, pageSize]);
+
+  const paginatedVerifications = useMemo(() => {
+    if (isPrinting) return filteredVerifications;
+    return filteredVerifications.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  }, [filteredVerifications, currentPage, isPrinting, pageSize]);
+
+  const paginatedReports = useMemo(() => {
+    if (isPrinting) return filteredReports;
+    return filteredReports.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  }, [filteredReports, currentPage, isPrinting, pageSize]);
+
+  const currentTotalFiltered = useMemo(() => {
+    switch (reportType) {
+      case 'users': return filteredUsers.length;
+      case 'jobs': return filteredJobs.length;
+      case 'demographics': return municipalSummary.length;
+      case 'verifications': return filteredVerifications.length;
+      case 'moderation': return filteredReports.length;
+      default: return 0;
+    }
+  }, [reportType, filteredUsers.length, filteredJobs.length, municipalSummary.length, filteredVerifications.length, filteredReports.length]);
+
+  const totalPages = Math.max(1, Math.ceil(currentTotalFiltered / pageSize));
+  const startRecord = currentTotalFiltered === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endRecord = Math.min(currentPage * pageSize, currentTotalFiltered);
+
+  const handleClearAllFilters = () => {
+    setDatePreset('all');
+    setCustomStartDate('');
+    setCustomEndDate('');
+    setRoleFilter('all');
+    setCategoryFilter('all');
+    setMunicipalityFilter('all');
+    setBarangayFilter('all');
+    setStatusFilter('all');
+    setSearchQuery('');
+  };
+
+  const activeFilters = useMemo(() => {
+    const list: { id: string; label: string; onRemove: () => void }[] = [];
+    if (datePreset !== 'all') {
+      const label = datePreset === 'custom'
+        ? `Custom: ${customStartDate || '...'} to ${customEndDate || '...'}`
+        : `Preset: ${datePreset}`;
+      list.push({
+        id: 'date',
+        label,
+        onRemove: () => { setDatePreset('all'); setCustomStartDate(''); setCustomEndDate(''); }
+      });
+    }
+    if (searchQuery.trim()) {
+      list.push({
+        id: 'query',
+        label: `Search: "${searchQuery.trim()}"`,
+        onRemove: () => setSearchQuery('')
+      });
+    }
+    if (statusFilter !== 'all') {
+      list.push({
+        id: 'status',
+        label: `Status: ${statusFilter}`,
+        onRemove: () => setStatusFilter('all')
+      });
+    }
+    if ((reportType === 'users' || reportType === 'verifications') && roleFilter !== 'all') {
+      list.push({
+        id: 'role',
+        label: `Role: ${roleFilter}`,
+        onRemove: () => setRoleFilter('all')
+      });
+    }
+    if (reportType === 'jobs' && categoryFilter !== 'all') {
+      list.push({
+        id: 'category',
+        label: `Category: ${categoryFilter}`,
+        onRemove: () => setCategoryFilter('all')
+      });
+    }
+    if (reportType === 'demographics' && municipalityFilter !== 'all') {
+      list.push({
+        id: 'municipality',
+        label: `Municipality: ${municipalityFilter}`,
+        onRemove: () => { setMunicipalityFilter('all'); setBarangayFilter('all'); }
+      });
+    }
+    if (reportType === 'demographics' && barangayFilter !== 'all') {
+      list.push({
+        id: 'barangay',
+        label: `Barangay: ${barangayFilter}`,
+        onRemove: () => setBarangayFilter('all')
+      });
+    }
+    return list;
+  }, [datePreset, customStartDate, customEndDate, searchQuery, statusFilter, reportType, roleFilter, categoryFilter, municipalityFilter, barangayFilter]);
+
   // ── EXPORT ACTIONS ──────────────────────────────────────────────────────────
 
   const handlePrint = () => {
@@ -850,17 +973,17 @@ function ExportReportsContent() {
         <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => fetchData(true)}
-            disabled={loading}
+            disabled={isAnyLoading}
             className="px-3.5 py-2 bg-white border border-ink-faint text-ink hover:bg-paper font-body text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             title="Reload latest records"
           >
-            <i className={`lni lni-reload text-xs ${loading ? 'animate-spin' : ''}`} />
+            <i className={`lni lni-reload text-xs ${isAnyLoading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
 
           <button
             onClick={handleExportCSV}
-            disabled={loading}
+            disabled={isAnyLoading}
             className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             title="Export active report view as CSV (.csv)"
           >
@@ -870,7 +993,7 @@ function ExportReportsContent() {
 
           <button
             onClick={handleExportMasterExcel}
-            disabled={loading || isExportingExcel}
+            disabled={isAnyLoading || isExportingExcel}
             className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             title="Export full multi-tab formatted Excel workbook with Users, Jobs, Demographics, and Verifications (.xlsx)"
           >
@@ -880,7 +1003,7 @@ function ExportReportsContent() {
 
           <button
             onClick={handlePrint}
-            disabled={loading}
+            disabled={isAnyLoading}
             className="px-4 py-2 bg-ink hover:bg-primary-dark text-white font-body text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             title="Print or export PDF summary"
           >
@@ -1149,6 +1272,38 @@ function ExportReportsContent() {
             />
           </div>
         )}
+
+        {/* Active Filters Chips Bar & Clear All (U5) */}
+        {activeFilters.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-ink-faint/30">
+            <span className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider">
+              Active Filters ({activeFilters.length}):
+            </span>
+            {activeFilters.map((f) => (
+              <span
+                key={f.id}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 text-primary-dark border border-primary/20 rounded-full text-xs font-medium shadow-2xs"
+              >
+                <span>{f.label}</span>
+                <button
+                  type="button"
+                  onClick={f.onRemove}
+                  className="hover:text-red-600 transition-colors cursor-pointer"
+                  title="Remove filter"
+                >
+                  <i className="lni lni-close text-[10px]" />
+                </button>
+              </span>
+            ))}
+            <button
+              type="button"
+              onClick={handleClearAllFilters}
+              className="text-xs font-semibold text-rose-600 hover:text-rose-700 underline underline-offset-2 ml-1 cursor-pointer transition-colors"
+            >
+              Clear All Filters
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── KPI SUMMARY METRICS (SCREEN ONLY) ── */}
@@ -1333,11 +1488,22 @@ function ExportReportsContent() {
 
       {/* ── TABULAR DATA DISPLAY ── */}
       <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-white/60 overflow-hidden">
-        {loading ? (
-          <div className="p-16 text-center text-ink-muted font-body text-sm flex flex-col items-center gap-2">
-            <i className="lni lni-spinner-solid animate-spin text-2xl text-primary" />
-            Generating report data...
+        {/* Header toolbar for table: Record counter (U5) */}
+        <div className="no-print px-4 py-2.5 bg-slate-50/80 border-b border-ink-faint/40 flex items-center justify-between text-xs text-ink-muted font-body">
+          <div>
+            Showing <strong className="text-ink font-semibold">{startRecord}</strong> to{' '}
+            <strong className="text-ink font-semibold">{endRecord}</strong> of{' '}
+            <strong className="text-ink font-semibold">{currentTotalFiltered}</strong> records
           </div>
+          {totalPages > 1 && (
+            <div className="text-[11px] text-ink-muted">
+              Page <strong className="text-ink">{currentPage}</strong> of <strong className="text-ink">{totalPages}</strong>
+            </div>
+          )}
+        </div>
+
+        {isLoadingActiveTab ? (
+          <ReportSkeletonTable columns={reportType === 'moderation' ? 7 : reportType === 'jobs' ? 8 : 6} />
         ) : error ? (
           <div className="p-12 text-center text-status-error font-body text-sm">
             <i className="lni lni-warning text-xl mb-1 inline-block" />
@@ -1366,7 +1532,7 @@ function ExportReportsContent() {
                       </td>
                     </tr>
                   ) : (
-                    filteredUsers.map((u) => (
+                    paginatedUsers.map((u) => (
                       <tr key={u.id} className="hover:bg-paper/40 transition-colors">
                         <td className="py-3 px-4">
                           <div className="font-bold text-ink">{u.name || 'Unnamed'}</div>
@@ -1431,7 +1597,7 @@ function ExportReportsContent() {
                       </td>
                     </tr>
                   ) : (
-                    filteredJobs.map((j) => (
+                    paginatedJobs.map((j) => (
                       <tr key={j.id} className="hover:bg-paper/40 transition-colors">
                         <td className="py-3 px-4">
                           <div className="font-bold text-ink">{j.title}</div>
@@ -1618,7 +1784,7 @@ function ExportReportsContent() {
                         </td>
                       </tr>
                     ) : (
-                      municipalSummary.map((b, idx) => (
+                      paginatedDemographics.map((b, idx) => (
                         <tr key={idx} className="hover:bg-paper/40 transition-colors">
                           <td className="py-3 px-4 font-bold text-ink">{b.municipality}</td>
                           <td className="py-3 px-4 text-ink-soft">{b.barangay}</td>
@@ -1666,7 +1832,7 @@ function ExportReportsContent() {
                       </td>
                     </tr>
                   ) : (
-                    filteredVerifications.map((v) => {
+                    paginatedVerifications.map((v) => {
                       const vStat = (v.verification_status || (v.registration_status === 'approved' ? 'approved' : 'pending')).toLowerCase();
                       const hasFront = !!v.document_url;
                       const hasBack = !!v.document_back_url;
@@ -1766,7 +1932,7 @@ function ExportReportsContent() {
                       </td>
                     </tr>
                   ) : (
-                    filteredReports.map((r) => (
+                    paginatedReports.map((r) => (
                       <tr key={r.id} className="hover:bg-paper/40 transition-colors">
                         <td className="py-3 px-4 font-mono font-bold text-ink">#{r.id}</td>
                         <td className="py-3 px-4">
@@ -1809,6 +1975,57 @@ function ExportReportsContent() {
             )}
           </div>
         )}
+
+        {/* Pagination Controls Bar (P3) */}
+        {!isLoadingActiveTab && currentTotalFiltered > pageSize && (
+          <div className="no-print px-4 py-3 bg-slate-50/80 border-t border-ink-faint/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <span className="text-ink-muted">
+              Showing page <strong className="text-ink">{currentPage}</strong> of{' '}
+              <strong className="text-ink">{totalPages}</strong> ({currentTotalFiltered} total records)
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-2.5 py-1.5 rounded-lg border border-ink-faint/60 bg-white hover:bg-slate-50 text-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title="First Page"
+              >
+                <i className="lni lni-angle-double-left text-[10px]" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-lg border border-ink-faint/60 bg-white hover:bg-slate-50 text-ink font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <i className="lni lni-chevron-left text-[10px]" />
+                Prev
+              </button>
+              <div className="px-3 py-1 bg-white border border-ink-faint/40 rounded-lg font-semibold text-ink">
+                {currentPage} / {totalPages}
+              </div>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 rounded-lg border border-ink-faint/60 bg-white hover:bg-slate-50 text-ink font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                Next
+                <i className="lni lni-chevron-right text-[10px]" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-2.5 py-1.5 rounded-lg border border-ink-faint/60 bg-white hover:bg-slate-50 text-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title="Last Page"
+              >
+                <i className="lni lni-angle-double-right text-[10px]" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── PRINT FOOTER ── */}
@@ -1816,5 +2033,21 @@ function ExportReportsContent() {
         SIKAP Platform Report · Generated on {new Date().toLocaleDateString()}
       </div>
     </div>
+  );
+}
+
+export default function ExportReportsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 space-y-4">
+          <div className="h-8 bg-slate-200/80 rounded w-48 animate-pulse" />
+          <div className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
+          <div className="h-96 bg-white rounded-2xl border border-slate-200 p-4 animate-pulse" />
+        </div>
+      }
+    >
+      <ExportReportsContent />
+    </Suspense>
   );
 }
