@@ -145,4 +145,46 @@ describe('JobsPage Component', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
+
+  it('only displays applicable bulk actions when selecting jobs', async () => {
+    render(<JobsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Senior House Painter')).toBeInTheDocument();
+      expect(screen.getByText('Farm Harvester')).toBeInTheDocument();
+    });
+
+    // Select open job (id: 1, status: 'open')
+    const openJobCheckbox = screen.getByRole('checkbox', { name: /select job senior house painter/i });
+    fireEvent.click(openJobCheckbox);
+
+    // Floating bar should pop up
+    await waitFor(() => {
+      expect(screen.getByText(/job selected/i)).toBeInTheDocument();
+    });
+
+    // Suspend and Delete should be available, Unsuspend must NOT be available
+    expect(screen.getByRole('button', { name: /^bulk suspend/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^bulk delete/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /bulk unsuspend/i })).not.toBeInTheDocument();
+
+    // Deselect open job
+    fireEvent.click(openJobCheckbox);
+    await waitFor(() => {
+      expect(screen.queryByText(/job selected/i)).not.toBeInTheDocument();
+    });
+
+    // Select suspended job (id: 2, status: 'suspended')
+    const suspendedJobCheckbox = screen.getByRole('checkbox', { name: /select job farm harvester/i });
+    fireEvent.click(suspendedJobCheckbox);
+
+    await waitFor(() => {
+      expect(screen.getByText(/job selected/i)).toBeInTheDocument();
+    });
+
+    // Unsuspend and Delete should be available, Suspend must NOT be available
+    expect(screen.getByRole('button', { name: /^bulk unsuspend/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^bulk delete/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^bulk suspend/i })).not.toBeInTheDocument();
+  });
 });

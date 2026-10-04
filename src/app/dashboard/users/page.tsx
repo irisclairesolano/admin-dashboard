@@ -608,8 +608,21 @@ function UsersContent() {
     return users.filter((u) => selectedUserIds.has(u.id));
   }, [users, selectedUserIds]);
 
+  const suspendableUsers = useMemo(() => {
+    return selectedUsersList.filter((u) => !u.is_suspended && !u.deleted_at);
+  }, [selectedUsersList]);
+
+  const unsuspendableUsers = useMemo(() => {
+    return selectedUsersList.filter((u) => !!u.is_suspended && !u.deleted_at);
+  }, [selectedUsersList]);
+
+  const deletableUsers = useMemo(() => {
+    return selectedUsersList.filter((u) => !u.deleted_at);
+  }, [selectedUsersList]);
+
   const handleBulkSuspend = (isSuspended: boolean) => {
-    if (selectedUserIds.size === 0) return;
+    const targetUsers = isSuspended ? suspendableUsers : unsuspendableUsers;
+    if (targetUsers.length === 0) return;
     setBulkModalState({
       isOpen: true,
       actionType: isSuspended ? 'suspend' : 'unsuspend',
@@ -617,7 +630,7 @@ function UsersContent() {
   };
 
   const handleBulkDelete = () => {
-    if (selectedUserIds.size === 0) return;
+    if (deletableUsers.length === 0) return;
     setBulkModalState({
       isOpen: true,
       actionType: 'delete',
@@ -985,7 +998,13 @@ function UsersContent() {
         <BulkUserActionModal
           isOpen={bulkModalState.isOpen}
           actionType={bulkModalState.actionType}
-          selectedUsers={selectedUsersList}
+          selectedUsers={
+            bulkModalState.actionType === 'suspend'
+              ? suspendableUsers
+              : bulkModalState.actionType === 'unsuspend'
+              ? unsuspendableUsers
+              : deletableUsers
+          }
           onClose={() => setBulkModalState((prev) => ({ ...prev, isOpen: false }))}
           onConfirm={handleConfirmBulkUserAction}
           loading={bulkActionLoading}
@@ -1004,24 +1023,35 @@ function UsersContent() {
           </div>
           <div className="h-4 w-px bg-white/20" />
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => handleBulkSuspend(true)}
-              className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-white border border-amber-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
-            >
-              Bulk Suspend
-            </button>
-            <button
-              onClick={() => handleBulkSuspend(false)}
-              className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
-            >
-              Bulk Unsuspend
-            </button>
-            <button
-              onClick={handleBulkDelete}
-              className="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white border border-rose-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
-            >
-              Bulk Delete
-            </button>
+            {suspendableUsers.length > 0 && (
+              <button
+                onClick={() => handleBulkSuspend(true)}
+                className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-white border border-amber-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
+              >
+                Bulk Suspend {suspendableUsers.length !== selectedUsersList.length ? `(${suspendableUsers.length})` : ''}
+              </button>
+            )}
+            {unsuspendableUsers.length > 0 && (
+              <button
+                onClick={() => handleBulkSuspend(false)}
+                className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
+              >
+                Bulk Unsuspend {unsuspendableUsers.length !== selectedUsersList.length ? `(${unsuspendableUsers.length})` : ''}
+              </button>
+            )}
+            {deletableUsers.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                className="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white border border-rose-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
+              >
+                Bulk Delete {deletableUsers.length !== selectedUsersList.length ? `(${deletableUsers.length})` : ''}
+              </button>
+            )}
+            {suspendableUsers.length === 0 && unsuspendableUsers.length === 0 && deletableUsers.length === 0 && (
+              <span className="text-xs text-white/70 italic px-2 whitespace-nowrap">
+                No bulk actions applicable
+              </span>
+            )}
             <button
               onClick={handleDeselectAll}
               className="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-xs font-body font-medium transition-all cursor-pointer ml-1 whitespace-nowrap"

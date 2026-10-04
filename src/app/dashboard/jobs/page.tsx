@@ -336,8 +336,21 @@ function JobsPageContent() {
     return currentJobList.filter((j) => selectedJobIds.has(j.id));
   }, [currentJobList, selectedJobIds]);
 
+  const suspendableJobs = useMemo(() => {
+    return selectedJobsList.filter((j) => j.status !== 'suspended' && !j.deleted_at);
+  }, [selectedJobsList]);
+
+  const unsuspendableJobs = useMemo(() => {
+    return selectedJobsList.filter((j) => j.status === 'suspended' && !j.deleted_at);
+  }, [selectedJobsList]);
+
+  const deletableJobs = useMemo(() => {
+    return selectedJobsList.filter((j) => !j.deleted_at);
+  }, [selectedJobsList]);
+
   const handleBulkJobSuspendToggle = (suspend: boolean) => {
-    if (selectedJobIds.size === 0) return;
+    const targetJobs = suspend ? suspendableJobs : unsuspendableJobs;
+    if (targetJobs.length === 0) return;
     setBulkModalState({
       isOpen: true,
       actionType: suspend ? 'suspend' : 'unsuspend',
@@ -345,7 +358,7 @@ function JobsPageContent() {
   };
 
   const handleBulkJobDelete = () => {
-    if (selectedJobIds.size === 0) return;
+    if (deletableJobs.length === 0) return;
     setBulkModalState({
       isOpen: true,
       actionType: 'delete',
@@ -730,24 +743,35 @@ function JobsPageContent() {
           </div>
           <div className="h-4 w-px bg-white/20" />
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => handleBulkJobSuspendToggle(true)}
-              className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-white border border-amber-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
-            >
-              Bulk Suspend
-            </button>
-            <button
-              onClick={() => handleBulkJobSuspendToggle(false)}
-              className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
-            >
-              Bulk Unsuspend
-            </button>
-            <button
-              onClick={handleBulkJobDelete}
-              className="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white border border-rose-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
-            >
-              Bulk Delete
-            </button>
+            {suspendableJobs.length > 0 && (
+              <button
+                onClick={() => handleBulkJobSuspendToggle(true)}
+                className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-white border border-amber-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
+              >
+                Bulk Suspend {suspendableJobs.length !== selectedJobsList.length ? `(${suspendableJobs.length})` : ''}
+              </button>
+            )}
+            {unsuspendableJobs.length > 0 && (
+              <button
+                onClick={() => handleBulkJobSuspendToggle(false)}
+                className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500 hover:text-white border border-emerald-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
+              >
+                Bulk Unsuspend {unsuspendableJobs.length !== selectedJobsList.length ? `(${unsuspendableJobs.length})` : ''}
+              </button>
+            )}
+            {deletableJobs.length > 0 && (
+              <button
+                onClick={handleBulkJobDelete}
+                className="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white border border-rose-500/30 text-xs font-body font-bold transition-all cursor-pointer whitespace-nowrap"
+              >
+                Bulk Delete {deletableJobs.length !== selectedJobsList.length ? `(${deletableJobs.length})` : ''}
+              </button>
+            )}
+            {suspendableJobs.length === 0 && unsuspendableJobs.length === 0 && deletableJobs.length === 0 && (
+              <span className="text-xs text-white/70 italic px-2 whitespace-nowrap">
+                No bulk actions applicable
+              </span>
+            )}
             <button
               onClick={handleDeselectAllJobs}
               className="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-xs font-body font-medium transition-all cursor-pointer ml-1 whitespace-nowrap"
@@ -762,7 +786,13 @@ function JobsPageContent() {
         <BulkJobActionModal
           isOpen={bulkModalState.isOpen}
           actionType={bulkModalState.actionType}
-          selectedJobs={selectedJobsList}
+          selectedJobs={
+            bulkModalState.actionType === 'suspend'
+              ? suspendableJobs
+              : bulkModalState.actionType === 'unsuspend'
+              ? unsuspendableJobs
+              : deletableJobs
+          }
           onClose={() => setBulkModalState((prev) => ({ ...prev, isOpen: false }))}
           onConfirm={handleConfirmBulkJobAction}
           loading={bulkActionLoading}

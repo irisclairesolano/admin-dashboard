@@ -246,5 +246,47 @@ describe('UsersPage Component', () => {
       expect(screen.queryByText('Archived Worker')).not.toBeInTheDocument();
     });
   });
+
+  it('only displays applicable bulk actions when selecting users', async () => {
+    render(<UsersPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Nena Cruz')).toBeInTheDocument();
+      expect(screen.getByText('Suspended Worker')).toBeInTheDocument();
+    });
+
+    // Select active user Nena Cruz (id: 1, not suspended)
+    const nenaCheckbox = screen.getByRole('checkbox', { name: /select user nena cruz/i });
+    fireEvent.click(nenaCheckbox);
+
+    // Floating bar should pop up
+    await waitFor(() => {
+      expect(screen.getByText(/user selected/i)).toBeInTheDocument();
+    });
+
+    // Suspend and Delete should be available, Unsuspend must NOT be available
+    expect(screen.getByRole('button', { name: /^bulk suspend/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^bulk delete/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /bulk unsuspend/i })).not.toBeInTheDocument();
+
+    // Deselect Nena Cruz
+    fireEvent.click(nenaCheckbox);
+    await waitFor(() => {
+      expect(screen.queryByText(/user selected/i)).not.toBeInTheDocument();
+    });
+
+    // Select suspended user (id: 3, suspended)
+    const suspendedCheckbox = screen.getByRole('checkbox', { name: /select user suspended worker/i });
+    fireEvent.click(suspendedCheckbox);
+
+    await waitFor(() => {
+      expect(screen.getByText(/user selected/i)).toBeInTheDocument();
+    });
+
+    // Unsuspend and Delete should be available, Suspend must NOT be available
+    expect(screen.getByRole('button', { name: /^bulk unsuspend$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^bulk delete$/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^bulk suspend/i })).not.toBeInTheDocument();
+  });
 });
 
