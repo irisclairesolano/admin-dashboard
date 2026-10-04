@@ -13,6 +13,7 @@ import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatu
 import BulkJobActionModal, { BulkJobActionType } from '@/components/jobs/BulkJobActionModal';
 import { useUndoToast } from '@/hooks/useUndoToast';
 import { UndoToast } from '@/components/UndoToast';
+import { useToast } from '@/context/ToastContext';
 
 const JobDetailModal = dynamic(() => import('@/components/jobs/JobDetailModal'), {
   ssr: false,
@@ -48,6 +49,7 @@ function JobsPageContent() {
     handleUndo,
     handleDismissNow,
   } = useUndoToast();
+  const { toast } = useToast();
 
   const isArchivedView = statusFilter === 'Archived';
   const currentJobList = isArchivedView ? archivedJobs : activeJobs;
@@ -201,7 +203,9 @@ function JobsPageContent() {
           ]);
           setActiveJobs(activeRes.data?.data || []);
           setArchivedJobs(archivedRes.data?.data || []);
+          toast.success(`Archived "${jobTitle}".`, 'Job Archived');
         } catch (err: any) {
+          toast.error(err.response?.data?.message || err.message || 'Failed to archive job', 'Action Failed');
           setActiveJobs(previousActive);
           setArchivedJobs(previousArchived);
           setSelectedDetailJob(previousDetail);
@@ -252,7 +256,9 @@ function JobsPageContent() {
           ]);
           setActiveJobs(activeRes.data?.data || []);
           setArchivedJobs(archivedRes.data?.data || []);
+          toast.success(`Restored "${jobTitle}" to active listings.`, 'Job Restored');
         } catch (err: any) {
+          toast.error(err.response?.data?.message || err.message || 'Failed to restore job', 'Action Failed');
           setArchivedJobs(previousArchived);
           setActiveJobs(previousActive);
           setAlertState({
@@ -301,7 +307,9 @@ function JobsPageContent() {
           await adminApi.updateJobStatus(id, newStatus);
           const res = await adminApi.getJobs({ trashed: false, all: true, forceRefresh: true });
           setActiveJobs(res.data?.data || []);
+          toast.success(`Job "${jobTitle}" updated to ${newStatus}.`, isSuspended ? 'Job Reinstated' : 'Job Suspended');
         } catch (err: any) {
+          toast.error(err.response?.data?.message || err.message || 'Failed to update job status', 'Action Failed');
           setActiveJobs(previousActive);
           setSelectedDetailJob(previousDetail);
           setAlertState({
@@ -457,6 +465,7 @@ function JobsPageContent() {
       await fetchJobs(true);
 
       const actionLabel = action === 'delete' ? 'archived' : action === 'suspend' ? 'suspended' : 'unsuspended and restored to open status';
+      toast.success(`Successfully ${actionLabel} ${jobIds.length} job post${jobIds.length === 1 ? '' : 's'}.`, 'Bulk Action Complete');
       setAlertState({
         open: true,
         title: 'Bulk Action Successful',
@@ -464,6 +473,7 @@ function JobsPageContent() {
         onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
       });
     } catch (err: any) {
+      toast.error('An error occurred during bulk operation: ' + (err.response?.data?.message || err.message), 'Bulk Action Failed');
       setAlertState({
         open: true,
         title: 'Bulk Action Failed',

@@ -7,6 +7,7 @@ import { authStorage } from '@/lib/authStorage';
 import { formatDate } from '@/lib/date';
 import StatCard from '@/components/StatCard';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus, formatCSVReputation, calculateNormalizedHourlyWage } from '@/lib/export/csv';
+import { useToast } from '@/context/ToastContext';
 
 type ReportType = 'users' | 'jobs' | 'demographics' | 'verifications' | 'moderation';
 type DatePreset = 'all' | 'today' | '7days' | '30days' | 'year' | 'custom';
@@ -31,6 +32,7 @@ function ReportSkeletonTable({ columns = 6 }: { columns?: number }) {
 }
 
 function ExportReportsContent() {
+  const { toast } = useToast();
   const searchParams = useSearchParams();
   const [reportType, setReportType] = useState<ReportType>(() => (searchParams.get('tab') as ReportType) || 'users');
   const [datePreset, setDatePreset] = useState<DatePreset>(() => (searchParams.get('preset') as DatePreset) || 'all');
@@ -822,6 +824,7 @@ function ExportReportsContent() {
         ]
       );
     }
+    toast.success(`Exported ${getReportTitle()} to CSV.`, 'CSV Export Ready');
   };
 
   const handleExportDemographicsCSV = () => {
@@ -914,6 +917,7 @@ function ExportReportsContent() {
         }
       ]
     );
+    toast.success('Demographics breakdown exported to CSV.', 'CSV Export Ready');
   };
 
   const handleExportMasterExcel = async () => {
@@ -934,8 +938,10 @@ function ExportReportsContent() {
 
       const filename = `SIKAP_Reports_Master_Workbook_${dateStamp}.xlsx`;
       downloadExcelBlob(blob, filename);
+      toast.success('Master Excel workbook generated and downloaded.', 'Excel Export Ready');
     } catch (err) {
       console.error('Failed to export Excel workbook:', err);
+      toast.error('Failed to generate Excel report. Please try again.', 'Export Failed');
       setExportError('Failed to generate Excel report. Please try again.');
     } finally {
       setIsExportingExcel(false);

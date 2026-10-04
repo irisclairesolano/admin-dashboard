@@ -8,6 +8,7 @@ import Avatar from '@/components/Avatar';
 import { AlertDialog } from '@/components/AlertDialog';
 import { usePolling } from '@/hooks/usePolling';
 import { formatDate } from '@/lib/date';
+import { useToast } from '@/context/ToastContext';
 
 interface SupportTicket {
   id: number;
@@ -84,6 +85,8 @@ function SupportTicketsPageContent() {
 
   usePolling(fetchTickets, 30000);
 
+  const { toast } = useToast();
+
   const handleStatusChange = async (newStatus: 'open' | 'processing' | 'resolved') => {
     if (!selectedTicket) return;
     try {
@@ -94,8 +97,10 @@ function SupportTicketsPageContent() {
          t.id === selectedTicket.id ? { ...t, status: newStatus } : t
       ));
       setSelectedTicket(prev => prev ? { ...prev, status: newStatus } : null);
+      toast.info(`Ticket status updated to ${newStatus}.`, 'Status Updated');
     } catch (err) {
       console.error('Failed to update status:', err);
+      toast.error('Failed to update ticket status.', 'Action Failed');
       setAlertState({
         open: true,
         title: 'Error',
@@ -121,8 +126,10 @@ function SupportTicketsPageContent() {
       
       setSelectedTicket(prev => prev ? { ...prev, status: 'resolved', admin_reply: replyText } : null);
       setReplyText('');
+      toast.success('Reply submitted and ticket marked as resolved.', 'Ticket Resolved');
     } catch (err) {
       console.error('Failed to reply:', err);
+      toast.error('Failed to send reply.', 'Action Failed');
       setAlertState({
         open: true,
         title: 'Error',

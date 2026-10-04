@@ -10,6 +10,7 @@ import StatusTabs from '@/components/StatusTabs';
 import { AlertDialog } from '@/components/AlertDialog';
 import { ReAuthModal } from '@/components/ReAuthModal';
 import { formatDate } from '@/lib/date';
+import { useToast } from '@/context/ToastContext';
 
 const UserDetailDrawer = dynamic(() => import('@/components/users/UserDetailDrawer'), {
   ssr: false,
@@ -123,6 +124,8 @@ function ArchivesPageContent() {
     fetchArchives();
   }, []);
 
+  const { toast } = useToast();
+
   const handleRestoreUser = (id: number) => {
     confirmAction(
       'Restore User',
@@ -133,8 +136,10 @@ function ArchivesPageContent() {
         try {
           setActionLoading(`user-${id}`);
           await adminApi.restoreUser(id);
+          toast.success('User restored and reactivated.', 'User Restored');
           await fetchArchives(true, true);
         } catch (err: any) {
+          toast.error(err.response?.data?.message || err.message || 'Failed to restore user', 'Action Failed');
           setUsers(previousUsers);
           showAlert('Error', 'Failed to restore user: ' + (err.response?.data?.message || err.message));
         } finally {
@@ -162,8 +167,10 @@ function ArchivesPageContent() {
         try {
           setActionLoading(`job-${id}`);
           await adminApi.restoreJob(id);
+          toast.success('Job post restored to active feed.', 'Job Restored');
           await fetchArchives(true, true);
         } catch (err: any) {
+          toast.error(err.response?.data?.message || err.message || 'Failed to restore job', 'Action Failed');
           setJobs(previousJobs);
           showAlert('Error', 'Failed to restore job: ' + (err.response?.data?.message || err.message));
         } finally {
@@ -192,8 +199,10 @@ function ArchivesPageContent() {
       try {
         setActionLoading(`user-force-${id}`);
         await adminApi.permanentDeleteUser(id);
+        toast.warning('User account permanently deleted.', 'User Purged');
         await fetchArchives(true, true);
       } catch (err: any) {
+        toast.error(err.response?.data?.message || err.message || 'Failed to delete user', 'Action Failed');
         setUsers(previousUsers);
         showAlert('Error', 'Failed to permanently delete user: ' + (err.response?.data?.message || err.message));
       } finally {
@@ -205,8 +214,10 @@ function ArchivesPageContent() {
       try {
         setActionLoading(`job-force-${id}`);
         await adminApi.permanentDeleteJob(id);
+        toast.warning('Job post permanently deleted.', 'Job Purged');
         await fetchArchives(true, true);
       } catch (err: any) {
+        toast.error(err.response?.data?.message || err.message || 'Failed to delete job', 'Action Failed');
         setJobs(previousJobs);
         showAlert('Error', 'Failed to permanently delete job: ' + (err.response?.data?.message || err.message));
       } finally {

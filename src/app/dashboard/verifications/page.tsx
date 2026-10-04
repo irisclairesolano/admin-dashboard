@@ -7,6 +7,7 @@ import Avatar from '@/components/Avatar';
 import dynamic from 'next/dynamic';
 import { AlertDialog } from '@/components/AlertDialog';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus } from '@/lib/export/csv';
+import { useToast } from '@/context/ToastContext';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
@@ -191,7 +192,10 @@ function VerificationsPageContent() {
     };
   }, []);
 
+  const { toast } = useToast();
+
   const handleVerify = async (id: number, status: 'approved' | 'rejected', reason?: string) => {
+    const targetUser = users.find((u) => u.id === id);
     try {
       setActionLoading(status);
       await adminApi.verifyUser(id, status, status === 'rejected' ? reason : undefined);
@@ -217,9 +221,16 @@ function VerificationsPageContent() {
         })
       );
       
+      if (status === 'approved') {
+        toast.success(`Verification approved for ${targetUser?.name || 'user'}.`, 'Verification Approved');
+      } else {
+        toast.info(`Verification rejected for ${targetUser?.name || 'user'}${reason ? ': ' + reason : '.'}`, 'Verification Rejected');
+      }
+
       setReviewUser(null);
       fetchVerifications(true, true); // Refresh list
     } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Verification update failed.', 'Action Failed');
       setAlertState({
         isOpen: true,
         title: 'Action Failed',
@@ -328,7 +339,7 @@ function VerificationsPageContent() {
           <div className="relative w-full md:w-60 group">
             <input
               type="text"
-              aria-label="Search users"
+              aria-label={statusTab === 'pending' ? 'Search pending users' : 'Search users'}
               placeholder={statusTab === 'rejected' ? 'Search rejected users or reasons...' : 'Search users...'}
               value={searchTerm}
               onChange={(e) => {

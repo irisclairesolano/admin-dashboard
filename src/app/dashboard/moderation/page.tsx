@@ -10,12 +10,14 @@ import { formatDate } from '@/lib/date';
 import { usePolling } from '@/hooks/usePolling';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus } from '@/lib/export/csv';
 import dynamic from 'next/dynamic';
+import { useToast } from '@/context/ToastContext';
 
 const JobDetailModal = dynamic(() => import('@/components/jobs/JobDetailModal'), {
   ssr: false,
 });
 
 function ModerationPageContent() {
+  const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
@@ -193,8 +195,10 @@ function ModerationPageContent() {
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('admin:refresh-notifications'));
           }
+          toast.info(`Report #${id} marked as ${status}.`, 'Report Updated');
           await fetchReports(true);
         } catch (err: any) {
+          toast.error(err.response?.data?.message || err.message || 'Failed to update report', 'Action Failed');
           setAlertState({
             open: true,
             title: 'Error',
@@ -247,8 +251,10 @@ function ModerationPageContent() {
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('admin:refresh-notifications'));
           }
+          toast.success(`Disciplinary action executed on ${isJob ? 'job post' : 'user'} #${targetId}.`, 'Action Taken');
           await fetchReports(true);
         } catch (err: any) {
+          toast.error(err.response?.data?.message || err.message || 'Could not moderate target', 'Action Failed');
           setAlertState({
             open: true,
             title: 'Action Failed',

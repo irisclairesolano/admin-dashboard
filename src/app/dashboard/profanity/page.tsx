@@ -5,8 +5,10 @@ import { adminApi } from '@/lib/api';
 import { AlertDialog } from '@/components/AlertDialog';
 import { ProfanityWord } from '@/types/models';
 import { Ban, Flag, Plus, Trash2, ShieldAlert } from 'lucide-react';
+import { useToast } from '@/context/ToastContext';
 
 export default function ProfanityFilterPage() {
+  const { toast } = useToast();
   const [words, setWords] = useState<ProfanityWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [newWord, setNewWord] = useState('');
@@ -82,9 +84,11 @@ export default function ProfanityFilterPage() {
     try {
       setAddLoading(true);
       await adminApi.addProfanityWord(wordToAdd, newAction);
+      toast.success(`Added "${wordToAdd}" to ${newAction === 'block' ? 'Blocked' : 'Flagged'} words.`, 'Word Added');
       setNewWord('');
       await fetchWords();
     } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to add word.', 'Action Failed');
       showAlert('Error', err.response?.data?.message || 'Failed to add word.');
     } finally {
       setAddLoading(false);
@@ -100,8 +104,10 @@ export default function ProfanityFilterPage() {
         try {
           setActionLoading(id);
           await adminApi.deleteProfanityWord(id);
+          toast.info(`Removed "${word}" from filter.`, 'Word Removed');
           await fetchWords();
         } catch (err: any) {
+          toast.error(err.response?.data?.message || 'Failed to delete word.', 'Action Failed');
           showAlert('Error', err.response?.data?.message || 'Failed to delete word.');
         } finally {
           setActionLoading(null);

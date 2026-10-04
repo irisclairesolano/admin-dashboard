@@ -6,6 +6,7 @@ import { AlertDialog } from '@/components/AlertDialog';
 import StatCard from '@/components/StatCard';
 import { Ban, ShieldAlert, UserX, UserMinus, Search, RefreshCw, CheckCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useToast } from '@/context/ToastContext';
 
 interface BlacklistRecord {
   id: number;
@@ -80,6 +81,8 @@ export default function BlacklistPage() {
     setCurrentPage(1);
   };
 
+  const { toast } = useToast();
+
   const handleLiftRestriction = (record: BlacklistRecord) => {
     setAlertConfig({
       isOpen: true,
@@ -91,8 +94,10 @@ export default function BlacklistPage() {
         try {
           setActionLoading(record.id);
           await adminApi.liftBlacklist(record.id);
+          toast.success(`Restriction lifted for ${record.name}.`, 'Restriction Lifted');
           await fetchBlacklist();
         } catch (err: any) {
+          toast.error(err.response?.data?.message || 'Failed to lift restriction.', 'Action Failed');
           setAlertConfig({
             isOpen: true,
             title: 'Action Failed',

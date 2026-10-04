@@ -23,6 +23,8 @@ export const metadata: Metadata = {
   description: "Administrative portal for the SIKAP platform",
 };
 
+import { ToastProvider } from '@/context/ToastContext';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,7 +38,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${raleway.variable} ${manrope.variable} antialiased`}
       >
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

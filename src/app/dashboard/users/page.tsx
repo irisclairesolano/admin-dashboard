@@ -12,6 +12,7 @@ import { Download, ArrowLeft, ArrowRight } from 'lucide-react';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus, formatCSVReputation } from '@/lib/export/csv';
 import { useUndoToast } from '@/hooks/useUndoToast';
 import { UndoToast } from '@/components/UndoToast';
+import { useToast } from '@/context/ToastContext';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
@@ -70,6 +71,7 @@ function UsersContent() {
     handleUndo,
     handleDismissNow,
   } = useUndoToast();
+  const { toast } = useToast();
 
   // Sync search from URL query param
   useEffect(() => {
@@ -340,6 +342,7 @@ function UsersContent() {
             if (selectedDetailUser && selectedDetailUser.id === user.id) {
               fetchUserDetails(user.id);
             }
+            toast.success(`User "${user.name}" unsuspended and restored.`, 'User Unsuspended');
           } catch (err: any) {
             setActiveUsers(previousActive);
             setSelectedDetailUser(previousDetail);
@@ -362,12 +365,14 @@ function UsersContent() {
       setSuspensionSubmitting(true);
       setActionLoading(userId);
       await adminApi.suspendUser(userId, true, duration, reason);
+      toast.warning(`User account suspended (${duration}).`, 'User Suspended');
       setSuspensionModalUser(null);
       await fetchUsers(true);
       if (selectedDetailUser && selectedDetailUser.id === userId) {
         fetchUserDetails(userId);
       }
     } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to suspend user', 'Action Failed');
       setAlertState({
         open: true,
         title: 'Suspension Failed',
@@ -403,9 +408,11 @@ function UsersContent() {
       }
 
       await adminApi.deleteUser(userId, reason);
+      toast.success('User account archived.', 'User Archived');
       setDeleteModalUser(null);
       await fetchUsers(true);
     } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to delete user', 'Action Failed');
       setActiveUsers(previousActive);
       setArchivedUsers(previousArchived);
       setAlertState({
@@ -455,7 +462,9 @@ function UsersContent() {
           ]);
           setActiveUsers(activeRes.data?.data || []);
           setArchivedUsers(archivedRes.data?.data || []);
+          toast.success(`Restored "${userName}" to active registry.`, 'User Restored');
         } catch (err: any) {
+          toast.error(err.response?.data?.message || err.message || 'Failed to restore user', 'Action Failed');
           setArchivedUsers(previousArchived);
           setActiveUsers(previousActive);
           setAlertState({
@@ -475,6 +484,11 @@ function UsersContent() {
     try {
       setActionLoading(id);
       await adminApi.verifyUser(id, status, reason);
+      if (status === 'approved') {
+        toast.success('User identity approved and verified.', 'User Verified');
+      } else {
+        toast.info('User verification rejected.', 'Verification Rejected');
+      }
       await fetchUsers(true); // Refresh list
       if (selectedDetailUser && selectedDetailUser.id === id) {
         fetchUserDetails(id); // Refresh drawer
@@ -482,6 +496,7 @@ function UsersContent() {
       setSelectedIdUser(null);
       setShowIdModal(false);
     } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Verification update failed', 'Action Failed');
       setAlertState({ open: true, title: 'Error', message: 'Verification action failed: ' + (err.response?.data?.message || err.message), onConfirm: () => setAlertState(s => ({...s, open: false})) });
     } finally {
       setActionLoading(null);
@@ -719,6 +734,7 @@ function UsersContent() {
       await fetchUsers(true);
 
       const actionLabel = action === 'delete' ? 'archived' : action === 'suspend' ? 'suspended' : 'unsuspended';
+      toast.success(`Successfully ${actionLabel} ${userIds.length} user account${userIds.length === 1 ? '' : 's'}.`, 'Bulk Action Complete');
       setAlertState({
         open: true,
         title: 'Bulk Action Successful',
@@ -726,6 +742,7 @@ function UsersContent() {
         onConfirm: () => setAlertState((s) => ({ ...s, open: false })),
       });
     } catch (err: any) {
+      toast.error('An error occurred during bulk operation: ' + (err.response?.data?.message || err.message), 'Bulk Action Failed');
       setAlertState({
         open: true,
         title: 'Bulk Action Failed',
