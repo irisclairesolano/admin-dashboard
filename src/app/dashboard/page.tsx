@@ -2638,9 +2638,20 @@ export default function AnalyticsDashboard() {
                 {/* Two-Way Rating System */}
                 <div className="bg-white/90 p-4 rounded-xl shadow-xs border border-ink-faint/30 flex flex-col justify-between">
                   <div>
-                    <div className="mb-3">
-                      <h3 className="font-display text-sm font-bold text-ink">Star Ratings</h3>
-                      <p className="text-[11px] text-ink-muted">Average stars people gave in this period. <span className="italic">Change the dates above to see all-time.</span></p>
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="font-display text-sm font-bold text-ink">Two-Way Rating & Reputation</h3>
+                        <p className="text-[11px] text-ink-muted">Reviews exchanged between workers and employers.</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1 font-numeric">
+                          <i className="lni lni-thumbs-up text-[9px]" />
+                          {data?.ratings?.five_star_percentage ?? 0}% 5-Star
+                        </span>
+                        <span className="block text-[9.5px] text-ink-muted mt-0.5 font-numeric">
+                          {data?.ratings?.total_reviews ?? 0} Total Reviews
+                        </span>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mb-4">
@@ -2648,8 +2659,12 @@ export default function AnalyticsDashboard() {
                         <div>
                           <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider">Worker Avg</span>
                           {(data?.ratings?.average_worker_rating ?? 0) > 0
-                            ? <strong className="text-lg font-numeric text-ink block mt-0.5">{Number(data.ratings.average_worker_rating).toFixed(2)}</strong>
-                            : <span className="text-xs text-ink-muted block mt-0.5 italic">No ratings yet</span>
+                            ? (
+                              <>
+                                <strong className="text-lg font-numeric text-ink block mt-0.5">{Number(data.ratings.average_worker_rating).toFixed(2)}</strong>
+                                <span className="text-[10px] text-ink-muted block font-numeric">{data?.ratings?.worker_reviews_count ?? 0} reviews</span>
+                              </>
+                            ) : <span className="text-xs text-ink-muted block mt-0.5 italic">No ratings yet</span>
                           }
                         </div>
                         <div className="w-8 h-8 rounded-full bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-500 text-sm shadow-2xs">
@@ -2660,8 +2675,12 @@ export default function AnalyticsDashboard() {
                         <div>
                           <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider">Employer Avg</span>
                           {(data?.ratings?.average_employer_rating ?? 0) > 0
-                            ? <strong className="text-lg font-numeric text-ink block mt-0.5">{Number(data.ratings.average_employer_rating).toFixed(2)}</strong>
-                            : <span className="text-xs text-ink-muted block mt-0.5 italic">No ratings yet</span>
+                            ? (
+                              <>
+                                <strong className="text-lg font-numeric text-ink block mt-0.5">{Number(data.ratings.average_employer_rating).toFixed(2)}</strong>
+                                <span className="text-[10px] text-ink-muted block font-numeric">{data?.ratings?.employer_reviews_count ?? 0} reviews</span>
+                              </>
+                            ) : <span className="text-xs text-ink-muted block mt-0.5 italic">No ratings yet</span>
                           }
                         </div>
                         <div className="w-8 h-8 rounded-full bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-500 text-sm shadow-2xs">

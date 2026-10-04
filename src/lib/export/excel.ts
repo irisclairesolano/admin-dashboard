@@ -1,4 +1,4 @@
-import ExcelJS from 'exceljs';
+import type ExcelJS from 'exceljs';
 import { calculateNormalizedHourlyWage, formatCSVStatus } from './csv';
 import { humanizeModel } from '../../lib/constants';
 
@@ -104,7 +104,9 @@ export async function generateMasterExcelWorkbook(
   payload: ExportDataPayload,
   onProgress?: (stage: string) => void
 ): Promise<Blob> {
-  const workbook = new ExcelJS.Workbook();
+  const ExcelJSModule = await import('exceljs');
+  const ExcelJSClass = (ExcelJSModule.default || ExcelJSModule) as typeof import('exceljs');
+  const workbook = new ExcelJSClass.Workbook();
   workbook.creator = 'SIKAP Skills & Job Matching Platform';
   workbook.lastModifiedBy = 'SIKAP Platform Administrator';
   workbook.created = new Date();

@@ -12,6 +12,45 @@ const VerificationModal = dynamic(() => import('@/components/VerificationModal')
   ssr: false,
 });
 
+function getSlaStatus(submittedDate: string | Date | undefined) {
+  if (!submittedDate) {
+    return { label: '<12h Normal', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', isOverdue: false, badge: 'normal' };
+  }
+  const d = new Date(submittedDate).getTime();
+  const diffHours = (Date.now() - d) / (1000 * 60 * 60);
+
+  if (diffHours >= 48) {
+    return {
+      label: `${Math.floor(diffHours)}h (Overdue)`,
+      color: 'bg-rose-50 text-rose-700 border-rose-300 font-bold',
+      isOverdue: true,
+      badge: 'overdue',
+    };
+  }
+  if (diffHours >= 24) {
+    return {
+      label: `${Math.floor(diffHours)}h (Urgent)`,
+      color: 'bg-amber-50 text-amber-700 border-amber-300 font-semibold',
+      isOverdue: false,
+      badge: 'urgent',
+    };
+  }
+  if (diffHours >= 12) {
+    return {
+      label: `${Math.floor(diffHours)}h (Priority)`,
+      color: 'bg-sky-50 text-sky-700 border-sky-200 font-medium',
+      isOverdue: false,
+      badge: 'priority',
+    };
+  }
+  return {
+    label: `${Math.max(1, Math.floor(diffHours))}h (Normal)`,
+    color: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-medium',
+    isOverdue: false,
+    badge: 'normal',
+  };
+}
+
 function VerificationsPageContent() {
   const searchParams = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
@@ -23,6 +62,7 @@ function VerificationsPageContent() {
   const [actionLoading, setActionLoading] = useState<'approved' | 'rejected' | null>(null);
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [slaFilter, setSlaFilter] = useState<'all' | 'overdue' | 'urgent' | 'priority' | 'normal'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [alertState, setAlertState] = useState<{
     isOpen: boolean;
@@ -165,16 +205,34 @@ function VerificationsPageContent() {
 
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
-  const pendingUsers = users
+  const allPendingUsers = users.filter((u) => {
+    return (
+      u.verification_status !== 'approved' ||
+      !u.verification_badge ||
+      u.registration_status !== 'approved'
+    );
+  });
+
+  const overdueCount = allPendingUsers.filter((u) => {
+    const sla = getSlaStatus(u.updated_at || u.created_at);
+    return sla.isOverdue;
+  }).length;
+
+  const pendingUsers = allPendingUsers
     .filter((u) => {
       const matchesSearch =
         u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const isUnverified =
-        u.verification_status !== 'approved' ||
-        !u.verification_badge ||
-        u.registration_status !== 'approved';
-      return matchesSearch && isUnverified;
+      if (!matchesSearch) return false;
+
+      if (slaFilter !== 'all') {
+        const sla = getSlaStatus(u.updated_at || u.created_at);
+        if (slaFilter === 'overdue' && !sla.isOverdue) return false;
+        if (slaFilter === 'urgent' && sla.badge !== 'urgent') return false;
+        if (slaFilter === 'priority' && sla.badge !== 'priority') return false;
+        if (slaFilter === 'normal' && sla.badge !== 'normal') return false;
+      }
+      return true;
     })
     .sort((a, b) => {
       const dateA = new Date(a.updated_at || a.created_at || 0).getTime();
@@ -194,6 +252,12 @@ function VerificationsPageContent() {
             {pendingUsers.length > 0 && (
               <span className="px-2 py-0.5 rounded-full text-xs font-bold font-numeric bg-primary text-white shadow-2xs">
                 {pendingUsers.length} Pending
+              </span>
+            )}
+            {overdueCount > 0 && (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold font-numeric bg-rose-600 text-white shadow-2xs flex items-center gap-1.5 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                {overdueCount} Overdue (&gt;48h)
               </span>
             )}
           </div>
@@ -216,6 +280,25 @@ function VerificationsPageContent() {
               className="w-full pl-8 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white focus:border-ink/50 outline-none text-xs font-body transition"
             />
             <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
+          </div>
+
+          <div className="relative">
+            <select
+              aria-label="Filter by SLA status"
+              value={slaFilter}
+              onChange={(e) => {
+                setSlaFilter(e.target.value as any);
+                setCurrentPage(1);
+              }}
+              className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer"
+            >
+              <option value="all">All SLAs</option>
+              <option value="overdue">🚨 Overdue (&gt;48h)</option>
+              <option value="urgent">⚠️ Urgent (24-48h)</option>
+              <option value="priority">⏱️ Priority (12-24h)</option>
+              <option value="normal">✅ Normal (&lt;12h)</option>
+            </select>
+            <i className="lni lni-chevron-down absolute right-2.5 top-1/2 transform -translate-y-1/2 text-ink-muted text-[10px] pointer-events-none" />
           </div>
 
           <div className="relative">
@@ -282,7 +365,7 @@ function VerificationsPageContent() {
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[12%]">User ID</th>
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[40%]">User Details</th>
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[18%]">Role</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[18%]">Submitted At</th>
+                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[22%]">Submitted & SLA Age</th>
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[12%] text-right">Action</th>
                 </tr>
               </thead>
@@ -335,7 +418,19 @@ function VerificationsPageContent() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-xs font-body font-medium text-ink-soft">
-                      {new Date(user.updated_at || user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                      <div>{new Date(user.updated_at || user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                      <div className="mt-1 flex items-center gap-1.5">
+                        {(() => {
+                          const sla = getSlaStatus(user.updated_at || user.created_at);
+                          return (
+                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] border ${sla.color}`}>
+                              {sla.isOverdue && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />}
+                              <i className="lni lni-timer text-[9px]" />
+                              <span>{sla.label}</span>
+                            </span>
+                          );
+                        })()}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button

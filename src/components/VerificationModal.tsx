@@ -35,6 +35,7 @@ export interface User {
   selfie_url?: string | null;
   id_selfie_url?: string | null;
   business_documents?: string[] | string | null;
+  created_at?: string;
   updated_at?: string;
   registration_status?: string;
   blacklist_matches?: BlacklistMatch[];
@@ -248,10 +249,24 @@ export default function VerificationModal({
               </div>
               <p className="text-ink-soft font-body text-sm" data-testid="user-email">{currentUser.email || user.email}</p>
             </div>
-            <div className="text-right">
+            <div className="text-right flex flex-col items-end gap-1.5">
               <span className="capitalize font-body font-medium text-ink-muted bg-paper px-3 py-1 rounded-lg border border-ink-faint" data-testid="user-role">
                 Role: {currentUser.role || user.role}
               </span>
+              {(() => {
+                const subDate = currentUser.updated_at || currentUser.created_at || user.updated_at || user.created_at;
+                if (!subDate) return null;
+                const diffHours = (Date.now() - new Date(subDate).getTime()) / (1000 * 60 * 60);
+                const isOverdue = diffHours >= 48;
+                return (
+                  <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold border ${
+                    isOverdue ? 'bg-rose-50 text-rose-700 border-rose-300' : diffHours >= 24 ? 'bg-amber-50 text-amber-700 border-amber-300' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  }`}>
+                    {isOverdue && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />}
+                    <span>SLA: {Math.max(1, Math.floor(diffHours))}h in queue {isOverdue ? '(Overdue)' : ''}</span>
+                  </span>
+                );
+              })()}
             </div>
           </div>
 

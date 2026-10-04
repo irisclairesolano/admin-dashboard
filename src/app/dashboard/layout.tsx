@@ -14,6 +14,7 @@ import { ShieldCheck, ShieldAlert, KeyRound } from 'lucide-react';
 import { authStorage } from '@/lib/authStorage';
 import { humanizeModel } from '@/lib/constants';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { CommandPalette } from '@/components/CommandPalette';
 
 type PrefetchStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -51,12 +52,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [adminRole, setAdminRole] = useState<'superadmin' | 'moderator'>('moderator');
   const [is2faEnabled, setIs2faEnabled] = useState(false);
   const [show2faModal, setShow2faModal] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [prefetchStatus, setPrefetchStatus] = useState<PrefetchStatus>('idle');
   const [reportToastDismissed, setReportToastDismissed] = useState(false);
   const [notifications, setNotifications] = useState<DashboardNotification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [, setIsSyncing] = useState(false);
   const [readNotifications, setReadNotifications] = useLocalStorage<string[]>('admin_read_notifications', []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   const didPrefetch = useRef(false);
   const initialSyncDone = useRef(false);
   const prevVerifications = useRef(0);
@@ -805,6 +818,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {pathname.replace('/dashboard', '').replace('/', '') || 'Analytics Overview'}
               </span>
             </div>
+
+            {/* Quick Command Palette Trigger (Ctrl + K) */}
+            <button
+              type="button"
+              onClick={() => setCommandPaletteOpen(true)}
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/80 hover:bg-white border border-ink-faint/50 hover:border-ink-faint text-ink-muted hover:text-ink shadow-2xs transition-all cursor-pointer group text-xs font-body ml-3"
+              title="Search and jump to any page or command (Ctrl + K)"
+            >
+              <i className="lni lni-search text-xs text-ink-muted group-hover:text-primary transition-colors" />
+              <span className="text-ink-muted/80">Quick search...</span>
+              <kbd className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9.5px] font-mono font-bold text-ink-muted bg-slate-100 border border-ink-faint/60 rounded shadow-2xs">
+                Ctrl K
+              </kbd>
+            </button>
           </div>
 
           <div className="flex items-center gap-2.5">
@@ -888,6 +915,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           onClick={() => setSidebarOpen(false)}
         />
       )}
+
+      {/* Global Command Palette */}
+      <CommandPalette
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        onOpen2FA={() => setShow2faModal(true)}
+      />
     </div>
   );
 }
