@@ -36,6 +36,7 @@ function ModerationPageContent() {
   const [targetLoading, setTargetLoading] = useState(false);
   const [inspectedJob, setInspectedJob] = useState<any | null>(null);
   const [suspensionReason, setSuspensionReason] = useState('');
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [alertState, setAlertState] = useState<{
     open: boolean;
     title: string;
@@ -607,6 +608,35 @@ function ModerationPageContent() {
               </div>
             </div>
 
+            {/* Attached Screenshots / Evidence */}
+            {selectedReport.evidence_urls && Array.isArray(selectedReport.evidence_urls) && selectedReport.evidence_urls.length > 0 && (
+              <div className="space-y-2 mb-6">
+                <label className="text-xs font-body font-bold text-ink-soft uppercase tracking-wider flex items-center gap-1.5">
+                  <i className="lni lni-gallery text-primary" />
+                  Attached Evidence ({selectedReport.evidence_urls.length} Screenshot{selectedReport.evidence_urls.length > 1 ? 's' : ''})
+                </label>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 p-3 bg-paper/50 rounded-2xl border border-ink-faint/40">
+                  {selectedReport.evidence_urls.map((url: string, idx: number) => (
+                    <button
+                      key={url + idx}
+                      type="button"
+                      onClick={() => setPreviewImage(url)}
+                      className="group relative aspect-square rounded-xl overflow-hidden border border-ink-faint/60 bg-white hover:border-primary transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
+                    >
+                      <img
+                        src={url}
+                        alt={`Evidence screenshot ${idx + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-colors">
+                        <i className="lni lni-zoom-in text-white opacity-0 group-hover:opacity-100 text-lg drop-shadow" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Target Information & Inline Content View */}
             <div className="p-5 rounded-2xl bg-gradient-to-br from-paper to-white border border-ink-faint/50 mb-6 shadow-sm">
               <div className="flex items-center justify-between mb-3">
@@ -766,6 +796,32 @@ function ModerationPageContent() {
           onClose={() => setInspectedJob(null)}
           onRefresh={() => fetchReports(true)}
         />
+      )}
+
+      {/* Evidence Image Preview Lightbox */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+          onClick={() => setPreviewImage(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="relative max-w-4xl max-h-[90vh] bg-transparent rounded-2xl overflow-hidden shadow-2xl flex flex-col items-center">
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center cursor-pointer transition-colors"
+              aria-label="Close image preview"
+            >
+              <i className="lni lni-close text-base" />
+            </button>
+            <img
+              src={previewImage}
+              alt="Full evidence screenshot"
+              className="max-h-[85vh] max-w-full rounded-xl object-contain shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
       )}
 
       <AlertDialog
