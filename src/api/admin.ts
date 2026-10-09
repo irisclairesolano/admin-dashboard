@@ -534,11 +534,21 @@ export const adminApi = {
     return mutate(apiClient.delete(`/admin/profanity-words/${id}`), INVALIDATE.profanity);
   },
 
-  permanentDeleteUser: async (id: number) => {
-    return mutate(apiClient.delete(`/admin/users/${id}/force`), INVALIDATE.users);
+  permanentDeleteUser: async (id: number, reauthToken?: string) => {
+    return mutate(
+      apiClient.delete(`/admin/users/${id}/force`, {
+        headers: reauthToken ? { 'X-Reauth-Token': reauthToken } : {},
+      }),
+      INVALIDATE.users
+    );
   },
-  permanentDeleteJob: async (id: number) => {
-    return mutate(apiClient.delete(`/admin/jobs/${id}/force`), INVALIDATE.jobs);
+  permanentDeleteJob: async (id: number, reauthToken?: string) => {
+    return mutate(
+      apiClient.delete(`/admin/jobs/${id}/force`, {
+        headers: reauthToken ? { 'X-Reauth-Token': reauthToken } : {},
+      }),
+      INVALIDATE.jobs
+    );
   },
 
   // ─── Messaging Stats (aggregate only — no message content) ───────────────

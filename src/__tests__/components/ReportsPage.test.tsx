@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ReportsPage from '@/app/dashboard/reports/page';
 import { adminApi } from '@/lib/api';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the adminApi methods
 vi.mock('@/lib/api', () => ({
@@ -61,8 +61,8 @@ describe('ReportsPage Component', () => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     });
 
-    // Find Mark as Resolved button (green CheckCircle icon button)
-    const resolveBtn = screen.getByTitle('Mark as Resolved');
+    // Find Resolved button (green CheckCircle icon button)
+    const resolveBtn = screen.getByTitle(/Resolved/i);
     fireEvent.click(resolveBtn);
 
     // Click custom AlertDialog confirm button

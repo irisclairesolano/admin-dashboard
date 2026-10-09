@@ -134,7 +134,7 @@ describe('ArchivesPage Component', () => {
     fireEvent.click(authBtn);
 
     await waitFor(() => {
-      expect(adminApi.permanentDeleteUser).toHaveBeenCalledWith(10);
+      expect(adminApi.permanentDeleteUser).toHaveBeenCalledWith(10, 'test-reauth-token');
     });
   });
 
@@ -203,7 +203,7 @@ describe('ArchivesPage Component', () => {
     fireEvent.click(authBtn);
 
     await waitFor(() => {
-      expect(adminApi.permanentDeleteJob).toHaveBeenCalledWith(20);
+      expect(adminApi.permanentDeleteJob).toHaveBeenCalledWith(20, 'test-reauth-token');
     });
   });
 

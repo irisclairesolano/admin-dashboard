@@ -188,7 +188,7 @@ function ArchivesPageContent() {
     });
   };
 
-  const handleReAuthSuccess = async () => {
+  const handleReAuthSuccess = async (reauthToken?: string) => {
     if (!reAuthTarget) return;
     const { type, id } = reAuthTarget;
     setReAuthTarget(null);
@@ -198,7 +198,7 @@ function ArchivesPageContent() {
       setUsers((prev) => prev.filter((u) => u.id !== id));
       try {
         setActionLoading(`user-force-${id}`);
-        await adminApi.permanentDeleteUser(id);
+        await adminApi.permanentDeleteUser(id, reauthToken);
         toast.warning('User account permanently deleted.', 'User Purged');
         await fetchArchives(true, true);
       } catch (err: any) {
@@ -213,7 +213,7 @@ function ArchivesPageContent() {
       setJobs((prev) => prev.filter((j) => j.id !== id));
       try {
         setActionLoading(`job-force-${id}`);
-        await adminApi.permanentDeleteJob(id);
+        await adminApi.permanentDeleteJob(id, reauthToken);
         toast.warning('Job post permanently deleted.', 'Job Purged');
         await fetchArchives(true, true);
       } catch (err: any) {

@@ -12,6 +12,17 @@ export const formatDate = (date: string | Date | null | undefined): string => {
 };
 
 /**
+ * Formats a date string or Date object to a readable format including exact time.
+ * Example: 2026-10-09T11:38:00Z => Oct 9, 2026 · 11:38 AM
+ */
+export const formatDateTime = (date: string | Date | null | undefined): string => {
+  if (!date) return '';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (!d || isNaN(d.getTime())) return '';
+  return format(d, 'MMM d, yyyy · h:mm a');
+};
+
+/**
  * Formats a date-only string (e.g. YYYY-MM-DD) safely without UTC-to-local day shift.
  */
 export const formatBirthDate = (date: string | null | undefined): string => {
