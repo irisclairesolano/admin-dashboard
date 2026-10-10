@@ -85,6 +85,16 @@ function SupportTicketsPageContent() {
 
   usePolling(fetchTickets, 30000);
 
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchTickets(true);
+    };
+    window.addEventListener('admin:refresh-notifications', handleRefresh);
+    return () => {
+      window.removeEventListener('admin:refresh-notifications', handleRefresh);
+    };
+  }, []);
+
   const { toast } = useToast();
 
   const handleStatusChange = async (newStatus: 'open' | 'processing' | 'resolved') => {
@@ -97,6 +107,9 @@ function SupportTicketsPageContent() {
          t.id === selectedTicket.id ? { ...t, status: newStatus } : t
       ));
       setSelectedTicket(prev => prev ? { ...prev, status: newStatus } : null);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('admin:refresh-notifications'));
+      }
       toast.info(`Ticket status updated to ${newStatus}.`, 'Status Updated');
     } catch (err) {
       console.error('Failed to update status:', err);
@@ -126,6 +139,9 @@ function SupportTicketsPageContent() {
       
       setSelectedTicket(prev => prev ? { ...prev, status: 'resolved', admin_reply: replyText } : null);
       setReplyText('');
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('admin:refresh-notifications'));
+      }
       toast.success('Reply submitted and ticket marked as resolved.', 'Ticket Resolved');
     } catch (err) {
       console.error('Failed to reply:', err);

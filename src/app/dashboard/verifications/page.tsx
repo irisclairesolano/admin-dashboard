@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import Avatar from '@/components/Avatar';
@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic';
 import { AlertDialog } from '@/components/AlertDialog';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus } from '@/lib/export/csv';
 import { useToast } from '@/context/ToastContext';
+import { usePolling } from '@/hooks/usePolling';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
@@ -84,7 +85,7 @@ function VerificationsPageContent() {
     setCurrentPage(1);
   }, [urlSearch]);
 
-  const fetchVerifications = async (silent = false, forceRefresh = false) => {
+  const fetchVerifications = useCallback(async (silent = false, forceRefresh = false) => {
     try {
       if (!silent) setLoading(true);
       const res = await adminApi.getVerifications(true, forceRefresh);
@@ -94,7 +95,7 @@ function VerificationsPageContent() {
     } finally {
       if (!silent) setLoading(false);
     }
-  };
+  }, []);
 
   const handleExportCSV = () => {
     if (!users || users.length === 0) {
@@ -168,29 +169,22 @@ function VerificationsPageContent() {
   };
 
   useEffect(() => {
-    let cancelled = false;
+    fetchVerifications(false, true);
+  }, [fetchVerifications]);
 
-    const loadVerifications = async (silent = false) => {
-      try {
-        if (!silent) setLoading(true);
-        const res = await adminApi.getVerifications(true, true);
-        if (!cancelled) {
-          setUsers(res.data.data || []);
-        }
-      } catch (err: any) {
-        if (!cancelled && !silent) setError(err.message || 'Failed to load verifications');
-      } finally {
-        if (!cancelled && !silent) setLoading(false);
-      }
+  usePolling(() => fetchVerifications(true, true), 15000);
+
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchVerifications(true, true);
     };
-
-    loadVerifications();
-    const timer = setInterval(() => loadVerifications(true), 30000);
+    window.addEventListener('admin:refresh-notifications', handleRefresh);
+    window.addEventListener('focus', handleRefresh);
     return () => {
-      cancelled = true;
-      clearInterval(timer);
+      window.removeEventListener('admin:refresh-notifications', handleRefresh);
+      window.removeEventListener('focus', handleRefresh);
     };
-  }, []);
+  }, [fetchVerifications]);
 
   const { toast } = useToast();
 
@@ -228,6 +222,9 @@ function VerificationsPageContent() {
       }
 
       setReviewUser(null);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('admin:refresh-notifications'));
+      }
       fetchVerifications(true, true); // Refresh list
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.message || 'Verification update failed.', 'Action Failed');
