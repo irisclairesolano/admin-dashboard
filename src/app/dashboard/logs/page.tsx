@@ -159,7 +159,7 @@ function LogsPageContent() {
         log.admin?.name || 'System Admin',
         log.admin?.email || 'N/A',
         formatActionName(log.action),
-        log.target_type || log.target_name || '-',
+        log.target_name && log.target_name !== '-' ? log.target_name : (log.target_type ? `${log.target_type.split('\\').pop()} #${log.target_id || ''}` : '-'),
         log.target_id || '',
         log.description || ''
       ]);
@@ -370,8 +370,25 @@ function LogsPageContent() {
                           {formatActionName(log.action)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs font-bold text-ink truncate">
-                        {log.target_name || '-'}
+                      <td className="px-4 py-3 text-xs">
+                        {log.target_name && log.target_name !== '-' ? (
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-bold text-ink truncate block" title={log.target_name}>
+                              {log.target_name}
+                            </span>
+                            {log.target_id && (
+                              <span className="text-[10px] text-ink-muted font-numeric">
+                                {log.target_type ? log.target_type.split('\\').pop() : 'Entity'} #{log.target_id}
+                              </span>
+                            )}
+                          </div>
+                        ) : log.target_type ? (
+                          <span className="text-ink-soft text-xs font-semibold">
+                            {log.target_type.split('\\').pop()} #{log.target_id || ''}
+                          </span>
+                        ) : (
+                          <span className="text-ink-muted text-xs">-</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-ink font-body font-medium text-xs leading-relaxed">
                         {log.description}

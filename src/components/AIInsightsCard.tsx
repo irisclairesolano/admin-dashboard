@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   Sparkles, 
   TrendingUp, 
@@ -33,44 +33,46 @@ export interface InsightsData {
   recommendations?: InsightItem[];
 }
 
-const categoryConfig: Record<'insight' | 'trend' | 'concern' | 'recommendation', {
-  label: string;
-  icon: typeof CheckCircle2;
-  accentBorder: string;
-  badgeBg: string;
-  badgeText: string;
-}> = {
-  insight: {
-    label: 'What we found',
-    icon: CheckCircle2,
-    accentBorder: 'border-l-emerald-500',
-    badgeBg: 'bg-emerald-50 border-emerald-200/80',
-    badgeText: 'text-emerald-800',
-  },
-  trend: {
-    label: "What's changing",
-    icon: TrendingUp,
-    accentBorder: 'border-l-sky-500',
-    badgeBg: 'bg-sky-50 border-sky-200/80',
-    badgeText: 'text-sky-800',
-  },
+const columnConfig = {
   concern: {
-    label: 'Needs a look',
+    label: 'Problems & Risks',
+    shortLabel: 'Problems',
     icon: AlertTriangle,
     accentBorder: 'border-l-rose-500',
-    badgeBg: 'bg-rose-50 border-rose-200/80',
-    badgeText: 'text-rose-800',
+    headerBg: 'bg-rose-50/80 text-rose-800 border-rose-200/80',
+    badgeText: 'text-rose-700 bg-rose-100',
+    dotColor: 'bg-rose-500',
   },
   recommendation: {
-    label: 'What to do',
+    label: 'Strategic Actions',
+    shortLabel: 'Suggestions',
     icon: Lightbulb,
     accentBorder: 'border-l-amber-500',
-    badgeBg: 'bg-amber-50 border-amber-200/80',
-    badgeText: 'text-amber-800',
+    headerBg: 'bg-amber-50/80 text-amber-800 border-amber-200/80',
+    badgeText: 'text-amber-700 bg-amber-100',
+    dotColor: 'bg-amber-500',
+  },
+  insight: {
+    label: 'Key Findings',
+    shortLabel: 'Findings',
+    icon: CheckCircle2,
+    accentBorder: 'border-l-emerald-500',
+    headerBg: 'bg-emerald-50/80 text-emerald-800 border-emerald-200/80',
+    badgeText: 'text-emerald-700 bg-emerald-100',
+    dotColor: 'bg-emerald-500',
+  },
+  trend: {
+    label: 'Market Shifts',
+    shortLabel: 'Changes',
+    icon: TrendingUp,
+    accentBorder: 'border-l-sky-500',
+    headerBg: 'bg-sky-50/80 text-sky-800 border-sky-200/80',
+    badgeText: 'text-sky-700 bg-sky-100',
+    dotColor: 'bg-sky-500',
   },
 };
 
-function InsightStatCard({ 
+function CompactInsightCard({ 
   item, 
   category 
 }: { 
@@ -78,59 +80,48 @@ function InsightStatCard({
   category: 'insight' | 'trend' | 'concern' | 'recommendation';
 }) {
   const [showData, setShowData] = useState(false);
-  const cfg = categoryConfig[category] || categoryConfig.insight;
+  const cfg = columnConfig[category];
 
   return (
-    <div className={`bg-white rounded-xl p-3.5 border border-ink-faint/40 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between border-l-4 ${cfg.accentBorder}`}>
+    <div className={`bg-white rounded-xl p-3 border border-ink-faint/50 shadow-2xs hover:shadow-xs transition-all duration-150 border-l-[3.5px] ${cfg.accentBorder} flex flex-col justify-between group`}>
       <div>
-        {/* Card Header — badge only, no icon-in-circle */}
-        <div className="flex items-center gap-2 flex-wrap mb-2.5">
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-body font-bold uppercase tracking-wider border ${cfg.badgeBg} ${cfg.badgeText}`}>
-            <span className="w-1.5 h-1.5 rounded-full bg-current" />
-            {cfg.label}
-          </span>
-        </div>
-
-        {/* Primary Insight Text */}
-        <p className="text-sm font-body font-semibold text-ink leading-relaxed mb-3">
+        <p className="text-xs font-body font-semibold text-ink leading-relaxed">
           {item.text}
         </p>
       </div>
 
-      {/* Footer / Evidence */}
-      <div className="mt-2 pt-2.5 border-t border-ink-faint/30 flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-2">
+      <div className="mt-2 pt-2 border-t border-ink-faint/25 flex flex-col gap-1.5 text-[11px]">
+        <div className="flex items-center justify-between gap-1.5">
           {item.supportingData ? (
             <button
               type="button"
               onClick={() => setShowData(!showData)}
-              className="inline-flex items-center gap-1.5 text-xs font-body font-semibold text-ink-soft border border-ink-faint/60 bg-white px-2.5 py-1 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
-              title="See the numbers behind this"
+              className="inline-flex items-center gap-1 text-[10px] font-body font-semibold text-ink-muted hover:text-ink px-1.5 py-0.5 rounded border border-ink-faint/50 hover:bg-slate-50 transition-colors cursor-pointer"
             >
-              <Database className="w-3.5 h-3.5" />
-              <span>{showData ? 'Hide Evidence' : 'View Evidence'}</span>
-              {showData ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              <Database className="w-2.5 h-2.5" />
+              <span>{showData ? 'Hide Evidence' : 'Evidence'}</span>
+              {showData ? <ChevronUp className="w-2.5 h-2.5" /> : <ChevronDown className="w-2.5 h-2.5" />}
             </button>
           ) : (
-            <span className="text-[11px] text-ink-muted/80 flex items-center gap-1">
-              <Info className="w-3 h-3" /> System baseline insight
+            <span className="text-[10px] text-ink-muted/70 flex items-center gap-1">
+              <Info className="w-2.5 h-2.5" /> Baseline
             </span>
           )}
 
           {item.actionLink && (
             <a
               href={item.actionLink}
-              className="inline-flex items-center gap-1 text-xs font-body font-bold text-primary hover:text-primary-dark hover:underline transition-colors ml-auto py-1"
+              className="inline-flex items-center gap-1 text-[10px] font-body font-bold text-primary hover:text-primary-dark hover:underline transition-colors ml-auto py-0.5"
             >
-              <span>Take Action</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <span>Action</span>
+              <ArrowUpRight className="w-2.5 h-2.5" />
             </a>
           )}
         </div>
 
         {showData && item.supportingData && (
-          <div className="p-3 rounded-xl bg-slate-50/90 border border-ink-faint/60 text-xs font-mono text-ink-soft leading-relaxed animate-fade-in shadow-inner">
-            <span className="font-bold text-ink-muted uppercase tracking-wider text-[9px] block mb-1">The Numbers Behind This</span>
+          <div className="p-2 rounded-lg bg-slate-50 border border-ink-faint/50 text-[10px] font-mono text-ink-soft leading-normal animate-fade-in break-words">
+            <span className="font-bold text-ink-muted uppercase tracking-wider text-[8px] block mb-0.5">Underlying Metrics</span>
             {item.supportingData}
           </div>
         )}
@@ -155,7 +146,7 @@ export function AIInsightsCard({
   cached?: boolean;
   generatedAt?: Date | null;
 }) {
-  const [activeCategory, setActiveCategory] = useState<'all' | 'insights' | 'trends' | 'concerns' | 'recommendations'>('all');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'concerns' | 'recommendations' | 'insights' | 'trends'>('all');
 
   const safeData: InsightsData = data || {};
   const keyInsights = safeData.keyInsights || [];
@@ -163,7 +154,6 @@ export function AIInsightsCard({
   const allConcerns = safeData.areasOfConcern || [];
   const recommendations = safeData.recommendations || [];
 
-  // Separate test-data flag items from regular concerns
   const testDataConcerns = allConcerns.filter(isTestDataConcern);
   const areasOfConcern = allConcerns.filter(item => !isTestDataConcern(item));
 
@@ -184,136 +174,230 @@ export function AIInsightsCard({
     return `${diffHr}h ago`;
   })();
 
+  const categories = [
+    { id: 'all' as const, label: 'All Pillars', count: totalInsights, icon: Layers },
+    { id: 'concerns' as const, label: 'Problems', count: allConcerns.length, icon: AlertTriangle, color: 'text-rose-600' },
+    { id: 'recommendations' as const, label: 'Suggestions', count: recommendations.length, icon: Lightbulb, color: 'text-amber-600' },
+    { id: 'insights' as const, label: 'Findings', count: keyInsights.length, icon: CheckCircle2, color: 'text-emerald-600' },
+    { id: 'trends' as const, label: 'Changes', count: trends.length, icon: TrendingUp, color: 'text-sky-600' },
+  ];
+
   return (
-    <div className="w-full rounded-2xl bg-white border border-ink-faint/40 shadow-sm overflow-hidden animate-fade-in">
-      {/* Flat Header — matches rest of app design language */}
-      <div className="px-5 py-4 bg-slate-50 border-b border-ink-faint/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
-            <Sparkles className="w-4.5 h-4.5 text-primary" />
+    <div className="w-full rounded-2xl bg-white border border-ink-faint/50 shadow-sm overflow-hidden animate-fade-in flex flex-col">
+      {/* 1. COMPACT TOP HEADER */}
+      <div className="px-4 py-3 bg-slate-50/90 border-b border-ink-faint/40 flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
           </div>
           <div>
-            <h3 className="font-display font-bold text-base text-ink tracking-wide">
-              AI Insights
-            </h3>
-            <p className="text-xs text-ink-muted font-body mt-0.5">
-              Quick takeaways on jobs, applicants, and safety.
+            <div className="flex items-center gap-2">
+              <h3 className="font-display font-bold text-sm text-ink tracking-tight">
+                AI Platform Intelligence
+              </h3>
+              <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20 font-numeric">
+                {totalInsights} Insights
+              </span>
+            </div>
+            <p className="text-[11px] text-ink-muted font-body leading-none mt-0.5">
+              Live executive summary of labor dynamics, platform safety, and strategic steps.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0 text-xs">
           {period && (
-            <div className="px-3 py-1.5 rounded-xl border border-ink-faint/60 bg-white text-xs font-numeric font-semibold text-ink-soft shadow-2xs">
-              <span className="text-[10px] uppercase font-body tracking-wider text-ink-muted mr-1.5">Period:</span>
+            <div className="px-2.5 py-1 rounded-lg border border-ink-faint/60 bg-white text-[11px] font-numeric font-semibold text-ink-soft shadow-2xs">
+              <span className="text-[9px] uppercase font-body tracking-wider text-ink-muted mr-1">Period:</span>
               {period}
             </div>
           )}
           {generatedAtLabel && (
             <span className="text-[10px] text-ink-muted font-body">
-              {cached ? '(cached)' : 'Generated'} {generatedAtLabel}
+              {cached ? '(cached)' : 'Updated'} {generatedAtLabel}
             </span>
           )}
         </div>
       </div>
 
-      <div className="p-4 sm:p-5 space-y-4">
-        {/* Test Data Alert — top-priority banner, above everything else */}
-        {testDataConcerns.length > 0 && (
-          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-status-error/8 border border-status-error/25 text-xs font-body shadow-2xs">
-            <AlertTriangle className="w-4 h-4 text-status-error flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold text-status-error mr-1.5">Heads up:</span>
-              {testDataConcerns.map((item, i) => (
-                <span key={i} className="text-ink-soft">{item.text}{i < testDataConcerns.length - 1 ? ' · ' : ''}</span>
-              ))}
-              <span className="block text-ink-muted mt-0.5 italic">These numbers may not match what is really happening.</span>
+      {/* 2. COMPACT ALERT STRIPS (Single Line) */}
+      {(testDataConcerns.length > 0 || safeData.dataSufficiency?.isLowVolume) && (
+        <div className="px-4 pt-2.5 space-y-1.5">
+          {testDataConcerns.length > 0 && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-status-error/8 border border-status-error/20 text-[11px] font-body text-ink">
+              <AlertTriangle className="w-3.5 h-3.5 text-status-error flex-shrink-0" />
+              <span className="font-bold text-status-error">Notice:</span>
+              <span className="text-ink-soft truncate">
+                {testDataConcerns.map(item => item.text).join(' · ')}
+              </span>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Statistical Variance Notice */}
-        {safeData.dataSufficiency?.isLowVolume && (
-          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-900 text-xs font-body shadow-2xs">
-            <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold text-amber-800 mr-1.5">Small numbers:</span>
-              <span>{safeData.dataSufficiency.note ?? 'Not much activity recorded in this period yet. These numbers are just early signals.'}</span>
+          {safeData.dataSufficiency?.isLowVolume && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/25 text-[11px] font-body text-amber-900">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+              <span className="font-bold text-amber-800">Early Signal:</span>
+              <span className="truncate">{safeData.dataSufficiency.note ?? 'Limited activity in this window. Findings represent early trends.'}</span>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+      )}
 
-        {/* Category Navigation Pills */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-faint/30 pb-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {[
-              { id: 'all', label: 'All', count: totalInsights, icon: Layers },
-              { id: 'concerns', label: 'Problems', count: allConcerns.length, icon: AlertTriangle, color: 'text-rose-600' },
-              { id: 'recommendations', label: 'Suggestions', count: recommendations.length, icon: Lightbulb, color: 'text-amber-600' },
-              { id: 'insights', label: 'Findings', count: keyInsights.length, icon: CheckCircle2, color: 'text-emerald-600' },
-              { id: 'trends', label: 'Changes', count: trends.length, icon: TrendingUp, color: 'text-sky-600' },
-            ].map(({ id, label, count, icon: Icon, color }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setActiveCategory(id as any)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-body font-semibold transition-all cursor-pointer ${
-                  activeCategory === id
-                    ? 'bg-ink text-white shadow-2xs'
-                    : 'bg-white border border-ink-faint/50 text-ink-soft hover:text-ink hover:bg-slate-50'
-                }`}
-              >
-                <Icon className={`w-3.5 h-3.5 ${activeCategory === id ? 'text-white' : color || 'text-ink-muted'}`} />
-                <span>{label}</span>
-                {count > 0 && (
-                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                    activeCategory === id ? 'bg-white/20 text-white' : 'bg-ink-faint/60 text-ink-muted'
-                  }`}>
-                    {count}
-                  </span>
+      {/* 3. CATEGORY SWITCHER BAR */}
+      <div className="px-4 py-2 border-b border-ink-faint/30 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
+          {categories.map(({ id, label, count, icon: Icon, color }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setActiveCategory(id)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                activeCategory === id
+                  ? 'bg-ink text-white shadow-2xs'
+                  : 'bg-slate-50 border border-ink-faint/50 text-ink-soft hover:text-ink hover:bg-slate-100'
+              }`}
+            >
+              <Icon className={`w-3 h-3 ${activeCategory === id ? 'text-white' : color || 'text-ink-muted'}`} />
+              <span>{label}</span>
+              {count > 0 && (
+                <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-bold ${
+                  activeCategory === id ? 'bg-white/20 text-white' : 'bg-ink-faint/50 text-ink-muted'
+                }`}>
+                  {count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <span className="text-[10px] text-ink-muted font-body hidden md:inline">
+          {activeCategory === 'all' ? '4-Pillar Synchronized Deck' : `Filtered by ${activeCategory}`}
+        </span>
+      </div>
+
+      {/* 4. MAIN DECK VIEWPORT (Fits in 1 screen view with max-h and column scrolling) */}
+      <div className="p-3.5 sm:p-4 bg-slate-50/40">
+        {activeCategory === 'all' ? (
+          /* 4-COLUMN SYNCHRONIZED DECK */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Column 1: Problems & Risks */}
+            <div className="flex flex-col bg-slate-100/60 rounded-xl p-2.5 border border-slate-200/80">
+              <div className="flex items-center justify-between px-1 mb-2">
+                <div className="flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                  <span className="text-xs font-bold text-ink">Problems</span>
+                </div>
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-700">
+                  {allConcerns.length}
+                </span>
+              </div>
+              <div className="max-h-[380px] overflow-y-auto space-y-2 pr-0.5 custom-scrollbar">
+                {allConcerns.length === 0 ? (
+                  <div className="p-4 text-center text-[11px] text-ink-muted italic">No issues detected</div>
+                ) : (
+                  allConcerns.map((item, idx) => (
+                    <CompactInsightCard key={`concern-${idx}`} item={item} category="concern" />
+                  ))
                 )}
-              </button>
-            ))}
+              </div>
+            </div>
+
+            {/* Column 2: Suggestions */}
+            <div className="flex flex-col bg-slate-100/60 rounded-xl p-2.5 border border-slate-200/80">
+              <div className="flex items-center justify-between px-1 mb-2">
+                <div className="flex items-center gap-1.5">
+                  <Lightbulb className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="text-xs font-bold text-ink">Suggestions</span>
+                </div>
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-700">
+                  {recommendations.length}
+                </span>
+              </div>
+              <div className="max-h-[380px] overflow-y-auto space-y-2 pr-0.5 custom-scrollbar">
+                {recommendations.length === 0 ? (
+                  <div className="p-4 text-center text-[11px] text-ink-muted italic">No suggestions</div>
+                ) : (
+                  recommendations.map((item, idx) => (
+                    <CompactInsightCard key={`rec-${idx}`} item={item} category="recommendation" />
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Column 3: Findings */}
+            <div className="flex flex-col bg-slate-100/60 rounded-xl p-2.5 border border-slate-200/80">
+              <div className="flex items-center justify-between px-1 mb-2">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="text-xs font-bold text-ink">Findings</span>
+                </div>
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-700">
+                  {keyInsights.length}
+                </span>
+              </div>
+              <div className="max-h-[380px] overflow-y-auto space-y-2 pr-0.5 custom-scrollbar">
+                {keyInsights.length === 0 ? (
+                  <div className="p-4 text-center text-[11px] text-ink-muted italic">No findings recorded</div>
+                ) : (
+                  keyInsights.map((item, idx) => (
+                    <CompactInsightCard key={`insight-${idx}`} item={item} category="insight" />
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Column 4: Market Changes */}
+            <div className="flex flex-col bg-slate-100/60 rounded-xl p-2.5 border border-slate-200/80">
+              <div className="flex items-center justify-between px-1 mb-2">
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-sky-600" />
+                  <span className="text-xs font-bold text-ink">Changes</span>
+                </div>
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-sky-100 text-sky-700">
+                  {trends.length}
+                </span>
+              </div>
+              <div className="max-h-[380px] overflow-y-auto space-y-2 pr-0.5 custom-scrollbar">
+                {trends.length === 0 ? (
+                  <div className="p-4 text-center text-[11px] text-ink-muted italic">No trend shifts</div>
+                ) : (
+                  trends.map((item, idx) => (
+                    <CompactInsightCard key={`trend-${idx}`} item={item} category="trend" />
+                  ))
+                )}
+              </div>
+            </div>
           </div>
-
-          <div className="text-[11px] font-body text-ink-muted hidden sm:block">
-            Helpful tips from your data
+        ) : (
+          /* FOCUSED VIEW (For specific selected category) */
+          <div className="max-h-[380px] overflow-y-auto pr-1 space-y-2.5 custom-scrollbar">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {activeCategory === 'concerns' &&
+                allConcerns.map((item, idx) => (
+                  <CompactInsightCard key={`focus-concern-${idx}`} item={item} category="concern" />
+                ))}
+              {activeCategory === 'recommendations' &&
+                recommendations.map((item, idx) => (
+                  <CompactInsightCard key={`focus-rec-${idx}`} item={item} category="recommendation" />
+                ))}
+              {activeCategory === 'insights' &&
+                keyInsights.map((item, idx) => (
+                  <CompactInsightCard key={`focus-insight-${idx}`} item={item} category="insight" />
+                ))}
+              {activeCategory === 'trends' &&
+                trends.map((item, idx) => (
+                  <CompactInsightCard key={`focus-trend-${idx}`} item={item} category="trend" />
+                ))}
+            </div>
           </div>
-        </div>
-
-        {/* Urgency-ordered card grid — Concerns → Recs → Key Findings → Trends */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5">
-          {/* 1. Areas of Concern (non-test-data) — highest urgency */}
-          {(activeCategory === 'all' || activeCategory === 'concerns') &&
-            areasOfConcern.map((item, idx) => (
-              <InsightStatCard key={`concern-${idx}`} item={item} category="concern" />
-            ))}
-
-          {/* 2. Recommendations */}
-          {(activeCategory === 'all' || activeCategory === 'recommendations') &&
-            recommendations.map((item, idx) => (
-              <InsightStatCard key={`rec-${idx}`} item={item} category="recommendation" />
-            ))}
-
-          {/* 3. Key Findings */}
-          {(activeCategory === 'all' || activeCategory === 'insights') &&
-            keyInsights.map((item, idx) => (
-              <InsightStatCard key={`insight-${idx}`} item={item} category="insight" />
-            ))}
-
-          {/* 4. Market Trends — lowest urgency */}
-          {(activeCategory === 'all' || activeCategory === 'trends') &&
-            trends.map((item, idx) => (
-              <InsightStatCard key={`trend-${idx}`} item={item} category="trend" />
-            ))}
-        </div>
+        )}
 
         {totalInsights === 0 && (
-          <div className="py-12 text-center bg-white/70 rounded-xl border border-ink-faint/30">
-            <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
-            <h4 className="font-display font-bold text-ink text-sm">Nothing unusual found</h4>
-            <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto">
-              Everything looks normal for this period with no problems spotted.
+          <div className="py-8 text-center bg-white rounded-xl border border-ink-faint/30">
+            <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-1.5" />
+            <h4 className="font-display font-bold text-ink text-xs">Platform Running Smoothly</h4>
+            <p className="text-[11px] text-ink-muted mt-0.5 max-w-sm mx-auto">
+              No anomalies or critical issues detected for this reporting window.
             </p>
           </div>
         )}

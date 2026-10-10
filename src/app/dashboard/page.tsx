@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, Sector, Legend
@@ -123,7 +122,7 @@ function ChartEmptyState({ title, message }: { title?: string; message?: string 
 }
 
 
-function MetricHeaderStrip({ items }: { items: { label: string; value: string | number; change?: number; highlight?: boolean }[] }) {
+function MetricHeaderStrip({ items }: { items: { label: string; value: string | number; highlight?: boolean }[] }) {
   return (
     <div className="flex flex-wrap items-center gap-3 sm:gap-6 py-2 px-3.5 bg-slate-50/90 rounded-2xl border border-slate-200/70 mb-4 font-numeric">
       {items.map((item, idx) => (
@@ -132,11 +131,6 @@ function MetricHeaderStrip({ items }: { items: { label: string; value: string | 
           <span className={`text-sm sm:text-base font-bold ${item.highlight ? 'text-primary-dark' : 'text-ink'}`}>
             {typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
           </span>
-          {item.change !== undefined && (
-            <span className={`text-[10px] font-bold ${item.change >= 0 ? 'text-status-success' : 'text-status-error'}`}>
-              {item.change >= 0 ? '↑' : '↓'} {Math.abs(item.change)}%
-            </span>
-          )}
         </div>
       ))}
     </div>
@@ -370,6 +364,7 @@ export default function AnalyticsDashboard() {
   const [showAiBriefing, setShowAiBriefing] = useState(false);
   const [aiGeneratedAt, setAiGeneratedAt] = useState<Date | null>(null);
   const [aiCached, setAiCached] = useState(false);
+  const aiInsightsRef = useRef<HTMLDivElement>(null);
 
   // Messaging stats (aggregate only — no message content)
   const [convStats, setConvStats] = useState<{
@@ -451,6 +446,9 @@ export default function AnalyticsDashboard() {
       setAiPeriod(res.data.period);
       setAiGeneratedAt(new Date());
       setAiCached(!!res.data.cached);
+      setTimeout(() => {
+        aiInsightsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
     } catch (err: any) {
       console.error('Failed to generate AI insights', err);
       setAiError(err.response?.data?.message || 'Failed to generate insights. Please verify Gemini configuration.');
@@ -1392,15 +1390,6 @@ export default function AnalyticsDashboard() {
                       <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
                         {(data?.kpis?.total_users?.value ?? 0).toLocaleString()}
                       </h3>
-                      {data?.kpis?.total_users?.change !== undefined && data?.kpis?.total_users?.change !== null && (
-                        <span className={`inline-flex items-center text-[11px] font-bold font-numeric ${(data.kpis.total_users.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
-                          <i className={`lni ${(data.kpis.total_users.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-0.5 text-[9px]`} />
-                          {Math.abs(data.kpis.total_users.change ?? 0)}%
-                        </span>
-                      )}
-                      {data?.kpis?.total_users?.change === null && (data?.kpis?.total_users?.value ?? 0) > 0 && (
-                        <span className="inline-flex items-center text-[11px] font-bold font-numeric text-status-success">New</span>
-                      )}
                     </div>
                   </div>
                   <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
@@ -1426,15 +1415,6 @@ export default function AnalyticsDashboard() {
                       <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
                         {(data?.kpis?.active_jobs?.value ?? 0).toLocaleString()}
                       </h3>
-                      {data?.kpis?.active_jobs?.change !== undefined && data?.kpis?.active_jobs?.change !== null && (
-                        <span className={`inline-flex items-center text-[11px] font-bold font-numeric ${(data.kpis.active_jobs.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
-                          <i className={`lni ${(data.kpis.active_jobs.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-0.5 text-[9px]`} />
-                          {Math.abs(data.kpis.active_jobs.change ?? 0)}%
-                        </span>
-                      )}
-                      {data?.kpis?.active_jobs?.change === null && (data?.kpis?.active_jobs?.value ?? 0) > 0 && (
-                        <span className="inline-flex items-center text-[11px] font-bold font-numeric text-status-success">New</span>
-                      )}
                     </div>
                   </div>
                   <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
@@ -1460,15 +1440,6 @@ export default function AnalyticsDashboard() {
                       <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
                         {(data?.kpis?.applications?.value ?? 0).toLocaleString()}
                       </h3>
-                      {data?.kpis?.applications?.change !== undefined && data?.kpis?.applications?.change !== null && (
-                        <span className={`inline-flex items-center text-[11px] font-bold font-numeric ${(data.kpis.applications.change ?? 0) >= 0 ? 'text-status-success' : 'text-status-error'}`}>
-                          <i className={`lni ${(data.kpis.applications.change ?? 0) >= 0 ? 'lni-arrow-up' : 'lni-arrow-down'} mr-0.5 text-[9px]`} />
-                          {Math.abs(data.kpis.applications.change ?? 0)}%
-                        </span>
-                      )}
-                      {data?.kpis?.applications?.change === null && (data?.kpis?.applications?.value ?? 0) > 0 && (
-                        <span className="inline-flex items-center text-[11px] font-bold font-numeric text-status-success">New</span>
-                      )}
                     </div>
                   </div>
                   <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
@@ -1540,7 +1511,7 @@ export default function AnalyticsDashboard() {
               )}
 
               {/* AI Insights Strip (Collapsible) */}
-              <div className="bg-white rounded-2xl border border-ink-faint/40 p-3.5 sm:p-4 shadow-2xs print-chart-container transition-all">
+              <div ref={aiInsightsRef} className="bg-white rounded-2xl border border-ink-faint/40 p-3.5 sm:p-4 shadow-2xs print-chart-container transition-all scroll-mt-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
@@ -1636,8 +1607,8 @@ export default function AnalyticsDashboard() {
 
                     <MetricHeaderStrip
                       items={[
-                        { label: 'Applications Filed', value: data?.kpis?.applications?.value ?? 0, change: data?.kpis?.applications?.change, highlight: true },
-                        { label: 'Job Posts', value: data?.kpis?.active_jobs?.value ?? 0, change: data?.kpis?.active_jobs?.change },
+                        { label: 'Applications Filed', value: data?.kpis?.applications?.value ?? 0, highlight: true },
+                        { label: 'Job Posts', value: data?.kpis?.active_jobs?.value ?? 0 },
                       ]}
                     />
 
@@ -1669,7 +1640,7 @@ export default function AnalyticsDashboard() {
                         items={[
                           { label: 'New Workers', value: data?.user_ratio?.workers ?? 0, highlight: true },
                           { label: 'New Employers', value: data?.user_ratio?.employers ?? 0 },
-                          { label: 'Verified Users', value: `${data?.user_ratio?.verified_pct ?? 0}%` },
+                          { label: 'Verified Users', value: data?.user_ratio?.verified_users ?? 0 },
                         ]}
                       />
 
@@ -3055,12 +3026,7 @@ export default function AnalyticsDashboard() {
                       <p className="text-[7px] font-bold text-slate-500 uppercase">New Users</p>
                       <p className="text-sm font-black text-slate-900 mt-0.5">{data?.kpis?.total_users?.value ?? 0}</p>
                       <p className="text-[7px] text-slate-500">
-                        {data?.kpis?.total_users?.change !== undefined && (
-                          <span className={data.kpis.total_users.change >= 0 ? 'text-emerald-700 font-bold mr-0.5' : 'text-rose-700 font-bold mr-0.5'}>
-                            {data.kpis.total_users.change >= 0 ? '▲' : '▼'} {Math.abs(data.kpis.total_users.change)}%
-                          </span>
-                        )}
-                        Growth vs last period
+                        Total signups in period
                       </p>
                     </div>
 
@@ -3068,11 +3034,6 @@ export default function AnalyticsDashboard() {
                       <p className="text-[7px] font-bold text-slate-500 uppercase">Job Posts</p>
                       <p className="text-sm font-black text-slate-900 mt-0.5">{data?.kpis?.active_jobs?.value ?? 0}</p>
                       <p className="text-[7px] text-slate-500">
-                        {data?.kpis?.active_jobs?.change !== undefined && (
-                          <span className={data.kpis.active_jobs.change >= 0 ? 'text-emerald-700 font-bold mr-0.5' : 'text-rose-700 font-bold mr-0.5'}>
-                            {data.kpis.active_jobs.change >= 0 ? '▲' : '▼'} {Math.abs(data.kpis.active_jobs.change)}%
-                          </span>
-                        )}
                         Active posts in period
                       </p>
                     </div>

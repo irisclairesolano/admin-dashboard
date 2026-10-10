@@ -341,20 +341,43 @@ function ExportReportsContent() {
   }, [municipalSummary]);
 
   // 4. Verifications Audit
+  const getVerificationAuditStatus = useCallback((v: any) => {
+    if (v.verification_status === 'approved' || v.verification_badge) return 'approved';
+    if (v.verification_status === 'rejected' || v.registration_status === 'rejected') return 'rejected';
+
+    const hasUploadedDocs = !!(
+      v.document_url ||
+      v.document_back_url ||
+      v.selfie_url ||
+      (v.business_documents && (Array.isArray(v.business_documents) ? v.business_documents.length > 0 : true))
+    );
+
+    // If no verification documents were submitted:
+    if (!hasUploadedDocs) {
+      if (v.role === 'employer' && v.registration_status === 'approved') {
+        return 'unverified';
+      }
+      return 'pending_id_upload';
+    }
+
+    // Documents exist and awaiting review
+    return 'pending';
+  }, []);
+
   const filteredVerifications = useMemo(() => {
     const sourceList = verifications && verifications.length > 0 ? verifications : users.filter((u) => u.role !== 'admin');
     return sourceList.filter((v) => {
       if (!isWithinDateRange(v.created_at || v.updated_at)) return false;
       if (roleFilter !== 'all' && v.role !== roleFilter) return false;
       
-      const vStatus = (v.verification_status || (v.registration_status === 'approved' ? 'approved' : 'pending')).toLowerCase();
+      const vStatus = getVerificationAuditStatus(v);
       if (statusFilter !== 'all') {
         if (statusFilter === 'approved' || statusFilter === 'verified') {
           if (vStatus !== 'approved') return false;
         } else if (statusFilter === 'rejected') {
           if (vStatus !== 'rejected') return false;
         } else if (statusFilter === 'pending') {
-          if (vStatus !== 'pending' && vStatus !== 'pending_review' && vStatus !== 'pending_id_upload') return false;
+          if (vStatus !== 'pending') return false;
         }
       }
 
@@ -367,7 +390,7 @@ function ExportReportsContent() {
       }
       return true;
     });
-  }, [verifications, users, isWithinDateRange, roleFilter, statusFilter, deferredSearchQuery]);
+  }, [verifications, users, isWithinDateRange, roleFilter, statusFilter, deferredSearchQuery, getVerificationAuditStatus]);
 
   // 5. Moderation Reports
   const filteredReports = useMemo(() => {
@@ -751,7 +774,7 @@ function ExportReportsContent() {
         v.email || '',
         v.municipality || 'Bulan',
         v.barangay || '',
-        formatCSVStatus(v.verification_status || (v.registration_status === 'approved' ? 'approved' : 'pending')),
+        formatCSVStatus(getVerificationAuditStatus(v)),
         v.document_url ? 'Yes' : 'No',
         v.document_back_url ? 'Yes' : 'No',
         v.selfie_url ? 'Yes' : 'No',
@@ -1839,7 +1862,7 @@ function ExportReportsContent() {
                     </tr>
                   ) : (
                     paginatedVerifications.map((v) => {
-                      const vStat = (v.verification_status || (v.registration_status === 'approved' ? 'approved' : 'pending')).toLowerCase();
+                      const vStat = getVerificationAuditStatus(v);
                       const hasFront = !!v.document_url;
                       const hasBack = !!v.document_back_url;
                       const hasSelfie = !!v.selfie_url;
@@ -1898,10 +1921,12 @@ function ExportReportsContent() {
                                   ? 'bg-emerald-100 text-emerald-800'
                                   : vStat === 'rejected'
                                   ? 'bg-rose-100 text-rose-800'
-                                  : 'bg-amber-100 text-amber-800'
+                                  : vStat === 'pending'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-slate-100 text-slate-700'
                               }`}
                             >
-                              {vStat}
+                              {vStat === 'pending' ? 'Pending Review' : vStat === 'pending_id_upload' ? 'Unsubmitted' : vStat}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-ink-muted italic text-[11px]">
