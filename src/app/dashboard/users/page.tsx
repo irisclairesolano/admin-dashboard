@@ -818,7 +818,18 @@ function UsersContent() {
         />
         <StatCard
           title="Pending Review"
-          value={activeUsers.filter(u => u.registration_status === 'pending_review' || (u.verification_status === 'pending' && u.document_url)).length}
+          value={activeUsers.filter(u => {
+            if (u.role === 'admin') return false;
+            const isApproved = u.verification_status === 'approved' || !!u.verification_badge;
+            const isRejected = u.verification_status === 'rejected' || u.registration_status === 'rejected';
+            const hasSubmittedDocs =
+              u.registration_status === 'pending_review' ||
+              !!u.document_url ||
+              !!u.document_back_url ||
+              !!u.selfie_url ||
+              (Array.isArray(u.business_documents) ? u.business_documents.length > 0 : !!u.business_documents);
+            return !isApproved && !isRejected && hasSubmittedDocs;
+          }).length}
           iconClass="lni lni-warning"
           bg="from-orange-50 to-orange-100"
           iconColor="text-orange-700"

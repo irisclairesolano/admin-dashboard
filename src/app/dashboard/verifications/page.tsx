@@ -240,16 +240,22 @@ function VerificationsPageContent() {
 
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
-  // 1. Pending: only users whose verification is pending (not approved, not rejected, not badged)
+  const hasSubmittedDocs = (u: any) =>
+    u.registration_status === 'pending_review' ||
+    !!u.document_url ||
+    !!u.document_back_url ||
+    !!u.selfie_url ||
+    (Array.isArray(u.business_documents) ? u.business_documents.length > 0 : !!u.business_documents);
+
+  // 1. Pending: only users who submitted verification documents and are awaiting review (not approved, not rejected, not badged)
   const allPendingUsers = users.filter((u) => {
     const isApproved =
       u.verification_status === 'approved' ||
-      u.registration_status === 'approved' ||
       !!u.verification_badge;
     const isRejected =
       u.verification_status === 'rejected' ||
       u.registration_status === 'rejected';
-    return !isApproved && !isRejected;
+    return !isApproved && !isRejected && hasSubmittedDocs(u);
   });
 
   // 2. Rejected: users who were rejected and are awaiting re-upload in the app
@@ -260,11 +266,10 @@ function VerificationsPageContent() {
     );
   });
 
-  // 3. Approved: users who have completed verification
+  // 3. Approved: users who have completed ID verification
   const allApprovedUsers = users.filter((u) => {
     return (
       u.verification_status === 'approved' ||
-      u.registration_status === 'approved' ||
       !!u.verification_badge
     );
   });

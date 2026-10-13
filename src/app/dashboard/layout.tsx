@@ -169,9 +169,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       const list: DashboardNotification[] = [];
 
       // 1. Pending Verifications (Individual items)
-      const pendingUsers = (verificationsRes.data?.data || []).filter((u: any) =>
-        u.registration_status === 'pending_review' || (u.verification_status === 'pending' && u.document_url)
-      );
+      const pendingUsers = (verificationsRes.data?.data || []).filter((u: any) => {
+        const isApproved = u.verification_status === 'approved' || !!u.verification_badge;
+        const isRejected = u.verification_status === 'rejected' || u.registration_status === 'rejected';
+        const hasSubmittedDocs =
+          u.registration_status === 'pending_review' ||
+          !!u.document_url ||
+          !!u.document_back_url ||
+          !!u.selfie_url ||
+          (Array.isArray(u.business_documents) ? u.business_documents.length > 0 : !!u.business_documents);
+        return !isApproved && !isRejected && hasSubmittedDocs;
+      });
 
       pendingUsers.forEach((u: any) => {
         list.push({

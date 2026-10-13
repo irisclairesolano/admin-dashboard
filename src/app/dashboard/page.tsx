@@ -1470,7 +1470,7 @@ export default function AnalyticsDashboard() {
                   </div>
                   <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
                     <span className="truncate">
-                      {data?.verification?.delayed_verifications ? `${data.verification.delayed_verifications} pending reviews` : 'Queue cleared'}
+                      {data?.verification?.pending_verifications ? `${data.verification.pending_verifications} pending reviews` : 'Queue cleared'}
                     </span>
                     <span className="text-[10px] text-ink-muted/70 group-hover:text-primary-dark transition-colors">Reports →</span>
                   </div>
@@ -1772,8 +1772,8 @@ export default function AnalyticsDashboard() {
                             <strong className="text-lg font-numeric text-primary-dark mt-0.5 block">
                               {data?.fill_rate?.value ?? 0}%
                             </strong>
-                            <span className={`text-[9px] font-bold block ${data?.fill_rate?.change >= 0 ? 'text-status-success' : 'text-status-error'}`}>
-                              {data?.fill_rate?.change >= 0 ? '↑' : '↓'} {Math.abs(data?.fill_rate?.change ?? 0)}% PoP
+                            <span className="text-[9px] text-ink-muted block">
+                              Completed jobs / Total
                             </span>
                           </div>
                         </div>
