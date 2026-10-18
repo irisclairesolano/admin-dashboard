@@ -100,6 +100,22 @@ function formatStatusCell(cell: ExcelJS.Cell, status: string) {
   cell.alignment = { vertical: 'middle', horizontal: 'center' };
 }
 
+function getVerificationStatus(u: any): string {
+  const isApproved = u.verification_status === 'approved' || !!u.verification_badge;
+  const isRejected = u.verification_status === 'rejected' || u.registration_status === 'rejected';
+  const hasDocs =
+    u.registration_status === 'pending_review' ||
+    !!u.document_url ||
+    !!u.document_back_url ||
+    !!u.selfie_url ||
+    (Array.isArray(u.business_documents) ? u.business_documents.length > 0 : !!u.business_documents);
+
+  if (isApproved) return 'approved';
+  if (isRejected) return 'rejected';
+  if (hasDocs) return 'pending';
+  return 'unverified';
+}
+
 export async function generateMasterExcelWorkbook(
   payload: ExportDataPayload,
   onProgress?: (stage: string) => void
@@ -181,7 +197,7 @@ export async function generateMasterExcelWorkbook(
 
   // Pending Verif
   const cE8 = kpiRow8.getCell(5);
-  cE8.value = { formula: `COUNTIF('Verification Audit'!D6:D200,"*pending*")`, result: verifications.filter((v) => String(v.verification_status || v.status).includes('pending')).length };
+  cE8.value = { formula: `COUNTIF('Verification Audit'!D6:D200,"*pending*")`, result: verifications.filter((v) => getVerificationStatus(v) === 'pending').length };
   cE8.font = { name: 'Arial', size: 18, bold: true, color: { argb: 'FF' + NAVY } };
   cE8.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + ICE_BLUE } };
   cE8.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -392,8 +408,9 @@ export async function generateMasterExcelWorkbook(
     row.getCell(7).value = u.barangay || '';
     
     const verifCell = row.getCell(8);
-    verifCell.value = u.verification_status || 'approved';
-    formatStatusCell(verifCell, u.verification_status || 'approved');
+    const verifStatus = getVerificationStatus(u);
+    verifCell.value = verifStatus;
+    formatStatusCell(verifCell, verifStatus);
 
     const opCell = row.getCell(9);
     const opStatus = u.is_suspended ? 'Suspended' : u.deleted_at ? 'Archived' : 'Active';
@@ -735,7 +752,7 @@ export async function generateMasterExcelWorkbook(
       row.getCell(3).value = v.role ? v.role.toLowerCase() : 'user';
 
       const sCell = row.getCell(4);
-      const vStatus = v.verification_status || (v.registration_status === 'approved' ? 'approved' : 'pending');
+      const vStatus = getVerificationStatus(v);
       sCell.value = vStatus;
       formatStatusCell(sCell, vStatus);
 

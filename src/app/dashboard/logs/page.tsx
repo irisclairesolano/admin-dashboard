@@ -11,6 +11,7 @@ import { AlertDialog } from '@/components/AlertDialog';
 import { formatDate } from '@/lib/date';
 import { ACTION_TYPES, DEFAULT_ACTION_BADGE } from '@/lib/constants';
 import { exportMultiSectionCSV, formatCSVDate } from '@/lib/export/csv';
+import { useToast } from '@/context/ToastContext';
 
 function LogsPageContent() {
   const router = useRouter();
@@ -41,6 +42,7 @@ function LogsPageContent() {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const debouncedAdminName = useDebounce(adminNameFilter, 300);
+  const { toast } = useToast();
 
   // Client-side role guard: Super Admin only
   useEffect(() => {
@@ -181,6 +183,7 @@ function LogsPageContent() {
           },
         ]
       );
+      toast.success(`Exported ${exportLogs.length} audit log record(s) to CSV.`, 'CSV Export Ready');
     } catch (err: any) {
       setAlertState({
         isOpen: true,

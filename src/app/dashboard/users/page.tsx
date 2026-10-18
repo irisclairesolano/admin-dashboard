@@ -572,6 +572,8 @@ function UsersContent() {
         },
       ]
     );
+
+    toast.success(`Exported ${sortedUsers.length} user record(s) to CSV.`, 'CSV Export Ready');
   };
 
   const filteredUsers = useMemo(() => {

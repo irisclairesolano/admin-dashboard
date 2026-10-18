@@ -146,7 +146,9 @@ function VerificationsPageContent() {
         ? 'Pending Review Queue'
         : statusTab === 'rejected'
           ? 'Rejected Verifications Masterlist'
-          : 'All Verifications';
+          : statusTab === 'approved'
+            ? 'Approved Verifications Masterlist'
+            : 'All Verifications';
 
     exportMultiSectionCSV(
       `sikap_verifications_${statusTab}_${new Date().toISOString().slice(0, 10)}`,
@@ -166,6 +168,8 @@ function VerificationsPageContent() {
         },
       ]
     );
+
+    toast.success(`Exported ${displayedUsers.length} verification record(s) to CSV.`, 'CSV Export Ready');
   };
 
   useEffect(() => {

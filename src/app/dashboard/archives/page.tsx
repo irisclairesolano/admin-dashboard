@@ -11,6 +11,7 @@ import { AlertDialog } from '@/components/AlertDialog';
 import { ReAuthModal } from '@/components/ReAuthModal';
 import { formatDate } from '@/lib/date';
 import { useToast } from '@/context/ToastContext';
+import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus, formatCSVCurrency } from '@/lib/export/csv';
 
 const UserDetailDrawer = dynamic(() => import('@/components/users/UserDetailDrawer'), {
   ssr: false,
@@ -236,6 +237,120 @@ function ArchivesPageContent() {
     (job.employer?.name || '').toLowerCase().includes(jobSearch.toLowerCase())
   );
 
+  const handleExportCSV = () => {
+    const isUsersTab = activeTab.startsWith('Deleted Users');
+
+    if (isUsersTab) {
+      if (!filteredUsers || filteredUsers.length === 0) {
+        showAlert('Export Empty', 'There are no deleted users matching the current filter to export.');
+        return;
+      }
+
+      const headers = [
+        'User ID',
+        'Full Name',
+        'Role',
+        'Email Address',
+        'Phone Number',
+        'Municipality',
+        'Barangay',
+        'Verification Status',
+        'Account Status',
+        'Date Registered',
+        'Date Archived'
+      ];
+
+      const rows = filteredUsers.map((u) => [
+        u.id,
+        u.name,
+        u.role,
+        u.email,
+        u.phone || '',
+        u.municipality || 'Bulan',
+        u.barangay || '',
+        formatCSVStatus(u.verification_status),
+        'Archived / Deleted',
+        formatCSVDate(u.created_at),
+        formatCSVDate(u.deleted_at)
+      ]);
+
+      exportMultiSectionCSV(
+        `sikap_archived_users_${new Date().toISOString().slice(0, 10)}`,
+        'SIKAP Soft-Deleted Users Registry',
+        [
+          ['Generated On:', formatCSVDate(new Date().toISOString())],
+          ['Report Type:', 'Archived User Accounts Masterlist'],
+          ['Total Records Exported:', String(filteredUsers.length)],
+          ['Search Filter:', userSearch.trim() || 'NONE'],
+        ],
+        [
+          {
+            title: 'Archived Users',
+            headers,
+            rows,
+          },
+        ]
+      );
+
+      toast.success(`Exported ${filteredUsers.length} archived user record(s) to CSV.`, 'CSV Export Ready');
+    } else {
+      if (!filteredJobs || filteredJobs.length === 0) {
+        showAlert('Export Empty', 'There are no deleted jobs matching the current filter to export.');
+        return;
+      }
+
+      const headers = [
+        'Job ID',
+        'Job Title',
+        'Category',
+        'Employer Name',
+        'Employer Email',
+        'Municipality',
+        'Barangay',
+        'Compensation',
+        'Status Prior to Archive',
+        'Total Applications',
+        'Date Posted',
+        'Date Archived'
+      ];
+
+      const rows = filteredJobs.map((j) => [
+        j.id,
+        j.title,
+        j.category || 'General',
+        j.employer?.name || '',
+        j.employer?.email || '',
+        j.municipality || 'Bulan',
+        j.barangay || '',
+        (j.compensation || j.salary) ? `${formatCSVCurrency(j.compensation || j.salary)}${j.rate_unit ? ' (' + String(j.rate_unit).replace(/_/g, ' ') + ')' : ''}` : 'Unspecified',
+        formatCSVStatus(j.status),
+        j.applications_count ?? 0,
+        formatCSVDate(j.created_at),
+        formatCSVDate(j.deleted_at)
+      ]);
+
+      exportMultiSectionCSV(
+        `sikap_archived_jobs_${new Date().toISOString().slice(0, 10)}`,
+        'SIKAP Soft-Deleted Job Postings Registry',
+        [
+          ['Generated On:', formatCSVDate(new Date().toISOString())],
+          ['Report Type:', 'Archived Job Postings Masterlist'],
+          ['Total Records Exported:', String(filteredJobs.length)],
+          ['Search Filter:', jobSearch.trim() || 'NONE'],
+        ],
+        [
+          {
+            title: 'Archived Job Postings',
+            headers,
+            rows,
+          },
+        ]
+      );
+
+      toast.success(`Exported ${filteredJobs.length} archived job posting(s) to CSV.`, 'CSV Export Ready');
+    }
+  };
+
   if (loading) return <div className="text-center py-20 font-body text-ink-muted">Loading archives...</div>;
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
@@ -248,14 +363,24 @@ function ArchivesPageContent() {
             Manage soft-deleted accounts and job postings.
           </p>
         </div>
-        <button 
-          onClick={() => fetchArchives(true, true)}
-          disabled={isRefreshing}
-          className="flex items-center px-3 py-1.5 bg-white rounded-lg text-ink-soft hover:text-ink font-body font-semibold hover:bg-slate-50 border border-ink-faint/40 shadow-2xs transition-colors text-xs cursor-pointer disabled:opacity-60"
-        >
-          <i className={`lni lni-reload mr-1.5 text-xs ${isRefreshing ? 'animate-spin' : ''}`} />
-          {isRefreshing ? 'Refreshing...' : 'Refresh'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center px-3 py-1.5 bg-white rounded-lg text-ink-soft hover:text-ink font-body font-semibold hover:bg-slate-50 border border-ink-faint/40 shadow-2xs transition-colors text-xs cursor-pointer"
+            title={`Export ${activeTab} to CSV`}
+          >
+            <i className="lni lni-download mr-1.5 text-xs text-ink-muted group-hover:text-ink transition-colors" />
+            Export CSV
+          </button>
+          <button 
+            onClick={() => fetchArchives(true, true)}
+            disabled={isRefreshing}
+            className="flex items-center px-3 py-1.5 bg-white rounded-lg text-ink-soft hover:text-ink font-body font-semibold hover:bg-slate-50 border border-ink-faint/40 shadow-2xs transition-colors text-xs cursor-pointer disabled:opacity-60"
+          >
+            <i className={`lni lni-reload mr-1.5 text-xs ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {/* 2 Stat Cards */}

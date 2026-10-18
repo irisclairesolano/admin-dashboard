@@ -1422,7 +1422,7 @@ function ExportReportsContent() {
             <StatCard
               title="Top Barangay"
               value={municipalSummary[0]?.barangay || 'N/A'}
-              iconClass="lni lni-star"
+              iconClass="lni lni-star-fill"
               bg="from-amber-50 to-amber-100"
               iconColor="text-amber-700"
             />

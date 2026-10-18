@@ -155,6 +155,8 @@ function ModerationPageContent() {
         },
       ]
     );
+
+    toast.success(`Exported ${filteredReports.length} moderation record(s) to CSV.`, 'CSV Export Ready');
   };
 
   // Sync search query from URL query parameter

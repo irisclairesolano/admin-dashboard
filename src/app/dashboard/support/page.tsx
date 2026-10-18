@@ -9,6 +9,7 @@ import { AlertDialog } from '@/components/AlertDialog';
 import { usePolling } from '@/hooks/usePolling';
 import { formatDate } from '@/lib/date';
 import { useToast } from '@/context/ToastContext';
+import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus } from '@/lib/export/csv';
 
 interface SupportTicket {
   id: number;
@@ -171,6 +172,75 @@ function SupportTicketsPageContent() {
   const totalPages = Math.ceil(filteredTickets.length / itemsPerPage) || 1;
   const paginatedTickets = filteredTickets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  const handleExportCSV = () => {
+    if (!filteredTickets || filteredTickets.length === 0) {
+      setAlertState({
+        open: true,
+        title: 'Export Empty',
+        message: 'There are no support tickets matching the current filter to export.',
+      });
+      return;
+    }
+
+    const headers = [
+      'Ticket ID',
+      'User ID',
+      'User Name',
+      'User Email',
+      'User Role',
+      'Subject',
+      'Message',
+      'Status',
+      'Admin Reply',
+      'Date Submitted',
+      'Last Updated'
+    ];
+
+    const rows = filteredTickets.map((t) => [
+      t.id,
+      t.user?.id || t.user_id || '',
+      t.user?.name || '',
+      t.user?.email || '',
+      t.user?.role || 'user',
+      t.subject || '',
+      t.message || '',
+      formatCSVStatus(t.status),
+      t.admin_reply || 'N/A',
+      formatCSVDate(t.created_at),
+      formatCSVDate(t.updated_at)
+    ]);
+
+    const reportTypeName =
+      statusFilter === 'open'
+        ? 'Open Inquiries'
+        : statusFilter === 'processing'
+          ? 'In-Progress Inquiries'
+          : statusFilter === 'resolved'
+            ? 'Resolved Inquiries'
+            : 'All Inquiries Masterlist';
+
+    exportMultiSectionCSV(
+      `sikap_support_tickets_${statusFilter}_${new Date().toISOString().slice(0, 10)}`,
+      `SIKAP Support & Inquiries Audit (${reportTypeName})`,
+      [
+        ['Generated On:', formatCSVDate(new Date().toISOString())],
+        ['Report Type:', reportTypeName],
+        ['Total Tickets Exported:', String(filteredTickets.length)],
+        ['Status Filter:', statusFilter.toUpperCase()],
+        ['Search Query:', searchTerm.trim() || 'NONE'],
+      ],
+      [
+        {
+          title: `Support Inquiries (${reportTypeName})`,
+          headers,
+          rows,
+        },
+      ]
+    );
+
+    toast.success(`Exported ${filteredTickets.length} support ticket(s) to CSV.`, 'CSV Export Ready');
+  };
+
   const closeModal = () => {
     setSelectedTicket(null);
     setReplyText('');
@@ -200,14 +270,24 @@ function SupportTicketsPageContent() {
           <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">Support Tickets</h1>
           <p className="text-xs text-ink-muted mt-0.5">Manage and reply to user inquiries.</p>
         </div>
-        <button 
-          onClick={() => fetchTickets(false)}
-          disabled={loading}
-          className="flex items-center px-3 py-1.5 bg-white text-ink-soft hover:text-ink text-xs font-body font-semibold rounded-lg hover:bg-slate-50 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer"
-        >
-          <i className={`lni lni-reload mr-1.5 text-xs ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center px-3 py-1.5 bg-white text-ink-soft hover:text-ink text-xs font-body font-semibold rounded-lg hover:bg-slate-50 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer"
+            title="Export support tickets to CSV"
+          >
+            <i className="lni lni-download mr-1.5 text-xs text-ink-muted group-hover:text-ink transition-colors" />
+            Export CSV
+          </button>
+          <button 
+            onClick={() => fetchTickets(false)}
+            disabled={loading}
+            className="flex items-center px-3 py-1.5 bg-white text-ink-soft hover:text-ink text-xs font-body font-semibold rounded-lg hover:bg-slate-50 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer"
+          >
+            <i className={`lni lni-reload mr-1.5 text-xs ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

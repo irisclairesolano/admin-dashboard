@@ -121,6 +121,8 @@ function JobsPageContent() {
         },
       ]
     );
+
+    toast.success(`Exported ${filteredJobs.length} job posting(s) to CSV.`, 'CSV Export Ready');
   };
 
   // Sync search from URL query param

@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { AIInsightsCard, InsightsData } from '@/components/AIInsightsCard';
 import { CHART_COLORS } from '@/lib/constants';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus } from '@/lib/export/csv';
+import { useToast } from '@/context/ToastContext';
 import dynamic from 'next/dynamic';
 
 const ApplicationVolumeChart = dynamic(
@@ -318,6 +319,7 @@ function getPeriodAndInterval(preset: string, start?: string, end?: string) {
 
 export default function AnalyticsDashboard() {
   const router = useRouter();
+  const { toast } = useToast();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
@@ -520,13 +522,13 @@ export default function AnalyticsDashboard() {
 
     const sections = [
       {
-        title: 'Section 1: Key Numbers',
-        headers: ['Metric', 'Current Value', 'PoP Change (%)', 'Trend Direction'],
+        title: 'Section 1: Key Platform Indicators',
+        headers: ['Key Platform Metric', 'Total Value in Scope', 'Operational Health'],
         rows: [
-          ['New Sign-ups', data.kpis?.total_users?.value ?? 0, `${data.kpis?.total_users?.change ?? 0}%`, (data.kpis?.total_users?.change ?? 0) >= 0 ? 'Growth' : 'Decline'],
-          ['Job Posts', data.kpis?.active_jobs?.value ?? 0, `${data.kpis?.active_jobs?.change ?? 0}%`, (data.kpis?.active_jobs?.change ?? 0) >= 0 ? 'Growth' : 'Decline'],
-          ['Job Applications', data.kpis?.applications?.value ?? 0, `${data.kpis?.applications?.change ?? 0}%`, (data.kpis?.applications?.change ?? 0) >= 0 ? 'Growth' : 'Decline'],
-          ['Reports Received', data.kpis?.unresolved_reports?.value ?? 0, `${data.kpis?.unresolved_reports?.change ?? 0}%`, (data.kpis?.unresolved_reports?.change ?? 0) <= 0 ? 'Improvement' : 'Alert'],
+          ['New Sign-ups', data.kpis?.total_users?.value ?? 0, (data.kpis?.total_users?.value ?? 0) > 0 ? 'Active Member Growth' : 'Baseline / Steady'],
+          ['Job Posts', data.kpis?.active_jobs?.value ?? 0, (data.kpis?.active_jobs?.value ?? 0) > 0 ? 'Active Listings Published' : 'No Open Postings'],
+          ['Job Applications', data.kpis?.applications?.value ?? 0, (data.kpis?.applications?.value ?? 0) > 0 ? 'Active Worker Applications' : 'No Applications In Scope'],
+          ['Reports Received', data.kpis?.unresolved_reports?.value ?? 0, (data.kpis?.unresolved_reports?.value ?? 0) > 0 ? 'Action Items Pending Review' : 'Community Standards Clear'],
         ]
       },
       {
@@ -629,45 +631,146 @@ export default function AnalyticsDashboard() {
       'SIKAP Platform Summary Report',
       [
         ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Dates:', `${from} to ${to}`],
-        ['Grouped by:', intervalFilter],
+        ['Dates in Scope:', `${from} to ${to}`],
+        ['Preset Filter:', globalPreset],
+        ['Grouped by:', intervalFilter.toUpperCase()],
         ['Platform:', 'SIKAP: Skills & Job Matching Platform']
       ],
       sections
     );
+    toast.success('Platform summary exported to CSV.', 'CSV Export Ready');
   };
 
   const handleExportGeographicCSV = () => {
     if (!data?.geographic_activity) return;
 
-    const exportRows = (distRegionFilter === 'all'
+    // Filter raw location records
+    const rawFiltered = (distRegionFilter === 'all'
       ? data.geographic_activity
       : data.geographic_activity.filter((item: any) => item.municipality === distRegionFilter && (distBarangayFilter === 'all' || item.barangay === distBarangayFilter))
-    ).map((item: any) => [
-      item.municipality || 'Unknown',
-      item.barangay || 'All',
-      item.job_postings ?? 0,
-      item.total_applications ?? 0,
-      (parseInt(item.job_postings || 0) + parseInt(item.total_applications || 0)),
+    );
+
+    // Compute Executive Municipal Roll-up
+    const muniMap = new Map<string, {
+      municipality: string;
+      locationsCount: number;
+      jobPostings: number;
+      applications: number;
+      totalActivity: number;
+    }>();
+
+    rawFiltered.forEach((item: any) => {
+      const muni = item.municipality || 'Bulan';
+      if (!muniMap.has(muni)) {
+        muniMap.set(muni, {
+          municipality: muni,
+          locationsCount: 0,
+          jobPostings: 0,
+          applications: 0,
+          totalActivity: 0,
+        });
+      }
+      const entry = muniMap.get(muni)!;
+      entry.locationsCount += 1;
+      const jobs = parseInt(item.job_postings || 0, 10);
+      const apps = parseInt(item.total_applications || 0, 10);
+      entry.jobPostings += jobs;
+      entry.applications += apps;
+      entry.totalActivity += (jobs + apps);
+    });
+
+    const municipalSummaryList = Array.from(muniMap.values()).sort((a, b) => b.totalActivity - a.totalActivity);
+    const totalPlatformActivity = municipalSummaryList.reduce((acc, m) => acc + m.totalActivity, 0);
+    const totalJobsCount = municipalSummaryList.reduce((acc, m) => acc + m.jobPostings, 0);
+    const totalAppsCount = municipalSummaryList.reduce((acc, m) => acc + m.applications, 0);
+
+    // Section 1: Executive Municipal Summary
+    const municipalHeaders = [
+      'Municipality',
+      'Active Locations Covered',
+      'Total Job Posts',
+      'Total Applications',
+      'Total Activity Impact',
+      'Activity Share (%)',
+      'Application-to-Job Ratio'
+    ];
+    const municipalRows: (string | number)[][] = municipalSummaryList.map((m) => [
+      m.municipality,
+      m.locationsCount,
+      m.jobPostings,
+      m.applications,
+      m.totalActivity,
+      totalPlatformActivity > 0 ? `${((m.totalActivity / totalPlatformActivity) * 100).toFixed(1)}%` : '0.0%',
+      m.jobPostings > 0 ? (m.applications / m.jobPostings).toFixed(1) : '0.0'
     ]);
 
+    // Grand Total Row for Municipalities
+    municipalRows.push([
+      'GRAND TOTAL (ALL MUNICIPALITIES)',
+      rawFiltered.length,
+      totalJobsCount,
+      totalAppsCount,
+      totalPlatformActivity,
+      '100.0%',
+      totalJobsCount > 0 ? (totalAppsCount / totalJobsCount).toFixed(1) : '0.0'
+    ]);
+
+    // Section 2: Detailed Barangay Demographics Breakdown
+    const barangayHeaders = [
+      'Municipality',
+      'Barangay / Area',
+      'Job Posts',
+      'Applications',
+      'Total Platform Activity',
+      'Municipal Activity Share (%)'
+    ];
+    const barangayRows: (string | number)[][] = rawFiltered.map((item: any) => {
+      const muni = item.municipality || 'Bulan';
+      const bName = item.barangay || 'General Area';
+      const jobs = parseInt(item.job_postings || 0, 10);
+      const apps = parseInt(item.total_applications || 0, 10);
+      const combined = jobs + apps;
+      const muniTotal = muniMap.get(muni)?.totalActivity || 1;
+
+      return [
+        muni,
+        bName,
+        jobs,
+        apps,
+        combined,
+        muniTotal > 0 ? `${((combined / muniTotal) * 100).toFixed(1)}%` : '0.0%'
+      ];
+    });
+
     exportMultiSectionCSV(
-      `sikap_demographics_${distRegionFilter}_${distBarangayFilter}_${from}_to_${to}`,
+      `SIKAP_DEMOGRAPHICS_${distRegionFilter.toUpperCase()}_${distBarangayFilter.toUpperCase()}_${from}_TO_${to}`,
       'SIKAP Regional & Municipal Demographics Report',
       [
         ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Dates:', `${from} to ${to}`],
+        ['Dates in Scope:', `${from} to ${to} (${globalPreset})`],
+        ['Grouping Interval:', intervalFilter.toUpperCase()],
         ['Municipality Filter:', distRegionFilter === 'all' ? 'All Municipalities' : distRegionFilter],
         ['Barangay Filter:', distBarangayFilter === 'all' ? 'All Barangays' : distBarangayFilter],
+        ['Active Municipalities in Scope:', String(municipalSummaryList.length)],
+        ['Total Locations Covered:', String(rawFiltered.length)],
+        ['Total Job Posts in Scope:', String(totalJobsCount)],
+        ['Total Applications in Scope:', String(totalAppsCount)],
+        ['Total Platform Activity Impact:', String(totalPlatformActivity)],
       ],
       [
         {
-          title: 'Municipal & Barangay Demographics',
-          headers: ['Municipality', 'Barangay', 'Job Posts', 'Applications', 'Total Activity'],
-          rows: exportRows,
+          title: 'Executive Municipal Coverage Summary',
+          headers: municipalHeaders,
+          rows: municipalRows,
+        },
+        {
+          title: 'Barangay-Level Demographics Breakdown',
+          headers: barangayHeaders,
+          rows: barangayRows,
         },
       ]
     );
+    toast.success('Demographics report exported to CSV.', 'CSV Export Ready');
   };
 
 

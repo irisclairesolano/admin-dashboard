@@ -4,9 +4,10 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { adminApi } from '@/lib/api';
 import { AlertDialog } from '@/components/AlertDialog';
 import StatCard from '@/components/StatCard';
-import { Ban, ShieldAlert, UserX, UserMinus, Search, RefreshCw, CheckCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Ban, ShieldAlert, UserX, UserMinus, Search, RefreshCw, CheckCircle, ArrowLeft, ArrowRight, Download } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToast } from '@/context/ToastContext';
+import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus } from '@/lib/export/csv';
 
 interface BlacklistRecord {
   id: number;
@@ -35,6 +36,7 @@ export default function BlacklistPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const [alertConfig, setAlertConfig] = useState<{
     isOpen: boolean;
@@ -110,6 +112,109 @@ export default function BlacklistPage() {
         }
       },
     });
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      setExporting(true);
+      let allRecords: BlacklistRecord[] = [];
+      if (totalPages <= 1) {
+        allRecords = records;
+      } else {
+        const pagePromises = [];
+        for (let p = 1; p <= totalPages; p++) {
+          pagePromises.push(adminApi.getBlacklist(activeTab, p, debouncedSearch));
+        }
+        const responses = await Promise.all(pagePromises);
+        responses.forEach((res) => {
+          const data = res.data;
+          if (data && Array.isArray(data.data)) {
+            allRecords.push(...data.data);
+          } else if (Array.isArray(data)) {
+            allRecords.push(...data);
+          }
+        });
+      }
+
+      if (allRecords.length === 0) {
+        setAlertConfig({
+          isOpen: true,
+          title: 'Export Empty',
+          message: 'There are no restriction records to export.',
+          confirmText: 'OK',
+          onConfirm: () => {},
+        });
+        return;
+      }
+
+      const headers = [
+        'Record ID',
+        'User ID',
+        'Full Name',
+        'Email Address',
+        'Phone Number',
+        'User Role',
+        'Restriction Type',
+        'Reason / Justification',
+        'Issued By Admin',
+        'Suspended Until',
+        'Restriction Status',
+        'Date Logged',
+        'Last Updated',
+      ];
+
+      const rows = allRecords.map((r) => [
+        r.id,
+        r.user_id || 'N/A',
+        r.name || '',
+        r.email || '',
+        r.phone || '',
+        r.role || 'user',
+        formatCSVStatus(r.type),
+        r.reason || 'No reason provided',
+        r.admin?.name || (r.admin_id ? `Admin #${r.admin_id}` : 'System Automated'),
+        r.suspended_until ? formatCSVDate(r.suspended_until) : 'N/A',
+        r.is_active ? 'Active Restriction' : 'Lifted / Inactive',
+        formatCSVDate(r.created_at),
+        formatCSVDate(r.updated_at),
+      ]);
+
+      const reportTypeName =
+        activeTab === 'banned'
+          ? 'Permanently Banned Registry'
+          : activeTab === 'suspended'
+            ? 'Suspended Users Registry'
+            : activeTab === 'deleted_by_admin'
+              ? 'Admin-Deleted Accounts Registry'
+              : activeTab === 'self_deleted'
+                ? 'Self-Deleted Accounts Registry'
+                : 'All Restrictions Masterlist';
+
+      exportMultiSectionCSV(
+        `sikap_blacklist_${activeTab}_${new Date().toISOString().slice(0, 10)}`,
+        `SIKAP Blacklist & Restrictions Audit (${reportTypeName})`,
+        [
+          ['Generated On:', formatCSVDate(new Date().toISOString())],
+          ['Report Type:', reportTypeName],
+          ['Total Restrictions Exported:', String(allRecords.length)],
+          ['Active Filter:', activeTab.toUpperCase()],
+          ['Search Filter:', debouncedSearch.trim() || 'NONE'],
+        ],
+        [
+          {
+            title: `Restriction Records (${reportTypeName})`,
+            headers,
+            rows,
+          },
+        ]
+      );
+
+      toast.success(`Exported ${allRecords.length} blacklist record(s) to CSV.`, 'CSV Export Ready');
+    } catch (err: any) {
+      toast.error('Failed to export blacklist registry.', 'Export Failed');
+    } finally {
+      setExporting(false);
+    }
   };
 
   // Compute stat counts from current dataset or active tab
@@ -189,6 +294,17 @@ export default function BlacklistPage() {
             />
             <Search className="w-3.5 h-3.5 text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2" />
           </div>
+
+          <button
+            onClick={handleExportCSV}
+            disabled={exporting}
+            aria-label="Export blacklist to CSV"
+            className="flex items-center px-3 py-2 bg-white text-ink-soft hover:text-ink text-xs font-body font-semibold rounded-xl hover:bg-slate-50 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer disabled:opacity-60"
+            title="Export blacklist records to CSV"
+          >
+            <Download className={`w-3.5 h-3.5 mr-1.5 text-ink-muted group-hover:text-ink transition-colors ${exporting ? 'animate-bounce' : ''}`} />
+            {exporting ? 'Exporting...' : 'Export CSV'}
+          </button>
 
           <button
             onClick={fetchBlacklist}
