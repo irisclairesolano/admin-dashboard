@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SIKAP Admin Web Dashboard (`sikap-admin`)
 
-## Getting Started
+**Sistema para sa Impormal na Kasanayan at Aktibong Pangkabuhayan (SIKAP)** — Next.js 14 (App Router, TypeScript, Tailwind CSS) administrative portal for identity verification, moderation, and provincial labor analytics in Sorsogon Province.
 
-First, run the development server:
+---
+
+## Core Modules (`/dashboard/*`)
+
+- **Executive Overview (`/dashboard`)**: Real-time KPI statcards, recruitment funnel charts, category breakdowns, and municipal distribution across all 15 municipalities of Sorsogon.
+- **Identity Verification Queue (`/dashboard/verifications`)**: Lightbox inspector with zoom, rotation, and PDF rendering for government IDs and selfies (`Approved`, `Rejected`, `Correction Needed`).
+- **User Management (`/dashboard/users`)**: Role badges, dual-role status, account suspension controls, and user-to-user blocked relationship auditing.
+- **Job Moderation (`/dashboard/jobs`)**: Compensation auditing with normalized hourly wages, slot utilization tracking, and soft deletion/restoration.
+- **Content Moderation (`/dashboard/moderation`)**: Two-tier profanity dictionary management (`block` vs. `flag`), live Server-Sent Events (SSE) auto-flag stream, and user report triage.
+- **AI Macroeconomic Insights (`/dashboard/analytics/ai-insights`)**: Google Gemini 1.5 Flash labor market analysis with suspect wage filtering (`< ₱50/hr`) and on-demand cache refresh.
+- **Universal Data Export (`/dashboard/export-reports`)**: Styled Excel (`.xlsx`), CSV, and PDF report generation.
+- **Support & Audit Logs (`/dashboard/support`, `/dashboard/logs`)**: Helpdesk ticket resolution and immutable administrative activity logs.
+
+---
+
+## Quick Start
 
 ```bash
+npm install
+# Configure NEXT_PUBLIC_API_URL in .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
