@@ -43,6 +43,11 @@ const GeographicActivityChart = dynamic(
   { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 rounded-xl" /> }
 );
 
+const OthersBreakdownModal = dynamic(
+  () => import('@/components/dashboard/OthersBreakdownModal'),
+  { ssr: false }
+);
+
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
   return (
@@ -357,6 +362,16 @@ export default function AnalyticsDashboard() {
   // Expandable Table States
   const [showWagesBreakdown, setShowWagesBreakdown] = useState(false);
   const [showReportsBreakdown, setShowReportsBreakdown] = useState(false);
+
+  // Drill-down Modal State for "Others" category & skill breakdown
+  const [othersModalData, setOthersModalData] = useState<{
+    title: string;
+    subtitle?: string;
+    total: number;
+    totalOverall?: number;
+    unit: string;
+    items: Array<{ name: string; value: number; category?: string }>;
+  } | null>(null);
 
   // AI Insights State
   const [aiInsights, setAiInsights] = useState<InsightsData | null>(null);
@@ -864,7 +879,16 @@ export default function AnalyticsDashboard() {
         },
         { name: 'Others', jobs: 0 }
       );
-      return [...top, others];
+      return [
+        ...top,
+        {
+          ...others,
+          subItems: rest.map((r: any) => ({
+            name: r.name,
+            value: r.jobs,
+          })),
+        },
+      ];
     }
   })();
 
@@ -945,6 +969,7 @@ export default function AnalyticsDashboard() {
     const list = data.skill_distribution.map((item: any) => ({
       name: item.skill_name,
       value: parseInt(item.worker_count),
+      category: item.category,
     })).sort((a: any, b: any) => b.value - a.value);
 
     if (list.length <= distLimitFilter) {
@@ -953,7 +978,14 @@ export default function AnalyticsDashboard() {
       const top = list.slice(0, distLimitFilter - 1);
       const rest = list.slice(distLimitFilter - 1);
       const othersVal = rest.reduce((sum: number, entry: any) => sum + entry.value, 0);
-      return [...top, { name: 'Others', value: othersVal }];
+      return [
+        ...top,
+        {
+          name: 'Others',
+          value: othersVal,
+          subItems: rest,
+        },
+      ];
     }
   })();
 
@@ -2366,9 +2398,33 @@ export default function AnalyticsDashboard() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 print-chart-container">
                     {/* Horizontal Skill Category Demand */}
                     <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
-                      <div className="mb-2">
-                        <h3 className="font-display text-sm font-bold text-ink">Most Wanted Skills</h3>
-                        <p className="text-[11px] text-ink-muted">Platform job posts ranked descending by sector category.</p>
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <div>
+                          <h3 className="font-display text-sm font-bold text-ink">Most Wanted Skills</h3>
+                          <p className="text-[11px] text-ink-muted">Platform job posts ranked descending by sector category.</p>
+                        </div>
+                        {(() => {
+                          const othersEntry = transformedJobsData.find((j: any) => j.name === 'Others' && j.subItems?.length);
+                          if (!othersEntry) return null;
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => setOthersModalData({
+                                title: "Job Categories — 'Others' Breakdown",
+                                subtitle: `Detailed breakdown of all ${othersEntry.subItems.length} categories aggregated under 'Others'`,
+                                total: othersEntry.jobs,
+                                totalOverall: transformedJobsData.reduce((acc: number, cur: any) => acc + (cur.jobs || 0), 0),
+                                unit: 'job posts',
+                                items: othersEntry.subItems,
+                              })}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-md transition-colors shrink-0 cursor-pointer"
+                              title="Click to view breakdown of aggregated categories"
+                            >
+                              <i className="lni lni-list text-xs" />
+                              <span>&quot;Others&quot; ({othersEntry.subItems.length})</span>
+                            </button>
+                          );
+                        })()}
                       </div>
                       <MetricHeaderStrip
                         items={[
@@ -2380,14 +2436,50 @@ export default function AnalyticsDashboard() {
                       <JobsDistributionChart
                         data={transformedJobsData}
                         heightClass="h-56"
+                        onBarClick={(entry) => {
+                          if (entry.name === 'Others' && entry.subItems?.length) {
+                            setOthersModalData({
+                              title: "Job Categories — 'Others' Breakdown",
+                              subtitle: `Detailed breakdown of all ${entry.subItems.length} categories aggregated under 'Others'`,
+                              total: entry.jobs,
+                              totalOverall: transformedJobsData.reduce((acc: number, cur: any) => acc + (cur.jobs || 0), 0),
+                              unit: 'job posts',
+                              items: entry.subItems,
+                            });
+                          }
+                        }}
                       />
                     </div>
 
                     {/* Skill Profile Distribution Donut Chart */}
                     <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col relative min-w-0">
-                      <div className="mb-2">
-                        <h3 className="font-display text-sm font-bold text-ink">Worker Skills</h3>
-                        <p className="text-[11px] text-ink-muted">Profile breakdown capped at Top 6 skills and grouped others.</p>
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <div>
+                          <h3 className="font-display text-sm font-bold text-ink">Worker Skills</h3>
+                          <p className="text-[11px] text-ink-muted">Profile breakdown capped at Top 6 skills and grouped others.</p>
+                        </div>
+                        {(() => {
+                          const othersEntry = transformedSkillDistribution.find((s: any) => s.name === 'Others' && s.subItems?.length);
+                          if (!othersEntry) return null;
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => setOthersModalData({
+                                title: "Worker Skills — 'Others' Breakdown",
+                                subtitle: `Detailed breakdown of all ${othersEntry.subItems.length} skills aggregated under 'Others'`,
+                                total: othersEntry.value,
+                                totalOverall: data?.user_ratio?.workers || transformedSkillDistribution.reduce((acc: number, cur: any) => acc + (cur.value || 0), 0),
+                                unit: 'workers',
+                                items: othersEntry.subItems,
+                              })}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-md transition-colors shrink-0 cursor-pointer"
+                              title="Click to view breakdown of aggregated skills"
+                            >
+                              <i className="lni lni-list text-xs" />
+                              <span>&quot;Others&quot; ({othersEntry.subItems.length})</span>
+                            </button>
+                          );
+                        })()}
                       </div>
                       <MetricHeaderStrip
                         items={[
@@ -2408,6 +2500,18 @@ export default function AnalyticsDashboard() {
                           data={transformedSkillDistribution}
                           totalWorkers={data?.user_ratio?.workers ?? 0}
                           colors={COLORS}
+                          onSliceClick={(entry) => {
+                            if (entry.name === 'Others' && entry.subItems?.length) {
+                              setOthersModalData({
+                                title: "Worker Skills — 'Others' Breakdown",
+                                subtitle: `Detailed breakdown of all ${entry.subItems.length} skills aggregated under 'Others'`,
+                                total: entry.value,
+                                totalOverall: data?.user_ratio?.workers || transformedSkillDistribution.reduce((acc: number, cur: any) => acc + (cur.value || 0), 0),
+                                unit: 'workers',
+                                items: entry.subItems,
+                              });
+                            }
+                          }}
                         />
                       )}
                     </div>
@@ -2507,7 +2611,28 @@ export default function AnalyticsDashboard() {
                                 return (
                                   <tr key={idx} className="hover:bg-primary-soft/20 transition-colors">
                                     <td className="py-2 px-3 font-numeric text-ink-muted">#{idx + 1}</td>
-                                    <td className="py-2 px-3 font-semibold text-ink">{item.name}</td>
+                                    <td className="py-2 px-3 font-semibold text-ink">
+                                      <div className="flex items-center gap-2">
+                                        <span>{item.name}</span>
+                                        {item.name === 'Others' && item.subItems && item.subItems.length > 0 && (
+                                          <button
+                                            type="button"
+                                            onClick={() => setOthersModalData({
+                                              title: "Job Categories — 'Others' Breakdown",
+                                              subtitle: `Detailed breakdown of all ${item.subItems.length} categories aggregated under 'Others'`,
+                                              total: item.jobs,
+                                              totalOverall: totalCatJobs,
+                                              unit: 'job posts',
+                                              items: item.subItems,
+                                            })}
+                                            className="text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 px-1.5 py-0.5 rounded border border-primary/20 transition-colors cursor-pointer"
+                                            title="Click to view full breakdown"
+                                          >
+                                            View {item.subItems.length} categories →
+                                          </button>
+                                        )}
+                                      </div>
+                                    </td>
                                     <td className="py-2 px-3 text-right font-numeric font-bold text-ink">
                                       {(item.jobs ?? 0).toLocaleString()}
                                     </td>
@@ -3582,6 +3707,20 @@ export default function AnalyticsDashboard() {
             </div>
         )}
       </div>
+
+      {/* Interactive Drill-down Modal for "Others" category & skill breakdown */}
+      {othersModalData && (
+        <OthersBreakdownModal
+          isOpen={!!othersModalData}
+          onClose={() => setOthersModalData(null)}
+          title={othersModalData.title}
+          subtitle={othersModalData.subtitle}
+          total={othersModalData.total}
+          totalOverall={othersModalData.totalOverall}
+          unit={othersModalData.unit}
+          items={othersModalData.items}
+        />
+      )}
     </div>
   );
 }
