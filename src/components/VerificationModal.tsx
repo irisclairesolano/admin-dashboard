@@ -36,6 +36,7 @@ import Image from 'next/image';
 import { XCircle, ExternalLink, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCw, FileText } from 'lucide-react';
 import Tooltip from '@/components/Tooltip';
 import { adminApi } from '@/api/admin';
+import { hasSubmittedDocs } from '@/lib/verification';
 
 // ── BLACKLIST MATCH & USER KYC DOCUMENT INTERFACES ───────────────────────────
 export interface BlacklistMatch {
@@ -163,6 +164,7 @@ export default function VerificationModal({
   const frontUrl = currentUser.document_url || currentUser.document_front_url || currentUser.id_front_url || null;
   const backUrl = currentUser.document_back_url || currentUser.id_back_url || null;
   const selfieUrl = currentUser.selfie_url || currentUser.id_selfie_url || null;
+  const hasAnyDocs = hasSubmittedDocs(currentUser) || hasSubmittedDocs(user);
 
   const handleImageError = (key: string) => {
     setImageErrors(prev => ({ ...prev, [key]: true }));
@@ -216,6 +218,7 @@ export default function VerificationModal({
   }, []);
 
   const handleApprove = () => {
+    if (!hasAnyDocs) return;
     if (onVerify) {
       onVerify(user.id, 'approved');
     } else if (onApprove) {
@@ -302,6 +305,25 @@ export default function VerificationModal({
               })()}
             </div>
           </div>
+
+          {/* MISSING DOCUMENTS WARNING BANNER */}
+          {!hasAnyDocs && (
+            <div className="mb-6 p-4 rounded-2xl border border-amber-200 bg-amber-50/90 shadow-sm animate-fade-in" data-testid="missing-docs-warning">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-amber-100 text-amber-700 flex-shrink-0 mt-0.5">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-display font-bold text-amber-900">
+                    No Identification Documents Uploaded
+                  </h4>
+                  <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                    This user has not yet uploaded any government ID, selfie verification, or business registration documents. Approval is strictly disabled until valid identification documents are submitted.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* BLACKLIST / RESTRICTION MATCH WARNING BANNER */}
           {(() => {
@@ -857,12 +879,20 @@ export default function VerificationModal({
                 Reject ID
               </button>
             </Tooltip>
-            <Tooltip text="Approve — grants verification badge" position="top" variant="success">
+            <Tooltip
+              text={!hasAnyDocs ? "Cannot approve: No identification documents uploaded yet" : "Approve — grants verification badge"}
+              position="top"
+              variant={hasAnyDocs ? "success" : "default"}
+            >
               <button
-                disabled={!!actionLoading}
+                disabled={!hasAnyDocs || !!actionLoading}
                 onClick={handleApprove}
                 data-testid="approve-btn"
-                className="px-6 py-3 bg-status-success text-white font-body font-semibold rounded-xl hover:bg-status-success/90 transition-colors disabled:opacity-50 flex items-center justify-center"
+                className={`px-6 py-3 font-body font-semibold rounded-xl transition-colors flex items-center justify-center ${
+                  !hasAnyDocs
+                    ? 'bg-ink-faint text-ink-muted cursor-not-allowed opacity-60'
+                    : 'bg-status-success text-white hover:bg-status-success/90 disabled:opacity-50'
+                }`}
               >
                 {actionLoading === 'approved' && (
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>

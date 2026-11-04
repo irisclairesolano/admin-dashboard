@@ -13,6 +13,7 @@ import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus, formatCSVReputat
 import { useUndoToast } from '@/hooks/useUndoToast';
 import { UndoToast } from '@/components/UndoToast';
 import { useToast } from '@/context/ToastContext';
+import { hasSubmittedDocs } from '@/lib/verification';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
@@ -44,7 +45,7 @@ function UsersContent() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const deferredSearchTerm = useDeferredValue(searchTerm);
-  const [filter, setFilter] = useState<'all' | 'verified' | 'unverified' | 'rejected'>('all');
+  const [filter, setFilter] = useState<'all' | 'verified' | 'pending_review' | 'pending_id_upload' | 'unverified' | 'rejected'>('all');
   const [roleFilter, setRoleFilter] = useState<'all' | 'worker' | 'employer' | 'admin'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'created_at' | 'rating'>('created_at');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -81,6 +82,19 @@ function UsersContent() {
 
   // New Drawer & Lazy-Loading States
   const [showArchived, setShowArchived] = useState(false);
+  const [showIncomplete, setShowIncomplete] = useState(false);
+
+  const incompleteUsers = useMemo(() => {
+    return activeUsers.filter((u) => {
+      if (u.role === 'admin') return false;
+      const isApproved = u.verification_status === 'approved' || !!u.verification_badge;
+      const isRejected = u.verification_status === 'rejected' || u.registration_status === 'rejected';
+      if (isApproved || isRejected) return false;
+      if (u.registration_status === 'pending_review') return false;
+      return !hasSubmittedDocs(u) || u.registration_status === 'pending_id_upload' || u.registration_status === 'pending_email_verification';
+    });
+  }, [activeUsers]);
+
   const users = useMemo(() => {
     if (!showArchived) return activeUsers;
     const activeIds = new Set(activeUsers.map((u: any) => u.id));
@@ -586,14 +600,34 @@ function UsersContent() {
       if (!matchesSearch) return false;
       if (roleFilter !== 'all' && u.role !== roleFilter) return false;
 
-      if (filter === 'all') return true;
-      if (filter === 'verified') return u.verification_status === 'approved';
+      if (filter === 'all') {
+        if (!showIncomplete && u.role !== 'admin') {
+          const isApproved = u.verification_status === 'approved' || !!u.verification_badge;
+          const isRejected = u.verification_status === 'rejected' || u.registration_status === 'rejected';
+          if (!isApproved && !isRejected && u.registration_status !== 'pending_review' && (!hasSubmittedDocs(u) || u.registration_status === 'pending_id_upload' || u.registration_status === 'pending_email_verification')) {
+            return false;
+          }
+        }
+        return true;
+      }
+      if (filter === 'verified') return u.verification_status === 'approved' || !!u.verification_badge;
       if (filter === 'rejected') return u.verification_status === 'rejected' || u.registration_status === 'rejected';
-      if (filter === 'unverified') return u.verification_status !== 'approved' && u.verification_status !== 'rejected' && u.registration_status !== 'rejected';
+      if (filter === 'pending_review') {
+        const isApproved = u.verification_status === 'approved' || !!u.verification_badge;
+        const isRejected = u.verification_status === 'rejected' || u.registration_status === 'rejected';
+        return !isApproved && !isRejected && (hasSubmittedDocs(u) || u.registration_status === 'pending_review');
+      }
+      if (filter === 'pending_id_upload') {
+        const isApproved = u.verification_status === 'approved' || !!u.verification_badge;
+        const isRejected = u.verification_status === 'rejected' || u.registration_status === 'rejected';
+        if (isApproved || isRejected || u.registration_status === 'pending_review') return false;
+        return !hasSubmittedDocs(u) || u.registration_status === 'pending_id_upload' || u.registration_status === 'pending_email_verification';
+      }
+      if (filter === 'unverified') return u.verification_status !== 'approved' && !u.verification_badge && u.verification_status !== 'rejected' && u.registration_status !== 'rejected';
 
       return true;
     });
-  }, [users, deferredSearchTerm, roleFilter, filter]);
+  }, [users, deferredSearchTerm, roleFilter, filter, showIncomplete]);
 
   const sortedUsers = useMemo(() => {
     return [...filteredUsers].sort((a: any, b: any) => {
@@ -824,18 +858,12 @@ function UsersContent() {
             if (u.role === 'admin') return false;
             const isApproved = u.verification_status === 'approved' || !!u.verification_badge;
             const isRejected = u.verification_status === 'rejected' || u.registration_status === 'rejected';
-            const hasSubmittedDocs =
-              u.registration_status === 'pending_review' ||
-              !!u.document_url ||
-              !!u.document_back_url ||
-              !!u.selfie_url ||
-              (Array.isArray(u.business_documents) ? u.business_documents.length > 0 : !!u.business_documents);
-            return !isApproved && !isRejected && hasSubmittedDocs;
+            return !isApproved && !isRejected && hasSubmittedDocs(u);
           }).length}
           iconClass="lni lni-warning"
           bg="from-orange-50 to-orange-100"
           iconColor="text-orange-700"
-          onClick={() => router.push('/dashboard/verifications')}
+          onClick={() => { setShowArchived(false); setFilter('pending_review'); setRoleFilter('all'); setCurrentPage(1); }}
         />
         <StatCard
           title="Archived & Deleted"
@@ -860,9 +888,14 @@ function UsersContent() {
             Verified
           </button>
           <button
-            onClick={() => { setFilter('unverified'); setCurrentPage(1); }}
-            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'unverified' ? 'bg-status-warning text-white' : 'bg-white/70 text-ink-soft hover:bg-white border border-ink-faint/40'}`}>
-            Unverified
+            onClick={() => { setFilter('pending_review'); setCurrentPage(1); }}
+            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'pending_review' ? 'bg-amber-600 text-white' : 'bg-white/70 text-ink-soft hover:bg-white border border-ink-faint/40'}`}>
+            Pending Review
+          </button>
+          <button
+            onClick={() => { setFilter('pending_id_upload'); setCurrentPage(1); }}
+            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'pending_id_upload' ? 'bg-orange-600 text-white' : 'bg-white/70 text-ink-soft hover:bg-white border border-ink-faint/40'}`}>
+            Incomplete Onboarding ({incompleteUsers.length})
           </button>
           <button
             onClick={() => { setFilter('rejected'); setCurrentPage(1); }}
@@ -872,6 +905,22 @@ function UsersContent() {
         </div>
 
         <div className="flex items-center space-x-2 text-xs">
+          {incompleteUsers.length > 0 && filter === 'all' && (
+            <label className="flex items-center space-x-1.5 bg-white/70 border border-ink-faint/40 px-2.5 py-1.5 rounded-lg text-xs font-body font-semibold text-ink-soft cursor-pointer hover:bg-white transition-all select-none">
+              <input
+                type="checkbox"
+                aria-label="Include incomplete onboarding registrations"
+                checked={showIncomplete}
+                onChange={(e) => {
+                  setShowIncomplete(e.target.checked);
+                  setCurrentPage(1);
+                }}
+                className="rounded text-amber-600 focus:ring-amber-500/30 w-3.5 h-3.5 border-ink-faint"
+              />
+              <span>Include Incomplete ({incompleteUsers.length})</span>
+            </label>
+          )}
+
           <label className="flex items-center space-x-1.5 bg-white/70 border border-ink-faint/40 px-2.5 py-1.5 rounded-lg text-xs font-body font-semibold text-ink-soft cursor-pointer hover:bg-white transition-all select-none">
             <input
               type="checkbox"
@@ -939,6 +988,36 @@ function UsersContent() {
           </button>
         </div>
       </div>
+
+      {incompleteUsers.length > 0 && !showIncomplete && filter === 'all' && (
+        <div className="mb-4 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-fade-in">
+          <div className="flex items-center gap-2.5 text-amber-900">
+            <i className="lni lni-information text-base text-amber-600 shrink-0" />
+            <span>
+              <strong>{incompleteUsers.length} incomplete registration{incompleteUsers.length === 1 ? '' : 's'}</strong> awaiting ID upload are hidden from this active directory.
+            </span>
+          </div>
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={() => router.push('/dashboard/verifications')}
+              className="text-amber-900 font-bold hover:underline cursor-pointer flex items-center gap-1"
+            >
+              <span>Review in Verifications</span>
+              <span aria-hidden="true">&rarr;</span>
+            </button>
+            <span className="text-amber-300">|</span>
+            <button
+              onClick={() => {
+                setShowIncomplete(true);
+                setCurrentPage(1);
+              }}
+              className="text-amber-800 hover:text-amber-950 cursor-pointer font-semibold underline"
+            >
+              Show here ({incompleteUsers.length})
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
         <UserTable

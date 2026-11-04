@@ -206,22 +206,22 @@ export function CommandPalette({ isOpen, onClose, onOpen2FA }: CommandPalettePro
       onClick={onClose}
     >
       <div
-        className="w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-ink-faint/40 overflow-hidden flex flex-col max-h-[70vh] animate-scale-up"
+        className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-ink-faint/40 overflow-hidden flex flex-col max-h-[72vh] animate-scale-up"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center px-4 py-3.5 border-b border-ink-faint/30 bg-slate-50/70">
-          <Search className="w-5 h-5 text-ink-muted flex-shrink-0 mr-3" />
+        <div className="flex items-center px-4 sm:px-5 py-4 border-b border-ink-faint/30 bg-slate-50/70">
+          <Search className="w-5 h-5 text-primary flex-shrink-0 mr-3" />
           <input
             ref={inputRef}
             type="text"
-            placeholder="Type a command, page, or action... (e.g. users, export, SLA)"
+            placeholder="Type a command, page, or action... (e.g. users, export, SLA, moderation)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-transparent text-sm font-body text-ink placeholder:text-ink-muted/70 outline-none"
+            className="w-full bg-transparent text-sm sm:text-base font-body text-ink placeholder:text-ink-muted/70 outline-none"
           />
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono font-bold text-ink-muted bg-white border border-ink-faint/60 rounded shadow-2xs">
+          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-1 text-[10px] font-mono font-bold text-ink-muted bg-white border border-ink-faint/60 rounded shadow-2xs shrink-0 ml-2">
             ESC
           </kbd>
         </div>

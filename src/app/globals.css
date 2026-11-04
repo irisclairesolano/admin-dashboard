@@ -10,7 +10,10 @@
     padding: 0;
   }
   body {
-    @apply bg-paper text-ink font-body;
+    @apply bg-paper dark:bg-slate-950 text-ink dark:text-slate-100 font-body transition-colors duration-200;
+  }
+  .dark {
+    color-scheme: dark;
   }
 }
 

@@ -6,6 +6,7 @@ import Avatar from '@/components/Avatar';
 import Image from 'next/image';
 import { User } from '@/types/models';
 import { formatBirthDate } from '@/lib/date';
+import { hasSubmittedDocs, getUserVerificationInfo } from '@/lib/verification';
 
 interface UserDetailDrawerProps {
   selectedDetailUser: User;
@@ -196,21 +197,19 @@ export default function UserDetailDrawer({
                   </span>
                 )}
 
-                {selectedDetailUser.role !== 'admin' && (
-                  selectedDetailUser.verification_status === 'approved' ? (
-                    <span className="flex items-center text-[10px] font-bold text-status-success bg-status-success/10 px-2 py-0.5 rounded-full border border-status-success/20 uppercase tracking-wider">
-                      <CheckCircle2 className="w-3 h-3 mr-1" /> Verified
+                {selectedDetailUser.role !== 'admin' && (() => {
+                  const verifInfo = getUserVerificationInfo(selectedDetailUser);
+                  return (
+                    <span className={`flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${verifInfo.badgeClass}`}>
+                      {verifInfo.statusKey === 'approved' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                      {verifInfo.statusKey === 'rejected' && <AlertCircle className="w-3 h-3 mr-1" />}
+                      {verifInfo.statusKey !== 'approved' && verifInfo.statusKey !== 'rejected' && (
+                        <span className="w-1.5 h-1.5 rounded-full mr-1.5 bg-current opacity-70" />
+                      )}
+                      {verifInfo.label}
                     </span>
-                  ) : selectedDetailUser.verification_status === 'rejected' || selectedDetailUser.registration_status === 'rejected' ? (
-                    <span className="flex items-center text-[10px] font-bold text-status-error bg-status-error/10 px-2 py-0.5 rounded-full border border-status-error/20 uppercase tracking-wider">
-                      <AlertCircle className="w-3 h-3 mr-1" /> Verification Rejected
-                    </span>
-                  ) : (
-                    <span className="flex items-center text-[10px] font-bold text-ink-muted bg-paper px-2 py-0.5 rounded-full border border-ink-faint uppercase tracking-wider">
-                      Unverified
-                    </span>
-                  )
-                )}
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -299,35 +298,16 @@ export default function UserDetailDrawer({
         {selectedDetailUser.role !== 'admin' && selectedDetailUser.verification_status !== 'approved' && (
           <div className="px-6 pt-4 shrink-0">
             {(() => {
-              const hasDoc = !!(
-                selectedDetailUser.document_url ||
-                (selectedDetailUser as any).document_front_url ||
-                (selectedDetailUser as any).id_front_url ||
-                (selectedDetailUser.business_documents && (Array.isArray(selectedDetailUser.business_documents) ? selectedDetailUser.business_documents.length > 0 : !!selectedDetailUser.business_documents))
-              );
+              const hasDocs = hasSubmittedDocs(selectedDetailUser);
 
-              if (selectedDetailUser.registration_status === 'pending_review' && !hasDoc) {
+              if (!hasDocs) {
                 return (
-                  <div className="bg-status-warning/10 border border-status-warning/20 rounded-2xl p-4 flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-status-warning shrink-0 mt-0.5" />
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="text-sm font-bold text-status-warning">Inconsistent Verification State</h4>
-                      <p className="text-xs text-status-warning/90 mt-1 leading-relaxed">
-                        This user is in "Pending Review" status but has not uploaded any ID or business documents. Bypassing document review is recommended via manual verification.
-                      </p>
-                    </div>
-                  </div>
-                );
-              }
-
-              if (!hasDoc) {
-                return (
-                  <div className="bg-ink-faint/50 border border-ink-faint rounded-2xl p-4 flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-ink-muted shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="text-sm font-bold text-ink-soft">Unverified (Missing Document Upload)</h4>
-                      <p className="text-xs text-ink-muted mt-1 leading-relaxed">
-                        The user has created their account but hasn't submitted their ID or business documents. They will not appear in the verification queue.
+                      <h4 className="text-sm font-bold text-amber-800">Pending Identification Upload</h4>
+                      <p className="text-xs text-amber-700/90 mt-1 leading-relaxed">
+                        This user has registered their account but has not yet uploaded their government ID or business registration documents (Status: Pending ID Upload). Platform verification is disabled until valid identification documents are submitted.
                       </p>
                     </div>
                   </div>
@@ -619,7 +599,20 @@ export default function UserDetailDrawer({
                         const backDoc = userDetailData.user.document_back_url || (userDetailData.user as any).id_back_url;
                         const selfieDoc = userDetailData.user.selfie_url || (userDetailData.user as any).id_selfie_url;
 
-                        if (!frontDoc && !backDoc && !selfieDoc) return null;
+                        if (!frontDoc && !backDoc && !selfieDoc) {
+                          return (
+                            <div>
+                              <h4 className="text-xs font-bold text-ink-soft uppercase tracking-wider mb-2">Government ID & Verification Media</h4>
+                              <div className="bg-paper rounded-2xl border border-ink-faint p-4 flex items-center gap-3 text-ink-muted">
+                                <FileText className="w-5 h-5 text-ink-muted/60 shrink-0" />
+                                <div>
+                                  <p className="text-xs font-semibold text-ink-soft">No identification documents uploaded yet</p>
+                                  <p className="text-[11px] text-ink-muted mt-0.5">The user has not submitted government identification media or is still completing onboarding.</p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
 
                         return (
                           <div>
@@ -800,17 +793,24 @@ export default function UserDetailDrawer({
                       </div>
                     ) : (
                       <div className="flex flex-wrap gap-3">
-                        {selectedDetailUser.verification_status !== 'approved' && (
-                          <button
-                            disabled={actionLoading === selectedDetailUser.id}
-                            onClick={onVerify}
-                            className="px-5 py-3 bg-status-success text-white text-sm font-semibold rounded-xl hover:bg-status-success/90 transition-all flex items-center gap-1.5 shadow-sm"
-                            title="Verify User"
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>Manually Verify User</span>
-                          </button>
-                        )}
+                        {selectedDetailUser.verification_status !== 'approved' && (() => {
+                          const hasDocs = hasSubmittedDocs(selectedDetailUser);
+                          return (
+                            <button
+                              disabled={actionLoading === selectedDetailUser.id || !hasDocs}
+                              onClick={hasDocs ? onVerify : undefined}
+                              className={`px-5 py-3 text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-sm ${
+                                !hasDocs
+                                  ? 'bg-ink-faint text-ink-muted cursor-not-allowed opacity-60'
+                                  : 'bg-status-success text-white hover:bg-status-success/90'
+                              }`}
+                              title={!hasDocs ? 'Cannot verify: User has not uploaded identification documents yet' : 'Review & Verify User'}
+                            >
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>{hasDocs ? 'Manually Verify User' : 'Awaiting ID Upload'}</span>
+                            </button>
+                          );
+                        })()}
 
                         <button
                           disabled={actionLoading === selectedDetailUser.id}

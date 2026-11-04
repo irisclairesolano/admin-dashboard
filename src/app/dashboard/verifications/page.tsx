@@ -37,6 +37,7 @@ import { AlertDialog } from '@/components/AlertDialog';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus } from '@/lib/export/csv';
 import { useToast } from '@/context/ToastContext';
 import { usePolling } from '@/hooks/usePolling';
+import { hasSubmittedDocs, getMissingRequirements } from '@/lib/verification';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
@@ -91,7 +92,7 @@ function VerificationsPageContent() {
   const [error, setError] = useState('');
   const [reviewUser, setReviewUser] = useState<any | null>(null);
   const [actionLoading, setActionLoading] = useState<'approved' | 'rejected' | null>(null);
-  const [statusTab, setStatusTab] = useState<'pending' | 'rejected' | 'approved' | 'all'>('pending');
+  const [statusTab, setStatusTab] = useState<'pending' | 'awaiting_upload' | 'rejected' | 'approved' | 'all'>('pending');
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [slaFilter, setSlaFilter] = useState<'all' | 'overdue' | 'urgent' | 'priority' | 'normal'>('all');
@@ -273,13 +274,6 @@ function VerificationsPageContent() {
 
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
-  const hasSubmittedDocs = (u: any) =>
-    u.registration_status === 'pending_review' ||
-    !!u.document_url ||
-    !!u.document_back_url ||
-    !!u.selfie_url ||
-    (Array.isArray(u.business_documents) ? u.business_documents.length > 0 : !!u.business_documents);
-
   // 1. Pending: only users who submitted verification documents and are awaiting review (not approved, not rejected, not badged)
   const allPendingUsers = users.filter((u) => {
     const isApproved =
@@ -291,7 +285,18 @@ function VerificationsPageContent() {
     return !isApproved && !isRejected && hasSubmittedDocs(u);
   });
 
-  // 2. Rejected: users who were rejected and are awaiting re-upload in the app
+  // 2. Awaiting ID Upload: registered users who have not yet submitted verification documents
+  const allAwaitingUploadUsers = users.filter((u) => {
+    const isApproved =
+      u.verification_status === 'approved' ||
+      !!u.verification_badge;
+    const isRejected =
+      u.verification_status === 'rejected' ||
+      u.registration_status === 'rejected';
+    return !isApproved && !isRejected && !hasSubmittedDocs(u);
+  });
+
+  // 3. Rejected: users who were rejected and are awaiting re-upload in the app
   const allRejectedUsers = users.filter((u) => {
     return (
       u.verification_status === 'rejected' ||
@@ -299,7 +304,7 @@ function VerificationsPageContent() {
     );
   });
 
-  // 3. Approved: users who have completed ID verification
+  // 4. Approved: users who have completed ID verification
   const allApprovedUsers = users.filter((u) => {
     return (
       u.verification_status === 'approved' ||
@@ -315,11 +320,13 @@ function VerificationsPageContent() {
   const currentTabUsers =
     statusTab === 'pending'
       ? allPendingUsers
-      : statusTab === 'rejected'
-        ? allRejectedUsers
-        : statusTab === 'approved'
-          ? allApprovedUsers
-          : users;
+      : statusTab === 'awaiting_upload'
+        ? allAwaitingUploadUsers
+        : statusTab === 'rejected'
+          ? allRejectedUsers
+          : statusTab === 'approved'
+            ? allApprovedUsers
+            : users;
 
   const displayedUsers = currentTabUsers
     .filter((u) => {
@@ -469,6 +476,27 @@ function VerificationsPageContent() {
 
         <button
           onClick={() => {
+            setStatusTab('awaiting_upload');
+            setCurrentPage(1);
+          }}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-body font-bold transition-all cursor-pointer ${
+            statusTab === 'awaiting_upload'
+              ? 'bg-amber-600 text-white shadow-2xs'
+              : 'bg-white/80 text-ink-muted hover:text-ink hover:bg-white border border-ink-faint/40'
+          }`}
+        >
+          <span>Action Required from User</span>
+          <span
+            className={`px-1.5 py-0.5 rounded-full text-[10px] font-numeric font-bold ${
+              statusTab === 'awaiting_upload' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
+            }`}
+          >
+            {allAwaitingUploadUsers.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => {
             setStatusTab('rejected');
             setCurrentPage(1);
           }}
@@ -532,6 +560,28 @@ function VerificationsPageContent() {
       </div>
 
       <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
+        {statusTab === 'awaiting_upload' && (
+          <div className="p-4 bg-amber-500/10 border-b border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-800 shrink-0 mt-0.5">
+                <i className="lni lni-timer text-lg" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-amber-900">
+                  Accounts Requiring User Action Before Verification
+                </h3>
+                <p className="text-xs text-amber-700/90 mt-0.5 leading-relaxed">
+                  These accounts have registered on SIKAP but have not yet uploaded their required identification documents (Government ID / Selfie / Business Permits). Admin verification is locked until the applicant submits documents via the mobile app.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto text-xs font-semibold text-amber-800 bg-amber-100/80 px-3 py-1.5 rounded-xl border border-amber-300 whitespace-nowrap">
+              <i className="lni lni-lock text-sm" />
+              <span>Verification Locked</span>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="p-6 space-y-3">
             {[1, 2, 3].map((i) => (
@@ -550,16 +600,20 @@ function VerificationsPageContent() {
             <h3 className="font-display text-lg font-bold text-ink">
               {statusTab === 'pending'
                 ? 'All caught up!'
-                : statusTab === 'rejected'
-                  ? 'No rejected verifications'
-                  : 'No records found'}
+                : statusTab === 'awaiting_upload'
+                  ? 'No accounts awaiting user action'
+                  : statusTab === 'rejected'
+                    ? 'No rejected verifications'
+                    : 'No records found'}
             </h3>
             <p className="font-body text-ink-muted mt-1 text-xs">
               {statusTab === 'pending'
                 ? 'There are no pending ID verifications at the moment.'
-                : statusTab === 'rejected'
-                  ? 'No users currently have rejected verification credentials awaiting re-upload.'
-                  : 'No verification records match your filter criteria.'}
+                : statusTab === 'awaiting_upload'
+                  ? 'All registered users have submitted their documents or are already verified.'
+                  : statusTab === 'rejected'
+                    ? 'No users currently have rejected verification credentials awaiting re-upload.'
+                    : 'No verification records match your filter criteria.'}
             </p>
           </div>
         ) : (
@@ -570,13 +624,15 @@ function VerificationsPageContent() {
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[10%]">User ID</th>
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[36%]">User Details</th>
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[16%]">Role</th>
-                  {statusTab === 'rejected' ? (
+                  {statusTab === 'awaiting_upload' ? (
+                    <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[24%]">Required User Action</th>
+                  ) : statusTab === 'rejected' ? (
                     <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[24%]">Rejection Reason</th>
                   ) : (
                     <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[24%]">Submitted & SLA Age</th>
                   )}
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[14%] text-right">
-                    {statusTab === 'rejected' ? 'Status' : 'Action'}
+                    {statusTab === 'rejected' ? 'Status' : statusTab === 'awaiting_upload' ? 'State' : 'Action'}
                   </th>
                 </tr>
               </thead>
@@ -641,7 +697,24 @@ function VerificationsPageContent() {
                         </div>
                       </td>
 
-                      {statusTab === 'rejected' ? (
+                      {statusTab === 'awaiting_upload' ? (
+                        <td className="px-4 py-3 text-xs font-body">
+                          {(() => {
+                            const req = getMissingRequirements(user);
+                            return (
+                              <div className="flex flex-col gap-1 items-start">
+                                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                  <i className="lni lni-timer text-[10px]" />
+                                  {req.summary}
+                                </span>
+                                <span className="text-[10px] text-ink-muted">
+                                  Joined {new Date(user.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </td>
+                      ) : statusTab === 'rejected' ? (
                         <td className="px-4 py-3 text-xs font-body">
                           <div className="bg-rose-50/70 border border-rose-200/70 rounded-lg p-2 max-w-sm">
                             <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block mb-0.5">
@@ -686,6 +759,17 @@ function VerificationsPageContent() {
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200">
                             Approved ✓
                           </span>
+                        ) : !hasSubmittedDocs(user) ? (
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 cursor-not-allowed select-none"
+                              title="Cannot verify: User has not uploaded identification documents yet. Awaiting applicant upload in mobile app."
+                            >
+                              <i className="lni lni-hourglass text-[10px]" />
+                              Awaiting User
+                            </span>
+                            <span className="text-[9px] text-ink-muted">Verification Locked</span>
+                          </div>
                         ) : (
                           <button
                             onClick={() => setReviewUser(user)}
@@ -728,6 +812,35 @@ function VerificationsPageContent() {
               <i className="lni lni-arrow-right text-sm" />
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Callout Section for Accounts Requiring User Action */}
+      {statusTab === 'pending' && allAwaitingUploadUsers.length > 0 && (
+        <div className="mt-8 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+          <div className="flex items-start gap-3">
+            <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-800 shrink-0 mt-0.5">
+              <i className="lni lni-timer text-xl" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-amber-900">
+                {allAwaitingUploadUsers.length} Incomplete Account{allAwaitingUploadUsers.length === 1 ? '' : 's'} Requiring User Action
+              </h3>
+              <p className="text-xs text-amber-700/90 mt-0.5 leading-relaxed">
+                These users registered on SIKAP but have not yet uploaded identification documents. They are segregated into the "Action Required from User" section so they do not clutter the active review queue or the main users directory.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setStatusTab('awaiting_upload');
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition shadow-xs whitespace-nowrap self-start sm:self-auto cursor-pointer flex items-center gap-1.5"
+          >
+            <span>View Incomplete Accounts ({allAwaitingUploadUsers.length})</span>
+            <i className="lni lni-arrow-right text-xs" />
+          </button>
         </div>
       )}
 

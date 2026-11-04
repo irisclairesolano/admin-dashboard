@@ -10,7 +10,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { usePolling } from '@/hooks/usePolling';
 import { useInactivityTimer } from '@/hooks/useInactivityTimer';
 import { TwoFactorSetupModal } from '@/components/TwoFactorSetupModal';
-import { ShieldCheck, ShieldAlert, KeyRound, Volume2, VolumeX } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, KeyRound, Volume2, VolumeX, Moon, Sun } from 'lucide-react';
 import { authStorage } from '@/lib/authStorage';
 import { humanizeModel } from '@/lib/constants';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -58,11 +58,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [reportToastDismissed, setReportToastDismissed] = useState(false);
   const [notifications, setNotifications] = useState<DashboardNotification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(true);
-  const [, setIsSyncing] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [readNotifications, setReadNotifications] = useLocalStorage<string[]>('admin_read_notifications', []);
   const [soundAlertsEnabled, setSoundAlertsEnabled] = useLocalStorage<boolean>('admin_sound_alerts_enabled', true);
+  const [isDarkMode, setIsDarkMode] = useLocalStorage<boolean>('admin_dark_mode', false);
   const [desktopPermission, setDesktopPermission] = useState<NotificationPermission>('default');
   const [showPermissionBanner, setShowPermissionBanner] = useState(false);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (isDarkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }, [isDarkMode]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -379,12 +390,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.push(item.link);
   };
 
-  // ── Notification Dropdown Element (Slide-over drawer panel) ─────────────────
+  // ── Notification Trigger Button ─────────────────────────────────────────────
   const NotificationButton = () => (
     <div className="relative">
       <button
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="p-2.5 bg-white/70 hover:bg-white text-ink hover:text-primary rounded-2xl border border-white/60 hover:border-primary/30 shadow-sm transition-all relative flex items-center justify-center cursor-pointer"
+        className="p-2.5 bg-white/70 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 text-ink dark:text-slate-200 hover:text-primary dark:hover:text-primary-soft rounded-2xl border border-white/60 dark:border-slate-800 shadow-sm transition-all relative flex items-center justify-center cursor-pointer"
         aria-label="View notifications"
         title="Action Center & Notifications"
       >
@@ -395,211 +406,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </span>
         )}
       </button>
-
-      {dropdownOpen && (
-        <>
-          {/* Backdrop overlay (covers content area on desktop & mobile) */}
-          <div className="fixed inset-0 bg-ink/30 backdrop-blur-sm z-[100] transition-opacity" onClick={() => setDropdownOpen(false)} />
-          <div className="fixed inset-y-0 right-0 z-[101] w-full max-w-md h-screen bg-white/95 backdrop-blur-xl shadow-2xl border-l border-ink-faint/30 flex flex-col transform transition-transform duration-300 translate-x-0 animate-slide-in">
-            {/* Header */}
-            <div className="p-6 border-b border-ink-faint/30 bg-paper/40">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-display text-xl text-ink font-bold flex items-center gap-2">
-                    Action Center
-                    {unreadCount > 0 && (
-                      <span className="text-xs font-mono font-bold bg-status-error/10 text-status-error border border-status-error/20 px-2 py-0.5 rounded-full">
-                        {unreadCount} new
-                      </span>
-                    )}
-                  </h3>
-                  <p className="text-xs text-ink-soft mt-1">Pending items requiring moderation & review</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => fetchNotifications(true)}
-                    className="p-2 text-ink-soft hover:text-primary hover:bg-white/80 rounded-lg transition-colors cursor-pointer"
-                    title="Refresh notifications"
-                    aria-label="Refresh"
-                  >
-                    <i className="lni lni-reload text-sm" />
-                  </button>
-                  <button
-                    onClick={() => setDropdownOpen(false)}
-                    className="w-8 h-8 flex items-center justify-center hover:bg-paper rounded-full text-ink-muted hover:text-ink transition-colors cursor-pointer"
-                    aria-label="Close notifications"
-                  >
-                    <i className="lni lni-close text-xs" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Category Filter Tabs */}
-              <div className="flex items-center gap-1.5 mt-4 overflow-x-auto pb-1 text-xs">
-                <button
-                  onClick={() => setNotificationFilter('all')}
-                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
-                    notificationFilter === 'all'
-                      ? 'bg-ink text-white shadow-sm'
-                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
-                  }`}
-                >
-                  All ({notifications.length})
-                </button>
-                <button
-                  onClick={() => setNotificationFilter('unread')}
-                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
-                    notificationFilter === 'unread'
-                      ? 'bg-ink text-white shadow-sm'
-                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
-                  }`}
-                >
-                  Unread ({unreadCount})
-                </button>
-                <button
-                  onClick={() => setNotificationFilter('reports')}
-                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
-                    notificationFilter === 'reports'
-                      ? 'bg-status-error text-white shadow-sm'
-                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
-                  }`}
-                >
-                  Reports ({notifications.filter(n => n.category === 'report').length})
-                </button>
-                <button
-                  onClick={() => setNotificationFilter('verifications')}
-                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
-                    notificationFilter === 'verifications'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
-                  }`}
-                >
-                  IDs ({notifications.filter(n => n.category === 'verification').length})
-                </button>
-              </div>
-
-              {/* Action Toolbar */}
-              <div className="flex items-center justify-between mt-3 pt-2 border-t border-ink-faint/20 text-xs">
-                {unreadCount > 0 ? (
-                  <button
-                    onClick={markAllAsRead}
-                    className="font-body font-semibold text-primary hover:text-primary-dark transition-colors flex items-center gap-1 cursor-pointer"
-                  >
-                    <i className="lni lni-checkmark text-xs" />
-                    Mark all read
-                  </button>
-                ) : (
-                  <span className="text-[11px] text-ink-muted">All notifications caught up</span>
-                )}
-                {notifications.some(n => readNotifications.includes(n.id)) && (
-                  <button
-                    onClick={clearReadNotifications}
-                    className="font-body text-ink-muted hover:text-status-error transition-colors cursor-pointer"
-                  >
-                    Clear read
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* List */}
-            <div className="flex-1 overflow-y-auto divide-y divide-ink-faint/20 p-4 space-y-2">
-              {notificationsLoading ? (
-                <div className="space-y-3 p-2">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="p-4 rounded-2xl bg-white/60 border border-ink-faint/30 animate-pulse flex gap-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-ink-faint/50 flex-shrink-0" />
-                      <div className="flex-1 space-y-2 py-1">
-                        <div className="h-4 bg-ink-faint/60 rounded w-3/4" />
-                        <div className="h-3 bg-ink-faint/40 rounded w-full" />
-                        <div className="h-2.5 bg-ink-faint/30 rounded w-1/4" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : filteredNotifications.length === 0 ? (
-                <div className="py-16 text-center">
-                  <div className="w-14 h-14 bg-status-success/10 text-status-success rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
-                    <i className="lni lni-checkmark-circle text-2xl" />
-                  </div>
-                  <h4 className="font-display font-bold text-ink text-sm">Everything is Clear</h4>
-                  <p className="text-xs text-ink-soft mt-1">No notifications matching this filter.</p>
-                </div>
-              ) : (
-                filteredNotifications.map((item) => {
-                  const isRead = readNotifications.includes(item.id);
-                  const isCritical = item.priority === 'critical';
-                  const isAttention = item.priority === 'attention';
-
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleNotificationClick(item)}
-                      className={`
-                        w-full text-left p-4 transition-all flex gap-3.5 rounded-2xl border cursor-pointer
-                        ${isRead
-                          ? 'opacity-60 bg-white/40 border-transparent hover:opacity-90 hover:bg-white/70'
-                          : isCritical
-                            ? 'bg-status-error/5 border-status-error/25 shadow-sm hover:bg-status-error/10'
-                            : isAttention
-                              ? 'bg-amber-500/5 border-amber-500/25 shadow-sm hover:bg-amber-500/10'
-                              : 'bg-white border-white/70 shadow-sm hover:bg-paper/80'}
-                      `}
-                    >
-                      <div className={`
-                        w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center shadow-inner
-                        ${isCritical
-                          ? 'bg-status-error/15 text-status-error border border-status-error/30'
-                          : isAttention
-                            ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
-                            : 'bg-primary/10 text-primary border border-primary/25'
-                        }
-                      `}>
-                        {isCritical ? (
-                          <i className="lni lni-flag text-base" />
-                        ) : isAttention ? (
-                          <i className="lni lni-user text-base" />
-                        ) : (
-                          <i className="lni lni-comments text-base" />
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-1.5">
-                          <span className={`text-[10px] font-body font-bold uppercase tracking-wider ${
-                            isCritical ? 'text-status-error' : isAttention ? 'text-amber-600' : 'text-primary'
-                          }`}>
-                            {isCritical ? 'Critical Report' : isAttention ? 'ID Verification' : 'Support Inquiry'}
-                          </span>
-                          <span className="text-[10px] font-mono text-ink-muted flex items-center gap-1">
-                            {!isRead && <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0 animate-ping" />}
-                            {getRelativeTime(item.timestamp)}
-                          </span>
-                        </div>
-                        <h4 className={`text-sm font-body font-bold mt-1 truncate ${isRead ? 'text-ink-soft' : 'text-ink'}`}>
-                          {item.title}
-                        </h4>
-                        <p className="text-xs font-body text-ink-soft mt-1 leading-relaxed line-clamp-2">
-                          {item.description}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="px-5 py-3.5 bg-paper/40 text-center border-t border-ink-faint/30">
-              <span className="text-[10px] font-body font-semibold text-ink-muted flex items-center justify-center gap-1">
-                <i className="lni lni-checkmark-circle text-xs text-emerald-500" />
-                Live background synchronization active
-              </span>
-            </div>
-          </div>
-        </>
-      )}
     </div>
+  );
+
+  // ── Dark Mode Toggle Button ────────────────────────────────────────────────
+  const DarkModeToggle = () => (
+    <button
+      type="button"
+      onClick={() => setIsDarkMode((prev) => !prev)}
+      className="p-2.5 bg-white/70 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 text-ink dark:text-slate-200 hover:text-primary dark:hover:text-amber-400 rounded-2xl border border-white/60 dark:border-slate-800 shadow-sm transition-all flex items-center justify-center cursor-pointer"
+      title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      aria-label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+    >
+      {isDarkMode ? (
+        <Sun className="w-5 h-5 text-amber-400 transition-transform duration-200 hover:rotate-45" />
+      ) : (
+        <Moon className="w-5 h-5 text-ink-muted hover:text-primary transition-transform duration-200 hover:-rotate-12" />
+      )}
+    </button>
   );
 
   // ── Admin Profile Dropdown Menu in Top Navbar ─────────────────────────────
@@ -608,18 +432,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <button
         type="button"
         onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-        className="flex items-center gap-2.5 p-1.5 pl-2 pr-2.5 bg-white/70 hover:bg-white text-ink border border-white/60 hover:border-primary/30 rounded-2xl shadow-sm transition-all cursor-pointer focus:outline-none"
+        className="flex items-center gap-2.5 p-1.5 pl-2 pr-2.5 bg-white/70 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 text-ink dark:text-slate-200 border border-white/60 dark:border-slate-800 rounded-2xl shadow-sm transition-all cursor-pointer focus:outline-none"
         aria-label="Admin Profile Menu"
         aria-expanded={profileDropdownOpen}
       >
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-peach to-accent-peachBright flex items-center justify-center shadow-inner flex-shrink-0">
-          <span className="font-body font-bold text-primary-dark text-sm">{adminName ? adminName.charAt(0).toUpperCase() : 'A'}</span>
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-peach to-accent-peachBright dark:from-slate-800 dark:to-slate-700 flex items-center justify-center shadow-inner flex-shrink-0">
+          <span className="font-body font-bold text-primary-dark dark:text-primary-soft text-sm">{adminName ? adminName.charAt(0).toUpperCase() : 'A'}</span>
         </div>
         <div className="hidden sm:flex flex-col text-left">
-          <span className="text-xs font-body font-bold text-ink leading-tight truncate max-w-[110px] md:max-w-[130px]">{adminName || 'Admin'}</span>
-          <span className="text-[10px] text-ink-muted leading-tight capitalize">{adminRole === 'superadmin' ? 'Super Admin' : 'Moderator'}</span>
+          <span className="text-xs font-body font-bold text-ink dark:text-slate-200 leading-tight truncate max-w-[110px] md:max-w-[130px]">{adminName || 'Admin'}</span>
+          <span className="text-[10px] text-ink-muted dark:text-slate-400 leading-tight capitalize">{adminRole === 'superadmin' ? 'Super Admin' : 'Moderator'}</span>
         </div>
-        <i className={`lni lni-chevron-down text-[10px] text-ink-muted transition-transform duration-200 ${profileDropdownOpen ? 'rotate-180 text-ink' : ''}`} />
+        <i className={`lni lni-chevron-down text-[10px] text-ink-muted dark:text-slate-400 transition-transform duration-200 ${profileDropdownOpen ? 'rotate-180 text-ink dark:text-slate-200' : ''}`} />
       </button>
 
       {/* Floating Dropdown Popover */}
@@ -716,7 +540,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={120} height={32} className="h-8 object-contain" />
           <span className="text-xs font-body font-semibold text-ink-muted ml-2 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <button
+            type="button"
+            onClick={() => setCommandPaletteOpen(true)}
+            className="p-2 text-ink-muted hover:text-ink hover:bg-paper rounded-full transition-colors flex items-center justify-center cursor-pointer"
+            title="Search (Command Palette)"
+            aria-label="Search"
+          >
+            <i className="lni lni-search text-lg" />
+          </button>
           <NotificationButton />
           <AdminProfileMenu />
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-ink hover:bg-paper rounded-full transition-colors flex items-center justify-center cursor-pointer" aria-label="Toggle sidebar">
@@ -726,27 +559,42 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Sidebar */}
-      <div className={`no-print
-        fixed inset-y-0 left-0 z-30 w-72 bg-white/70 backdrop-blur-xl border-r border-white/50 shadow-glass
+      <aside className={`no-print
+        fixed inset-y-0 left-0 z-30 bg-white/70 backdrop-blur-xl border-r border-white/50 shadow-glass
         transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
         lg:static lg:flex-shrink-0 h-full flex flex-col
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        ${sidebarCollapsed ? 'lg:-ml-72 lg:opacity-0 lg:pointer-events-none' : 'lg:ml-0 lg:opacity-100'}
+        ${sidebarOpen ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0'}
+        ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-72'}
       `}>
-        <div className="h-20 flex items-center px-5 border-b border-ink-faint/30 flex-shrink-0">
-          <div className="flex items-center">
-            <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain" />
-            <span className="text-[10px] font-body font-semibold text-ink-muted ml-1.5 bg-ink-faint/30 px-1.5 py-0.5 rounded border border-ink-faint/50">Admin</span>
-          </div>
+        {/* Sidebar Header */}
+        <div className={`h-20 flex items-center border-b border-ink-faint/30 flex-shrink-0 transition-all duration-300 ${
+          sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-5'
+        }`}>
+          {!sidebarCollapsed ? (
+            <div className="flex items-center">
+              <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain" />
+              <span className="text-[10px] font-body font-semibold text-ink-muted ml-1.5 bg-ink-faint/30 px-1.5 py-0.5 rounded border border-ink-faint/50">Admin</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary shadow-xs">
+              <span className="font-display font-black text-lg text-primary">S</span>
+            </div>
+          )}
         </div>
 
-        <div className="p-5 flex flex-col flex-1 min-h-0 justify-between">
+        <div className={`flex flex-col flex-1 min-h-0 justify-between transition-all duration-300 ${
+          sidebarCollapsed ? 'p-2.5' : 'p-5'
+        }`}>
           <nav className="flex-1 mt-4 lg:mt-0 overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:theme(colors.ink.faint)_transparent] space-y-4">
             {navSections.map((section) => (
               <div key={section.key}>
-                <span className="block text-[9px] font-body font-bold uppercase tracking-widest text-ink-muted/60 px-4 mb-1.5">
-                  {section.label}
-                </span>
+                {!sidebarCollapsed ? (
+                  <span className="block text-[9px] font-body font-bold uppercase tracking-widest text-ink-muted/60 px-4 mb-1.5">
+                    {section.label}
+                  </span>
+                ) : (
+                  <div className="h-px bg-ink-faint/40 my-2 mx-2" />
+                )}
                 <div className="space-y-1">
                   {section.items.map((item) => {
                     const isActive = pathname === item.href;
@@ -756,9 +604,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         key={item.name}
                         href={item.href}
                         onClick={() => setSidebarOpen(false)}
+                        title={sidebarCollapsed ? item.name : undefined}
                         className={`
-                          group flex items-center px-4 py-3 text-sm font-body font-semibold rounded-2xl
+                          group flex items-center text-sm font-body font-semibold rounded-2xl
                           transition-all duration-300 relative overflow-hidden
+                          ${sidebarCollapsed ? 'justify-center p-3' : 'px-4 py-3'}
                           ${isActive
                             ? 'bg-ink text-white shadow-md transform scale-[1.02]'
                             : 'text-ink-soft hover:bg-white/50 hover:text-ink hover:shadow-sm'
@@ -766,20 +616,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         `}
                       >
                         {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />}
-                        <i className={`${item.iconClass} text-lg mr-3 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-white' : 'text-ink-muted group-hover:text-primary-dark'}`} />
-                        {item.name}
-                        <span className="ml-auto flex items-center gap-1.5">
-                          {hasBadge && (
-                            <span className={`min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${
-                              item.badgeColor || 'bg-status-error text-white'
-                            } ${item.name === 'Moderation' ? 'animate-pulse' : ''}`}>
-                              {item.badge > 99 ? '99+' : item.badge}
+                        <div className="relative flex items-center justify-center">
+                          <i className={`${item.iconClass} text-lg transition-transform duration-300 group-hover:scale-110 ${
+                            sidebarCollapsed ? '' : 'mr-3'
+                          } ${isActive ? 'text-white' : 'text-ink-muted group-hover:text-primary-dark'}`} />
+
+                          {/* Mini badge dot in collapsed rail mode */}
+                          {sidebarCollapsed && hasBadge && (
+                            <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 rounded-full bg-status-error border-2 border-white animate-pulse" />
+                          )}
+                        </div>
+
+                        {!sidebarCollapsed && (
+                          <>
+                            <span className="truncate">{item.name}</span>
+                            <span className="ml-auto flex items-center gap-1.5">
+                              {hasBadge && (
+                                <span className={`min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${
+                                  item.badgeColor || 'bg-status-error text-white'
+                                } ${item.name === 'Moderation' ? 'animate-pulse' : ''}`}>
+                                  {item.badge > 99 ? '99+' : item.badge}
+                                </span>
+                              )}
+                              {prefetchStatus === 'loading' && !hasBadge && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                              )}
                             </span>
-                          )}
-                          {prefetchStatus === 'loading' && !hasBadge && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                          )}
-                        </span>
+                          </>
+                        )}
                       </Link>
                     );
                   })}
@@ -788,12 +652,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             ))}
           </nav>
 
-          <div className="pt-4 border-t border-ink-faint/30 mt-auto flex items-center justify-between px-2 text-[11px] text-ink-muted flex-shrink-0">
-            <span className="font-body font-semibold">SIKAP Admin</span>
-            <span className="font-mono text-[10px] bg-paper px-1.5 py-0.5 rounded border border-ink-faint/40">v1.2</span>
+          <div className={`pt-4 border-t border-ink-faint/30 mt-auto flex items-center text-[11px] text-ink-muted flex-shrink-0 ${
+            sidebarCollapsed ? 'justify-center px-0' : 'justify-between px-2'
+          }`}>
+            {!sidebarCollapsed ? (
+              <>
+                <span className="font-body font-semibold">SIKAP Admin</span>
+                <span className="font-mono text-[10px] bg-paper px-1.5 py-0.5 rounded border border-ink-faint/40">v1.2</span>
+              </>
+            ) : (
+              <span className="font-mono text-[9px] bg-paper px-1 py-0.5 rounded border border-ink-faint/40">v1.2</span>
+            )}
           </div>
         </div>
-      </div>
+      </aside>
 
       {/* ── SSE Report Alert Toast ────────────────────────────────── */}
       {newReportCount > 0 && !reportToastDismissed && (
@@ -846,45 +718,56 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── Persistent Content Wrapper (Main) ──────────────────── */}
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Desktop Top Header (Content Page Side) */}
-        <header className="no-print hidden lg:flex items-center justify-between h-14 px-6 bg-white/70 backdrop-blur-xl border-b border-white/50 z-20 flex-shrink-0">
-          <div className="flex items-center gap-4">
+        <header className="no-print hidden lg:flex items-center justify-between h-14 px-6 bg-white/70 backdrop-blur-xl border-b border-white/50 z-20 flex-shrink-0 gap-6">
+          <div className="flex items-center gap-3 shrink-0">
             {/* Sidebar toggle button */}
             <button
               type="button"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               title={sidebarCollapsed ? "Expand sidebar" : "Minimize sidebar"}
               aria-label={sidebarCollapsed ? "Expand sidebar" : "Minimize sidebar"}
-              className="w-8 h-8 rounded-lg bg-white/80 hover:bg-white border border-ink-faint/50 hover:border-ink-faint text-ink-muted hover:text-ink shadow-2xs flex items-center justify-center transition-all cursor-pointer group"
+              className="w-8 h-8 rounded-lg bg-white/80 hover:bg-white border border-ink-faint/50 hover:border-ink-faint text-ink-muted hover:text-ink shadow-2xs flex items-center justify-center transition-all cursor-pointer group shrink-0"
             >
               <i className={`text-sm transition-transform duration-300 group-hover:scale-110 ${
                 sidebarCollapsed ? 'lni lni-menu' : 'lni lni-chevron-left'
               }`} />
             </button>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <span className="text-[11px] font-body uppercase tracking-wider text-ink-muted">Admin Dashboard</span>
               <span className="text-ink-faint">/</span>
-              <span className="text-xs font-display font-bold text-ink capitalize">
+              <span className="text-xs font-display font-bold text-ink capitalize truncate max-w-[160px]">
                 {pathname.replace('/dashboard', '').replace('/', '') || 'Analytics Overview'}
               </span>
             </div>
+          </div>
 
-            {/* Quick Command Palette Trigger (Ctrl + K) */}
+          {/* Prominent Quick Search Bar (Command Palette Trigger) */}
+          <div className="flex-1 max-w-xl mx-auto flex items-center">
             <button
               type="button"
               onClick={() => setCommandPaletteOpen(true)}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/80 hover:bg-white border border-ink-faint/50 hover:border-ink-faint text-ink-muted hover:text-ink shadow-2xs transition-all cursor-pointer group text-xs font-body ml-3"
+              className="w-full flex items-center justify-between h-9 px-3.5 rounded-xl bg-white/90 hover:bg-white border border-ink-faint/60 hover:border-primary/40 text-ink-muted hover:text-ink shadow-2xs hover:shadow-sm transition-all cursor-pointer group text-xs font-body"
               title="Search and jump to any page or command (Ctrl + K)"
             >
-              <i className="lni lni-search text-xs text-ink-muted group-hover:text-primary transition-colors" />
-              <span className="text-ink-muted/80">Quick search...</span>
-              <kbd className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9.5px] font-mono font-bold text-ink-muted bg-slate-100 border border-ink-faint/60 rounded shadow-2xs">
-                Ctrl K
-              </kbd>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <i className="lni lni-search text-sm text-ink-muted group-hover:text-primary transition-colors shrink-0" />
+                <span className="text-ink-muted/80 group-hover:text-ink/90 font-medium truncate">
+                  Search pages, workers, employers, reports, actions...
+                </span>
+              </div>
+              <div className="flex items-center gap-1 shrink-0 ml-3">
+                <kbd className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-semibold text-ink-muted/90 bg-slate-100 border border-ink-faint/70 rounded shadow-2xs">
+                  Ctrl
+                </kbd>
+                <kbd className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-semibold text-ink-muted/90 bg-slate-100 border border-ink-faint/70 rounded shadow-2xs">
+                  K
+                </kbd>
+              </div>
             </button>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 shrink-0">
             {/* Audio Alerts Toggle */}
             <button
               type="button"
@@ -1000,6 +883,217 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
         </div>
+      )}
+
+      {/* Action Center / Notification Drawer (Static overlay, no slide-in re-animation) */}
+      {dropdownOpen && (
+        <>
+          {/* Backdrop overlay */}
+          <div
+            className="fixed inset-0 bg-ink/30 backdrop-blur-sm z-[100] transition-opacity"
+            onClick={() => setDropdownOpen(false)}
+          />
+
+          {/* Static Drawer Panel (Fixed on right, static in place with content-only updates) */}
+          <div className="fixed inset-y-0 right-0 z-[101] w-full max-w-md h-screen bg-white/95 backdrop-blur-xl shadow-2xl border-l border-ink-faint/30 flex flex-col">
+            {/* Header */}
+            <div className="p-6 border-b border-ink-faint/30 bg-paper/40">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="font-display text-xl text-ink font-bold flex items-center gap-2">
+                    Action Center
+                    {unreadCount > 0 && (
+                      <span className="text-xs font-mono font-bold bg-status-error/10 text-status-error border border-status-error/20 px-2 py-0.5 rounded-full">
+                        {unreadCount} new
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-xs text-ink-soft mt-1">Pending items requiring moderation & review</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => fetchNotifications(false)}
+                    disabled={isSyncing}
+                    className="p-2 text-ink-soft hover:text-primary hover:bg-white/80 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                    title="Refresh notifications"
+                    aria-label="Refresh notifications"
+                  >
+                    <i className={`lni lni-reload text-sm ${isSyncing ? 'animate-spin text-primary' : ''}`} />
+                  </button>
+                  <button
+                    onClick={() => setDropdownOpen(false)}
+                    className="w-8 h-8 flex items-center justify-center hover:bg-paper rounded-full text-ink-muted hover:text-ink transition-colors cursor-pointer"
+                    aria-label="Close notifications"
+                  >
+                    <i className="lni lni-close text-xs" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Category Filter Tabs */}
+              <div className="flex items-center gap-1.5 mt-4 overflow-x-auto pb-1 text-xs">
+                <button
+                  onClick={() => setNotificationFilter('all')}
+                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
+                    notificationFilter === 'all'
+                      ? 'bg-ink text-white shadow-sm'
+                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
+                  }`}
+                >
+                  All ({notifications.length})
+                </button>
+                <button
+                  onClick={() => setNotificationFilter('unread')}
+                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
+                    notificationFilter === 'unread'
+                      ? 'bg-ink text-white shadow-sm'
+                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
+                  }`}
+                >
+                  Unread ({unreadCount})
+                </button>
+                <button
+                  onClick={() => setNotificationFilter('reports')}
+                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
+                    notificationFilter === 'reports'
+                      ? 'bg-status-error text-white shadow-sm'
+                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
+                  }`}
+                >
+                  Reports ({notifications.filter(n => n.category === 'report').length})
+                </button>
+                <button
+                  onClick={() => setNotificationFilter('verifications')}
+                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
+                    notificationFilter === 'verifications'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
+                  }`}
+                >
+                  IDs ({notifications.filter(n => n.category === 'verification').length})
+                </button>
+              </div>
+
+              {/* Action Toolbar */}
+              <div className="flex items-center justify-between mt-3 pt-2 border-t border-ink-faint/20 text-xs">
+                {unreadCount > 0 ? (
+                  <button
+                    onClick={markAllAsRead}
+                    className="font-body font-semibold text-primary hover:text-primary-dark transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <i className="lni lni-checkmark text-xs" />
+                    Mark all read
+                  </button>
+                ) : (
+                  <span className="text-[11px] text-ink-muted">All notifications caught up</span>
+                )}
+                {notifications.some(n => readNotifications.includes(n.id)) && (
+                  <button
+                    onClick={clearReadNotifications}
+                    className="font-body text-ink-muted hover:text-status-error transition-colors cursor-pointer"
+                  >
+                    Clear read
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto divide-y divide-ink-faint/20 p-4 space-y-2">
+              {notificationsLoading && notifications.length === 0 ? (
+                <div className="space-y-3 p-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="p-4 rounded-2xl bg-white/60 border border-ink-faint/30 animate-pulse flex gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-ink-faint/50 flex-shrink-0" />
+                      <div className="flex-1 space-y-2 py-1">
+                        <div className="h-4 bg-ink-faint/60 rounded w-3/4" />
+                        <div className="h-3 bg-ink-faint/40 rounded w-full" />
+                        <div className="h-2.5 bg-ink-faint/30 rounded w-1/4" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredNotifications.length === 0 ? (
+                <div className="py-16 text-center">
+                  <div className="w-14 h-14 bg-status-success/10 text-status-success rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                    <i className="lni lni-checkmark-circle text-2xl" />
+                  </div>
+                  <h4 className="font-display font-bold text-ink text-sm">Everything is Clear</h4>
+                  <p className="text-xs text-ink-soft mt-1">No notifications matching this filter.</p>
+                </div>
+              ) : (
+                filteredNotifications.map((item) => {
+                  const isRead = readNotifications.includes(item.id);
+                  const isCritical = item.priority === 'critical';
+                  const isAttention = item.priority === 'attention';
+
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleNotificationClick(item)}
+                      className={`
+                        w-full text-left p-4 transition-all flex gap-3.5 rounded-2xl border cursor-pointer
+                        ${isRead
+                          ? 'opacity-60 bg-white/40 border-transparent hover:opacity-90 hover:bg-white/70'
+                          : isCritical
+                            ? 'bg-status-error/5 border-status-error/25 shadow-sm hover:bg-status-error/10'
+                            : isAttention
+                              ? 'bg-amber-500/5 border-amber-500/25 shadow-sm hover:bg-amber-500/10'
+                              : 'bg-white border-white/70 shadow-sm hover:bg-paper/80'}
+                      `}
+                    >
+                      <div className={`
+                        w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center shadow-inner
+                        ${isCritical
+                          ? 'bg-status-error/15 text-status-error border border-status-error/30'
+                          : isAttention
+                            ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
+                            : 'bg-primary/10 text-primary border border-primary/25'
+                        }
+                      `}>
+                        {isCritical ? (
+                          <i className="lni lni-flag text-base" />
+                        ) : isAttention ? (
+                          <i className="lni lni-user text-base" />
+                        ) : (
+                          <i className="lni lni-comments text-base" />
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1.5">
+                          <span className={`text-[10px] font-body font-bold uppercase tracking-wider ${
+                            isCritical ? 'text-status-error' : isAttention ? 'text-amber-600' : 'text-primary'
+                          }`}>
+                            {isCritical ? 'Critical Report' : isAttention ? 'ID Verification' : 'Support Inquiry'}
+                          </span>
+                          <span className="text-[10px] font-mono text-ink-muted flex items-center gap-1">
+                            {!isRead && <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0 animate-ping" />}
+                            {getRelativeTime(item.timestamp)}
+                          </span>
+                        </div>
+                        <h4 className={`text-sm font-body font-bold mt-1 truncate ${isRead ? 'text-ink-soft' : 'text-ink'}`}>
+                          {item.title}
+                        </h4>
+                        <p className="text-xs font-body text-ink-soft mt-1 leading-relaxed line-clamp-2">
+                          {item.description}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3.5 bg-paper/40 text-center border-t border-ink-faint/30">
+              <span className="text-[10px] font-body font-semibold text-ink-muted flex items-center justify-center gap-1">
+                <i className={`lni lni-checkmark-circle text-xs ${isSyncing ? 'text-primary animate-pulse' : 'text-emerald-500'}`} />
+                {isSyncing ? 'Syncing notifications...' : 'Live background synchronization active'}
+              </span>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Mobile overlay */}

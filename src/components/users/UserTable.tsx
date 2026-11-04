@@ -3,6 +3,7 @@
 import React from 'react';
 import Avatar from '@/components/Avatar';
 import { User } from '@/types/models';
+import { getUserVerificationInfo } from '@/lib/verification';
 
 interface UserTableProps {
   paginatedUsers: User[];
@@ -148,43 +149,32 @@ export default function UserTable({
                       }`}>
                       {user.role}
                     </span>
-                    {user.deleted_at ? (
-                      <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
-                        <i className="lni lni-trash-can mr-1.5 text-xs text-status-error" /> Archived
-                      </span>
-                    ) : (
-                      <>
-                        {user.verification_status === 'approved' ? (
-                          <span className="flex items-center text-xs font-body font-semibold text-status-success bg-status-success/10 px-3 py-1 rounded-full border border-status-success/20">
-                            <i className="lni lni-checkmark-circle mr-1.5 text-xs" /> Verified
-                          </span>
-                        ) : user.verification_status === 'pending' ? (
-                          <span className="flex items-center text-xs font-body font-semibold text-status-gold bg-status-gold/10 px-3 py-1 rounded-full border border-status-gold/20">
-                            <i className="lni lni-warning mr-1.5 text-xs text-status-warning" /> Pending Review
-                          </span>
-                        ) : user.verification_status === 'rejected' || user.registration_status === 'rejected' ? (
-                          <div className="flex flex-col gap-1">
-                            <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
-                              <i className="lni lni-close mr-1.5 text-xs" /> Rejected
+                    {(() => {
+                      const verifInfo = getUserVerificationInfo(user);
+                      return user.deleted_at ? (
+                        <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
+                          <i className="lni lni-trash-can mr-1.5 text-xs text-status-error" /> Archived
+                        </span>
+                      ) : (
+                        <>
+                          <div className="flex flex-col gap-1 items-start">
+                            <span className={`flex items-center text-xs font-body font-semibold px-3 py-1 rounded-full border ${verifInfo.badgeClass}`}>
+                              <i className={`${verifInfo.iconClass} mr-1.5 text-xs`} /> {verifInfo.label}
                             </span>
-                            {(user as any).rejection_reason && (
-                              <span className="text-xs text-status-error mt-1 max-w-[200px]">
+                            {verifInfo.statusKey === 'rejected' && (user as any).rejection_reason && (
+                              <span className="text-xs text-status-error mt-0.5 max-w-[200px]">
                                 Reason: {(user as any).rejection_reason}
                               </span>
                             )}
                           </div>
-                        ) : (
-                          <span className="flex items-center text-xs font-body font-semibold text-ink-muted bg-paper px-3 py-1 rounded-full border border-ink-faint">
-                            Unverified
-                          </span>
-                        )}
-                        {user.is_suspended && (
-                          <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
-                            <i className="lni lni-shield mr-1.5 text-xs" /> Suspended
-                          </span>
-                        )}
-                      </>
-                    )}
+                          {user.is_suspended && (
+                            <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
+                              <i className="lni lni-shield mr-1.5 text-xs" /> Suspended
+                            </span>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 </td>
                 <td className="px-4 py-3.5 text-xs font-body font-medium text-ink-soft">
@@ -215,15 +205,29 @@ export default function UserTable({
                         )
                       ) : (
                         <>
-                          {user.role === 'worker' && user.verification_status !== 'approved' && (
-                            <button
-                              disabled={actionLoading === user.id}
-                              onClick={() => onVerify(user)}
-                              className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-status-success/15 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all text-center cursor-pointer"
-                            >
-                              Verify
-                            </button>
-                          )}
+                          {(() => {
+                            const verifInfo = getUserVerificationInfo(user);
+                            if (verifInfo.statusKey === 'approved') return null;
+
+                            return verifInfo.canVerify ? (
+                              <button
+                                disabled={actionLoading === user.id}
+                                onClick={() => onVerify(user)}
+                                className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-status-success/15 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all text-center cursor-pointer"
+                                title="Review & Verify User"
+                              >
+                                Verify
+                              </button>
+                            ) : (
+                              <button
+                                disabled
+                                title={verifInfo.disabledReason || 'Cannot verify: User has not uploaded ID documents yet'}
+                                className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-ink-faint/30 border border-ink-faint/40 text-ink-muted cursor-not-allowed opacity-60 text-center"
+                              >
+                                {verifInfo.statusKey === 'rejected' ? 'Rejected' : 'No ID'}
+                              </button>
+                            );
+                          })()}
                           <button
                             disabled={actionLoading === user.id}
                             onClick={() => onSuspend(user)}
