@@ -38,7 +38,7 @@ export default function StatCard({
 
   return (
     <div
-      className={`bg-white/90 backdrop-blur-md rounded-xl p-3.5 sm:p-4 border border-ink-faint/30 shadow-xs transition-all ${
+      className={`bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-xl p-3.5 sm:p-4 border border-ink-faint/30 dark:border-slate-800 shadow-xs transition-all ${
         onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5' : ''
       } ${className}`}
       onClick={onClick}
@@ -49,13 +49,13 @@ export default function StatCard({
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[11px] font-body font-semibold text-ink-muted uppercase tracking-wider mb-0.5">{title}</p>
-          <p className="text-xl sm:text-2xl font-display font-bold text-ink">{value}</p>
+          <p className="text-[11px] font-body font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider mb-0.5">{title}</p>
+          <p className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100">{value}</p>
           {trendValue && (
             <div className={`flex items-center gap-1 mt-1 text-xs font-body font-semibold ${trendColor}`}>
               {trendIcon && <i className={`${trendIcon} text-[10px]`} />}
               <span>{trendValue}</span>
-              {trendLabel && <span className="text-ink-muted font-normal">{trendLabel}</span>}
+              {trendLabel && <span className="text-ink-muted dark:text-slate-400 font-normal">{trendLabel}</span>}
             </div>
           )}
         </div>

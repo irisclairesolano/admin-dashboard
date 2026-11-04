@@ -17,6 +17,97 @@
   }
 }
 
+/* ── Global Dark Mode Styling for Cards, Text & Form Controls ────────────── */
+.dark :where(.bg-paper) {
+  background-color: #020617;
+}
+
+.dark :where(.bg-white) {
+  background-color: #0f172a;
+}
+
+.dark :where(
+  .bg-white\/95,
+  .bg-white\/90,
+  .bg-white\/80,
+  .bg-white\/70,
+  .bg-white\/60,
+  .bg-white\/50,
+  .bg-white\/40
+) {
+  background-color: rgba(15, 23, 42, 0.85);
+}
+
+.dark :where(
+  .bg-slate-50,
+  .bg-slate-50\/90,
+  .bg-slate-50\/70,
+  .bg-slate-50\/50,
+  .bg-slate-50\/40,
+  .bg-slate-100,
+  .bg-slate-100\/60
+) {
+  background-color: rgba(30, 41, 59, 0.6);
+}
+
+.dark :where(.text-ink) {
+  color: #f8fafc;
+}
+
+.dark :where(.text-ink-soft) {
+  color: #cbd5e1;
+}
+
+.dark :where(.text-ink-muted) {
+  color: #94a3b8;
+}
+
+.dark :where(
+  [class*="border-ink-faint"],
+  [class*="border-white\/"]
+) {
+  border-color: rgba(51, 65, 85, 0.45);
+}
+
+.dark :where([class*="divide-ink-faint"] > * + *) {
+  border-color: rgba(51, 65, 85, 0.4);
+}
+
+.dark :where(input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]), select, textarea) {
+  background-color: rgba(30, 41, 59, 0.7);
+  color: #f8fafc;
+  border-color: rgba(51, 65, 85, 0.6);
+}
+
+.dark select option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+.dark :where(table thead th) {
+  color: #94a3b8;
+  border-color: rgba(51, 65, 85, 0.5);
+}
+
+.dark :where(table tbody tr:hover) {
+  background-color: rgba(30, 41, 59, 0.4);
+}
+
+/* ── Dark Mode Chart Helpers ──────────────────────────────────────────────── */
+.dark .recharts-cartesian-grid line {
+  stroke: #1e293b;
+}
+
+.dark .recharts-text {
+  fill: #94a3b8;
+}
+
+.dark .recharts-default-tooltip {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

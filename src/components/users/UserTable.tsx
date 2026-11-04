@@ -51,7 +51,7 @@ export default function UserTable({
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[800px] text-left font-body table-fixed border-collapse">
-        <thead className="bg-white/50 border-b border-ink-faint/50">
+        <thead className="bg-white/50 dark:bg-slate-800/60 border-b border-ink-faint/50 dark:border-slate-800">
           <tr>
             {onToggleSelectUser && (
               <th className="px-3 py-4 w-[4%] text-center">
@@ -64,18 +64,18 @@ export default function UserTable({
                 />
               </th>
             )}
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[8%]">User ID</th>
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[30%]">User Details</th>
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[18%]">Role & Status</th>
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[11%]">Joined</th>
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[13%]">Last Active</th>
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft text-xs uppercase tracking-wider w-[16%] text-right">Actions</th>
+            <th className="px-4 py-4 font-body font-semibold text-ink-soft dark:text-slate-300 text-xs uppercase tracking-wider w-[8%]">User ID</th>
+            <th className="px-4 py-4 font-body font-semibold text-ink-soft dark:text-slate-300 text-xs uppercase tracking-wider w-[30%]">User Details</th>
+            <th className="px-4 py-4 font-body font-semibold text-ink-soft dark:text-slate-300 text-xs uppercase tracking-wider w-[18%]">Role & Status</th>
+            <th className="px-4 py-4 font-body font-semibold text-ink-soft dark:text-slate-300 text-xs uppercase tracking-wider w-[11%]">Joined</th>
+            <th className="px-4 py-4 font-body font-semibold text-ink-soft dark:text-slate-300 text-xs uppercase tracking-wider w-[13%]">Last Active</th>
+            <th className="px-4 py-4 font-body font-semibold text-ink-soft dark:text-slate-300 text-xs uppercase tracking-wider w-[16%] text-right">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-ink-faint/30">
+        <tbody className="divide-y divide-ink-faint/30 dark:divide-slate-800">
           {paginatedUsers.length === 0 ? (
             <tr>
-              <td colSpan={onToggleSelectUser ? 7 : 6} className="px-8 py-16 text-center text-ink-soft">
+              <td colSpan={onToggleSelectUser ? 7 : 6} className="px-8 py-16 text-center text-ink-soft dark:text-slate-400">
                 No users found
               </td>
             </tr>
@@ -87,12 +87,12 @@ export default function UserTable({
                 key={user.id}
                 className={`transition-colors duration-200 ${
                   isSelected
-                    ? 'bg-primary/10 hover:bg-primary/15'
+                    ? 'bg-primary/10 dark:bg-sky-950/40 hover:bg-primary/15'
                     : user.deleted_at
-                      ? 'bg-ink-faint/15 hover:bg-ink-faint/25'
+                      ? 'bg-ink-faint/15 dark:bg-slate-800/40 hover:bg-ink-faint/25'
                       : user.is_suspended
-                        ? 'bg-status-error/5 hover:bg-status-error/10'
-                        : 'hover:bg-white/60'
+                        ? 'bg-status-error/5 dark:bg-status-error/15 hover:bg-status-error/10'
+                        : 'hover:bg-white/60 dark:hover:bg-slate-800/50'
                 }`}
               >
                 {onToggleSelectUser && (
@@ -107,7 +107,7 @@ export default function UserTable({
                     />
                   </td>
                 )}
-                <td className="px-4 py-3.5 font-numeric text-xs font-semibold text-ink-muted">
+                <td className="px-4 py-3.5 font-numeric text-xs font-semibold text-ink-muted dark:text-slate-400">
                   #{user.id}
                 </td>
                 <td className="px-4 py-3.5">
@@ -118,7 +118,7 @@ export default function UserTable({
                     <Avatar name={user.name} url={user.avatar_url} isSuspended={user.is_suspended} />
                     <div className="ml-3">
                       <div className="flex items-center flex-wrap gap-1.5">
-                        <span className={`font-body font-bold transition-colors group-hover/user:text-primary ${user.is_suspended ? 'text-status-error' : 'text-ink'}`}>
+                        <span className={`font-body font-bold transition-colors group-hover/user:text-primary dark:group-hover/user:text-sky-400 ${user.is_suspended ? 'text-status-error' : 'text-ink dark:text-slate-100'}`}>
                           {user.name}
                         </span>
                         {/* Note: since reports_count and job_posts_count / applications_count are dynamically added, check safety */}
@@ -128,7 +128,7 @@ export default function UserTable({
                           </span>
                         )}
                       </div>
-                      <div className="text-sm text-ink-muted mt-0.5 group-hover/user:text-ink-soft">{user.email}</div>
+                      <div className="text-sm text-ink-muted dark:text-slate-400 mt-0.5 group-hover/user:text-ink-soft dark:group-hover/user:text-slate-300">{user.email}</div>
                       {user.role === 'worker' ? (
                         <div className="text-[11px] text-ink-muted mt-1 font-body font-semibold flex items-center gap-1">
                           <i className="lni lni-briefcase text-[10px] text-primary" />

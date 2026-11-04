@@ -76,14 +76,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [isDarkMode]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setDesktopPermission(Notification.permission);
-      const dismissed = sessionStorage.getItem('admin_notif_banner_dismissed');
-      if (Notification.permission === 'default' && !dismissed) {
-        setShowPermissionBanner(true);
+    if (typeof window !== 'undefined') {
+      const saved = window.localStorage.getItem('admin_dark_mode');
+      if (saved === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        setIsDarkMode(true);
+      }
+      if ('Notification' in window) {
+        setDesktopPermission(Notification.permission);
+        const dismissed = sessionStorage.getItem('admin_notif_banner_dismissed');
+        if (Notification.permission === 'default' && !dismissed) {
+          setShowPermissionBanner(true);
+        }
       }
     }
-  }, []);
+  }, [setIsDarkMode]);
 
   const requestDesktopNotifications = async () => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -456,27 +462,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           />
 
           <div
-            className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-xl rounded-2xl border border-white/60 shadow-xl z-50 py-2 animate-fade-in divide-y divide-ink-faint/30"
+            className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-800 shadow-xl z-50 py-2 animate-fade-in divide-y divide-ink-faint/30 dark:divide-slate-800"
             style={{ boxShadow: '0 12px 36px -4px rgba(0,0,0,0.12), 0 4px 12px -2px rgba(0,0,0,0.06)' }}
           >
             {/* User Info Header */}
             <div className="px-4 py-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-peach to-accent-peachBright flex items-center justify-center shadow-inner flex-shrink-0">
-                  <span className="font-body font-bold text-primary-dark text-base">{adminName ? adminName.charAt(0).toUpperCase() : 'A'}</span>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-peach to-accent-peachBright dark:from-slate-800 dark:to-slate-700 flex items-center justify-center shadow-inner flex-shrink-0">
+                  <span className="font-body font-bold text-primary-dark dark:text-sky-300 text-base">{adminName ? adminName.charAt(0).toUpperCase() : 'A'}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-body font-bold text-ink truncate">{adminName}</p>
+                  <p className="text-sm font-body font-bold text-ink dark:text-slate-100 truncate">{adminName}</p>
                   <div className="flex items-center gap-1.5 mt-1">
                     <span className={`text-[10px] font-body font-bold px-1.5 py-0.2 rounded-md ${
                       adminRole === 'superadmin' 
-                        ? 'bg-purple-100 text-purple-800 border border-purple-200' 
-                        : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                        ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800' 
+                        : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
                     }`}>
                       {adminRole === 'superadmin' ? 'Super Admin' : 'Moderator'}
                     </span>
                     {is2faEnabled && (
-                      <span className="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.2 rounded-md flex items-center gap-0.5">
+                      <span className="text-[10px] bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 font-bold px-1.5 py-0.2 rounded-md flex items-center gap-0.5">
                         <ShieldCheck className="w-2.5 h-2.5" /> 2FA
                       </span>
                     )}
@@ -493,10 +499,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   setProfileDropdownOpen(false);
                   setShow2faModal(true);
                 }}
-                className="w-full text-left py-2 px-3 text-xs font-semibold text-ink-soft hover:text-primary hover:bg-paper rounded-xl transition-colors flex items-center justify-between cursor-pointer"
+                className="w-full text-left py-2 px-3 text-xs font-semibold text-ink-soft dark:text-slate-300 hover:text-primary dark:hover:text-primary-soft hover:bg-paper dark:hover:bg-slate-800 rounded-xl transition-colors flex items-center justify-between cursor-pointer"
               >
                 <span className="flex items-center gap-2">
-                  <KeyRound className="w-4 h-4 text-primary" />
+                  <KeyRound className="w-4 h-4 text-primary dark:text-sky-400" />
                   {is2faEnabled ? 'Manage 2FA' : 'Enable 2FA (TOTP)'}
                 </span>
                 {!is2faEnabled ? (
@@ -515,7 +521,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   setProfileDropdownOpen(false);
                   handleLogout();
                 }}
-                className="group flex items-center w-full px-3 py-2 text-xs font-body font-semibold text-status-error hover:bg-status-error/10 rounded-xl transition-all duration-200 cursor-pointer"
+                className="group flex items-center w-full px-3 py-2 text-xs font-body font-semibold text-status-error hover:bg-status-error/10 dark:hover:bg-status-error/20 rounded-xl transition-all duration-200 cursor-pointer"
               >
                 <i className="lni lni-exit text-sm mr-2.5 transition-transform duration-200 group-hover:-translate-x-0.5" />
                 Sign Out
@@ -530,29 +536,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="h-screen bg-paper flex relative overflow-hidden">
       {/* Decorative background blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-soft/50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse-slow" />
-      <div className="absolute top-[20%] right-[-5%] w-72 h-72 bg-accent-sky/50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse-slow" style={{ animationDelay: '1s' }} />
-      <div className="absolute bottom-[-10%] left-[20%] w-80 h-80 bg-accent-mint/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse-slow" style={{ animationDelay: '2s' }} />
+      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-soft/50 dark:bg-primary/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-30 animate-pulse-slow" />
+      <div className="absolute top-[20%] right-[-5%] w-72 h-72 bg-accent-sky/50 dark:bg-sky-900/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-30 animate-pulse-slow" style={{ animationDelay: '1s' }} />
+      <div className="absolute bottom-[-10%] left-[20%] w-80 h-80 bg-accent-mint/40 dark:bg-emerald-950/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-20 animate-pulse-slow" style={{ animationDelay: '2s' }} />
 
       {/* Mobile header */}
-      <div className="no-print lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-white/50 z-20 flex items-center justify-between px-4 shadow-sm flex-shrink-0">
+      <div className="no-print lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-slate-900/90 backdrop-blur-md border-b border-white/50 dark:border-slate-800 z-20 flex items-center justify-between px-4 shadow-sm flex-shrink-0">
         <div className="flex items-center">
-          <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={120} height={32} className="h-8 object-contain" />
-          <span className="text-xs font-body font-semibold text-ink-muted ml-2 bg-ink-faint/30 px-2 py-0.5 rounded-md border border-ink-faint/50">Admin</span>
+          <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={120} height={32} className="h-8 object-contain dark:brightness-125" />
+          <span className="text-xs font-body font-semibold text-ink-muted dark:text-slate-400 ml-2 bg-ink-faint/30 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-ink-faint/50 dark:border-slate-700">Admin</span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={() => setCommandPaletteOpen(true)}
-            className="p-2 text-ink-muted hover:text-ink hover:bg-paper rounded-full transition-colors flex items-center justify-center cursor-pointer"
+            className="p-2 text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-100 hover:bg-paper dark:hover:bg-slate-800 rounded-full transition-colors flex items-center justify-center cursor-pointer"
             title="Search (Command Palette)"
             aria-label="Search"
           >
             <i className="lni lni-search text-lg" />
           </button>
+          <DarkModeToggle />
           <NotificationButton />
           <AdminProfileMenu />
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-ink hover:bg-paper rounded-full transition-colors flex items-center justify-center cursor-pointer" aria-label="Toggle sidebar">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-ink dark:text-slate-200 hover:bg-paper dark:hover:bg-slate-800 rounded-full transition-colors flex items-center justify-center cursor-pointer" aria-label="Toggle sidebar">
             {sidebarOpen ? <i className="lni lni-close text-lg" /> : <i className="lni lni-menu text-lg" />}
           </button>
         </div>
@@ -560,24 +567,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Sidebar */}
       <aside className={`no-print
-        fixed inset-y-0 left-0 z-30 bg-white/70 backdrop-blur-xl border-r border-white/50 shadow-glass
+        fixed inset-y-0 left-0 z-30 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-r border-white/50 dark:border-slate-800 shadow-glass
         transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
         lg:static lg:flex-shrink-0 h-full flex flex-col
         ${sidebarOpen ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0'}
         ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-72'}
       `}>
         {/* Sidebar Header */}
-        <div className={`h-20 flex items-center border-b border-ink-faint/30 flex-shrink-0 transition-all duration-300 ${
+        <div className={`h-20 flex items-center border-b border-ink-faint/30 dark:border-slate-800 flex-shrink-0 transition-all duration-300 ${
           sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-5'
         }`}>
           {!sidebarCollapsed ? (
             <div className="flex items-center">
-              <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain" />
-              <span className="text-[10px] font-body font-semibold text-ink-muted ml-1.5 bg-ink-faint/30 px-1.5 py-0.5 rounded border border-ink-faint/50">Admin</span>
+              <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain dark:brightness-125" />
+              <span className="text-[10px] font-body font-semibold text-ink-muted dark:text-slate-400 ml-1.5 bg-ink-faint/30 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-ink-faint/50 dark:border-slate-700">Admin</span>
             </div>
           ) : (
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary shadow-xs">
-              <span className="font-display font-black text-lg text-primary">S</span>
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 dark:bg-slate-800 border border-primary/20 dark:border-slate-700 text-primary dark:text-primary-soft shadow-xs">
+              <span className="font-display font-black text-lg text-primary dark:text-sky-400">S</span>
             </div>
           )}
         </div>
@@ -589,11 +596,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {navSections.map((section) => (
               <div key={section.key}>
                 {!sidebarCollapsed ? (
-                  <span className="block text-[9px] font-body font-bold uppercase tracking-widest text-ink-muted/60 px-4 mb-1.5">
+                  <span className="block text-[9px] font-body font-bold uppercase tracking-widest text-ink-muted/60 dark:text-slate-500 px-4 mb-1.5">
                     {section.label}
                   </span>
                 ) : (
-                  <div className="h-px bg-ink-faint/40 my-2 mx-2" />
+                  <div className="h-px bg-ink-faint/40 dark:bg-slate-800 my-2 mx-2" />
                 )}
                 <div className="space-y-1">
                   {section.items.map((item) => {
@@ -610,20 +617,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           transition-all duration-300 relative overflow-hidden
                           ${sidebarCollapsed ? 'justify-center p-3' : 'px-4 py-3'}
                           ${isActive
-                            ? 'bg-ink text-white shadow-md transform scale-[1.02]'
-                            : 'text-ink-soft hover:bg-white/50 hover:text-ink hover:shadow-sm'
+                            ? 'bg-ink dark:bg-slate-800 text-white shadow-md transform scale-[1.02]'
+                            : 'text-ink-soft dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/60 hover:text-ink dark:hover:text-slate-100 hover:shadow-sm'
                           }
                         `}
                       >
-                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />}
+                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary dark:bg-sky-400 rounded-r-full" />}
                         <div className="relative flex items-center justify-center">
                           <i className={`${item.iconClass} text-lg transition-transform duration-300 group-hover:scale-110 ${
                             sidebarCollapsed ? '' : 'mr-3'
-                          } ${isActive ? 'text-white' : 'text-ink-muted group-hover:text-primary-dark'}`} />
+                          } ${isActive ? 'text-white' : 'text-ink-muted dark:text-slate-400 group-hover:text-primary-dark dark:group-hover:text-sky-300'}`} />
 
                           {/* Mini badge dot in collapsed rail mode */}
                           {sidebarCollapsed && hasBadge && (
-                            <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 rounded-full bg-status-error border-2 border-white animate-pulse" />
+                            <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 rounded-full bg-status-error border-2 border-white dark:border-slate-900 animate-pulse" />
                           )}
                         </div>
 
@@ -652,16 +659,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             ))}
           </nav>
 
-          <div className={`pt-4 border-t border-ink-faint/30 mt-auto flex items-center text-[11px] text-ink-muted flex-shrink-0 ${
+          <div className={`pt-4 border-t border-ink-faint/30 dark:border-slate-800 mt-auto flex items-center text-[11px] text-ink-muted dark:text-slate-500 flex-shrink-0 ${
             sidebarCollapsed ? 'justify-center px-0' : 'justify-between px-2'
           }`}>
             {!sidebarCollapsed ? (
               <>
                 <span className="font-body font-semibold">SIKAP Admin</span>
-                <span className="font-mono text-[10px] bg-paper px-1.5 py-0.5 rounded border border-ink-faint/40">v1.2</span>
+                <span className="font-mono text-[10px] bg-paper dark:bg-slate-800 px-1.5 py-0.5 rounded border border-ink-faint/40 dark:border-slate-700">v1.2</span>
               </>
             ) : (
-              <span className="font-mono text-[9px] bg-paper px-1 py-0.5 rounded border border-ink-faint/40">v1.2</span>
+              <span className="font-mono text-[9px] bg-paper dark:bg-slate-800 px-1 py-0.5 rounded border border-ink-faint/40 dark:border-slate-700">v1.2</span>
             )}
           </div>
         </div>
@@ -718,7 +725,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── Persistent Content Wrapper (Main) ──────────────────── */}
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Desktop Top Header (Content Page Side) */}
-        <header className="no-print hidden lg:flex items-center justify-between h-14 px-6 bg-white/70 backdrop-blur-xl border-b border-white/50 z-20 flex-shrink-0 gap-6">
+        <header className="no-print hidden lg:flex items-center justify-between h-14 px-6 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/50 dark:border-slate-800 z-20 flex-shrink-0 gap-6">
           <div className="flex items-center gap-3 shrink-0">
             {/* Sidebar toggle button */}
             <button
@@ -726,7 +733,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               title={sidebarCollapsed ? "Expand sidebar" : "Minimize sidebar"}
               aria-label={sidebarCollapsed ? "Expand sidebar" : "Minimize sidebar"}
-              className="w-8 h-8 rounded-lg bg-white/80 hover:bg-white border border-ink-faint/50 hover:border-ink-faint text-ink-muted hover:text-ink shadow-2xs flex items-center justify-center transition-all cursor-pointer group shrink-0"
+              className="w-8 h-8 rounded-lg bg-white/80 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700 hover:border-ink-faint dark:hover:border-slate-600 text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-100 shadow-2xs flex items-center justify-center transition-all cursor-pointer group shrink-0"
             >
               <i className={`text-sm transition-transform duration-300 group-hover:scale-110 ${
                 sidebarCollapsed ? 'lni lni-menu' : 'lni lni-chevron-left'
@@ -734,9 +741,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
 
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-body uppercase tracking-wider text-ink-muted">Admin Dashboard</span>
-              <span className="text-ink-faint">/</span>
-              <span className="text-xs font-display font-bold text-ink capitalize truncate max-w-[160px]">
+              <span className="text-[11px] font-body uppercase tracking-wider text-ink-muted dark:text-slate-400">Admin Dashboard</span>
+              <span className="text-ink-faint dark:text-slate-700">/</span>
+              <span className="text-xs font-display font-bold text-ink dark:text-slate-200 capitalize truncate max-w-[160px]">
                 {pathname.replace('/dashboard', '').replace('/', '') || 'Analytics Overview'}
               </span>
             </div>
@@ -747,20 +754,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <button
               type="button"
               onClick={() => setCommandPaletteOpen(true)}
-              className="w-full flex items-center justify-between h-9 px-3.5 rounded-xl bg-white/90 hover:bg-white border border-ink-faint/60 hover:border-primary/40 text-ink-muted hover:text-ink shadow-2xs hover:shadow-sm transition-all cursor-pointer group text-xs font-body"
+              className="w-full flex items-center justify-between h-9 px-3.5 rounded-xl bg-white/90 hover:bg-white dark:bg-slate-900/90 dark:hover:bg-slate-800 border border-ink-faint/60 dark:border-slate-800 hover:border-primary/40 dark:hover:border-slate-700 text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-200 shadow-2xs hover:shadow-sm transition-all cursor-pointer group text-xs font-body"
               title="Search and jump to any page or command (Ctrl + K)"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <i className="lni lni-search text-sm text-ink-muted group-hover:text-primary transition-colors shrink-0" />
-                <span className="text-ink-muted/80 group-hover:text-ink/90 font-medium truncate">
+                <i className="lni lni-search text-sm text-ink-muted dark:text-slate-400 group-hover:text-primary dark:group-hover:text-amber-400 transition-colors shrink-0" />
+                <span className="text-ink-muted/80 dark:text-slate-400 group-hover:text-ink/90 dark:group-hover:text-slate-200 font-medium truncate">
                   Search pages, workers, employers, reports, actions...
                 </span>
               </div>
               <div className="flex items-center gap-1 shrink-0 ml-3">
-                <kbd className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-semibold text-ink-muted/90 bg-slate-100 border border-ink-faint/70 rounded shadow-2xs">
+                <kbd className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-semibold text-ink-muted/90 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-ink-faint/70 dark:border-slate-700 rounded shadow-2xs">
                   Ctrl
                 </kbd>
-                <kbd className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-semibold text-ink-muted/90 bg-slate-100 border border-ink-faint/70 rounded shadow-2xs">
+                <kbd className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-semibold text-ink-muted/90 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-ink-faint/70 dark:border-slate-700 rounded shadow-2xs">
                   K
                 </kbd>
               </div>
@@ -768,18 +775,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0">
+            {/* Dark Mode Toggle */}
+            <DarkModeToggle />
+
             {/* Audio Alerts Toggle */}
             <button
               type="button"
               onClick={() => setSoundAlertsEnabled((prev) => !prev)}
-              className="p-2.5 bg-white/70 hover:bg-white text-ink hover:text-primary rounded-2xl border border-white/60 hover:border-primary/30 shadow-sm transition-all flex items-center justify-center cursor-pointer"
+              className="p-2.5 bg-white/70 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 text-ink dark:text-slate-200 hover:text-primary dark:hover:text-primary-soft rounded-2xl border border-white/60 dark:border-slate-800 hover:border-primary/30 shadow-sm transition-all flex items-center justify-center cursor-pointer"
               title={soundAlertsEnabled ? 'Mute alert sounds' : 'Enable alert sounds'}
               aria-label={soundAlertsEnabled ? 'Mute alert sounds' : 'Enable alert sounds'}
             >
               {soundAlertsEnabled ? (
-                <Volume2 className="w-5 h-5 text-primary" />
+                <Volume2 className="w-5 h-5 text-primary dark:text-sky-400" />
               ) : (
-                <VolumeX className="w-5 h-5 text-ink-muted" />
+                <VolumeX className="w-5 h-5 text-ink-muted dark:text-slate-400" />
               )}
             </button>
 
@@ -854,22 +864,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── 10-Minute Inactivity Warning Modal ─────────────────── */}
       {showWarning && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in" role="dialog" aria-modal="true">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-amber-200 text-center">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 animate-pulse">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-amber-200 dark:border-amber-800/50 text-center">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 flex items-center justify-center text-amber-600 dark:text-amber-400 animate-pulse">
               <ShieldAlert className="w-8 h-8" />
             </div>
-            <h3 className="font-display font-bold text-xl text-ink mb-2">Session Inactivity Warning</h3>
-            <p className="text-sm text-ink-soft mb-6 leading-relaxed">
+            <h3 className="font-display font-bold text-xl text-ink dark:text-slate-100 mb-2">Session Inactivity Warning</h3>
+            <p className="text-sm text-ink-soft dark:text-slate-300 mb-6 leading-relaxed">
               You have been inactive for nearly 10 minutes. For security compliance, your session will automatically lock out in:
             </p>
-            <div className="text-4xl font-mono font-black text-amber-600 mb-6 tracking-wider">
+            <div className="text-4xl font-mono font-black text-amber-600 dark:text-amber-400 mb-6 tracking-wider">
               {secondsRemaining}s
             </div>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={handleInactivityLogout}
-                className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-ink font-bold text-xs rounded-xl transition-colors"
+                className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-ink dark:text-slate-100 font-bold text-xs rounded-xl transition-colors"
               >
                 Sign Out Now
               </button>
@@ -890,17 +900,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <>
           {/* Backdrop overlay */}
           <div
-            className="fixed inset-0 bg-ink/30 backdrop-blur-sm z-[100] transition-opacity"
+            className="fixed inset-0 bg-ink/30 dark:bg-black/50 backdrop-blur-sm z-[100] transition-opacity"
             onClick={() => setDropdownOpen(false)}
           />
 
           {/* Static Drawer Panel (Fixed on right, static in place with content-only updates) */}
-          <div className="fixed inset-y-0 right-0 z-[101] w-full max-w-md h-screen bg-white/95 backdrop-blur-xl shadow-2xl border-l border-ink-faint/30 flex flex-col">
+          <div className="fixed inset-y-0 right-0 z-[101] w-full max-w-md h-screen bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-l border-ink-faint/30 dark:border-slate-800 flex flex-col">
             {/* Header */}
-            <div className="p-6 border-b border-ink-faint/30 bg-paper/40">
+            <div className="p-6 border-b border-ink-faint/30 dark:border-slate-800 bg-paper/40 dark:bg-slate-800/40">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="font-display text-xl text-ink font-bold flex items-center gap-2">
+                  <h3 className="font-display text-xl text-ink dark:text-slate-100 font-bold flex items-center gap-2">
                     Action Center
                     {unreadCount > 0 && (
                       <span className="text-xs font-mono font-bold bg-status-error/10 text-status-error border border-status-error/20 px-2 py-0.5 rounded-full">
@@ -908,13 +918,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       </span>
                     )}
                   </h3>
-                  <p className="text-xs text-ink-soft mt-1">Pending items requiring moderation & review</p>
+                  <p className="text-xs text-ink-soft dark:text-slate-400 mt-1">Pending items requiring moderation & review</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => fetchNotifications(false)}
                     disabled={isSyncing}
-                    className="p-2 text-ink-soft hover:text-primary hover:bg-white/80 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                    className="p-2 text-ink-soft dark:text-slate-400 hover:text-primary dark:hover:text-primary-soft hover:bg-white/80 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                     title="Refresh notifications"
                     aria-label="Refresh notifications"
                   >
@@ -922,7 +932,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </button>
                   <button
                     onClick={() => setDropdownOpen(false)}
-                    className="w-8 h-8 flex items-center justify-center hover:bg-paper rounded-full text-ink-muted hover:text-ink transition-colors cursor-pointer"
+                    className="w-8 h-8 flex items-center justify-center hover:bg-paper dark:hover:bg-slate-800 rounded-full text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-100 transition-colors cursor-pointer"
                     aria-label="Close notifications"
                   >
                     <i className="lni lni-close text-xs" />
@@ -936,8 +946,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   onClick={() => setNotificationFilter('all')}
                   className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
                     notificationFilter === 'all'
-                      ? 'bg-ink text-white shadow-sm'
-                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
+                      ? 'bg-ink dark:bg-slate-700 text-white shadow-sm'
+                      : 'bg-white/60 dark:bg-slate-800/60 text-ink-soft dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-ink dark:hover:text-slate-100'
                   }`}
                 >
                   All ({notifications.length})
@@ -946,8 +956,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   onClick={() => setNotificationFilter('unread')}
                   className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
                     notificationFilter === 'unread'
-                      ? 'bg-ink text-white shadow-sm'
-                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
+                      ? 'bg-ink dark:bg-slate-700 text-white shadow-sm'
+                      : 'bg-white/60 dark:bg-slate-800/60 text-ink-soft dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-ink dark:hover:text-slate-100'
                   }`}
                 >
                   Unread ({unreadCount})
@@ -957,7 +967,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
                     notificationFilter === 'reports'
                       ? 'bg-status-error text-white shadow-sm'
-                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
+                      : 'bg-white/60 dark:bg-slate-800/60 text-ink-soft dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-ink dark:hover:text-slate-100'
                   }`}
                 >
                   Reports ({notifications.filter(n => n.category === 'report').length})
@@ -966,8 +976,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   onClick={() => setNotificationFilter('verifications')}
                   className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
                     notificationFilter === 'verifications'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'bg-white/60 text-ink-soft hover:bg-white hover:text-ink'
+                      ? 'bg-primary dark:bg-primary-soft text-white shadow-sm'
+                      : 'bg-white/60 dark:bg-slate-800/60 text-ink-soft dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-ink dark:hover:text-slate-100'
                   }`}
                 >
                   IDs ({notifications.filter(n => n.category === 'verification').length})
@@ -975,22 +985,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
 
               {/* Action Toolbar */}
-              <div className="flex items-center justify-between mt-3 pt-2 border-t border-ink-faint/20 text-xs">
+              <div className="flex items-center justify-between mt-3 pt-2 border-t border-ink-faint/20 dark:border-slate-800 text-xs">
                 {unreadCount > 0 ? (
                   <button
                     onClick={markAllAsRead}
-                    className="font-body font-semibold text-primary hover:text-primary-dark transition-colors flex items-center gap-1 cursor-pointer"
+                    className="font-body font-semibold text-primary dark:text-sky-400 hover:text-primary-dark dark:hover:text-sky-300 transition-colors flex items-center gap-1 cursor-pointer"
                   >
                     <i className="lni lni-checkmark text-xs" />
                     Mark all read
                   </button>
                 ) : (
-                  <span className="text-[11px] text-ink-muted">All notifications caught up</span>
+                  <span className="text-[11px] text-ink-muted dark:text-slate-400">All notifications caught up</span>
                 )}
                 {notifications.some(n => readNotifications.includes(n.id)) && (
                   <button
                     onClick={clearReadNotifications}
-                    className="font-body text-ink-muted hover:text-status-error transition-colors cursor-pointer"
+                    className="font-body text-ink-muted dark:text-slate-400 hover:text-status-error dark:hover:text-rose-400 transition-colors cursor-pointer"
                   >
                     Clear read
                   </button>
@@ -999,16 +1009,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             {/* List */}
-            <div className="flex-1 overflow-y-auto divide-y divide-ink-faint/20 p-4 space-y-2">
+            <div className="flex-1 overflow-y-auto divide-y divide-ink-faint/20 dark:divide-slate-800 p-4 space-y-2">
               {notificationsLoading && notifications.length === 0 ? (
                 <div className="space-y-3 p-2">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="p-4 rounded-2xl bg-white/60 border border-ink-faint/30 animate-pulse flex gap-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-ink-faint/50 flex-shrink-0" />
+                    <div key={i} className="p-4 rounded-2xl bg-white/60 dark:bg-slate-800/60 border border-ink-faint/30 dark:border-slate-700 animate-pulse flex gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-ink-faint/50 dark:bg-slate-700 flex-shrink-0" />
                       <div className="flex-1 space-y-2 py-1">
-                        <div className="h-4 bg-ink-faint/60 rounded w-3/4" />
-                        <div className="h-3 bg-ink-faint/40 rounded w-full" />
-                        <div className="h-2.5 bg-ink-faint/30 rounded w-1/4" />
+                        <div className="h-4 bg-ink-faint/60 dark:bg-slate-700 rounded w-3/4" />
+                        <div className="h-3 bg-ink-faint/40 dark:bg-slate-700 rounded w-full" />
+                        <div className="h-2.5 bg-ink-faint/30 dark:bg-slate-700 rounded w-1/4" />
                       </div>
                     </div>
                   ))}
@@ -1018,8 +1028,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <div className="w-14 h-14 bg-status-success/10 text-status-success rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
                     <i className="lni lni-checkmark-circle text-2xl" />
                   </div>
-                  <h4 className="font-display font-bold text-ink text-sm">Everything is Clear</h4>
-                  <p className="text-xs text-ink-soft mt-1">No notifications matching this filter.</p>
+                  <h4 className="font-display font-bold text-ink dark:text-slate-100 text-sm">Everything is Clear</h4>
+                  <p className="text-xs text-ink-soft dark:text-slate-400 mt-1">No notifications matching this filter.</p>
                 </div>
               ) : (
                 filteredNotifications.map((item) => {
@@ -1034,21 +1044,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       className={`
                         w-full text-left p-4 transition-all flex gap-3.5 rounded-2xl border cursor-pointer
                         ${isRead
-                          ? 'opacity-60 bg-white/40 border-transparent hover:opacity-90 hover:bg-white/70'
+                          ? 'opacity-60 bg-white/40 dark:bg-slate-900/40 border-transparent hover:opacity-90 hover:bg-white/70 dark:hover:bg-slate-800/70'
                           : isCritical
-                            ? 'bg-status-error/5 border-status-error/25 shadow-sm hover:bg-status-error/10'
+                            ? 'bg-status-error/5 dark:bg-status-error/15 border-status-error/25 dark:border-status-error/40 shadow-sm hover:bg-status-error/10'
                             : isAttention
-                              ? 'bg-amber-500/5 border-amber-500/25 shadow-sm hover:bg-amber-500/10'
-                              : 'bg-white border-white/70 shadow-sm hover:bg-paper/80'}
+                              ? 'bg-amber-500/5 dark:bg-amber-500/15 border-amber-500/25 dark:border-amber-500/40 shadow-sm hover:bg-amber-500/10'
+                              : 'bg-white dark:bg-slate-800/80 border-white/70 dark:border-slate-700 shadow-sm hover:bg-paper/80 dark:hover:bg-slate-800'}
                       `}
                     >
                       <div className={`
                         w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center shadow-inner
                         ${isCritical
-                          ? 'bg-status-error/15 text-status-error border border-status-error/30'
+                          ? 'bg-status-error/15 text-status-error border border-status-error/30 dark:border-status-error/40'
                           : isAttention
-                            ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
-                            : 'bg-primary/10 text-primary border border-primary/25'
+                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 dark:border-amber-500/40'
+                            : 'bg-primary/10 dark:bg-sky-950/40 text-primary dark:text-sky-400 border border-primary/25 dark:border-sky-800'
                         }
                       `}>
                         {isCritical ? (
@@ -1063,19 +1073,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1.5">
                           <span className={`text-[10px] font-body font-bold uppercase tracking-wider ${
-                            isCritical ? 'text-status-error' : isAttention ? 'text-amber-600' : 'text-primary'
+                            isCritical ? 'text-status-error' : isAttention ? 'text-amber-600 dark:text-amber-400' : 'text-primary dark:text-sky-400'
                           }`}>
                             {isCritical ? 'Critical Report' : isAttention ? 'ID Verification' : 'Support Inquiry'}
                           </span>
-                          <span className="text-[10px] font-mono text-ink-muted flex items-center gap-1">
-                            {!isRead && <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0 animate-ping" />}
+                          <span className="text-[10px] font-mono text-ink-muted dark:text-slate-400 flex items-center gap-1">
+                            {!isRead && <span className="w-2 h-2 rounded-full bg-primary dark:bg-sky-400 flex-shrink-0 animate-ping" />}
                             {getRelativeTime(item.timestamp)}
                           </span>
                         </div>
-                        <h4 className={`text-sm font-body font-bold mt-1 truncate ${isRead ? 'text-ink-soft' : 'text-ink'}`}>
+                        <h4 className={`text-sm font-body font-bold mt-1 truncate ${isRead ? 'text-ink-soft dark:text-slate-400' : 'text-ink dark:text-slate-100'}`}>
                           {item.title}
                         </h4>
-                        <p className="text-xs font-body text-ink-soft mt-1 leading-relaxed line-clamp-2">
+                        <p className="text-xs font-body text-ink-soft dark:text-slate-300 mt-1 leading-relaxed line-clamp-2">
                           {item.description}
                         </p>
                       </div>
@@ -1086,8 +1096,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3.5 bg-paper/40 text-center border-t border-ink-faint/30">
-              <span className="text-[10px] font-body font-semibold text-ink-muted flex items-center justify-center gap-1">
+            <div className="px-5 py-3.5 bg-paper/40 dark:bg-slate-800/40 text-center border-t border-ink-faint/30 dark:border-slate-800">
+              <span className="text-[10px] font-body font-semibold text-ink-muted dark:text-slate-400 flex items-center justify-center gap-1">
                 <i className={`lni lni-checkmark-circle text-xs ${isSyncing ? 'text-primary animate-pulse' : 'text-emerald-500'}`} />
                 {isSyncing ? 'Syncing notifications...' : 'Live background synchronization active'}
               </span>
