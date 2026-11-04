@@ -1,5 +1,32 @@
 'use client';
 
+/**
+ * ============================================================================
+ * FILE OVERVIEW: Gemini Flash AI Executive Summary & 4-Pillar Intelligence Deck
+ * ============================================================================
+ * (a) Purpose in the SIKAP Admin Dashboard:
+ *     Renders the structured executive intelligence briefing (`<AIInsightsCard />`)
+ *     on the main Analytics Dashboard. It translates complex labor market telemetry
+ *     into actionable insights across 4 synchronized decision pillars:
+ *       1. Problems & Risks (`areasOfConcern`) — Bottlenecks, delayed KYCs, or safety spikes
+ *       2. Strategic Actions (`recommendations`) — Concrete LGU/PESO policy interventions
+ *       3. Key Findings (`keyInsights`) — High-level supply/demand and placement highlights
+ *       4. Market Shifts (`trends`) — Emerging category or barangay-level movement
+ *
+ * (b) Key Admin Features & RBAC Rules:
+ *     - Displays low-volume sample warnings (`dataSufficiency.isLowVolume`) and separates
+ *       detected test/placeholder data notices from genuine operational concerns.
+ *     - Interactive evidence toggle (`supportingData`) lets admins inspect the exact
+ *       underlying metrics backing each AI claim, plus direct deep-links (`actionLink`)
+ *       to relevant admin moderation/verification queues.
+ *
+ * (c) Data Flow (Dashboard -> Backend Gemini Flash Service / Fallback -> UI):
+ *     - Receives `InsightsData` from `adminApi.generateAIInsights()`, which queries
+ *       Google Gemini Flash on the backend (with Redis/DB caching and a deterministic
+ *       statistical fallback engine if the LLM quota or network is unavailable).
+ * ============================================================================
+ */
+
 import React, { useState } from 'react';
 import { 
   Sparkles, 
@@ -15,6 +42,7 @@ import {
   Info
 } from 'lucide-react';
 
+// ── AI INSIGHTS DATA CONTRACTS & SEVERITY TYPES ──────────────────────────────
 export type Severity = 'positive' | 'neutral' | 'concern';
 
 export interface InsightItem {
@@ -33,6 +61,7 @@ export interface InsightsData {
   recommendations?: InsightItem[];
 }
 
+// ── VISUAL THEME CONFIGURATION FOR THE 4 EXECUTIVE PILLARS ───────────────────
 const columnConfig = {
   concern: {
     label: 'Problems & Risks',
@@ -72,6 +101,7 @@ const columnConfig = {
   },
 };
 
+// ── INDIVIDUAL INSIGHT CARD WITH EXPANDABLE METRIC EVIDENCE & ACTION LINK ────
 function CompactInsightCard({ 
   item, 
   category 

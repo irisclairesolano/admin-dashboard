@@ -1,5 +1,36 @@
 'use client';
 
+/**
+ * ============================================================================
+ * FILE OVERVIEW: SIKAP Official Reports & Masterlist Export Center
+ * ============================================================================
+ * (a) Purpose in the SIKAP Admin Dashboard:
+ *     Provides the dedicated reporting hub (`/dashboard/export-reports`) where
+ *     PESO/LGU administrators can inspect, filter, print (A4 formal layout with
+ *     signatory blocks), and export 5 institutional masterlists:
+ *       1. Users Masterlist (`users`) — Worker & Employer registry with reputation scores
+ *       2. Jobs & Placements (`jobs`) — Job postings, slot fill rates, and normalized hourly wages
+ *       3. Municipal & Barangay Demographics (`demographics`) — Two-tier regional roll-up
+ *       4. Identity Verification Audit (`verifications`) — KYC document submission & review queue
+ *       5. Community Moderation Reports (`moderation`) — Safety flags and resolution timestamps
+ *
+ * (b) Key Admin Features & RBAC Rules:
+ *     - Restricted to authenticated `admin` role users; embeds the active administrator's
+ *       name from `authStorage` into CSV metadata headers and printable signatory blocks.
+ *     - URL-synchronized filter state (`?tab=...&preset=...&municipality=...&barangay=...`)
+ *       using `window.history.replaceState` and `useDeferredValue` for lag-free search.
+ *     - Automatic print-listener (`beforeprint`/`afterprint`) that temporarily disables
+ *       table pagination so browser PDF exports include 100% of filtered records.
+ *
+ * (c) Data Flow (Next.js Components <-> API Endpoints <-> CSV & ExcelJS Utilities):
+ *     - Parallelizes data fetching via `Promise.allSettled` across `getUsers`, `getJobs`,
+ *       `getVerifications`, and `getReports` so each tab becomes interactive independently.
+ *     - Feeds memoized filtered datasets into `exportMultiSectionCSV` (`src/lib/export/csv.ts`)
+ *       and dynamically imports `generateMasterExcelWorkbook` (`src/lib/export/excel.ts`)
+ *       to compile a 7-sheet `.xlsx` workbook with live Excel formulas.
+ * ============================================================================
+ */
+
 import React, { useState, useEffect, useMemo, useCallback, useDeferredValue, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
@@ -9,6 +40,7 @@ import StatCard from '@/components/StatCard';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus, formatCSVReputation, calculateNormalizedHourlyWage } from '@/lib/export/csv';
 import { useToast } from '@/context/ToastContext';
 
+// ── REPORT TAB & DATE PRESET UNION TYPES ─────────────────────────────────────
 type ReportType = 'users' | 'jobs' | 'demographics' | 'verifications' | 'moderation';
 type DatePreset = 'all' | 'today' | '7days' | '30days' | 'year' | 'custom';
 

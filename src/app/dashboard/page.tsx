@@ -1,5 +1,37 @@
 'use client';
 
+/**
+ * ============================================================================
+ * FILE OVERVIEW: SIKAP Admin Analytics & Labor Market Intelligence Dashboard
+ * ============================================================================
+ * (a) Purpose in the SIKAP Admin Dashboard:
+ *     Serves as the primary command center (`/dashboard`) for PESO/LGU administrators
+ *     to monitor informal labor market dynamics in Bulan, Sorsogon across 5 core
+ *     descriptive analytics dimensions:
+ *       1. Ecosystem Growth & User Registrations (Workers vs. Employers, ID Verification ratios)
+ *       2. Marketplace Liquidity & Conversion Velocity (Job Posts, Applications, Hires, Fill Rate)
+ *       3. Sector Skill Demand & Worker Supply Distribution (Top trade categories & "Others" drill-down)
+ *       4. Geographic & Barangay-Level Activity Distribution (Municipal roll-ups & barangay density)
+ *       5. Platform Health, Wage Benchmarks & Trust/Safety (Normalized hourly wages, 2-way ratings, reports)
+ *
+ * (b) Key Admin Features & RBAC Rules:
+ *     - Restricted strictly to authenticated `admin` role sessions via Next.js Admin Layout guard.
+ *     - Synchronized global date range presets (`Today`, `Last 7 Days`, `This Month`, `Custom Date`)
+ *       that dynamically compute aggregation granularity (`hourly`, `daily`, `monthly`).
+ *     - On-demand Gemini Flash AI Executive Briefing with backend caching & deterministic rule-based fallback.
+ *     - Multi-mode presentation (`Split View`, `Charts Only`, `Table Only`) plus A4 Landscape print layout.
+ *
+ * (c) Data Flow (Next.js Components <-> API Endpoints <-> Export Utilities):
+ *     - Fetches aggregated telemetry from `GET /api/v1/admin/analytics?from=...&to=...&interval=...`
+ *       and privacy-safe aggregate chat metrics from `GET /api/v1/admin/conversations/stats`.
+ *     - Triggers AI synthesis via `POST /api/v1/admin/analytics/ai-insights` and passes structured
+ *       4-pillar JSON into `<AIInsightsCard />`.
+ *     - Feeds transformed series into lazy-loaded Recharts components (`ApplicationVolumeChart`,
+ *       `UserGrowthChart`, `ConversionVelocityChart`, `JobsDistributionChart`, `GeographicActivityChart`)
+ *       and exports multi-section RFC-4180 CSV (`exportMultiSectionCSV`) or 7-sheet `.xlsx` workbooks (`excel.ts`).
+ * ============================================================================
+ */
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -13,6 +45,7 @@ import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatu
 import { useToast } from '@/context/ToastContext';
 import dynamic from 'next/dynamic';
 
+// ── DYNAMIC CHART IMPORTS (Client-Side Only to Avoid SSR Hydration Mismatch) ──
 const ApplicationVolumeChart = dynamic(
   () => import('@/components/dashboard/ApplicationVolumeChart'),
   { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 rounded-xl" /> }
@@ -436,6 +469,10 @@ export default function AnalyticsDashboard() {
       .catch(() => { /* silently ignore if messaging feature not yet deployed */ });
   }, []);
 
+  // ── GEMINI FLASH AI EXECUTIVE SUMMARY + FALLBACK HANDLER ────────────────────
+  // Requests a 4-pillar executive synthesis (Problems, Suggestions, Findings, Changes)
+  // for the active date range. The backend caches responses per window and automatically
+  // falls back to a deterministic statistical rule engine if Gemini API is unreachable.
   const handleGenerateInsights = async () => {
     if (!from || !to) return;
     try {
@@ -532,6 +569,9 @@ export default function AnalyticsDashboard() {
     );
   };
 
+  // ── MULTI-SECTION CSV & MASTER EXCEL (.XLSX) EXPORT HANDLERS ────────────────
+  // Exports all 9 analytics sections into an RFC-4180 UTF-8 BOM CSV or dynamically
+  // imports `excel.ts` to build a 7-sheet formatted ExcelJS workbook on the client.
   const handleExportCSV = () => {
     if (!data) return;
 
@@ -823,8 +863,13 @@ export default function AnalyticsDashboard() {
   };
 
 
-
-
+  // ── 5 DESCRIPTIVE LABOR MARKET ANALYTICS DIMENSIONS (DATA TRANSFORMATIONS) ──
+  // Transforms raw backend SQL aggregations into Recharts-ready series & reconciled tables:
+  //   Dimension 1: User Growth & Role Composition (`transformedUserGrowth`)
+  //   Dimension 2: Sector Skill Demand & Worker Skill Supply (`transformedJobsData`, `transformedSkillDistribution`)
+  //   Dimension 3: Geographic & Barangay Activity (`transformedGeographicActivity`)
+  //   Dimension 4: Application Volume & Hire Funnel Velocity (`transformedApplicationVolume`, `funnelSteps`, `transformedConversionVelocity`)
+  //   Dimension 5: Wage Normalization & Community Trust/Moderation (`filteredCompensationCategories`, `filteredReportsBreakdown`)
 
   // User growth Recharts format
   const transformedUserGrowth = (() => {

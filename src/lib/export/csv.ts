@@ -1,8 +1,30 @@
 /**
- * SIKAP Universal CSV Export Utility
- * RFC-4180 compliant with UTF-8 Byte Order Mark (BOM) for Excel compatibility.
+ * ============================================================================
+ * FILE OVERVIEW: SIKAP Universal RFC-4180 CSV Export & Wage Normalization Utility
+ * ============================================================================
+ * (a) Purpose in the SIKAP Admin Dashboard:
+ *     Provides a zero-dependency, browser-native CSV generator (`src/lib/export/csv.ts`)
+ *     used across the Analytics Dashboard, Export Reports Center, and ID Verifications
+ *     pages to produce structured, multi-section `.csv` files that open cleanly in
+ *     Microsoft Excel, Google Sheets, and LibreOffice Calc.
+ *
+ * (b) Key Admin Features & Formatting Rules:
+ *     - Prepends the UTF-8 Byte Order Mark (`\uFEFF`) so Excel on Windows properly
+ *       renders Philippine Peso symbols (`₱`), en-dashes, and accented barangay names.
+ *     - Enforces RFC-4180 field escaping (`escapeCSVField`) by wrapping values in quotes
+ *       and doubling internal quotes (`""`) to prevent CSV injection or column shifting.
+ *     - Implements `calculateNormalizedHourlyWage` to standardize heterogeneous informal
+ *       pay rates (`per_hour`, `per_day` ÷ 8h, `per_week` ÷ 40h, `per_month` ÷ 160h,
+ *       and fixed-duration contracts) into a comparable PHP/hr benchmark.
+ *
+ * (c) Data Flow (Admin Pages -> Multi-Section Formatter -> Blob Download):
+ *     - Admin pages assemble metadata key-value pairs and `CSVSection[]` blocks,
+ *       which `exportMultiSectionCSV` serializes with `\r\n` CRLF line endings and
+ *       streams to the user's browser via a temporary `URL.createObjectURL(blob)` anchor.
+ * ============================================================================
  */
 
+// ── RFC-4180 FIELD ESCAPING & CELL SANITIZATION ──────────────────────────────
 export function escapeCSVField(value: any): string {
   if (value === null || value === undefined) {
     return '""';
@@ -14,6 +36,7 @@ export function escapeCSVField(value: any): string {
   return `"${str}"`;
 }
 
+// ── DATE, CURRENCY & REPUTATION SCORE FORMATTERS ─────────────────────────────
 export function formatCSVDate(dateStr?: string | null): string {
   if (!dateStr) return '';
   try {
@@ -50,6 +73,9 @@ export function formatCSVReputation(score: number | string | null | undefined, r
   return num > 0 ? num.toFixed(2) : 'N/A';
 }
 
+// ── INFORMAL LABOR WAGE NORMALIZATION ENGINE (PHP/HR) ────────────────────────
+// Converts daily (8h), weekly (40h), monthly (160h), or project-based compensation
+// into a standardized hourly wage so LGU/PESO admins can compare pay across trades.
 export function calculateNormalizedHourlyWage(
   compensation: number | string | null | undefined,
   rateUnit?: string | null,

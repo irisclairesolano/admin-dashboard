@@ -1,8 +1,33 @@
 'use client';
 
+/**
+ * ============================================================================
+ * FILE OVERVIEW: Real-Time Moderation Report Stream & Visibility-Aware Polling Hook
+ * ============================================================================
+ * (a) Purpose in the SIKAP Admin Dashboard:
+ *     Provides the `useSSEReports` custom React hook (`src/hooks/useSSEReports.ts`)
+ *     that powers real-time unread moderation report badge counters and toast
+ *     notifications in the Admin Sidebar and Top Header.
+ *
+ * (b) Key Admin Features & RBAC/Performance Rules:
+ *     - Authenticates every request with the admin's Bearer JWT from `authStorage`.
+ *     - Implements visibility-aware background synchronization (20-second interval
+ *       that automatically pauses when `document.visibilityState === 'hidden'` and
+ *       immediately refreshes when the admin returns to the tab) to eliminate
+ *       long-lived connection timeouts on serverless/Render deployments.
+ *     - Exposes `clearCount()` to reset the unread stream counter both locally and
+ *       on the backend when the admin opens the Moderation Reports queue.
+ *
+ * (c) Data Flow (Admin Layout / Sidebar <-> `useSSEReports` <-> Backend Report Stream API):
+ *     - Queries `GET /api/v1/admin/reports/unread-count` for `{ count, last_report_id, last_report_at }`.
+ *     - Acknowledges and clears unread notifications via `POST /api/v1/admin/reports/stream/clear`.
+ * ============================================================================
+ */
+
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { authStorage } from '@/lib/authStorage';
 
+// ── REAL-TIME REPORT NOTIFICATION STATE CONTRACT ─────────────────────────────
 interface SSEReportState {
   newReportCount: number;
   latestReportId: number | null;
@@ -20,6 +45,7 @@ export function useSSEReports() {
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // ── AUTHENTICATED UNREAD REPORT COUNT FETCHER ──────────────────────────────
   const fetchUnreadCount = useCallback(async () => {
     if (typeof window === 'undefined') return;
     const token = authStorage.getToken();
@@ -48,6 +74,7 @@ export function useSSEReports() {
     }
   }, []);
 
+  // ── VISIBILITY-AWARE POLLING LIFECYCLE (20S INTERVAL + TAB FOCUS WAKEUP) ───
   useEffect(() => {
     // Initial fetch
     fetchUnreadCount();
@@ -80,6 +107,7 @@ export function useSSEReports() {
     };
   }, [fetchUnreadCount]);
 
+  // ── UNREAD STREAM ACKNOWLEDGMENT & BADGE RESET ─────────────────────────────
   const clearCount = async () => {
     try {
       const token = authStorage.getToken();

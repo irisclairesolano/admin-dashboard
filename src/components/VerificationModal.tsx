@@ -1,5 +1,35 @@
 'use client';
 
+/**
+ * ============================================================================
+ * FILE OVERVIEW: KYC Gov ID, Selfie & Business Permit Inspection Modal
+ * ============================================================================
+ * (a) Purpose in the SIKAP Admin Dashboard:
+ *     Renders the accessible portal modal (`<VerificationModal />`) used by
+ *     administrators to inspect KYC identity credentials before approving or
+ *     rejecting an account:
+ *       - Worker Layout: 3-column Personal Identification grid (Gov ID Front,
+ *         Gov ID Back, and Live Selfie holding ID).
+ *       - Employer Layout: 2-column Representative Gov ID grid + Business
+ *         Registration & Permits viewer (supporting both images and PDFs).
+ *
+ * (b) Key Admin Features & Security/RBAC Rules:
+ *     - Automated Blacklist & Restriction Match Warning Banner (`blacklist_matches`):
+ *       Alerts admins with matched fields (`name`, `email`, `phone`), restriction
+ *       type (`banned`, `suspended`, `deleted_by_admin`), and prior admin reason
+ *       to prevent ban evasion.
+ *     - Private Storage Signed-URL Refresh: Automatically detects unsigned or
+ *       expired `/government-ids/` bucket URLs and fetches fresh signed URLs via
+ *       `adminApi.getUserDetails(user.id)`.
+ *     - Built-in Lightbox with Zoom (`1x` to `3x`), 90° Rotation, PDF iframe preview,
+ *       keyboard focus trap (`Tab`/`Shift+Tab`), and mandatory rejection reason prompt.
+ *
+ * (c) Data Flow (Verifications Page -> VerificationModal -> Signed URL API / Verify Action):
+ *     - Receives `user` object and callbacks (`onVerify`, `onApprove`, `onReject`, `onClose`).
+ *     - Renders via `createPortal(..., document.body)` to avoid z-index clipping.
+ * ============================================================================
+ */
+
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
@@ -7,6 +37,7 @@ import { XCircle, ExternalLink, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateC
 import Tooltip from '@/components/Tooltip';
 import { adminApi } from '@/api/admin';
 
+// ── BLACKLIST MATCH & USER KYC DOCUMENT INTERFACES ───────────────────────────
 export interface BlacklistMatch {
   id: number;
   user_id?: number | null;
@@ -68,6 +99,7 @@ export default function VerificationModal({
   const [rotation, setRotation] = useState<number>(0);
   const [mounted, setMounted] = useState(false);
 
+  // ── INTERACTIVE DOCUMENT LIGHTBOX CONTROLS (ZOOM 1X-3X & 90° ROTATION) ─────
   const handleOpenLightbox = (url: string, title: string, isPdf = false) => {
     setZoom(1);
     setRotation(0);
@@ -94,6 +126,7 @@ export default function VerificationModal({
     setImageErrors({});
   }, [user]);
 
+  // ── PRIVATE BUCKET SIGNED URL REFRESH FOR GOVERNMENT ID DOCUMENTS ──────────
   // If document_url is missing or is an unsigned public URL on a private bucket, fetch fresh signed details from API
   useEffect(() => {
     let isCancelled = false;

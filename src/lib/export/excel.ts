@@ -1,3 +1,33 @@
+/**
+ * ============================================================================
+ * FILE OVERVIEW: SIKAP Multi-Sheet ExcelJS (.xlsx) Master Workbook Generator
+ * ============================================================================
+ * (a) Purpose in the SIKAP Admin Dashboard:
+ *     Dynamically compiles an institutional, 7-worksheet `.xlsx` Excel workbook
+ *     (`src/lib/export/excel.ts`) for LGU/PESO reporting and archival:
+ *       - Sheet 1: Executive Summary (Live `COUNTA`, `COUNTIF`, `AVERAGE` KPI cards & data quality flags)
+ *       - Sheet 2: Users Masterlist (Workers, Employers, Admins, KYC & operational status)
+ *       - Sheet 3: Jobs & Placements (Postings, normalized hourly wages, and live fill % formulas)
+ *       - Sheet 4: Municipal Demographics (Executive municipal roll-up + barangay breakdown)
+ *       - Sheet 5: Verification Audit (KYC Gov ID / Selfie submission & rejection audit trail)
+ *       - Sheet 6: Community Reports (Safety/moderation incidents and resolution timestamps)
+ *       - Sheet 7: Wage Benchmarks (Cross-sheet `AVERAGEIF`, `MINIFS`, `MAXIFS` by trade category)
+ *
+ * (b) Key Admin Features & Styling Rules:
+ *     - Lazy-loads `exceljs` via dynamic `import('exceljs')` so the heavy spreadsheet bundle
+ *       is only downloaded when an administrator clicks "Export Master Excel (.xlsx)".
+ *     - Applies corporate Navy (`#1F3864`) and Ice Blue (`#EAF0FA`) branding, frozen table
+ *       headers (`ySplit: 5`), zebra row banding, and semantic status cell coloring.
+ *     - Embeds both live Excel formulas (`formula`) AND pre-computed cached values (`result`)
+ *       so spreadsheet viewers without formula recalculation still display accurate totals.
+ *
+ * (c) Data Flow (Dashboard / Export Center -> `generateMasterExcelWorkbook` -> `.xlsx` Blob):
+ *     - Receives `ExportDataPayload` from `/dashboard` or `/dashboard/export-reports`,
+ *       yields to the browser event loop between sheets (`setTimeout(r, 0)`) to keep UI
+ *       animations responsive, writes the binary buffer, and triggers `downloadExcelBlob`.
+ * ============================================================================
+ */
+
 import type ExcelJS from 'exceljs';
 import { calculateNormalizedHourlyWage, formatCSVStatus } from './csv';
 import { humanizeModel } from '../../lib/constants';
@@ -12,6 +42,7 @@ export interface ExportDataPayload {
   municipalOverview?: any[];
 }
 
+// ── CORPORATE SPREADSHEET COLOR PALETTE & REUSABLE HEADER STYLING HELPERS ────
 const NAVY = '1F3864';
 const BLUE_HEADER = '2E5395';
 const ICE_BLUE = 'EAF0FA';

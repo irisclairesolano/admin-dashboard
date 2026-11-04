@@ -1,5 +1,33 @@
 'use client';
 
+/**
+ * ============================================================================
+ * FILE OVERVIEW: SIKAP KYC Identity Verification & SLA Review Queue Page
+ * ============================================================================
+ * (a) Purpose in the SIKAP Admin Dashboard:
+ *     Provides the KYC compliance workstation (`/dashboard/verifications`) where
+ *     PESO/LGU administrators review user-submitted Government IDs (Front & Back),
+ *     Selfies holding IDs (for Workers), and Business Permits (for Employers)
+ *     before granting verified platform badges.
+ *
+ * (b) Key Admin Features & RBAC Rules:
+ *     - Automated 4-tier SLA Aging Engine (`getSlaStatus`):
+ *         • `<12h` Normal | `12-24h` Priority | `24-48h` Urgent | `>=48h` Overdue
+ *     - Surfaces automated Blacklist Match warning pills (`⚠️ Blacklist Match`)
+ *       directly in the queue table when an applicant shares a name, phone, or
+ *       email with a previously banned, suspended, or deleted account.
+ *     - Optimistic UI state updates on Approve/Reject + custom window event dispatch
+ *       (`admin:refresh-notifications`) to keep sidebar badge counters in sync.
+ *
+ * (c) Data Flow (Polling & Window Events <-> API <-> VerificationModal & CSV):
+ *     - Polls `adminApi.getVerifications(true, true)` every 15s via `usePolling`
+ *       and re-fetches on window focus.
+ *     - Opens `<VerificationModal />` for high-resolution document inspection and
+ *       calls `PATCH /api/v1/admin/users/:id/verify` (`adminApi.verifyUser`).
+ *     - Exports filtered tab views to RFC-4180 CSV via `exportMultiSectionCSV`.
+ * ============================================================================
+ */
+
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
@@ -14,6 +42,7 @@ const VerificationModal = dynamic(() => import('@/components/VerificationModal')
   ssr: false,
 });
 
+// ── KYC QUEUE SLA AGING CALCULATOR (<12h Normal | 12-24h Priority | 24-48h Urgent | >=48h Overdue) ──
 function getSlaStatus(submittedDate: string | Date | undefined) {
   if (!submittedDate) {
     return { label: '<12h Normal', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', isOverdue: false, badge: 'normal' };
