@@ -37,10 +37,9 @@ export function getUserVerificationInfo(user: any): UserVerificationInfo {
     };
   }
 
-  // 1. Approved / Verified
+  // 1. Approved / Verified (Only true if KYC identity verification was explicitly approved or badged)
   if (
     user.verification_status === 'approved' ||
-    user.registration_status === 'approved' ||
     user.verification_badge === true
   ) {
     return {

@@ -639,7 +639,7 @@ function VerificationsPageContent() {
               <tbody className="divide-y divide-ink-faint/20">
                 {paginatedUsers.map((user) => {
                   const isUserRejected = user.verification_status === 'rejected' || user.registration_status === 'rejected';
-                  const isUserApproved = user.verification_status === 'approved' || user.registration_status === 'approved' || !!user.verification_badge;
+                  const isUserApproved = user.verification_status === 'approved' || !!user.verification_badge;
 
                   return (
                     <tr key={user.id} className="hover:bg-slate-50/70 transition-colors duration-150">
