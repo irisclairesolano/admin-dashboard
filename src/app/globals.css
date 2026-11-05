@@ -17,13 +17,17 @@
   }
 }
 
-/* ── Global Dark Mode Styling for Cards, Text & Form Controls ────────────── */
+/* ── Global Dark Mode Styling for Cards, Surfaces, Buttons & Badges ──────── */
 .dark :where(.bg-paper) {
   background-color: #020617;
 }
 
-.dark :where(.bg-white) {
+.dark :where(.bg-white, .bg-paper-bright) {
   background-color: #0f172a;
+}
+
+.dark :where(.bg-paper-cream, .bg-primary-tint) {
+  background-color: #1e293b;
 }
 
 .dark :where(
@@ -35,48 +39,193 @@
   .bg-white\/50,
   .bg-white\/40
 ) {
-  background-color: rgba(15, 23, 42, 0.85);
+  background-color: rgba(15, 23, 42, 0.88);
 }
 
 .dark :where(
   .bg-slate-50,
   .bg-slate-50\/90,
+  .bg-slate-50\/80,
   .bg-slate-50\/70,
+  .bg-slate-50\/60,
   .bg-slate-50\/50,
   .bg-slate-50\/40,
   .bg-slate-100,
-  .bg-slate-100\/60
+  .bg-slate-100\/80,
+  .bg-slate-100\/60,
+  .bg-slate-200\/60
 ) {
-  background-color: rgba(30, 41, 59, 0.6);
+  background-color: rgba(30, 41, 59, 0.65);
 }
 
-.dark :where(.text-ink) {
+.dark :where(
+  .bg-ink-faint,
+  .bg-ink-faint\/60,
+  .bg-ink-faint\/50,
+  .bg-ink-faint\/40,
+  .bg-ink-faint\/30,
+  .bg-ink-faint\/20
+) {
+  background-color: rgba(51, 65, 85, 0.55);
+}
+
+/* Primary & Ink Text Readability in Dark Mode */
+.dark :where(.text-ink, .text-slate-900, .text-slate-800) {
   color: #f8fafc;
 }
 
-.dark :where(.text-ink-soft) {
+.dark :where(.text-ink-soft, .text-slate-700, .text-slate-600) {
   color: #cbd5e1;
 }
 
-.dark :where(.text-ink-muted) {
+.dark :where(.text-ink-muted, .text-slate-500) {
   color: #94a3b8;
+}
+
+.dark :where(.text-primary, .text-primary-dark) {
+  color: #60a5fa;
+}
+
+.dark :where(.hover\:text-primary:hover, .hover\:text-ink:hover) {
+  color: #93c5fd;
+}
+
+/* Tinted Primary Backgrounds (e.g. bg-primary/10 text-primary buttons & pills) */
+.dark :where(
+  .bg-primary\/5,
+  .bg-primary\/10,
+  .bg-primary\/15,
+  .bg-primary\/20,
+  .hover\:bg-primary\/10:hover,
+  .hover\:bg-primary\/20:hover
+) {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+/* Solid Dark-Navy Buttons & Active Filter Pills (bg-ink, bg-primary, bg-primary-dark, bg-slate-900) */
+.dark :where(
+  .bg-ink:not(.fixed),
+  .bg-primary,
+  .bg-primary-dark,
+  .bg-slate-900,
+  .bg-slate-800
+) {
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+.dark :where(
+  .hover\:bg-ink:hover,
+  .hover\:bg-ink-soft:hover,
+  .hover\:bg-primary:hover,
+  .hover\:bg-primary-dark:hover,
+  .hover\:bg-slate-900:hover,
+  .hover\:bg-slate-800:hover
+) {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+.dark :where(
+  .hover\:bg-white:hover,
+  .hover\:bg-white\/95:hover,
+  .hover\:bg-paper:hover,
+  .hover\:bg-slate-50:hover,
+  .hover\:bg-slate-100:hover
+) {
+  background-color: rgba(30, 41, 59, 0.9);
+}
+
+/* Status Colors & Action Buttons in Dark Mode */
+.dark :where(.text-status-error) {
+  color: #f87171;
+}
+
+.dark :where(.border-status-error) {
+  border-color: rgba(248, 113, 113, 0.65);
+}
+
+.dark :where(.bg-status-error.text-white) {
+  background-color: #dc2626;
+  color: #ffffff;
+}
+
+.dark :where(.text-status-success) {
+  color: #34d399;
+}
+
+.dark :where(.bg-status-success.text-white) {
+  background-color: #059669;
+  color: #ffffff;
+}
+
+.dark :where(.text-status-warning, .text-status-gold) {
+  color: #fbbf24;
+}
+
+/* Pastel Status Badges & Callout Banners in Dark Mode */
+.dark :where(.bg-amber-50, .bg-amber-50\/90, .bg-amber-50\/70, .bg-amber-50\/50, .bg-amber-100, .bg-amber-100\/80) {
+  background-color: rgba(245, 158, 11, 0.16);
+}
+.dark :where(.text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900) {
+  color: #fde68a;
+}
+.dark :where(.border-amber-200, .border-amber-300, .border-amber-200\/70) {
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.dark :where(.bg-rose-50, .bg-rose-50\/90, .bg-rose-50\/70, .bg-rose-50\/60, .bg-rose-50\/50, .bg-rose-100, .bg-rose-100\/80) {
+  background-color: rgba(244, 63, 94, 0.16);
+}
+.dark :where(.text-rose-600, .text-rose-700, .text-rose-800, .text-rose-900) {
+  color: #fecdd3;
+}
+.dark :where(.border-rose-200, .border-rose-200\/70, .border-rose-300) {
+  border-color: rgba(244, 63, 94, 0.35);
+}
+
+.dark :where(.bg-emerald-50, .bg-emerald-50\/90, .bg-emerald-50\/70, .bg-emerald-100, .bg-emerald-100\/80) {
+  background-color: rgba(16, 185, 129, 0.16);
+}
+.dark :where(.text-emerald-600, .text-emerald-700, .text-emerald-800, .text-emerald-900) {
+  color: #a7f3d0;
+}
+.dark :where(.border-emerald-200, .border-emerald-300) {
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.dark :where(.bg-sky-50, .bg-sky-50\/90, .bg-sky-50\/70, .bg-sky-100, .bg-blue-50, .bg-indigo-50) {
+  background-color: rgba(14, 165, 233, 0.16);
+}
+.dark :where(.text-sky-600, .text-sky-700, .text-sky-800, .text-sky-900, .text-blue-700, .text-indigo-700) {
+  color: #bae6fd;
+}
+.dark :where(.border-sky-200, .border-sky-300, .border-blue-200, .border-indigo-200) {
+  border-color: rgba(14, 165, 233, 0.35);
 }
 
 .dark :where(
   [class*="border-ink-faint"],
+  [class*="border-slate-200"],
+  [class*="border-slate-100"],
   [class*="border-white\/"]
 ) {
+  border-color: rgba(51, 65, 85, 0.5);
+}
+
+.dark :where([class*="divide-ink-faint"] > * + *, [class*="divide-slate-"] > * + *) {
   border-color: rgba(51, 65, 85, 0.45);
 }
 
-.dark :where([class*="divide-ink-faint"] > * + *) {
-  border-color: rgba(51, 65, 85, 0.4);
+.dark :where(input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]), select, textarea) {
+  background-color: rgba(30, 41, 59, 0.8);
+  color: #f8fafc;
+  border-color: rgba(71, 85, 105, 0.65);
 }
 
-.dark :where(input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]), select, textarea) {
-  background-color: rgba(30, 41, 59, 0.7);
-  color: #f8fafc;
-  border-color: rgba(51, 65, 85, 0.6);
+.dark :where(input::placeholder, textarea::placeholder) {
+  color: #64748b;
 }
 
 .dark select option {
@@ -90,7 +239,7 @@
 }
 
 .dark :where(table tbody tr:hover) {
-  background-color: rgba(30, 41, 59, 0.4);
+  background-color: rgba(30, 41, 59, 0.45);
 }
 
 /* ── Dark Mode Chart Helpers ──────────────────────────────────────────────── */

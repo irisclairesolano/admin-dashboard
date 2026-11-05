@@ -16,6 +16,7 @@ import { humanizeModel } from '@/lib/constants';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { CommandPalette } from '@/components/CommandPalette';
 import { playModerationAlertChime } from '@/lib/sound';
+import { useToast } from '@/context/ToastContext';
 
 type PrefetchStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -125,29 +126,49 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, []);
   const didPrefetch = useRef(false);
   const initialSyncDone = useRef(false);
-  const prevVerifications = useRef(0);
-  const prevReports = useRef(0);
-  const prevTickets = useRef(0);
+  const seenNotificationIds = useRef<Set<string>>(new Set());
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
   const { newReportCount, latestReportAt, clearCount: clearSSECount } = useSSEReports();
 
-  const triggerBrowserNotification = useCallback((title: string, body: string, url: string) => {
-    if (soundAlertsEnabled) {
-      playModerationAlertChime();
-    }
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      try {
-        const notif = new Notification(title, { body, icon: '/favicon.ico' });
-        notif.onclick = () => {
-          window.focus();
-          router.push(url);
-        };
-      } catch (err) {
-        console.error('Browser notification error', err);
+  const triggerBrowserNotification = useCallback(
+    (
+      title: string,
+      body: string,
+      url: string,
+      tag?: string,
+      category?: 'verification' | 'report' | 'support'
+    ) => {
+      if (soundAlertsEnabled) {
+        playModerationAlertChime();
       }
-    }
-  }, [router, soundAlertsEnabled]);
+      // Always surface an immediate real-time in-browser toast so the admin sees it even if tab is focused or OS Focus Assist mutes desktop popups
+      if (category === 'report') {
+        toast.warning(body, title);
+      } else {
+        toast.info(body, title);
+      }
+
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+        try {
+          const notif = new Notification(title, {
+            body,
+            icon: '/favicon.ico',
+            tag: tag || `${title}-${Date.now()}`,
+          });
+          notif.onclick = () => {
+            window.focus();
+            router.push(url);
+            notif.close();
+          };
+        } catch (err) {
+          console.error('Browser notification error', err);
+        }
+      }
+    },
+    [router, soundAlertsEnabled, toast]
+  );
 
   // ── 10-Minute Inactivity Auto-Lockout ─────────────────────────────────────
   const handleInactivityLogout = () => {
@@ -173,14 +194,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     } catch (e) { console.error(e); }
   }, [router]);
 
-  // ── Parallel pre-fetch & Load individual notifications ─────────────────────
+  // ── Parallel pre-fetch & Load individual notifications (Always Fresh) ─────
   const fetchNotifications = useCallback(async (silent = false) => {
     try {
       if (!silent) setIsSyncing(true);
+      // Pass forceRefresh=true so real-time polling never reads stale 60-second cached responses
       const [verificationsRes, reportsRes, ticketsRes] = await Promise.all([
-        adminApi.getVerifications(),
-        adminApi.getReports('open', 1),
-        adminApi.getSupportTickets(),
+        adminApi.getVerifications(false, true),
+        adminApi.getReports('open', 1, '', false, true),
+        adminApi.getSupportTickets(true),
       ]);
 
       const list: DashboardNotification[] = [];
@@ -246,42 +268,47 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setNotifications(list);
 
-      // Trigger browser notification ONLY on genuine count increases AFTER initial sync
+      // Detect newly arrived or re-submitted notification items by unique signature (id + timestamp)
+      const currentSignatures = new Set<string>();
+      const newlyArrived: DashboardNotification[] = [];
+
+      list.forEach((item) => {
+        const sig = `${item.id}:${item.timestamp}`;
+        currentSignatures.add(sig);
+        if (initialSyncDone.current && !seenNotificationIds.current.has(sig)) {
+          newlyArrived.push(item);
+        }
+      });
+
+      seenNotificationIds.current = currentSignatures;
+
       if (initialSyncDone.current) {
-        if (pendingUsers.length > prevVerifications.current) {
-          triggerBrowserNotification(
-            'New Pending Verification',
-            `There are ${pendingUsers.length} identity verifications awaiting review.`,
-            '/dashboard/verifications'
-          );
-        }
-        if (openReports.length > prevReports.current) {
-          triggerBrowserNotification(
-            'New Moderation Alert',
-            `There are ${openReports.length} content reports requiring moderation.`,
-            '/dashboard/moderation'
-          );
-        }
-        if (openTickets.length > prevTickets.current) {
-          triggerBrowserNotification(
-            'New Support Ticket',
-            `There are ${openTickets.length} open support tickets awaiting response.`,
-            '/dashboard/support'
-          );
+        if (newlyArrived.length > 0) {
+          // Ensure re-submitted items (e.g. user re-uploaded ID) appear as unread
+          const newIds = new Set(newlyArrived.map((n) => n.id));
+          setReadNotifications((prev) => prev.filter((id) => !newIds.has(id)));
+
+          // Fire real-time browser & in-app notifications (up to 3 individual alerts at once)
+          newlyArrived.slice(0, 3).forEach((item) => {
+            triggerBrowserNotification(
+              item.title,
+              item.description,
+              item.link,
+              `${item.id}-${item.timestamp}`,
+              item.category
+            );
+          });
         }
       } else {
         initialSyncDone.current = true;
       }
-      prevVerifications.current = pendingUsers.length;
-      prevReports.current = openReports.length;
-      prevTickets.current = openTickets.length;
     } catch (err) {
       console.error('Failed to load notifications', err);
     } finally {
       setNotificationsLoading(false);
       setIsSyncing(false);
     }
-  }, [triggerBrowserNotification]);
+  }, [triggerBrowserNotification, setReadNotifications]);
 
   useEffect(() => {
     if (didPrefetch.current) return;
@@ -313,27 +340,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (newReportCount > 0) {
       fetchNotifications(true);
-      if (soundAlertsEnabled) {
-        playModerationAlertChime();
-      }
     }
-  }, [newReportCount, latestReportAt, fetchNotifications, soundAlertsEnabled]);
+  }, [newReportCount, latestReportAt, fetchNotifications]);
 
-  // Listen for real-time notification refresh events and window focus
+  // Listen for real-time notification refresh events, window focus, and tab visibility
   useEffect(() => {
     const handleRefresh = () => {
       fetchNotifications(true);
     };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchNotifications(true);
+      }
+    };
     window.addEventListener('admin:refresh-notifications', handleRefresh);
     window.addEventListener('focus', handleRefresh);
+    document.addEventListener('visibilitychange', handleVisibility);
     return () => {
       window.removeEventListener('admin:refresh-notifications', handleRefresh);
       window.removeEventListener('focus', handleRefresh);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [fetchNotifications]);
 
-  // Auto-refresh notifications every 15 seconds via shared hook
-  usePolling(() => fetchNotifications(true), 15000);
+  // Auto-refresh notifications every 8 seconds for responsive real-time updates
+  usePolling(() => fetchNotifications(true), 8000);
 
   const handleLogout = () => {
     authStorage.clearSession();

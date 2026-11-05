@@ -37,51 +37,11 @@ import { AlertDialog } from '@/components/AlertDialog';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus } from '@/lib/export/csv';
 import { useToast } from '@/context/ToastContext';
 import { usePolling } from '@/hooks/usePolling';
-import { hasSubmittedDocs, getMissingRequirements } from '@/lib/verification';
+import { hasSubmittedDocs, getMissingRequirements, getSlaStatus } from '@/lib/verification';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
 });
-
-// ── KYC QUEUE SLA AGING CALCULATOR (<12h Normal | 12-24h Priority | 24-48h Urgent | >=48h Overdue) ──
-function getSlaStatus(submittedDate: string | Date | undefined) {
-  if (!submittedDate) {
-    return { label: '<12h Normal', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', isOverdue: false, badge: 'normal' };
-  }
-  const d = new Date(submittedDate).getTime();
-  const diffHours = (Date.now() - d) / (1000 * 60 * 60);
-
-  if (diffHours >= 48) {
-    return {
-      label: `${Math.floor(diffHours)}h (Overdue)`,
-      color: 'bg-rose-50 text-rose-700 border-rose-300 font-bold',
-      isOverdue: true,
-      badge: 'overdue',
-    };
-  }
-  if (diffHours >= 24) {
-    return {
-      label: `${Math.floor(diffHours)}h (Urgent)`,
-      color: 'bg-amber-50 text-amber-700 border-amber-300 font-semibold',
-      isOverdue: false,
-      badge: 'urgent',
-    };
-  }
-  if (diffHours >= 12) {
-    return {
-      label: `${Math.floor(diffHours)}h (Priority)`,
-      color: 'bg-sky-50 text-sky-700 border-sky-200 font-medium',
-      isOverdue: false,
-      badge: 'priority',
-    };
-  }
-  return {
-    label: `${Math.max(1, Math.floor(diffHours))}h (Normal)`,
-    color: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-medium',
-    isOverdue: false,
-    badge: 'normal',
-  };
-}
 
 function VerificationsPageContent() {
   const searchParams = useSearchParams();
@@ -97,6 +57,7 @@ function VerificationsPageContent() {
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [slaFilter, setSlaFilter] = useState<'all' | 'overdue' | 'urgent' | 'priority' | 'normal'>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
   const [alertState, setAlertState] = useState<{
     isOpen: boolean;
     title: string;
@@ -108,6 +69,14 @@ function VerificationsPageContent() {
   });
 
   const itemsPerPage = 5;
+
+  // Tick real-time SLA counters every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Sync search query from URL query parameter
   useEffect(() => {
@@ -313,7 +282,7 @@ function VerificationsPageContent() {
   });
 
   const overdueCount = allPendingUsers.filter((u) => {
-    const sla = getSlaStatus(u.updated_at || u.created_at);
+    const sla = getSlaStatus(u.updated_at || u.created_at, nowMs);
     return sla.isOverdue;
   }).length;
 
@@ -337,7 +306,7 @@ function VerificationsPageContent() {
       if (!matchesSearch) return false;
 
       if (slaFilter !== 'all' && statusTab === 'pending') {
-        const sla = getSlaStatus(u.updated_at || u.created_at);
+        const sla = getSlaStatus(u.updated_at || u.created_at, nowMs);
         if (slaFilter === 'overdue' && !sla.isOverdue) return false;
         if (slaFilter === 'urgent' && sla.badge !== 'urgent') return false;
         if (slaFilter === 'priority' && sla.badge !== 'priority') return false;
@@ -727,16 +696,24 @@ function VerificationsPageContent() {
                         </td>
                       ) : (
                         <td className="px-4 py-3 text-xs font-body font-medium text-ink-soft">
-                          <div>{new Date(user.updated_at || user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</div>
-                          {!isUserRejected && !isUserApproved && (
+                          <div>
+                            {new Date(user.updated_at || user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                            <span className="text-[10px] text-ink-muted ml-1">
+                              {new Date(user.updated_at || user.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          {!isUserRejected && !isUserApproved && hasSubmittedDocs(user) && (
                             <div className="mt-1 flex items-center gap-1.5">
                               {(() => {
-                                const sla = getSlaStatus(user.updated_at || user.created_at);
+                                const sla = getSlaStatus(user.updated_at || user.created_at, nowMs, true);
                                 return (
-                                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] border ${sla.color}`}>
+                                  <span
+                                    title={`Submitted: ${new Date(user.updated_at || user.created_at).toLocaleString()}`}
+                                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-numeric border ${sla.color}`}
+                                  >
                                     {sla.isOverdue && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />}
                                     <i className="lni lni-timer text-[9px]" />
-                                    <span>{sla.label}</span>
+                                    <span>SLA: {sla.label}</span>
                                   </span>
                                 );
                               })()}

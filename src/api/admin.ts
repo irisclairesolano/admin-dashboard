@@ -491,7 +491,10 @@ export const adminApi = {
   },
 
   // Support Tickets
-  getSupportTickets: async () => {
+  getSupportTickets: async (forceRefresh: boolean = false) => {
+    if (forceRefresh) {
+      return freshGet('/admin/support');
+    }
     return cachedGet('/admin/support');
   },
   

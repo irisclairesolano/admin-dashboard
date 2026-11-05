@@ -36,7 +36,7 @@ import Image from 'next/image';
 import { XCircle, ExternalLink, RefreshCw, AlertCircle, ZoomIn, ZoomOut, RotateCw, FileText } from 'lucide-react';
 import Tooltip from '@/components/Tooltip';
 import { adminApi } from '@/api/admin';
-import { hasSubmittedDocs } from '@/lib/verification';
+import { hasSubmittedDocs, getSlaStatus } from '@/lib/verification';
 
 // ── BLACKLIST MATCH & USER KYC DOCUMENT INTERFACES ───────────────────────────
 export interface BlacklistMatch {
@@ -70,6 +70,8 @@ export interface User {
   created_at?: string;
   updated_at?: string;
   registration_status?: string;
+  verification_status?: string;
+  verification_badge?: boolean;
   blacklist_matches?: BlacklistMatch[];
 }
 
@@ -99,6 +101,7 @@ export default function VerificationModal({
   const [zoom, setZoom] = useState<number>(1);
   const [rotation, setRotation] = useState<number>(0);
   const [mounted, setMounted] = useState(false);
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
 
   // ── INTERACTIVE DOCUMENT LIGHTBOX CONTROLS (ZOOM 1X-3X & 90° ROTATION) ─────
   const handleOpenLightbox = (url: string, title: string, isPdf = false) => {
@@ -191,7 +194,13 @@ export default function VerificationModal({
 
   useEffect(() => {
     setMounted(true);
-    return () => setMounted(false);
+    const interval = setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+    return () => {
+      setMounted(false);
+      clearInterval(interval);
+    };
   }, []);
 
   // Focus trap
@@ -290,16 +299,58 @@ export default function VerificationModal({
                 Role: {currentUser.role || user.role}
               </span>
               {(() => {
+                const isApproved =
+                  currentUser.verification_status === 'approved' ||
+                  user.verification_status === 'approved' ||
+                  Boolean(currentUser.verification_badge || user.verification_badge);
+                const isRejected =
+                  currentUser.verification_status === 'rejected' ||
+                  user.verification_status === 'rejected' ||
+                  currentUser.registration_status === 'rejected' ||
+                  user.registration_status === 'rejected';
+
+                if (isApproved) {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200">
+                      <span>✓ Verified Account</span>
+                    </span>
+                  );
+                }
+
+                if (isRejected) {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold border bg-rose-50 text-rose-700 border-rose-300">
+                      <span>Rejected — Awaiting Re-upload</span>
+                    </span>
+                  );
+                }
+
+                if (!hasAnyDocs) {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold border bg-amber-50 text-amber-700 border-amber-300">
+                      <span>Awaiting ID Upload</span>
+                    </span>
+                  );
+                }
+
                 const subDate = currentUser.updated_at || currentUser.created_at || user.updated_at || user.created_at;
                 if (!subDate) return null;
-                const diffHours = (Date.now() - new Date(subDate).getTime()) / (1000 * 60 * 60);
-                const isOverdue = diffHours >= 48;
+                const sla = getSlaStatus(subDate, nowMs, true);
                 return (
-                  <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold border ${
-                    isOverdue ? 'bg-rose-50 text-rose-700 border-rose-300' : diffHours >= 24 ? 'bg-amber-50 text-amber-700 border-amber-300' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  }`}>
-                    {isOverdue && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />}
-                    <span>SLA: {Math.max(1, Math.floor(diffHours))}h in queue {isOverdue ? '(Overdue)' : ''}</span>
+                  <span
+                    title={`Submitted: ${new Date(subDate).toLocaleString()}`}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold border font-numeric ${sla.color}`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        sla.isOverdue
+                          ? 'bg-rose-500 animate-ping'
+                          : sla.badge === 'urgent'
+                            ? 'bg-amber-500 animate-pulse'
+                            : 'bg-emerald-500 animate-pulse'
+                      }`}
+                    />
+                    <span>{sla.modalLabel}</span>
                   </span>
                 );
               })()}

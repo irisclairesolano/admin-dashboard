@@ -155,3 +155,134 @@ export function getMissingRequirements(user: any): MissingRequirementsInfo {
 
   return { missingItems: missing, isComplete, summary };
 }
+
+export interface SlaStatusInfo {
+  durationText: string;
+  label: string;
+  modalLabel: string;
+  color: string;
+  isOverdue: boolean;
+  badge: 'overdue' | 'urgent' | 'priority' | 'normal';
+  diffHours: number;
+}
+
+/**
+ * Formats exact real-time elapsed duration in queue without artificially clamping sub-hour times to "1h".
+ */
+export function formatQueueDuration(
+  submittedDate: string | Date | undefined,
+  nowMs: number = Date.now(),
+  includeSecondsUnderHour: boolean = true
+): string {
+  if (!submittedDate) return 'Just now';
+  const parsed = new Date(submittedDate).getTime();
+  if (Number.isNaN(parsed)) return 'Just now';
+
+  const diffMs = Math.max(0, nowMs - parsed);
+  const totalSeconds = Math.floor(diffMs / 1000);
+
+  if (totalSeconds < 60) {
+    return `${Math.max(1, totalSeconds)}s`;
+  }
+
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const remSeconds = totalSeconds % 60;
+
+  if (totalMinutes < 60) {
+    return includeSecondsUnderHour ? `${totalMinutes}m ${remSeconds}s` : `${totalMinutes}m`;
+  }
+
+  const totalHours = Math.floor(totalMinutes / 60);
+  const remMinutes = totalMinutes % 60;
+
+  if (totalHours < 48) {
+    return remMinutes > 0 ? `${totalHours}h ${remMinutes}m` : `${totalHours}h`;
+  }
+
+  const days = Math.floor(totalHours / 24);
+  const remHours = totalHours % 24;
+  return remHours > 0 ? `${days}d ${remHours}h (${totalHours}h)` : `${days}d (${totalHours}h)`;
+}
+
+/**
+ * Automated 4-tier SLA Aging Engine (<12h Normal | 12-24h Priority | 24-48h Urgent | >=48h Overdue)
+ * with real-time minute/second precision.
+ */
+export function getSlaStatus(
+  submittedDate: string | Date | undefined,
+  nowMs: number = Date.now(),
+  includeSecondsUnderHour: boolean = true
+): SlaStatusInfo {
+  if (!submittedDate) {
+    return {
+      durationText: 'Just now',
+      label: 'Just now (Normal)',
+      modalLabel: 'SLA: Just now in queue',
+      color: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-medium',
+      isOverdue: false,
+      badge: 'normal',
+      diffHours: 0,
+    };
+  }
+
+  const parsed = new Date(submittedDate).getTime();
+  if (Number.isNaN(parsed)) {
+    return {
+      durationText: 'Just now',
+      label: 'Just now (Normal)',
+      modalLabel: 'SLA: Just now in queue',
+      color: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-medium',
+      isOverdue: false,
+      badge: 'normal',
+      diffHours: 0,
+    };
+  }
+
+  const diffMs = Math.max(0, nowMs - parsed);
+  const diffHours = diffMs / (1000 * 60 * 60);
+  const durationText = formatQueueDuration(submittedDate, nowMs, includeSecondsUnderHour);
+
+  if (diffHours >= 48) {
+    return {
+      durationText,
+      label: `${durationText} (Overdue)`,
+      modalLabel: `SLA: ${durationText} in queue (Overdue)`,
+      color: 'bg-rose-50 text-rose-700 border-rose-300 font-bold',
+      isOverdue: true,
+      badge: 'overdue',
+      diffHours,
+    };
+  }
+  if (diffHours >= 24) {
+    return {
+      durationText,
+      label: `${durationText} (Urgent)`,
+      modalLabel: `SLA: ${durationText} in queue (Urgent)`,
+      color: 'bg-amber-50 text-amber-700 border-amber-300 font-semibold',
+      isOverdue: false,
+      badge: 'urgent',
+      diffHours,
+    };
+  }
+  if (diffHours >= 12) {
+    return {
+      durationText,
+      label: `${durationText} (Priority)`,
+      modalLabel: `SLA: ${durationText} in queue (Priority)`,
+      color: 'bg-sky-50 text-sky-700 border-sky-200 font-medium',
+      isOverdue: false,
+      badge: 'priority',
+      diffHours,
+    };
+  }
+  return {
+    durationText,
+    label: `${durationText} (Normal)`,
+    modalLabel: `SLA: ${durationText} in queue`,
+    color: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-medium',
+    isOverdue: false,
+    badge: 'normal',
+    diffHours,
+  };
+}
+
