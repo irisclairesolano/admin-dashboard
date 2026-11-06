@@ -19,12 +19,11 @@
  *     - Optimistic UI state updates on Approve/Reject + custom window event dispatch
  *       (`admin:refresh-notifications`) to keep sidebar badge counters in sync.
  *
- * (c) Data Flow (Polling & Window Events <-> API <-> VerificationModal & CSV):
+ * (c) Data Flow (Polling & Window Events <-> API <-> VerificationModal):
  *     - Polls `adminApi.getVerifications(true, true)` every 15s via `usePolling`
  *       and re-fetches on window focus.
  *     - Opens `<VerificationModal />` for high-resolution document inspection and
  *       calls `PATCH /api/v1/admin/users/:id/verify` (`adminApi.verifyUser`).
- *     - Exports filtered tab views to RFC-4180 CSV via `exportMultiSectionCSV`.
  * ============================================================================
  */
 
@@ -34,7 +33,6 @@ import { adminApi } from '@/lib/api';
 import Avatar from '@/components/Avatar';
 import dynamic from 'next/dynamic';
 import { AlertDialog } from '@/components/AlertDialog';
-import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus } from '@/lib/export/csv';
 import { useToast } from '@/context/ToastContext';
 import { usePolling } from '@/hooks/usePolling';
 import { hasSubmittedDocs, getMissingRequirements, getSlaStatus } from '@/lib/verification';
@@ -95,81 +93,6 @@ function VerificationsPageContent() {
       if (!silent) setLoading(false);
     }
   }, []);
-
-  const handleExportCSV = () => {
-    if (!users || users.length === 0) {
-      setAlertState({
-        isOpen: true,
-        title: 'Export Empty',
-        message: 'There are no verification records available to export.',
-      });
-      return;
-    }
-
-    const headers = [
-      'User ID',
-      'Full Name',
-      'Role',
-      'Email Address',
-      'Phone Number',
-      'Municipality',
-      'Barangay',
-      'Verification Status',
-      'Front ID Uploaded',
-      'Back ID Uploaded',
-      'Selfie Uploaded',
-      'Rejection Reason',
-      'Submission Date',
-      'Last Review Date'
-    ];
-
-    const rows = displayedUsers.map((u) => [
-      u.id,
-      u.name,
-      u.role,
-      u.email,
-      u.phone || '',
-      u.municipality || 'Bulan',
-      u.barangay || '',
-      formatCSVStatus(u.verification_status || u.registration_status),
-      u.document_url ? 'Yes' : 'No',
-      u.document_back_url ? 'Yes' : 'No',
-      u.selfie_url ? 'Yes' : 'No',
-      u.rejection_reason || '',
-      formatCSVDate(u.created_at),
-      formatCSVDate(u.updated_at)
-    ]);
-
-    const reportTypeName =
-      statusTab === 'pending'
-        ? 'Pending Review Queue'
-        : statusTab === 'rejected'
-          ? 'Rejected Verifications Masterlist'
-          : statusTab === 'approved'
-            ? 'Approved Verifications Masterlist'
-            : 'All Verifications';
-
-    exportMultiSectionCSV(
-      `sikap_verifications_${statusTab}_${new Date().toISOString().slice(0, 10)}`,
-      `SIKAP Identity Verifications (${reportTypeName})`,
-      [
-        ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Report Type:', reportTypeName],
-        ['Total Records in View:', String(displayedUsers.length)],
-        ['Current Tab:', statusTab.toUpperCase()],
-        ['Sort Order:', sortOrder.toUpperCase()],
-      ],
-      [
-        {
-          title: `Verification Records (${reportTypeName})`,
-          headers,
-          rows,
-        },
-      ]
-    );
-
-    toast.success(`Exported ${displayedUsers.length} verification record(s) to CSV.`, 'CSV Export Ready');
-  };
 
   useEffect(() => {
     fetchVerifications(false, true);
@@ -398,16 +321,6 @@ function VerificationsPageContent() {
             </select>
             <i className="lni lni-chevron-down absolute right-2.5 top-1/2 transform -translate-y-1/2 text-ink-muted text-[10px] pointer-events-none" />
           </div>
-
-          <button
-            onClick={handleExportCSV}
-            aria-label="Export verifications as CSV"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
-            title="Export verifications list as CSV"
-          >
-            <i className="lni lni-download text-xs" />
-            <span>Export CSV</span>
-          </button>
 
           <button
             onClick={() => fetchVerifications(false, true)}
