@@ -942,12 +942,12 @@ function UsersContent() {
               setRoleFilter(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="px-2.5 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer"
+            className="px-2.5 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
           >
-            <option value="all">All Roles</option>
-            <option value="worker">Workers</option>
-            <option value="employer">Employers</option>
-            <option value="admin">Admins</option>
+            <option value="all" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">All Roles</option>
+            <option value="worker" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Workers</option>
+            <option value="employer" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Employers</option>
+            <option value="admin" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Admins</option>
           </select>
 
           <select
@@ -957,11 +957,11 @@ function UsersContent() {
               setSortBy(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="px-2.5 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer"
+            className="px-2.5 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
           >
-            <option value="created_at">Date Registered</option>
-            <option value="name">Name (Alphabetical)</option>
-            <option value="rating">Reputation / Rating</option>
+            <option value="created_at" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Date Registered</option>
+            <option value="name" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Name (Alphabetical)</option>
+            <option value="rating" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Reputation / Rating</option>
           </select>
 
           <select
@@ -971,10 +971,10 @@ function UsersContent() {
               setSortOrder(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="px-2.5 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer"
+            className="px-2.5 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
           >
-            <option value="desc">Newest</option>
-            <option value="asc">Oldest</option>
+            <option value="desc" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Newest</option>
+            <option value="asc" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Oldest</option>
           </select>
 
           <button

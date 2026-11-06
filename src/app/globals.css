@@ -41,8 +41,22 @@
   background-color: rgba(30, 41, 59, 0.55);
 }
 
-.dark :where(.bg-white, .bg-paper-bright) {
+.dark :where(.bg-white, .bg-paper-bright),
+.dark .bg-white,
+.dark .bg-white\/90,
+.dark .bg-white\/80 {
   background-color: #0f172a;
+}
+
+.dark select,
+.dark input,
+.dark textarea {
+  color-scheme: dark;
+}
+
+.dark select option {
+  background-color: #0f172a;
+  color: #f8fafc;
 }
 
 .dark :where(.bg-paper-cream, .bg-primary-tint) {

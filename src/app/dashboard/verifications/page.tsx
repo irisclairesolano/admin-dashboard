@@ -280,9 +280,9 @@ function VerificationsPageContent() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-8 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white focus:border-ink/50 outline-none text-xs font-body transition"
+              className="w-full pl-8 pr-3 py-1.5 bg-white/90 dark:bg-slate-900/90 rounded-xl border border-ink-faint/40 dark:border-slate-700 shadow-xs focus:bg-white dark:focus:bg-slate-900 focus:border-ink/50 dark:focus:border-slate-500 outline-none text-xs font-body transition text-ink dark:text-slate-200 placeholder:text-ink-muted/70 dark:placeholder:text-slate-500"
             />
-            <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
+            <i className="lni lni-search text-ink-muted dark:text-slate-400 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
           </div>
 
           {statusTab === 'pending' && (
@@ -294,15 +294,15 @@ function VerificationsPageContent() {
                   setSlaFilter(e.target.value as any);
                   setCurrentPage(1);
                 }}
-                className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer"
+                className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
               >
-                <option value="all">All SLAs</option>
-                <option value="overdue">🚨 Overdue (&gt;48h)</option>
-                <option value="urgent">⚠️ Urgent (24-48h)</option>
-                <option value="priority">⏱️ Priority (12-24h)</option>
-                <option value="normal">✅ Normal (&lt;12h)</option>
+                <option value="all" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">All SLAs</option>
+                <option value="overdue" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">🚨 Overdue (&gt;48h)</option>
+                <option value="urgent" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">⚠️ Urgent (24-48h)</option>
+                <option value="priority" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">⏱️ Priority (12-24h)</option>
+                <option value="normal" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">✅ Normal (&lt;12h)</option>
               </select>
-              <i className="lni lni-chevron-down absolute right-2.5 top-1/2 transform -translate-y-1/2 text-ink-muted text-[10px] pointer-events-none" />
+              <i className="lni lni-chevron-down absolute right-2.5 top-1/2 transform -translate-y-1/2 text-ink-muted dark:text-slate-400 text-[10px] pointer-events-none" />
             </div>
           )}
 
@@ -314,18 +314,18 @@ function VerificationsPageContent() {
                 setSortOrder(e.target.value as any);
                 setCurrentPage(1);
               }}
-              className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer"
+              className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
             >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
+              <option value="newest" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Newest First</option>
+              <option value="oldest" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Oldest First</option>
             </select>
-            <i className="lni lni-chevron-down absolute right-2.5 top-1/2 transform -translate-y-1/2 text-ink-muted text-[10px] pointer-events-none" />
+            <i className="lni lni-chevron-down absolute right-2.5 top-1/2 transform -translate-y-1/2 text-ink-muted dark:text-slate-400 text-[10px] pointer-events-none" />
           </div>
 
           <button
             onClick={() => fetchVerifications(false, true)}
             aria-label="Refresh verifications list"
-            className="p-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-white text-ink-soft hover:text-primary transition flex items-center justify-center cursor-pointer"
+            className="p-1.5 bg-white dark:bg-slate-900 rounded-lg border border-ink-faint/40 dark:border-slate-700 shadow-2xs hover:bg-slate-100 dark:hover:bg-slate-800 text-ink-soft dark:text-slate-300 hover:text-primary dark:hover:text-primary transition flex items-center justify-center cursor-pointer"
             title="Refresh list"
           >
             <i className={`lni lni-reload text-xs ${loading ? 'animate-spin' : ''}`} />
