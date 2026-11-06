@@ -501,7 +501,7 @@ export default function AnalyticsDashboard() {
       setAiGeneratedAt(new Date());
       setAiCached(!!res.data.cached);
       setTimeout(() => {
-        aiInsightsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        aiInsightsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 150);
     } catch (err: any) {
       console.error('Failed to generate AI insights', err);
