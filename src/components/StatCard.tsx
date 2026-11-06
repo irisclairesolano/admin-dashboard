@@ -14,6 +14,50 @@ interface StatCardProps {
   trendLabel?: string;     // e.g. 'vs last month'
 }
 
+function getDarkIconStyles(iconColorStr: string, bgStr: string) {
+  const combined = `${iconColorStr} ${bgStr}`.toLowerCase();
+  if (combined.includes('emerald') || combined.includes('green')) {
+    return {
+      container: 'dark:from-emerald-950/70 dark:to-emerald-900/40 dark:border dark:border-emerald-500/30 dark:shadow-none',
+      icon: 'dark:text-emerald-400',
+    };
+  }
+  if (combined.includes('amber') || combined.includes('yellow') || combined.includes('orange')) {
+    return {
+      container: 'dark:from-amber-950/70 dark:to-amber-900/40 dark:border dark:border-amber-500/30 dark:shadow-none',
+      icon: 'dark:text-amber-400',
+    };
+  }
+  if (combined.includes('rose') || combined.includes('red')) {
+    return {
+      container: 'dark:from-rose-950/70 dark:to-rose-900/40 dark:border dark:border-rose-500/30 dark:shadow-none',
+      icon: 'dark:text-rose-400',
+    };
+  }
+  if (combined.includes('indigo') || combined.includes('purple') || combined.includes('violet')) {
+    return {
+      container: 'dark:from-indigo-950/70 dark:to-indigo-900/40 dark:border dark:border-indigo-500/30 dark:shadow-none',
+      icon: 'dark:text-indigo-400',
+    };
+  }
+  if (combined.includes('teal')) {
+    return {
+      container: 'dark:from-teal-950/70 dark:to-teal-900/40 dark:border dark:border-teal-500/30 dark:shadow-none',
+      icon: 'dark:text-teal-400',
+    };
+  }
+  if (combined.includes('sky') || combined.includes('blue') || combined.includes('primary')) {
+    return {
+      container: 'dark:from-sky-950/70 dark:to-blue-900/40 dark:border dark:border-sky-500/30 dark:shadow-none',
+      icon: 'dark:text-sky-400',
+    };
+  }
+  return {
+    container: 'dark:from-slate-800 dark:to-slate-800/80 dark:border dark:border-slate-700/60 dark:shadow-none',
+    icon: 'dark:text-slate-300',
+  };
+}
+
 export default function StatCard({
   title,
   value,
@@ -30,16 +74,18 @@ export default function StatCard({
   const trendColor =
     trend === 'up' ? 'text-status-success' :
     trend === 'down' ? 'text-status-error' :
-    'text-ink-muted';
+    'text-ink-muted dark:text-slate-400';
   const trendIcon =
     trend === 'up' ? 'lni lni-arrow-up' :
     trend === 'down' ? 'lni lni-arrow-down' :
     null;
 
+  const darkStyles = getDarkIconStyles(iconColor, bg);
+
   return (
     <div
       className={`bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-xl p-3.5 sm:p-4 border border-ink-faint/30 dark:border-slate-800 shadow-xs transition-all ${
-        onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5' : ''
+        onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5 dark:hover:bg-slate-850 dark:hover:border-slate-700' : ''
       } ${className}`}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
@@ -60,10 +106,10 @@ export default function StatCard({
           )}
         </div>
         {(Icon || iconClass) && (
-          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br ${bg} flex items-center justify-center shadow-inner flex-shrink-0`}>
+          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br ${bg} ${darkStyles.container} flex items-center justify-center shadow-inner flex-shrink-0`}>
             {Icon
-              ? <Icon className={`w-4 h-4 ${iconColor}`} />
-              : <i className={`${iconClass} ${iconColor} text-base`} />}
+              ? <Icon className={`w-4 h-4 ${iconColor} ${darkStyles.icon}`} />
+              : <i className={`${iconClass} ${iconColor} ${darkStyles.icon} text-base`} />}
           </div>
         )}
       </div>

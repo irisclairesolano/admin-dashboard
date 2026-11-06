@@ -611,7 +611,7 @@ function VerificationsPageContent() {
                   const isUserApproved = user.verification_status === 'approved' || !!user.verification_badge;
 
                   return (
-                    <tr key={user.id} className="hover:bg-slate-50/70 transition-colors duration-150">
+                    <tr key={user.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/60 transition-colors duration-150">
                       <td className="px-4 py-3 text-xs font-numeric font-bold text-ink-muted">
                         #{user.id}
                       </td>

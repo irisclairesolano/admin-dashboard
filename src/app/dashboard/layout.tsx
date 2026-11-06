@@ -46,7 +46,7 @@ const getRelativeTime = (timestamp?: string) => {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage<boolean>('admin_sidebar_collapsed', false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationFilter, setNotificationFilter] = useState<'all' | 'unread' | 'reports' | 'verifications' | 'support'>('all');
@@ -600,89 +600,133 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside className={`no-print
         fixed inset-y-0 left-0 z-30 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-r border-white/50 dark:border-slate-800 shadow-glass
         transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
-        lg:static lg:flex-shrink-0 h-full flex flex-col
+        lg:static lg:flex-shrink-0 h-screen max-h-screen flex flex-col overflow-hidden
         ${sidebarOpen ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0'}
         ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-72'}
       `}>
         {/* Sidebar Header */}
-        <div className={`h-20 flex items-center border-b border-ink-faint/30 dark:border-slate-800 flex-shrink-0 transition-all duration-300 ${
+        <div className={`h-16 lg:h-20 flex items-center border-b border-ink-faint/30 dark:border-slate-800 flex-shrink-0 transition-all duration-300 ${
           sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-5'
         }`}>
           {!sidebarCollapsed ? (
-            <div className="flex items-center">
-              <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain dark:brightness-125" />
-              <span className="text-[10px] font-body font-semibold text-ink-muted dark:text-slate-400 ml-1.5 bg-ink-faint/30 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-ink-faint/50 dark:border-slate-700">Admin</span>
-            </div>
+            <>
+              <div className="flex items-center min-w-0">
+                <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain dark:brightness-125" priority />
+                <span className="text-[10px] font-body font-semibold text-ink-muted dark:text-slate-400 ml-1.5 bg-ink-faint/30 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-ink-faint/50 dark:border-slate-700 flex-shrink-0">Admin</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSidebarCollapsed(true)}
+                title="Collapse sidebar"
+                aria-label="Collapse sidebar"
+                className="hidden lg:flex w-7 h-7 rounded-lg items-center justify-center text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-100 hover:bg-paper dark:hover:bg-slate-800 border border-transparent hover:border-ink-faint/50 dark:hover:border-slate-700 transition-colors cursor-pointer"
+              >
+                <i className="lni lni-chevron-left text-xs" />
+              </button>
+            </>
           ) : (
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 dark:bg-slate-800 border border-primary/20 dark:border-slate-700 text-primary dark:text-primary-soft shadow-xs">
-              <span className="font-display font-black text-lg text-primary dark:text-sky-400">S</span>
-            </div>
+            <button
+              type="button"
+              onClick={() => setSidebarCollapsed(false)}
+              title="Expand sidebar"
+              aria-label="Expand sidebar"
+              className="group flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 dark:bg-slate-800 border border-primary/20 dark:border-slate-700 text-primary dark:text-primary-soft shadow-xs hover:border-primary/50 hover:bg-primary/20 dark:hover:bg-slate-700 transition-all cursor-pointer relative"
+            >
+              <span className="font-display font-black text-lg text-primary dark:text-sky-400 group-hover:scale-95 transition-transform">S</span>
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border border-ink-faint/60 dark:border-slate-700 text-ink-muted dark:text-slate-300 flex items-center justify-center text-[9px] shadow-2xs group-hover:text-primary dark:group-hover:text-sky-300">
+                <i className="lni lni-chevron-right text-[8px]" />
+              </span>
+            </button>
           )}
         </div>
 
-        <div className={`flex flex-col flex-1 min-h-0 justify-between transition-all duration-300 ${
-          sidebarCollapsed ? 'p-2.5' : 'p-5'
+        <div className={`flex flex-col flex-1 min-h-0 overflow-hidden transition-all duration-300 ${
+          sidebarCollapsed ? 'p-2' : 'p-4'
         }`}>
-          <nav className="flex-1 mt-4 lg:mt-0 overflow-y-auto pr-1 [scrollbar-width:thin] [scrollbar-color:theme(colors.ink.faint)_transparent] space-y-4">
+          {/* Scrollable Navigation Area */}
+          <nav className="flex-1 overflow-y-auto overflow-x-hidden pr-1 [scrollbar-width:thin] [scrollbar-color:theme(colors.ink.faint)_transparent] space-y-4">
             {navSections.map((section) => (
               <div key={section.key}>
                 {!sidebarCollapsed ? (
-                  <span className="block text-[9px] font-body font-bold uppercase tracking-widest text-ink-muted/60 dark:text-slate-500 px-4 mb-1.5">
+                  <span className="block text-[9px] font-body font-bold uppercase tracking-widest text-ink-muted/60 dark:text-slate-500 px-3 mb-1.5 select-none">
                     {section.label}
                   </span>
                 ) : (
-                  <div className="h-px bg-ink-faint/40 dark:bg-slate-800 my-2 mx-2" />
+                  <div className="h-px bg-ink-faint/40 dark:bg-slate-800 my-2 mx-1" />
                 )}
                 <div className="space-y-1">
                   {section.items.map((item) => {
                     const isActive = pathname === item.href;
                     const hasBadge = item.badge > 0;
                     return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={() => setSidebarOpen(false)}
-                        title={sidebarCollapsed ? item.name : undefined}
-                        className={`
-                          group flex items-center text-sm font-body font-semibold rounded-2xl
-                          transition-all duration-300 relative overflow-hidden
-                          ${sidebarCollapsed ? 'justify-center p-3' : 'px-4 py-3'}
-                          ${isActive
-                            ? 'bg-ink dark:bg-slate-800 text-white shadow-md transform scale-[1.02]'
-                            : 'text-ink-soft dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/60 hover:text-ink dark:hover:text-slate-100 hover:shadow-sm'
-                          }
-                        `}
-                      >
-                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary dark:bg-sky-400 rounded-r-full" />}
-                        <div className="relative flex items-center justify-center">
-                          <i className={`${item.iconClass} text-lg transition-transform duration-300 group-hover:scale-110 ${
-                            sidebarCollapsed ? '' : 'mr-3'
-                          } ${isActive ? 'text-white' : 'text-ink-muted dark:text-slate-400 group-hover:text-primary-dark dark:group-hover:text-sky-300'}`} />
+                      <div key={item.name} className="relative group/navitem">
+                        <Link
+                          href={item.href}
+                          onClick={() => setSidebarOpen(false)}
+                          aria-label={item.name}
+                          className={`
+                            group flex items-center text-sm font-body font-semibold rounded-2xl
+                            transition-all duration-300 relative
+                            ${sidebarCollapsed ? 'justify-center w-12 h-12 mx-auto p-0' : 'px-3.5 py-2.5'}
+                            ${isActive
+                              ? 'bg-ink dark:bg-slate-800 text-white shadow-md transform scale-[1.01]'
+                              : 'text-ink-soft dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/60 hover:text-ink dark:hover:text-slate-100 hover:shadow-xs'
+                            }
+                          `}
+                        >
+                          {isActive && <div className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-primary dark:bg-sky-400 rounded-r-full" />}
+                          <div className="relative flex items-center justify-center flex-shrink-0">
+                            <i className={`${item.iconClass} text-lg transition-transform duration-300 group-hover:scale-110 ${
+                              sidebarCollapsed ? '' : 'mr-3'
+                            } ${isActive ? 'text-white' : 'text-ink-muted dark:text-slate-400 group-hover:text-primary-dark dark:group-hover:text-sky-300'}`} />
 
-                          {/* Mini badge dot in collapsed rail mode */}
-                          {sidebarCollapsed && hasBadge && (
-                            <span className="absolute -top-1 -right-1.5 w-2.5 h-2.5 rounded-full bg-status-error border-2 border-white dark:border-slate-900 animate-pulse" />
+                            {/* Mini badge dot in collapsed rail mode */}
+                            {sidebarCollapsed && hasBadge && (
+                              <span className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 rounded-full bg-status-error border-2 border-white dark:border-slate-900 animate-pulse" />
+                            )}
+                          </div>
+
+                          {!sidebarCollapsed && (
+                            <>
+                              <span className="truncate">{item.name}</span>
+                              <span className="ml-auto flex items-center gap-1.5">
+                                {hasBadge && (
+                                  <span className={`min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${
+                                    item.badgeColor || 'bg-status-error text-white'
+                                  } ${item.name === 'Moderation' ? 'animate-pulse' : ''}`}>
+                                    {item.badge > 99 ? '99+' : item.badge}
+                                  </span>
+                                )}
+                                {prefetchStatus === 'loading' && !hasBadge && (
+                                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                                )}
+                              </span>
+                            </>
                           )}
-                        </div>
+                        </Link>
 
-                        {!sidebarCollapsed && (
-                          <>
-                            <span className="truncate">{item.name}</span>
-                            <span className="ml-auto flex items-center gap-1.5">
-                              {hasBadge && (
-                                <span className={`min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm ${
-                                  item.badgeColor || 'bg-status-error text-white'
-                                } ${item.name === 'Moderation' ? 'animate-pulse' : ''}`}>
-                                  {item.badge > 99 ? '99+' : item.badge}
-                                </span>
-                              )}
-                              {prefetchStatus === 'loading' && !hasBadge && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                              )}
-                            </span>
-                          </>
+                        {/* Collapsed Rail Hover Tooltip */}
+                        {sidebarCollapsed && (
+                          <div
+                            role="tooltip"
+                            className="pointer-events-none fixed z-50 hidden group-hover/navitem:flex items-center gap-2 px-3 py-1.5 text-xs font-body font-semibold text-white bg-slate-900/95 dark:bg-slate-800/95 rounded-xl shadow-xl border border-white/10 dark:border-slate-700/80 backdrop-blur-md whitespace-nowrap animate-fade-in"
+                            style={{
+                              left: '5.25rem',
+                              transform: 'translateY(-50%)',
+                              marginTop: '-1.5rem',
+                            }}
+                          >
+                            <span>{item.name}</span>
+                            {hasBadge && (
+                              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                                item.badgeColor || 'bg-status-error text-white'
+                              }`}>
+                                {item.badge > 99 ? '99+' : item.badge}
+                              </span>
+                            )}
+                          </div>
                         )}
-                      </Link>
+                      </div>
                     );
                   })}
                 </div>
@@ -690,16 +734,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             ))}
           </nav>
 
-          <div className={`pt-4 border-t border-ink-faint/30 dark:border-slate-800 mt-auto flex items-center text-[11px] text-ink-muted dark:text-slate-500 flex-shrink-0 ${
+          {/* Anchored Bottom Admin Branding / Version Section */}
+          <div className={`pt-3 pb-1 border-t border-ink-faint/30 dark:border-slate-800 mt-2 flex items-center text-[11px] text-ink-muted dark:text-slate-500 flex-shrink-0 ${
             sidebarCollapsed ? 'justify-center px-0' : 'justify-between px-2'
           }`}>
             {!sidebarCollapsed ? (
               <>
-                <span className="font-body font-semibold">SIKAP Admin</span>
-                <span className="font-mono text-[10px] bg-paper dark:bg-slate-800 px-1.5 py-0.5 rounded border border-ink-faint/40 dark:border-slate-700">v1.2</span>
+                <span className="font-body font-semibold tracking-tight">SIKAP Admin</span>
+                <span className="font-mono text-[10px] bg-paper dark:bg-slate-800 px-1.5 py-0.5 rounded border border-ink-faint/40 dark:border-slate-700 text-ink-soft dark:text-slate-400">v1.2</span>
               </>
             ) : (
-              <span className="font-mono text-[9px] bg-paper dark:bg-slate-800 px-1 py-0.5 rounded border border-ink-faint/40 dark:border-slate-700">v1.2</span>
+              <span className="font-mono text-[9px] bg-paper dark:bg-slate-800 px-1.5 py-0.5 rounded border border-ink-faint/40 dark:border-slate-700 text-ink-soft dark:text-slate-400" title="SIKAP Admin v1.2">v1.2</span>
             )}
           </div>
         </div>

@@ -18,8 +18,26 @@
 }
 
 /* ── Global Dark Mode Styling for Cards, Surfaces, Buttons & Badges ──────── */
-.dark :where(.bg-paper) {
+.dark :where(
+  .bg-paper,
+  .bg-paper\/95,
+  .bg-paper\/90,
+  .bg-paper\/85,
+  .bg-paper\/80
+) {
   background-color: #020617;
+}
+
+.dark :where(
+  .bg-paper\/70,
+  .bg-paper\/60,
+  .bg-paper\/50,
+  .bg-paper\/40,
+  .bg-paper\/30,
+  .bg-paper\/20,
+  .bg-paper\/10
+) {
+  background-color: rgba(30, 41, 59, 0.55);
 }
 
 .dark :where(.bg-white, .bg-paper-bright) {
@@ -51,6 +69,7 @@
   .bg-slate-50\/50,
   .bg-slate-50\/40,
   .bg-slate-100,
+  .bg-slate-100\/90,
   .bg-slate-100\/80,
   .bg-slate-100\/60,
   .bg-slate-200\/60
@@ -127,14 +146,51 @@
   color: #ffffff !important;
 }
 
-.dark :where(
-  .hover\:bg-white:hover,
-  .hover\:bg-white\/95:hover,
-  .hover\:bg-paper:hover,
-  .hover\:bg-slate-50:hover,
-  .hover\:bg-slate-100:hover
-) {
-  background-color: rgba(30, 41, 59, 0.9);
+/* Dark Mode Hover Overrides: High specificity ensures light Tailwind hover classes never wash out text */
+.dark table tbody tr:hover,
+.dark table tfoot tr:hover,
+.dark tr[class*="hover:bg-"]:hover,
+.dark [class*="hover:bg-slate-"]:hover,
+.dark [class*="hover:bg-gray-"]:hover,
+.dark [class*="hover:bg-paper"]:hover,
+.dark [class*="hover:bg-white"]:hover,
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-50\/90:hover,
+.dark .hover\:bg-slate-50\/80:hover,
+.dark .hover\:bg-slate-50\/70:hover,
+.dark .hover\:bg-slate-50\/60:hover,
+.dark .hover\:bg-slate-50\/50:hover,
+.dark .hover\:bg-slate-100:hover,
+.dark .hover\:bg-slate-100\/90:hover,
+.dark .hover\:bg-slate-100\/80:hover,
+.dark .hover\:bg-slate-200:hover,
+.dark .hover\:bg-white:hover,
+.dark .hover\:bg-white\/95:hover,
+.dark .hover\:bg-white\/90:hover,
+.dark .hover\:bg-white\/80:hover,
+.dark .hover\:bg-white\/70:hover,
+.dark .hover\:bg-white\/60:hover,
+.dark .hover\:bg-white\/50:hover,
+.dark .hover\:bg-paper:hover,
+.dark .hover\:bg-paper\/95:hover,
+.dark .hover\:bg-paper\/90:hover,
+.dark .hover\:bg-paper\/80:hover,
+.dark .hover\:bg-paper\/70:hover,
+.dark .hover\:bg-paper\/60:hover,
+.dark .hover\:bg-paper\/50:hover,
+.dark .hover\:bg-paper\/40:hover,
+.dark .hover\:bg-primary-soft\/20:hover,
+.dark .hover\:bg-primary-soft\/30:hover {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+}
+
+/* Ensure text inside hovered table rows stays clearly readable */
+.dark table tbody tr:hover td,
+.dark table tbody tr:hover th,
+.dark table tbody tr:hover span:not([class*="bg-"]):not([class*="badge"]),
+.dark table tbody tr:hover p,
+.dark table tbody tr:hover div:not([class*="bg-"]):not([class*="rounded"]) {
+  color: inherit;
 }
 
 /* Status Colors & Action Buttons in Dark Mode */
@@ -236,6 +292,18 @@
 .dark :where(table thead th) {
   color: #94a3b8;
   border-color: rgba(51, 65, 85, 0.5);
+}
+
+.dark table tfoot tr,
+.dark tfoot tr,
+.dark tr[class*="bg-slate-100"] {
+  background-color: rgba(30, 41, 59, 0.9) !important;
+  border-color: rgba(51, 65, 85, 0.7) !important;
+  color: #f8fafc !important;
+}
+
+.dark table tfoot td {
+  color: inherit !important;
 }
 
 .dark :where(table tbody tr:hover) {

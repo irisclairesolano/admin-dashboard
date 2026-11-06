@@ -352,7 +352,7 @@ function LogsPageContent() {
                   </tr>
                 ) : (
                   logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-slate-50/70 transition-colors duration-150">
+                    <tr key={log.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/60 transition-colors duration-150">
                       <td className="px-4 py-3 text-xs text-ink-soft whitespace-nowrap font-numeric">
                         <div className="flex items-center text-ink-muted">
                           <i className="lni lni-calendar mr-1.5 text-primary text-xs" />

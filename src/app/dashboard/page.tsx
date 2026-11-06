@@ -529,7 +529,7 @@ export default function AnalyticsDashboard() {
           onChange={(e) => {
             setPreset(e.target.value);
           }}
-          className="bg-white/90 px-2.5 py-1.5 rounded-lg border border-slate-200 shadow-2xs text-xs font-body font-semibold text-slate-700 outline-none focus:border-ink cursor-pointer"
+          className="bg-white/90 dark:bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs text-xs font-body font-semibold text-slate-700 dark:text-slate-200 outline-none focus:border-ink cursor-pointer"
         >
           {presets.map((p) => (
             <option key={p} value={p}>{p}</option>
@@ -537,7 +537,7 @@ export default function AnalyticsDashboard() {
         </select>
 
         {preset === 'Custom Date' ? (
-          <div className="flex items-center gap-1.5 bg-white/90 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+          <div className="flex items-center gap-1.5 bg-white/90 dark:bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs">
             <input
               aria-label={`${tab} custom start date`}
               type="date"
@@ -545,9 +545,9 @@ export default function AnalyticsDashboard() {
               onChange={(e) => {
                 setStart(e.target.value);
               }}
-              className="bg-transparent border-none outline-none font-body text-xs text-slate-700 focus:text-ink"
+              className="bg-transparent border-none outline-none font-body text-xs text-slate-700 dark:text-slate-200 focus:text-ink"
             />
-            <span className="text-slate-400 text-xs font-body">to</span>
+            <span className="text-slate-400 dark:text-slate-500 text-xs font-body">to</span>
             <input
               aria-label={`${tab} custom end date`}
               type="date"
@@ -555,12 +555,12 @@ export default function AnalyticsDashboard() {
               onChange={(e) => {
                 setEnd(e.target.value);
               }}
-              className="bg-transparent border-none outline-none font-body text-xs text-slate-700 focus:text-ink"
+              className="bg-transparent border-none outline-none font-body text-xs text-slate-700 dark:text-slate-200 focus:text-ink"
             />
           </div>
         ) : (
           from && to && (
-            <span className="text-[11px] font-numeric font-medium text-slate-500 bg-white/80 px-2 py-1 rounded-lg border border-slate-200/60 hidden sm:inline-block shadow-2xs">
+            <span className="text-[11px] font-numeric font-medium text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-slate-900/80 px-2 py-1 rounded-lg border border-slate-200/60 dark:border-slate-800 hidden sm:inline-block shadow-2xs">
               {from} to {to}
             </span>
           )
@@ -1387,10 +1387,10 @@ export default function AnalyticsDashboard() {
 
       <div className="screen-only">
         {/* Sticky Top Filter & Header Bar */}
-        <div className="sticky top-0 z-30 bg-paper/95 backdrop-blur-md border-b border-ink-faint/60 -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6 py-2 mb-3 no-print shadow-2xs flex flex-col gap-2">
+        <div className="sticky top-0 z-30 bg-paper/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-ink-faint/60 dark:border-slate-800 -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6 py-2 mb-3 no-print shadow-2xs flex flex-col gap-2">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div>
-              <h1 className="text-xl font-display font-bold text-ink tracking-tight">Overview</h1>
+              <h1 className="text-xl font-display font-bold text-ink dark:text-slate-100 tracking-tight">Overview</h1>
             </div>
 
           {/* Date Filter & Aggregation Components */}
@@ -1416,7 +1416,7 @@ export default function AnalyticsDashboard() {
         </div>
 
         {/* Tab System Controls & View Mode Switcher */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-ink-faint/50 pb-0.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-ink-faint/50 dark:border-slate-800 pb-0.5">
           <div role="tablist" aria-label="Analytics sections" className="flex overflow-x-auto gap-1">
             {[
               { id: 'overview', label: 'Overview' },
@@ -1433,8 +1433,8 @@ export default function AnalyticsDashboard() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`py-1.5 px-3 font-body text-xs border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === tab.id
-                    ? 'border-ink text-ink font-bold'
-                    : 'border-transparent text-ink-muted hover:text-ink font-medium'
+                    ? 'border-ink dark:border-blue-400 text-ink dark:text-blue-400 font-bold'
+                    : 'border-transparent text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-200 font-medium'
                 }`}
               >
                 {tab.label}
@@ -1443,13 +1443,13 @@ export default function AnalyticsDashboard() {
           </div>
 
           {/* View Mode Switcher: Charts | Table | Split */}
-          <div className="flex items-center gap-1 self-start sm:self-auto bg-white/90 p-0.5 rounded-lg border border-slate-200/80 shadow-2xs no-print">
+          <div className="flex items-center gap-1 self-start sm:self-auto bg-white/90 dark:bg-slate-900/90 p-0.5 rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-2xs no-print">
             <button
               type="button"
               onClick={() => setViewMode('charts')}
               title="View Visual Charts only"
               className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
-                viewMode === 'charts' ? 'bg-ink text-white shadow-2xs' : 'text-slate-600 hover:text-ink hover:bg-slate-100'
+                viewMode === 'charts' ? 'bg-ink dark:bg-blue-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               <i className="lni lni-pie-chart text-[10px]" />
@@ -1460,7 +1460,7 @@ export default function AnalyticsDashboard() {
               onClick={() => setViewMode('table')}
               title="View Detailed Table only"
               className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
-                viewMode === 'table' ? 'bg-ink text-white shadow-2xs' : 'text-slate-600 hover:text-ink hover:bg-slate-100'
+                viewMode === 'table' ? 'bg-ink dark:bg-blue-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               <i className="lni lni-table text-[10px]" />
@@ -1471,7 +1471,7 @@ export default function AnalyticsDashboard() {
               onClick={() => setViewMode('split')}
               title="Split View: Visual charts and tables"
               className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
-                viewMode === 'split' ? 'bg-ink text-white shadow-2xs' : 'text-slate-600 hover:text-ink hover:bg-slate-100'
+                viewMode === 'split' ? 'bg-ink dark:bg-blue-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
               <i className="lni lni-layers text-[10px]" />
@@ -1559,22 +1559,22 @@ export default function AnalyticsDashboard() {
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/users')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/users'); }}
-                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 bg-white/90 shadow-2xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between"
+                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 shadow-2xs hover:shadow-sm dark:hover:bg-slate-850 dark:hover:border-slate-700 transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-ink-muted">New Sign-ups</span>
-                      <i className="lni lni-users text-sm text-primary-dark/80" />
+                      <span className="text-xs font-semibold text-ink-muted dark:text-slate-400">New Sign-ups</span>
+                      <i className="lni lni-users text-sm text-primary-dark/80 dark:text-blue-400" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
-                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
+                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink dark:text-slate-100 tracking-tight">
                         {(data?.kpis?.total_users?.value ?? 0).toLocaleString()}
                       </h3>
                     </div>
                   </div>
-                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
+                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 dark:border-slate-800 flex items-center justify-between text-[11px] font-medium text-ink-muted dark:text-slate-400">
                     <span>{detailedTotals.new_workers.toLocaleString()} Workers · {detailedTotals.new_employers.toLocaleString()} Employers</span>
-                    <span className="text-[10px] text-ink-muted/70 group-hover:text-primary-dark transition-colors">Users →</span>
+                    <span className="text-[10px] text-ink-muted/70 dark:text-slate-500 group-hover:text-primary-dark dark:group-hover:text-blue-400 transition-colors">Users →</span>
                   </div>
                 </div>
 
@@ -1584,22 +1584,22 @@ export default function AnalyticsDashboard() {
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/jobs')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/jobs'); }}
-                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 bg-white/90 shadow-2xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between"
+                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 shadow-2xs hover:shadow-sm dark:hover:bg-slate-850 dark:hover:border-slate-700 transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-ink-muted">Job Posts</span>
-                      <i className="lni lni-briefcase text-sm text-sky-700/80" />
+                      <span className="text-xs font-semibold text-ink-muted dark:text-slate-400">Job Posts</span>
+                      <i className="lni lni-briefcase text-sm text-sky-700/80 dark:text-sky-400" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
-                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
+                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink dark:text-slate-100 tracking-tight">
                         {(data?.kpis?.active_jobs?.value ?? 0).toLocaleString()}
                       </h3>
                     </div>
                   </div>
-                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
+                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 dark:border-slate-800 flex items-center justify-between text-[11px] font-medium text-ink-muted dark:text-slate-400">
                     <span>Jobs open right now</span>
-                    <span className="text-[10px] text-ink-muted/70 group-hover:text-primary-dark transition-colors">Jobs →</span>
+                    <span className="text-[10px] text-ink-muted/70 dark:text-slate-500 group-hover:text-primary-dark dark:group-hover:text-blue-400 transition-colors">Jobs →</span>
                   </div>
                 </div>
 
@@ -1609,22 +1609,22 @@ export default function AnalyticsDashboard() {
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/jobs')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/jobs'); }}
-                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 bg-white/90 shadow-2xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between"
+                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 shadow-2xs hover:shadow-sm dark:hover:bg-slate-850 dark:hover:border-slate-700 transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-ink-muted">Job Applications</span>
-                      <i className="lni lni-files text-sm text-emerald-700/80" />
+                      <span className="text-xs font-semibold text-ink-muted dark:text-slate-400">Job Applications</span>
+                      <i className="lni lni-files text-sm text-emerald-700/80 dark:text-emerald-400" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
-                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
+                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink dark:text-slate-100 tracking-tight">
                         {(data?.kpis?.applications?.value ?? 0).toLocaleString()}
                       </h3>
                     </div>
                   </div>
-                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
+                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 dark:border-slate-800 flex items-center justify-between text-[11px] font-medium text-ink-muted dark:text-slate-400">
                     <span>Workers who applied</span>
-                    <span className="text-[10px] text-ink-muted/70 group-hover:text-primary-dark transition-colors">Applications →</span>
+                    <span className="text-[10px] text-ink-muted/70 dark:text-slate-500 group-hover:text-primary-dark dark:group-hover:text-blue-400 transition-colors">Applications →</span>
                   </div>
                 </div>
 
@@ -1634,25 +1634,25 @@ export default function AnalyticsDashboard() {
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/moderation')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/moderation'); }}
-                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 bg-white/90 shadow-2xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between"
+                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 shadow-2xs hover:shadow-sm dark:hover:bg-slate-850 dark:hover:border-slate-700 transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-ink-muted">Reports Received</span>
-                      <i className="lni lni-shield text-sm text-rose-700/80" />
+                      <span className="text-xs font-semibold text-ink-muted dark:text-slate-400">Reports Received</span>
+                      <i className="lni lni-shield text-sm text-rose-700/80 dark:text-rose-400" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
-                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink tracking-tight">
+                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink dark:text-slate-100 tracking-tight">
                         {(data?.kpis?.unresolved_reports?.value ?? 0).toLocaleString()}
                       </h3>
                       <HealthStatusBadge type="reports" value={data?.kpis?.unresolved_reports?.value ?? 0} />
                     </div>
                   </div>
-                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 flex items-center justify-between text-[11px] font-medium text-ink-muted">
+                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 dark:border-slate-800 flex items-center justify-between text-[11px] font-medium text-ink-muted dark:text-slate-400">
                     <span className="truncate">
                       {data?.verification?.pending_verifications ? `${data.verification.pending_verifications} pending reviews` : 'Queue cleared'}
                     </span>
-                    <span className="text-[10px] text-ink-muted/70 group-hover:text-primary-dark transition-colors">Reports →</span>
+                    <span className="text-[10px] text-ink-muted/70 dark:text-slate-500 group-hover:text-primary-dark dark:group-hover:text-blue-400 transition-colors">Reports →</span>
                   </div>
                 </div>
               </div>
@@ -2061,7 +2061,7 @@ export default function AnalyticsDashboard() {
                       </tbody>
                       {transformedDetailedTimeSeries.length > 0 && (
                         <tfoot>
-                          <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
+                          <tr className="bg-slate-100/90 dark:bg-slate-800/90 border-t-2 border-slate-300 dark:border-slate-700 font-bold text-ink dark:text-slate-100 text-xs">
                             <td className="py-2 px-3 uppercase tracking-wider text-[10px]">
                               Total ({transformedDetailedTimeSeries.length} periods)
                             </td>
@@ -2302,7 +2302,7 @@ export default function AnalyticsDashboard() {
                       </tbody>
                       {transformedDetailedTimeSeries.length > 0 && (
                         <tfoot>
-                          <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
+                          <tr className="bg-slate-100/90 dark:bg-slate-800/90 border-t-2 border-slate-300 dark:border-slate-700 font-bold text-ink dark:text-slate-100 text-xs">
                             <td className="py-2 px-3 uppercase tracking-wider text-[10px]">
                               Total ({transformedDetailedTimeSeries.length} periods)
                             </td>
@@ -2695,7 +2695,7 @@ export default function AnalyticsDashboard() {
                         </tbody>
                         {transformedJobsData.length > 0 && (
                           <tfoot>
-                            <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
+                            <tr className="bg-slate-100/90 dark:bg-slate-800/90 border-t-2 border-slate-300 dark:border-slate-700 font-bold text-ink dark:text-slate-100 text-xs">
                               <td colSpan={2} className="py-2 px-3 uppercase tracking-wider text-[10px]">
                                 Total ({transformedJobsData.length} Sectors)
                               </td>
@@ -2765,7 +2765,7 @@ export default function AnalyticsDashboard() {
                         </tbody>
                         {transformedGeographicActivity.length > 0 && (
                           <tfoot>
-                            <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
+                            <tr className="bg-slate-100/90 dark:bg-slate-800/90 border-t-2 border-slate-300 dark:border-slate-700 font-bold text-ink dark:text-slate-100 text-xs">
                               <td colSpan={2} className="py-2 px-3 uppercase tracking-wider text-[10px]">
                                 Total ({transformedGeographicActivity.length} Locations)
                               </td>
@@ -3205,7 +3205,7 @@ export default function AnalyticsDashboard() {
                     </tbody>
                     {data?.reports?.breakdown && data.reports.breakdown.length > 0 && (
                       <tfoot>
-                        <tr className="bg-slate-100/90 border-t-2 border-slate-300 font-bold text-ink text-xs">
+                        <tr className="bg-slate-100/90 dark:bg-slate-800/90 border-t-2 border-slate-300 dark:border-slate-700 font-bold text-ink dark:text-slate-100 text-xs">
                           <td colSpan={2} className="py-2 px-3 uppercase tracking-wider text-[10px]">
                             Total ({data.reports.breakdown.length} Categories)
                           </td>

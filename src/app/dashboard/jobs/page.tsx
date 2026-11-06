@@ -639,7 +639,9 @@ function JobsPageContent() {
                       key={job.id}
                       onClick={() => setSelectedDetailJob(job)}
                       className={`transition-colors duration-150 cursor-pointer ${
-                        isSelected ? 'bg-primary/10 hover:bg-primary/15' : 'hover:bg-slate-50/70'
+                        isSelected
+                          ? 'bg-primary/10 dark:bg-sky-950/40 hover:bg-primary/15 dark:hover:bg-sky-900/50'
+                          : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/60'
                       }`}
                     >
                       <td className="px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>

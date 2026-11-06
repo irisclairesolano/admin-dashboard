@@ -458,7 +458,7 @@ function ModerationPageContent() {
                     <tr
                       key={report.id}
                       onClick={() => setSelectedReport(report)}
-                      className="hover:bg-slate-50/70 transition-colors duration-150 cursor-pointer group"
+                      className="hover:bg-slate-50/70 dark:hover:bg-slate-800/60 transition-colors duration-150 cursor-pointer group"
                     >
                       <td className="px-4 py-3">
                         <span className="px-2 py-0.5 rounded text-[10px] font-body font-bold tracking-wide uppercase bg-ink text-white inline-block truncate max-w-full">

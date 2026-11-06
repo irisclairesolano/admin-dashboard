@@ -87,12 +87,12 @@ export default function UserTable({
                 key={user.id}
                 className={`transition-colors duration-200 ${
                   isSelected
-                    ? 'bg-primary/10 dark:bg-sky-950/40 hover:bg-primary/15'
+                    ? 'bg-primary/10 dark:bg-sky-950/40 hover:bg-primary/15 dark:hover:bg-sky-900/50'
                     : user.deleted_at
-                      ? 'bg-ink-faint/15 dark:bg-slate-800/40 hover:bg-ink-faint/25'
+                      ? 'bg-ink-faint/15 dark:bg-slate-800/40 hover:bg-ink-faint/25 dark:hover:bg-slate-800/70'
                       : user.is_suspended
-                        ? 'bg-status-error/5 dark:bg-status-error/15 hover:bg-status-error/10'
-                        : 'hover:bg-white/60 dark:hover:bg-slate-800/50'
+                        ? 'bg-status-error/5 dark:bg-status-error/15 hover:bg-status-error/10 dark:hover:bg-status-error/25'
+                        : 'hover:bg-white/60 dark:hover:bg-slate-800/60'
                 }`}
               >
                 {onToggleSelectUser && (

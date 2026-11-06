@@ -464,16 +464,16 @@ export default function BlacklistPage() {
               </thead>
               <tbody className="divide-y divide-ink-faint/20 text-xs">
                 {records.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50/70 transition-colors">
+                  <tr key={r.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/60 transition-colors">
                     {/* Identity Details */}
                     <td className="px-4 py-3.5">
-                      <div className="font-bold text-ink text-sm">{r.name}</div>
-                      <div className="text-ink-muted text-xs mt-0.5 flex flex-col gap-0.5">
+                      <div className="font-bold text-ink dark:text-slate-100 text-sm">{r.name}</div>
+                      <div className="text-ink-muted dark:text-slate-400 text-xs mt-0.5 flex flex-col gap-0.5">
                         {r.email && <span>{r.email}</span>}
                         {r.phone && <span className="font-mono text-[11px]">{r.phone}</span>}
                       </div>
                       {r.role && (
-                        <span className="inline-block uppercase tracking-wider text-[9px] font-bold text-ink-muted/80 bg-paper px-2 py-0.5 rounded mt-1 border border-ink-faint/40">
+                        <span className="inline-block uppercase tracking-wider text-[9px] font-bold text-ink-muted/80 dark:text-slate-400 bg-paper dark:bg-slate-800 px-2 py-0.5 rounded mt-1 border border-ink-faint/40 dark:border-slate-700">
                           Role: {r.role}
                         </span>
                       )}
@@ -484,7 +484,7 @@ export default function BlacklistPage() {
                       <div className="space-y-1">
                         {getTypeBadge(r.type)}
                         {r.type === 'suspended' && r.suspended_until && (
-                          <div className="text-[11px] text-amber-700 font-medium">
+                          <div className="text-[11px] text-amber-700 dark:text-amber-400 font-medium">
                             Until: {new Date(r.suspended_until).toLocaleDateString()}
                           </div>
                         )}
@@ -492,8 +492,8 @@ export default function BlacklistPage() {
                           <span
                             className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                               r.is_active
-                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                                : 'bg-slate-100 text-slate-500'
+                                ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/60'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                             }`}
                           >
                             {r.is_active ? 'Active Match Rule' : 'Inactive / Lifted'}
@@ -504,8 +504,8 @@ export default function BlacklistPage() {
 
                     {/* Reason */}
                     <td className="px-4 py-3.5">
-                      <div className="bg-paper/70 p-2.5 rounded-xl border border-ink-faint/40 text-ink-soft leading-relaxed text-xs">
-                        {r.reason || <span className="text-ink-muted italic">No specific reason provided</span>}
+                      <div className="bg-paper/70 dark:bg-slate-800/60 p-2.5 rounded-xl border border-ink-faint/40 dark:border-slate-700 text-ink-soft dark:text-slate-300 leading-relaxed text-xs">
+                        {r.reason || <span className="text-ink-muted dark:text-slate-500 italic">No specific reason provided</span>}
                       </div>
                     </td>
 
