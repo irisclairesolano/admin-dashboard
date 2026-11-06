@@ -8,6 +8,7 @@
     min-height: 100%;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
   }
   body {
     @apply bg-paper dark:bg-slate-950 text-ink dark:text-slate-100 font-body transition-colors duration-200;

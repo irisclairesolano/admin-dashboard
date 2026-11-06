@@ -127,10 +127,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const didPrefetch = useRef(false);
   const initialSyncDone = useRef(false);
   const seenNotificationIds = useRef<Set<string>>(new Set());
+  const mainContentRef = useRef<HTMLElement>(null);
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
   const { newReportCount, latestReportAt, clearCount: clearSSECount } = useSSEReports();
+
+  // Scroll to top of main content on route navigation
+  useEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTop = 0;
+    }
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname]);
 
   const triggerBrowserNotification = useCallback(
     (
@@ -565,7 +576,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   return (
-    <div className="h-screen bg-paper flex relative overflow-hidden">
+    <div className="fixed inset-0 h-screen w-screen bg-paper flex overflow-hidden">
       {/* Decorative background blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-soft/50 dark:bg-primary/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-30 animate-pulse-slow" />
       <div className="absolute top-[20%] right-[-5%] w-72 h-72 bg-accent-sky/50 dark:bg-sky-900/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-30 animate-pulse-slow" style={{ animationDelay: '1s' }} />
@@ -574,7 +585,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Mobile header */}
       <div className="no-print lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-slate-900/90 backdrop-blur-md border-b border-white/50 dark:border-slate-800 z-20 flex items-center justify-between px-4 shadow-sm flex-shrink-0">
         <div className="flex items-center">
-          <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={120} height={32} className="h-8 object-contain dark:brightness-125" />
+          <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={120} height={32} className="h-8 object-contain dark:brightness-0 dark:invert" />
           <span className="text-xs font-body font-semibold text-ink-muted dark:text-slate-400 ml-2 bg-ink-faint/30 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-ink-faint/50 dark:border-slate-700">Admin</span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
@@ -600,7 +611,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside className={`no-print
         fixed inset-y-0 left-0 z-30 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-r border-white/50 dark:border-slate-800 shadow-glass
         transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
-        lg:static lg:flex-shrink-0 h-screen max-h-screen flex flex-col overflow-hidden
+        lg:static lg:flex-shrink-0 h-full max-h-full flex flex-col overflow-hidden
         ${sidebarOpen ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0'}
         ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-72'}
       `}>
@@ -611,7 +622,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {!sidebarCollapsed ? (
             <>
               <div className="flex items-center min-w-0">
-                <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain dark:brightness-125" priority />
+                <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain dark:brightness-0 dark:invert" priority />
                 <span className="text-[10px] font-body font-semibold text-ink-muted dark:text-slate-400 ml-1.5 bg-ink-faint/30 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-ink-faint/50 dark:border-slate-700 flex-shrink-0">Admin</span>
               </div>
               <button
@@ -799,22 +810,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       )}
 
       {/* ── Persistent Content Wrapper (Main) ──────────────────── */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+      <div className="flex-1 min-h-0 min-w-0 flex flex-col h-full overflow-hidden relative">
         {/* Desktop Top Header (Content Page Side) */}
-        <header className="no-print hidden lg:flex items-center justify-between h-14 px-6 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/50 dark:border-slate-800 z-20 flex-shrink-0 gap-6">
+        <header className="no-print hidden lg:flex items-center justify-between h-14 px-6 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/50 dark:border-slate-800 z-20 shrink-0 gap-6 sticky top-0">
           <div className="flex items-center gap-3 shrink-0">
-            {/* Sidebar toggle button */}
-            <button
-              type="button"
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              title={sidebarCollapsed ? "Expand sidebar" : "Minimize sidebar"}
-              aria-label={sidebarCollapsed ? "Expand sidebar" : "Minimize sidebar"}
-              className="w-8 h-8 rounded-lg bg-white/80 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700 hover:border-ink-faint dark:hover:border-slate-600 text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-100 shadow-2xs flex items-center justify-center transition-all cursor-pointer group shrink-0"
-            >
-              <i className={`text-sm transition-transform duration-300 group-hover:scale-110 ${
-                sidebarCollapsed ? 'lni lni-menu' : 'lni lni-chevron-left'
-              }`} />
-            </button>
+            {/* Sidebar expand button (only shown when sidebar is collapsed to avoid duplicate chevrons) */}
+            {sidebarCollapsed && (
+              <button
+                type="button"
+                onClick={() => setSidebarCollapsed(false)}
+                title="Expand sidebar"
+                aria-label="Expand sidebar"
+                className="w-8 h-8 rounded-lg bg-white/80 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700 hover:border-ink-faint dark:hover:border-slate-600 text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-100 shadow-2xs flex items-center justify-center transition-all cursor-pointer group shrink-0"
+              >
+                <i className="lni lni-menu text-sm transition-transform duration-300 group-hover:scale-110" />
+              </button>
+            )}
 
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-body uppercase tracking-wider text-ink-muted dark:text-slate-400">Admin Dashboard</span>
@@ -905,8 +916,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         )}
 
-        <main className="flex-1 w-full mx-auto relative overflow-y-auto pt-16 lg:pt-0">
-          <div className="p-3 sm:p-4 md:p-6 animate-fade-in max-w-[1560px] mx-auto">
+        <main ref={mainContentRef} className="flex-1 min-h-0 min-w-0 w-full mx-auto relative overflow-y-auto pt-16 lg:pt-0 [scrollbar-gutter:stable]">
+          <div className="p-3 sm:p-4 md:p-6 animate-fade-in max-w-[1560px] mx-auto min-h-full flex flex-col">
             <ErrorBoundary>
               {children}
             </ErrorBoundary>
