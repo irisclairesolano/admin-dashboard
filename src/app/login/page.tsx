@@ -107,7 +107,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070D0C] text-slate-100 relative flex flex-col justify-between overflow-x-hidden selection:bg-teal-400 selection:text-slate-950">
+    <div className="h-screen max-h-screen bg-[#070D0C] text-slate-100 relative flex flex-col justify-between overflow-hidden selection:bg-teal-400 selection:text-slate-950">
       
       {/* ── Ambient Background Glows & Subtle Grid ──────────────────────── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
@@ -137,11 +137,11 @@ export default function LoginPage() {
       </div>
 
       {/* ── Top Navigation Bar ────────────────────────────────────────────── */}
-      <header className="w-full z-30 px-6 sm:px-12 lg:px-16 py-5 flex items-center justify-between border-b border-emerald-950/40 bg-[#070D0C]/60 backdrop-blur-md">
+      <header className="w-full z-30 px-6 sm:px-10 lg:px-14 py-3 sm:py-3.5 flex items-center justify-between border-b border-emerald-950/40 bg-[#070D0C]/60 backdrop-blur-md shrink-0">
         
         {/* Left: Official SIKAP Logo */}
         <div className="flex items-center gap-3">
-          <div className="relative h-8 w-28 flex items-center">
+          <div className="relative h-7 w-24 sm:h-8 sm:w-28 flex items-center">
             <Image
               src="/logo/04_Wordmark.png"
               alt="SIKAP Logo"
@@ -153,29 +153,27 @@ export default function LoginPage() {
           </div>
         </div>
 
-
-
         {/* Right: Location Badge with Pulsing Live Dot */}
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0E1A18]/90 border border-emerald-500/25 text-xs font-semibold text-emerald-300 shadow-xs backdrop-blur-sm">
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#0E1A18]/90 border border-emerald-500/25 text-xs font-semibold text-emerald-300 shadow-xs backdrop-blur-sm">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50" />
           <span>Sorsogon, Philippines</span>
         </div>
       </header>
 
       {/* ── Main Hero Section ─────────────────────────────────────────────── */}
-      <main className="relative z-20 flex-1 max-w-7xl mx-auto w-full px-6 sm:px-12 lg:px-16 py-8 sm:py-12 lg:py-16 flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-16">
+      <main className="relative z-20 flex-1 min-h-0 max-w-7xl mx-auto w-full px-6 sm:px-10 lg:px-14 py-3 sm:py-4 lg:py-6 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 lg:gap-12">
         
         {/* ── Left Column: Value Prop & Local Context ── */}
-        <div className="flex-1 max-w-xl text-left space-y-6 animate-slide-up order-2 lg:order-1">
+        <div className="flex-1 max-w-xl text-left space-y-3 sm:space-y-4 lg:space-y-5 animate-slide-up order-2 lg:order-1">
           
           {/* Capstone Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0C1917]/90 border border-emerald-500/30 text-emerald-300 text-xs font-semibold tracking-wide shadow-xs backdrop-blur-sm">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0C1917]/90 border border-emerald-500/30 text-emerald-300 text-xs font-semibold tracking-wide shadow-xs backdrop-blur-sm">
             <Shield className="w-3.5 h-3.5 text-emerald-400" />
             <span>Capstone Research Project</span>
           </div>
 
           {/* Heading */}
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-[54px] font-black tracking-tight text-white leading-[1.12]">
+          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl xl:text-[44px] font-black tracking-tight text-white leading-[1.12]">
             Local Skills &amp; Labor<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300">
               Workforce Management
@@ -183,30 +181,30 @@ export default function LoginPage() {
           </h1>
 
           {/* Description */}
-          <p className="font-body text-sm sm:text-base text-slate-300/85 leading-relaxed max-w-lg">
+          <p className="font-body text-xs sm:text-sm text-slate-300/85 leading-relaxed max-w-lg">
             The administrative console behind the SIKAP mobile job platform.
             Verify identities, moderate job posts, track applications, and keep
             Bulan&apos;s workforce community safe.
           </p>
 
           {/* Feature Badges Row */}
-          <div className="flex flex-wrap items-center gap-2.5 pt-1">
-            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#0D1817]/80 border border-emerald-500/20 text-xs font-medium text-slate-200 backdrop-blur-sm hover:border-emerald-500/40 transition-colors">
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0D1817]/80 border border-emerald-500/20 text-xs font-medium text-slate-200 backdrop-blur-sm hover:border-emerald-500/40 transition-colors">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
               <span>ID Verification</span>
             </div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#0D1817]/80 border border-emerald-500/20 text-xs font-medium text-slate-200 backdrop-blur-sm hover:border-emerald-500/40 transition-colors">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0D1817]/80 border border-emerald-500/20 text-xs font-medium text-slate-200 backdrop-blur-sm hover:border-emerald-500/40 transition-colors">
               <Briefcase className="w-3.5 h-3.5 text-teal-400" />
               <span>Job Listings</span>
             </div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#0D1817]/80 border border-emerald-500/20 text-xs font-medium text-slate-200 backdrop-blur-sm hover:border-emerald-500/40 transition-colors">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0D1817]/80 border border-emerald-500/20 text-xs font-medium text-slate-200 backdrop-blur-sm hover:border-emerald-500/40 transition-colors">
               <AlertTriangle className="w-3.5 h-3.5 text-emerald-300" />
               <span>Safety &amp; Moderation</span>
             </div>
           </div>
 
           {/* Team Credits: Clean, Integrated Bottom-Left Signature */}
-          <div className="pt-6 sm:pt-8 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-xs text-slate-400">
+          <div className="pt-2 sm:pt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
             <span className="font-bold uppercase tracking-wider text-emerald-400 text-[11px] mr-1">
               TEAM
             </span>
@@ -229,14 +227,14 @@ export default function LoginPage() {
         </div>
 
         {/* ── Right Column: Administrator Portal Sign-In Card ── */}
-        <div className="w-full max-w-md sm:w-[420px] bg-[#0A1413]/85 rounded-3xl border border-emerald-500/20 shadow-2xl shadow-emerald-950/60 p-7 sm:p-9 relative z-20 animate-slide-up flex-shrink-0 order-1 lg:order-2 backdrop-blur-xl">
+        <div className="w-full max-w-md sm:w-[400px] lg:w-[420px] bg-[#0A1413]/85 rounded-2xl sm:rounded-3xl border border-emerald-500/20 shadow-2xl shadow-emerald-950/60 p-5 sm:p-6 lg:p-7 relative z-20 animate-slide-up flex-shrink-0 order-1 lg:order-2 backdrop-blur-xl">
           
           {/* Card Header */}
-          <div className="mb-6 text-left">
-            <h2 className="font-display text-2xl font-black text-white tracking-tight">
+          <div className="mb-3.5 text-left">
+            <h2 className="font-display text-xl sm:text-2xl font-black text-white tracking-tight">
               {mfaRequired ? 'Two-Factor Challenge' : 'Administrator Portal'}
             </h2>
-            <p className="font-body text-xs text-slate-400 mt-1.5 leading-relaxed">
+            <p className="font-body text-xs text-slate-400 mt-1 leading-relaxed">
               {mfaRequired
                 ? 'Enter the 6-digit TOTP code generated by your authenticator application.'
                 : 'Sign in with your authorized credentials to manage municipal platform assets.'}
@@ -246,7 +244,7 @@ export default function LoginPage() {
           {/* Error / Lockout Alert */}
           {error && (
             <div
-              className={`border px-4 py-3 rounded-xl mb-5 text-xs font-medium flex flex-col gap-2 animate-fade-in ${
+              className={`border px-3 py-2 rounded-lg mb-3 text-xs font-medium flex flex-col gap-1.5 animate-fade-in ${
                 error.includes('Lockout reset')
                   ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
                   : 'bg-rose-950/40 border-rose-500/40 text-rose-300'
@@ -267,7 +265,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={handleResetLockout}
                   disabled={resettingThrottle}
-                  className="self-start mt-1 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white rounded-lg font-bold text-xs transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                  className="self-start mt-0.5 px-3 py-1 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white rounded-lg font-bold text-xs transition-all shadow-xs disabled:opacity-50 cursor-pointer"
                 >
                   {resettingThrottle ? 'Unlocking...' : '🔓 Reset Lockout Now'}
                 </button>
@@ -276,20 +274,20 @@ export default function LoginPage() {
           )}
 
           {!mfaRequired ? (
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-3">
               
               {/* Email Address */}
               <div>
-                <label className="block font-body font-medium text-slate-300 text-xs mb-1.5">
+                <label className="block font-body font-medium text-slate-300 text-xs mb-1">
                   Email address
                 </label>
                 <div className="relative flex items-center">
-                  <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 pointer-events-none" />
+                  <Mail className="w-4 h-4 text-slate-500 absolute left-3 pointer-events-none" />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-body text-sm text-slate-100 transition-all placeholder:text-slate-600"
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-body text-sm text-slate-100 transition-all placeholder:text-slate-600"
                     placeholder="admin@sikap.ph"
                     required
                   />
@@ -298,7 +296,7 @@ export default function LoginPage() {
 
               {/* Password */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center justify-between mb-1">
                   <label className="font-body font-medium text-slate-300 text-xs">
                     Password
                   </label>
@@ -311,19 +309,19 @@ export default function LoginPage() {
                   </button>
                 </div>
                 <div className="relative flex items-center">
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 pointer-events-none" />
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 pointer-events-none" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-11 py-3 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-body text-sm text-slate-100 transition-all placeholder:text-slate-600"
+                    className="w-full pl-9 pr-10 py-2.5 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-body text-sm text-slate-100 transition-all placeholder:text-slate-600"
                     placeholder="Enter your password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 text-slate-500 hover:text-slate-300 p-1 cursor-pointer transition-colors"
+                    className="absolute right-2.5 text-slate-500 hover:text-slate-300 p-1 cursor-pointer transition-colors"
                     aria-label="Toggle password visibility"
                   >
                     {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -338,7 +336,7 @@ export default function LoginPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-700 bg-[#060D0C] text-teal-400 focus:ring-teal-400/20 focus:ring-offset-0 cursor-pointer accent-teal-400"
+                  className="w-3.5 h-3.5 rounded border-slate-700 bg-[#060D0C] text-teal-400 focus:ring-teal-400/20 focus:ring-offset-0 cursor-pointer accent-teal-400"
                 />
                 <label
                   htmlFor="remember-me"
@@ -352,7 +350,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-[#6ee7b7] via-[#2dd4bf] to-[#38bdf8] hover:brightness-110 active:scale-[0.98] disabled:opacity-75 disabled:cursor-not-allowed text-slate-950 font-body font-bold py-3.5 rounded-xl shadow-lg shadow-teal-500/25 transition-all flex justify-center items-center gap-2 text-sm mt-5 cursor-pointer"
+                className="w-full bg-gradient-to-r from-[#6ee7b7] via-[#2dd4bf] to-[#38bdf8] hover:brightness-110 active:scale-[0.98] disabled:opacity-75 disabled:cursor-not-allowed text-slate-950 font-body font-bold py-2.5 sm:py-3 rounded-xl shadow-lg shadow-teal-500/25 transition-all flex justify-center items-center gap-2 text-sm mt-3.5 cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -368,9 +366,9 @@ export default function LoginPage() {
               </button>
             </form>
           ) : (
-            <form onSubmit={handleMfaVerify} className="space-y-4">
+            <form onSubmit={handleMfaVerify} className="space-y-3">
               <div>
-                <label className="block font-body font-medium text-slate-300 text-xs mb-1.5">
+                <label className="block font-body font-medium text-slate-300 text-xs mb-1">
                   6-Digit Verification Code
                 </label>
                 <input
@@ -378,7 +376,7 @@ export default function LoginPage() {
                   maxLength={10}
                   value={totpCode}
                   onChange={(e) => setTotpCode(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-mono text-center text-xl tracking-widest text-white font-bold transition-all placeholder:text-slate-600"
+                  className="w-full px-4 py-2.5 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-mono text-center text-lg tracking-widest text-white font-bold transition-all placeholder:text-slate-600"
                   placeholder="000000"
                   autoFocus
                   required
@@ -388,7 +386,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || !totpCode}
-                className="w-full bg-gradient-to-r from-[#6ee7b7] via-[#2dd4bf] to-[#38bdf8] hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-body font-bold py-3.5 rounded-xl shadow-lg shadow-teal-500/25 transition-all flex justify-center items-center gap-2 text-sm mt-4 cursor-pointer"
+                className="w-full bg-gradient-to-r from-[#6ee7b7] via-[#2dd4bf] to-[#38bdf8] hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-body font-bold py-2.5 sm:py-3 rounded-xl shadow-lg shadow-teal-500/25 transition-all flex justify-center items-center gap-2 text-sm mt-3 cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -410,7 +408,7 @@ export default function LoginPage() {
                   setTotpCode('');
                   setError('');
                 }}
-                className="w-full text-center text-xs font-semibold text-slate-400 hover:text-teal-300 transition-colors mt-2 block"
+                className="w-full text-center text-xs font-semibold text-slate-400 hover:text-teal-300 transition-colors mt-1.5 block"
               >
                 &larr; Back to password login
               </button>
@@ -418,7 +416,7 @@ export default function LoginPage() {
           )}
 
           {/* Secured Access Divider */}
-          <div className="relative my-6 flex items-center justify-center">
+          <div className="relative my-3.5 flex items-center justify-center">
             <div className="w-full border-t border-slate-800/80" />
             <span className="absolute bg-[#0A1413] px-3 text-[10px] uppercase font-bold tracking-widest text-slate-500">
               SECURED ACCESS
@@ -426,15 +424,15 @@ export default function LoginPage() {
           </div>
 
           {/* Card Bottom Security Notice */}
-          <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400">
+          <div className="flex items-center justify-center gap-2 text-[10px] sm:text-[11px] text-slate-400">
             <Shield className="w-3.5 h-3.5 text-teal-400/80 flex-shrink-0" />
             <span>Authorized personnel only. All admin actions are logged.</span>
           </div>
         </div>
       </main>
 
-      {/* ── Minimal Bottom Edge (Old Bulky Footer Completely Removed) ────── */}
-      <div className="w-full px-6 sm:px-12 lg:px-16 py-3.5 border-t border-slate-900/90 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500/80 relative z-20 gap-1">
+      {/* ── Minimal Bottom Edge ───────────────────────────────────────────── */}
+      <div className="w-full px-6 sm:px-10 lg:px-14 py-2 sm:py-2.5 border-t border-slate-900/90 flex flex-col sm:flex-row items-center justify-between text-[10px] sm:text-[11px] text-slate-500/80 relative z-20 gap-1 shrink-0">
         <span>&copy; {new Date().getFullYear()} SIKAP Project · Skills &amp; Job Matching Platform</span>
         <span className="hidden sm:inline">Local Skills &amp; Labor Workforce Management</span>
       </div>
