@@ -131,16 +131,19 @@ export default function VerificationModal({
   }, [user]);
 
   // ── PRIVATE BUCKET SIGNED URL REFRESH FOR GOVERNMENT ID DOCUMENTS ──────────
-  // If document_url is missing or is an unsigned public URL on a private bucket, fetch fresh signed details from API
+  // If any document URL is missing or is an unsigned URL from the list endpoint, fetch fresh signed details from API
   useEffect(() => {
     let isCancelled = false;
     const loadFreshUser = async () => {
       const frontDoc = user.document_url || user.document_front_url || user.id_front_url;
+      const backDoc = user.document_back_url || user.id_back_url;
+      const selfieDoc = user.selfie_url || user.id_selfie_url;
+      const businessDocs = Array.isArray(user.business_documents) ? user.business_documents : [];
+      const docUrls = [frontDoc, backDoc, selfieDoc, ...businessDocs].filter(
+        (d): d is string => typeof d === 'string' && d.trim() !== ''
+      );
       const needsFreshDetails =
-        !frontDoc ||
-        (typeof frontDoc === 'string' &&
-          frontDoc.includes('/government-ids/') &&
-          !frontDoc.includes('token='));
+        docUrls.length === 0 || docUrls.some((d) => !d.includes('token='));
 
       if (needsFreshDetails && user.id) {
         try {
@@ -162,7 +165,7 @@ export default function VerificationModal({
     return () => {
       isCancelled = true;
     };
-  }, [user.id, user.document_url, user.document_front_url, user.id_front_url]);
+  }, [user.id, user.document_url, user.document_front_url, user.id_front_url, user.document_back_url, user.selfie_url, user.business_documents]);
 
   const frontUrl = currentUser.document_url || currentUser.document_front_url || currentUser.id_front_url || null;
   const backUrl = currentUser.document_back_url || currentUser.id_back_url || null;

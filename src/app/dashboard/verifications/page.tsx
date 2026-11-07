@@ -95,7 +95,7 @@ function VerificationsPageContent() {
   }, []);
 
   useEffect(() => {
-    fetchVerifications(false, true);
+    fetchVerifications(false, false);
   }, [fetchVerifications]);
 
   usePolling(() => fetchVerifications(true, true), 15000);
