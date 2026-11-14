@@ -464,7 +464,7 @@ function ModerationPageContent() {
                         <span className="px-2 py-0.5 rounded text-[10px] font-body font-bold tracking-wide uppercase bg-ink text-white inline-block truncate max-w-full">
                           {humanizeModel(report.reportable_type)}
                         </span>
-                        <div className="mt-1 text-[10px] font-numeric font-bold text-ink-soft bg-white/70 inline-block px-1.5 py-0.5 rounded border border-ink-faint/40">
+                        <div className="mt-1 text-[10px] font-numeric font-bold text-ink-soft dark:text-slate-300 bg-white/70 dark:bg-slate-800/80 inline-block px-1.5 py-0.5 rounded border border-ink-faint/40 dark:border-slate-700">
                           ID: #{report.reportable_id}
                         </div>
                       </td>
@@ -472,7 +472,7 @@ function ModerationPageContent() {
                         <div className="flex items-center">
                           {report.reporter ? (
                             <>
-                              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-paper-cream to-ink-faint flex items-center justify-center text-ink font-body font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
+                              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-paper-cream to-ink-faint dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-ink dark:text-slate-100 font-body font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
                                 {(report.reporter?.name || 'Deleted Account').charAt(0)}
                               </div>
                               <div className="min-w-0">
@@ -743,7 +743,7 @@ function ModerationPageContent() {
               )}
 
               {/* Target Item Details Card */}
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-paper to-white border border-ink-faint/50 mb-6 shadow-sm">
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-paper to-white dark:from-slate-800 dark:to-slate-900 border border-ink-faint/50 dark:border-slate-700 mb-6 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-xs font-body font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
                     <i className="lni lni-target text-primary" />
@@ -772,7 +772,7 @@ function ModerationPageContent() {
                       <>
                         <div className="flex items-start justify-between gap-2">
                           <span className="font-bold text-ink text-sm">{targetDetails.title || 'Untitled Job'}</span>
-                          <span className="px-2 py-0.5 rounded bg-accent-sky text-primary-dark font-semibold text-[10px]">
+                          <span className="px-2 py-0.5 rounded bg-accent-sky dark:bg-sky-900/70 text-primary-dark dark:text-sky-200 font-semibold text-[10px]">
                             {targetDetails.category || 'General'}
                           </span>
                         </div>
@@ -818,24 +818,24 @@ function ModerationPageContent() {
               {/* ── Modal Action Sections (Organized & De-cluttered) ── */}
               <div className="space-y-4">
                 {/* Section 1: Primary Disciplinary Action */}
-                <div className="p-4 rounded-2xl bg-rose-50/70 border border-rose-200/90 shadow-2xs">
-                  <div className="flex items-center justify-between mb-2">
+                <div className="p-4 rounded-2xl bg-rose-50/70 dark:bg-rose-950/40 border border-rose-200/90 dark:border-rose-800/70 shadow-2xs">
+                  <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-lg bg-rose-600 text-white flex items-center justify-center text-xs shadow-xs">
                         <i className="lni lni-ban" />
                       </div>
-                      <span className="text-xs font-body font-bold text-rose-950 uppercase tracking-wider">
+                      <span className="text-xs font-body font-bold text-rose-950 dark:text-rose-100 uppercase tracking-wider">
                         Primary Disciplinary Action
                       </span>
                     </div>
                     {targetUser && (
-                      <span className="text-[11px] font-body font-semibold text-rose-700">
+                      <span className="text-[11px] font-body font-semibold text-rose-700 dark:text-rose-300">
                         Target User: {targetUser.name} {targetUser.id ? `(#${targetUser.id})` : ''}
                       </span>
                     )}
                   </div>
 
-                  <p className="text-xs text-rose-800/80 font-body mb-2.5">
+                  <p className="text-xs text-rose-800/80 dark:text-rose-200 font-body mb-2.5">
                     Direct enforcement on the offending account or listing. Executes immediate disciplinary action and marks this report as resolved.
                   </p>
 
@@ -935,7 +935,7 @@ function ModerationPageContent() {
                     type="button"
                     disabled={actionLoading === selectedReport.id}
                     onClick={() => handleResolve(selectedReport.id, 'resolved')}
-                    className="flex-1 py-3 px-4 rounded-xl bg-status-success hover:bg-emerald-600 text-white font-body font-bold text-xs transition-all shadow-sm shadow-status-success/20 flex items-center justify-center gap-2 cursor-pointer"
+                    className="flex-1 py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-body font-bold text-xs transition-all shadow-sm shadow-status-success/20 flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <i className="lni lni-checkmark-circle text-xs" />
                     Mark as Resolved

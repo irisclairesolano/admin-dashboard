@@ -58,7 +58,7 @@ export default function Avatar({ name, url, className = '', size = 'md', isSuspe
     const initials = getInitials(name);
     const bgClass = isSuspended
       ? 'bg-status-error/20 text-status-error'
-      : 'bg-gradient-to-br from-accent-sky to-accent-skyDeep/40 text-primary-dark';
+      : 'bg-gradient-to-br from-accent-sky to-accent-skyDeep/40 dark:from-sky-900/70 dark:to-sky-800/60 text-primary-dark dark:text-sky-100';
 
     return (
       <div

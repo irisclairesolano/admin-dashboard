@@ -483,7 +483,7 @@ function ArchivesPageContent() {
                         </td>
                         <td className="px-4 py-3">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                            user.role === 'employer' ? 'bg-accent-peach text-primary-dark border border-accent-peachBright/50' : 'bg-accent-mint text-accent-mintDeep border border-accent-mintDeep/20'
+                            user.role === 'employer' ? 'bg-accent-peach dark:bg-amber-900/60 text-primary-dark dark:text-amber-100 border border-accent-peachBright/50 dark:border-amber-700/60' : 'bg-accent-mint dark:bg-emerald-900/60 text-accent-mintDeep dark:text-emerald-200 border border-accent-mintDeep/20 dark:border-emerald-700/60'
                           }`}>
                             {user.role}
                           </span>
@@ -514,7 +514,7 @@ function ArchivesPageContent() {
                               </button>
                             </div>
                           ) : (
-                            <span className="text-[10px] text-ink-muted/70 italic">Superadmin Only</span>
+                            <span className="text-[10px] text-ink-muted dark:text-slate-400 italic">Superadmin Only</span>
                           )}
                         </td>
                       </tr>
@@ -585,7 +585,7 @@ function ArchivesPageContent() {
                               </button>
                             </div>
                           ) : (
-                            <span className="text-[10px] text-ink-muted/70 italic">Superadmin Only</span>
+                            <span className="text-[10px] text-ink-muted dark:text-slate-400 italic">Superadmin Only</span>
                           )}
                         </td>
                       </tr>

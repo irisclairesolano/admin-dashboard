@@ -8,26 +8,23 @@ export const authStorage = {
   getToken: (): string | null => {
     if (typeof window === 'undefined') return null;
     try {
-      const token = sessionStorage.getItem('admin_token');
+      const token = sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token');
       if (token) return token;
-      // One-time fallback & migration from legacy localStorage if present
-      const legacyToken = localStorage.getItem('admin_token');
-      if (legacyToken) {
-        sessionStorage.setItem('admin_token', legacyToken);
-        localStorage.removeItem('admin_token');
-        return legacyToken;
-      }
     } catch {
       // Ignore storage access errors
     }
     return null;
   },
 
-  setToken: (token: string): void => {
+  setToken: (token: string, persistent = false): void => {
     if (typeof window === 'undefined') return;
     try {
       sessionStorage.setItem('admin_token', token);
-      localStorage.removeItem('admin_token'); // Ensure removed from persistent storage
+      if (persistent) {
+        localStorage.setItem('admin_token', token);
+      } else {
+        localStorage.removeItem('admin_token');
+      }
     } catch {
       // Ignore
     }
@@ -36,25 +33,24 @@ export const authStorage = {
   getUser: <T = unknown>(): T | null => {
     if (typeof window === 'undefined') return null;
     try {
-      const stored = sessionStorage.getItem('admin_user');
+      const stored = sessionStorage.getItem('admin_user') || localStorage.getItem('admin_user');
       if (stored) return JSON.parse(stored) as T;
-      const legacy = localStorage.getItem('admin_user');
-      if (legacy) {
-        sessionStorage.setItem('admin_user', legacy);
-        localStorage.removeItem('admin_user');
-        return JSON.parse(legacy) as T;
-      }
     } catch {
       // Ignore
     }
     return null;
   },
 
-  setUser: (user: unknown): void => {
+  setUser: (user: unknown, persistent = false): void => {
     if (typeof window === 'undefined') return;
     try {
-      sessionStorage.setItem('admin_user', JSON.stringify(user));
-      localStorage.removeItem('admin_user');
+      const serialized = JSON.stringify(user);
+      sessionStorage.setItem('admin_user', serialized);
+      if (persistent) {
+        localStorage.setItem('admin_user', serialized);
+      } else {
+        localStorage.removeItem('admin_user');
+      }
     } catch {
       // Ignore
     }
@@ -63,25 +59,24 @@ export const authStorage = {
   getPermissions: <T = unknown>(): T | null => {
     if (typeof window === 'undefined') return null;
     try {
-      const stored = sessionStorage.getItem('admin_permissions');
+      const stored = sessionStorage.getItem('admin_permissions') || localStorage.getItem('admin_permissions');
       if (stored) return JSON.parse(stored) as T;
-      const legacy = localStorage.getItem('admin_permissions');
-      if (legacy) {
-        sessionStorage.setItem('admin_permissions', legacy);
-        localStorage.removeItem('admin_permissions');
-        return JSON.parse(legacy) as T;
-      }
     } catch {
       // Ignore
     }
     return null;
   },
 
-  setPermissions: (permissions: unknown): void => {
+  setPermissions: (permissions: unknown, persistent = false): void => {
     if (typeof window === 'undefined') return;
     try {
-      sessionStorage.setItem('admin_permissions', JSON.stringify(permissions));
-      localStorage.removeItem('admin_permissions');
+      const serialized = JSON.stringify(permissions);
+      sessionStorage.setItem('admin_permissions', serialized);
+      if (persistent) {
+        localStorage.setItem('admin_permissions', serialized);
+      } else {
+        localStorage.removeItem('admin_permissions');
+      }
     } catch {
       // Ignore
     }

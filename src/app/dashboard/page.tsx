@@ -1884,13 +1884,13 @@ export default function AnalyticsDashboard() {
                                 <span>{step.label}</span>
                                 <span className="font-bold text-ink">{step.value} <span className="text-[10px] font-normal text-ink-muted">({step.rate})</span></span>
                               </div>
-                              <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden border border-gray-200/50">
+                              <div className="h-4 w-full bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden border border-gray-200/50 dark:border-slate-700">
                                 {parseFloat(step.rate) > 0 ? (
                                   <div
                                     className="h-full border-r border-white/50 flex items-center justify-end px-2 transition-all duration-1000"
-                                    style={{ width: step.rate, backgroundColor: idx === 0 ? '#3E7648' : idx === 1 ? '#87CEEB' : '#90EE90' }}
+                                    style={{ width: step.rate, backgroundColor: idx === 0 ? '#3E7648' : idx === 1 ? '#0369A1' : '#15803D' }}
                                   >
-                                    <span className="text-[8px] font-bold font-numeric text-white">{step.rate}</span>
+                                    <span className="text-[10px] font-bold font-numeric text-white leading-none">{step.rate}</span>
                                   </div>
                                 ) : (
                                   <div className="h-full w-0 transition-all duration-1000" />

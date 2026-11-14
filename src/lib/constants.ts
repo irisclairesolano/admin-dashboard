@@ -30,12 +30,12 @@ export const KPI_LABELS = {
 // ─── Job Status Badge Map ────────────────────────────────────────────────────
 // Covers all known job statuses with appropriate Tailwind color classes.
 export const STATUS_BADGE_MAP: Record<string, string> = {
-  open:        'bg-status-success/20 text-status-success border border-status-success/30',
-  in_progress: 'bg-accent-sky/40 text-primary-dark border border-accent-sky/50',
-  'in progress': 'bg-accent-sky/40 text-primary-dark border border-accent-sky/50',
-  completed:   'bg-primary/15 text-primary-dark border border-primary/25',
-  cancelled:   'bg-ink-faint/50 text-ink-soft border border-ink-faint',
-  suspended:   'bg-status-warning/20 text-status-warning border border-status-warning/30',
+  open:        'bg-status-success/20 text-status-success dark:text-emerald-300 border border-status-success/30',
+  in_progress: 'bg-accent-sky/40 dark:bg-sky-500/20 text-primary-dark dark:text-sky-200 border border-accent-sky/50 dark:border-sky-500/35',
+  'in progress': 'bg-accent-sky/40 dark:bg-sky-500/20 text-primary-dark dark:text-sky-200 border border-accent-sky/50 dark:border-sky-500/35',
+  completed:   'bg-primary/15 dark:bg-blue-500/20 text-primary-dark dark:text-blue-200 border border-primary/25 dark:border-blue-500/35',
+  cancelled:   'bg-ink-faint/50 dark:bg-slate-700/60 text-ink-soft dark:text-slate-200 border border-ink-faint dark:border-slate-600',
+  suspended:   'bg-status-warning/20 text-status-warning dark:text-amber-300 border border-status-warning/30',
 };
 
 export const DEFAULT_BADGE_CLASS = 'bg-ink-faint/50 text-ink-soft border border-ink-faint';

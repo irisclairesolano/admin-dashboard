@@ -32,36 +32,36 @@ export default function Tooltip({
   };
 
   const variantBg: Record<string, string> = {
-    default: 'bg-white/90 border-white/50 text-ink',
-    danger:  'bg-status-error/90 border-status-error/30 text-white',
-    success: 'bg-status-success/90 border-status-success/30 text-white',
-    warning: 'bg-status-warning/90 border-status-warning/30 text-white',
+    default: 'bg-white/95 dark:bg-slate-900/95 border-white/50 dark:border-slate-700 text-ink dark:text-slate-100',
+    danger:  'bg-status-error/95 border-status-error/30 text-white',
+    success: 'bg-emerald-700/95 border-emerald-500/30 text-white',
+    warning: 'bg-amber-700/95 border-amber-500/30 text-white',
   };
 
   const arrowColor: Record<string, string> = {
     top: {
-      default: 'border-t-white/90',
-      danger:  'border-t-status-error/90',
-      success: 'border-t-status-success/90',
-      warning: 'border-t-status-warning/90',
+      default: 'border-t-white/95 dark:border-t-slate-900/95',
+      danger:  'border-t-status-error/95',
+      success: 'border-t-emerald-700/95',
+      warning: 'border-t-amber-700/95',
     }[variant],
     bottom: {
-      default: 'border-b-white/90',
-      danger:  'border-b-status-error/90',
-      success: 'border-b-status-success/90',
-      warning: 'border-b-status-warning/90',
+      default: 'border-b-white/95 dark:border-b-slate-900/95',
+      danger:  'border-b-status-error/95',
+      success: 'border-b-emerald-700/95',
+      warning: 'border-b-amber-700/95',
     }[variant],
     left: {
-      default: 'border-l-white/90',
-      danger:  'border-l-status-error/90',
-      success: 'border-l-status-success/90',
-      warning: 'border-l-status-warning/90',
+      default: 'border-l-white/95 dark:border-l-slate-900/95',
+      danger:  'border-l-status-error/95',
+      success: 'border-l-emerald-700/95',
+      warning: 'border-l-amber-700/95',
     }[variant],
     right: {
-      default: 'border-r-white/90',
-      danger:  'border-r-status-error/90',
-      success: 'border-r-status-success/90',
-      warning: 'border-r-status-warning/90',
+      default: 'border-r-white/95 dark:border-r-slate-900/95',
+      danger:  'border-r-status-error/95',
+      success: 'border-r-emerald-700/95',
+      warning: 'border-r-amber-700/95',
     }[variant],
   };
 
@@ -79,7 +79,7 @@ export default function Tooltip({
       <div
         role="tooltip"
         className={`
-          pointer-events-none absolute z-[9999] whitespace-nowrap
+          pointer-events-none absolute z-[9999] max-w-[calc(100vw-2rem)] whitespace-normal sm:whitespace-nowrap text-center
           ${positionStyles[position]}
           transition-all duration-200
           ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}

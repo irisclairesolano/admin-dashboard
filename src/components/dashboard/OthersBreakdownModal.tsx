@@ -132,7 +132,7 @@ export default function OthersBreakdownModal({
         className="relative bg-white rounded-2xl shadow-2xl border border-ink-faint/80 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden z-10 animate-scale-up"
       >
         {/* Modal Header */}
-        <div className="p-4 sm:p-5 border-b border-ink-faint/50 bg-gradient-to-r from-paper to-white flex items-start justify-between gap-4">
+        <div className="p-4 sm:p-5 border-b border-ink-faint/50 dark:border-slate-700 bg-gradient-to-r from-paper to-white dark:from-slate-900 dark:to-slate-900 flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 text-primary">
@@ -315,7 +315,7 @@ export default function OthersBreakdownModal({
                   className="py-2.5 px-2 flex items-center justify-between gap-3 hover:bg-paper/40 rounded-lg transition-colors group"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="text-[11px] font-bold font-numeric text-ink-muted/80 w-5 shrink-0 text-center">
+                    <span className="text-[11px] font-bold font-numeric text-ink-muted dark:text-slate-300 w-5 shrink-0 text-center">
                       #{index + 1}
                     </span>
                     <div className="min-w-0">

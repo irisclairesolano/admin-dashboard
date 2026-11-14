@@ -145,7 +145,7 @@ export default function UserTable({
                 </td>
                 <td className="px-4 py-3.5">
                   <div className="flex flex-col space-y-2 items-start">
-                    <span className={`px-4 py-1.5 rounded-full text-xs font-body font-bold tracking-wide uppercase shadow-sm ${user.role === 'employer' ? 'bg-accent-peach border border-accent-peachBright/50 text-primary-dark' : 'bg-accent-mint border border-accent-mintDeep/30 text-accent-mintDeep'
+                    <span className={`px-4 py-1.5 rounded-full text-xs font-body font-bold tracking-wide uppercase shadow-sm ${user.role === 'employer' ? 'bg-accent-peach dark:bg-amber-900/60 border border-accent-peachBright/50 dark:border-amber-700/60 text-primary-dark dark:text-amber-100' : 'bg-accent-mint dark:bg-emerald-900/60 border border-accent-mintDeep/30 dark:border-emerald-700/60 text-accent-mintDeep dark:text-emerald-200'
                       }`}>
                       {user.role}
                     </span>

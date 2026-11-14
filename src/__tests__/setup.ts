@@ -1,3 +1,5 @@
+process.env.NEXT_PUBLIC_API_URL = 'http://127.0.0.1:0/api/v1';
+
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 

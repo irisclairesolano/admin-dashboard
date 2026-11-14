@@ -380,10 +380,10 @@ function SupportTicketsPageContent() {
                 <div className="flex justify-between items-start mb-2.5">
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-body font-bold ${
                     ticket.status === 'open' 
-                      ? 'bg-status-warning/20 text-status-warning' 
+                      ? 'bg-status-warning/20 text-status-warning dark:text-amber-300' 
                       : ticket.status === 'processing'
-                      ? 'bg-accent-sky/20 text-accent-skyDeep'
-                      : 'bg-status-success/20 text-status-success'
+                      ? 'bg-accent-sky/20 dark:bg-sky-900/50 text-accent-skyDeep dark:text-sky-200'
+                      : 'bg-status-success/20 text-status-success dark:text-emerald-300'
                   }`}>
                     {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
                   </span>

@@ -277,7 +277,7 @@ export default function JobDetailModal({
 
               {/* Badges & Meta Row */}
               <div className="flex flex-wrap items-center gap-2 mt-2.5">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-accent-sky text-primary-dark border border-white/50">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-accent-sky dark:bg-sky-900/70 text-primary-dark dark:text-sky-100 border border-white/50 dark:border-sky-700/60">
                   {currentJob.category || 'General'}
                 </span>
 

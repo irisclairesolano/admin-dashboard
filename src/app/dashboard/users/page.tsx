@@ -884,17 +884,17 @@ function UsersContent() {
           </button>
           <button
             onClick={() => { setFilter('verified'); setCurrentPage(1); }}
-            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'verified' ? 'bg-status-success text-white' : 'bg-white/70 text-ink-soft hover:bg-white border border-ink-faint/40'}`}>
+            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'verified' ? 'bg-emerald-700 text-white' : 'bg-white/70 dark:bg-slate-800/80 text-ink-soft dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'}`}>
             Verified
           </button>
           <button
             onClick={() => { setFilter('pending_review'); setCurrentPage(1); }}
-            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'pending_review' ? 'bg-amber-600 text-white' : 'bg-white/70 text-ink-soft hover:bg-white border border-ink-faint/40'}`}>
+            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'pending_review' ? 'bg-amber-700 text-white' : 'bg-white/70 dark:bg-slate-800/80 text-ink-soft dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'}`}>
             Pending Review
           </button>
           <button
             onClick={() => { setFilter('pending_id_upload'); setCurrentPage(1); }}
-            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'pending_id_upload' ? 'bg-orange-600 text-white' : 'bg-white/70 text-ink-soft hover:bg-white border border-ink-faint/40'}`}>
+            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'pending_id_upload' ? 'bg-orange-700 text-white' : 'bg-white/70 dark:bg-slate-800/80 text-ink-soft dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'}`}>
             Incomplete Onboarding ({incompleteUsers.length})
           </button>
           <button
@@ -1161,7 +1161,7 @@ function UsersContent() {
       )}
       {/* Floating Bulk Actions Bar */}
       {selectedUserIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-ink text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4 border border-white/20 animate-fade-in backdrop-blur-md">
+        <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 max-w-[calc(100vw-1.5rem)] bg-ink text-white px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-2xl shadow-2xl flex flex-wrap items-center justify-center gap-2 sm:gap-4 border border-white/20 animate-fade-in backdrop-blur-md">
           <div className="flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold font-numeric">
               {selectedUserIds.size}
@@ -1170,8 +1170,8 @@ function UsersContent() {
               {selectedUserIds.size === 1 ? 'user' : 'users'} selected
             </span>
           </div>
-          <div className="h-4 w-px bg-white/20" />
-          <div className="flex items-center gap-2">
+          <div className="hidden sm:block h-4 w-px bg-white/20" />
+          <div className="flex flex-wrap items-center justify-center gap-2">
             {suspendableUsers.length > 0 && (
               <button
                 onClick={() => handleBulkSuspend(true)}

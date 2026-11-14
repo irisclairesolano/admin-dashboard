@@ -26,7 +26,7 @@ export function UndoToast({
     <div
       role="status"
       aria-live="polite"
-      className="fixed bottom-6 right-6 z-50 max-w-md w-full bg-ink text-white rounded-2xl shadow-2xl border border-white/20 overflow-hidden animate-slide-in backdrop-blur-md"
+      className="fixed bottom-4 left-3 right-3 sm:left-auto sm:bottom-6 sm:right-6 sm:w-full sm:max-w-md z-50 bg-ink text-white rounded-2xl shadow-2xl border border-white/20 overflow-hidden animate-slide-in backdrop-blur-md"
       style={{ boxShadow: '0 12px 36px rgba(0, 0, 0, 0.35)' }}
     >
       {/* Progress countdown bar */}

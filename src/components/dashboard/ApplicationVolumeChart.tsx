@@ -108,12 +108,12 @@ const ApplicationVolumeChart = memo(function ApplicationVolumeChart({
           <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
           <Tooltip
             shared
+            wrapperClassName="bg-white/95 dark:bg-slate-900/95 text-ink dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg backdrop-blur-md"
             contentStyle={{
               borderRadius: '12px',
-              border: '1px solid rgba(255,255,255,0.7)',
-              boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)',
-              backgroundColor: 'rgba(255, 255, 255, 0.96)',
-              backdropFilter: 'blur(8px)',
+              border: 'none',
+              boxShadow: 'none',
+              backgroundColor: 'transparent',
             }}
             labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
           />

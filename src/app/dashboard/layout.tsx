@@ -583,12 +583,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="absolute bottom-[-10%] left-[20%] w-80 h-80 bg-accent-mint/40 dark:bg-emerald-950/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-20 animate-pulse-slow" style={{ animationDelay: '2s' }} />
 
       {/* Mobile header */}
-      <div className="no-print lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-slate-900/90 backdrop-blur-md border-b border-white/50 dark:border-slate-800 z-20 flex items-center justify-between px-4 shadow-sm flex-shrink-0">
-        <div className="flex items-center">
-          <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={120} height={32} className="h-8 object-contain dark:brightness-0 dark:invert" />
-          <span className="text-xs font-body font-semibold text-ink-muted dark:text-slate-400 ml-2 bg-ink-faint/30 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-ink-faint/50 dark:border-slate-700">Admin</span>
+      <div className="no-print lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-slate-900/90 backdrop-blur-md border-b border-white/50 dark:border-slate-800 z-20 flex items-center justify-between px-2.5 sm:px-4 shadow-sm flex-shrink-0 gap-1">
+        <div className="flex items-center min-w-0 shrink">
+          <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={120} height={32} className="h-7 sm:h-8 w-auto object-contain dark:brightness-0 dark:invert" />
+          <span className="hidden sm:inline-flex text-xs font-body font-semibold text-ink-muted dark:text-slate-300 ml-2 bg-ink-faint/30 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-ink-faint/50 dark:border-slate-700">Admin</span>
         </div>
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
           <button
             type="button"
             onClick={() => setCommandPaletteOpen(true)}
@@ -659,7 +659,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {navSections.map((section) => (
               <div key={section.key}>
                 {!sidebarCollapsed ? (
-                  <span className="block text-[9px] font-body font-bold uppercase tracking-widest text-ink-muted/60 dark:text-slate-500 px-3 mb-1.5 select-none">
+                  <span className="block text-[10px] font-body font-bold uppercase tracking-widest text-ink-muted dark:text-slate-400 px-3 mb-1.5 select-none">
                     {section.label}
                   </span>
                 ) : (
@@ -746,7 +746,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
 
           {/* Anchored Bottom Admin Branding / Version Section */}
-          <div className={`pt-3 pb-1 border-t border-ink-faint/30 dark:border-slate-800 mt-2 flex items-center text-[11px] text-ink-muted dark:text-slate-500 flex-shrink-0 ${
+          <div className={`pt-3 pb-1 border-t border-ink-faint/30 dark:border-slate-800 mt-2 flex items-center text-[11px] text-ink-muted dark:text-slate-400 flex-shrink-0 ${
             sidebarCollapsed ? 'justify-center px-0' : 'justify-between px-2'
           }`}>
             {!sidebarCollapsed ? (

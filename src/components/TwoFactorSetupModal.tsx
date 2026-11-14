@@ -102,8 +102,8 @@ export const TwoFactorSetupModal: React.FC<TwoFactorSetupModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/70 backdrop-blur-sm animate-fade-in" role="dialog" aria-modal="true">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 dark:border-slate-800 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 dark:bg-black/70 backdrop-blur-sm animate-fade-in overflow-y-auto" role="dialog" aria-modal="true">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-gray-100 dark:border-slate-800 relative my-auto">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
@@ -183,7 +183,7 @@ export const TwoFactorSetupModal: React.FC<TwoFactorSetupModalProps> = ({
                 type="button"
                 onClick={handleStartSetup}
                 disabled={loading}
-                className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-ink font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-ink dark:text-slate-100 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5"
               >
                 {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Reconfigure Key
@@ -221,7 +221,7 @@ export const TwoFactorSetupModal: React.FC<TwoFactorSetupModalProps> = ({
                   placeholder="Enter your current password"
                   required
                   autoFocus
-                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-status-error focus:bg-white text-ink"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-status-error focus:bg-white dark:focus:bg-slate-800 text-ink dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                 />
                 <KeyRound className="w-4 h-4 text-gray-400 absolute right-3.5 top-3" />
               </div>
@@ -231,7 +231,7 @@ export const TwoFactorSetupModal: React.FC<TwoFactorSetupModalProps> = ({
               <button
                 type="button"
                 onClick={() => setStep('manage')}
-                className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-ink font-bold text-xs rounded-xl transition-colors"
+                className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-ink dark:text-slate-100 font-bold text-xs rounded-xl transition-colors"
               >
                 Cancel
               </button>
@@ -261,7 +261,7 @@ export const TwoFactorSetupModal: React.FC<TwoFactorSetupModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-ink font-bold text-xs rounded-xl transition-colors"
+                className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-ink dark:text-slate-100 font-bold text-xs rounded-xl transition-colors"
               >
                 Later
               </button>
@@ -281,38 +281,39 @@ export const TwoFactorSetupModal: React.FC<TwoFactorSetupModalProps> = ({
         {/* View 4: Verify Code & Activate */}
         {step === 'verify' && (
           <form onSubmit={handleConfirm} className="space-y-4">
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center">
-              <p className="text-xs font-bold text-ink-muted uppercase mb-1">Your Secret Setup Key</p>
-              <div className="flex items-center justify-center gap-2 font-mono text-sm font-bold text-primary tracking-widest bg-white p-2.5 rounded-lg border border-gray-200">
-                <span>{secretData?.secret}</span>
+            <div className="bg-gray-50 dark:bg-slate-800/70 border border-gray-200 dark:border-slate-700 rounded-xl p-4 text-center">
+              <p className="text-xs font-bold text-ink-muted dark:text-slate-400 uppercase mb-1">Your Secret Setup Key</p>
+              <div className="flex items-center justify-center gap-2 font-mono text-sm font-bold text-primary dark:text-sky-300 tracking-widest bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-gray-200 dark:border-slate-700">
+                <span className="break-all">{secretData?.secret}</span>
                 <button
                   type="button"
                   onClick={copySecret}
-                  className="p-1 text-gray-500 hover:text-primary transition-colors"
+                  className="p-1 text-gray-500 dark:text-slate-400 hover:text-primary dark:hover:text-sky-300 transition-colors shrink-0"
                   title="Copy secret"
+                  aria-label="Copy secret setup key"
                 >
-                  {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                  {copied ? <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-4 h-4" />}
                 </button>
               </div>
-              <p className="text-[11px] text-ink-muted mt-2">
+              <p className="text-[11px] text-ink-muted dark:text-slate-400 mt-2">
                 Enter this key manually into Google Authenticator or your authenticator app.
               </p>
             </div>
 
             {secretData?.recovery_codes && (
-              <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3 text-xs">
-                <p className="font-bold text-blue-900 mb-1">Emergency Recovery Codes:</p>
-                <div className="grid grid-cols-2 gap-1 font-mono text-[11px] text-blue-800">
+              <div className="bg-blue-50/70 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/70 rounded-xl p-3 text-xs">
+                <p className="font-bold text-blue-900 dark:text-blue-200 mb-1">Emergency Recovery Codes:</p>
+                <div className="grid grid-cols-2 gap-1 font-mono text-[11px] text-blue-800 dark:text-blue-200">
                   {secretData.recovery_codes.map((rc, i) => (
                     <span key={i}>{rc}</span>
                   ))}
                 </div>
-                <p className="text-[10px] text-blue-700 mt-1.5">Save these codes in a secure password manager in case you lose access to your device.</p>
+                <p className="text-[10px] text-blue-700 dark:text-blue-300 mt-1.5">Save these codes in a secure password manager in case you lose access to your device.</p>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-bold text-ink mb-1">
+              <label className="block text-xs font-bold text-ink dark:text-slate-200 mb-1">
                 Enter 6-Digit Verification Code
               </label>
               <input
@@ -323,7 +324,7 @@ export const TwoFactorSetupModal: React.FC<TwoFactorSetupModalProps> = ({
                 placeholder="000000"
                 required
                 autoFocus
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white text-ink"
+                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-800 text-ink dark:text-slate-100 dark:placeholder:text-slate-400"
               />
             </div>
 
@@ -331,7 +332,7 @@ export const TwoFactorSetupModal: React.FC<TwoFactorSetupModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-ink font-bold text-xs rounded-xl transition-colors"
+                className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-ink dark:text-slate-100 font-bold text-xs rounded-xl transition-colors"
               >
                 Cancel
               </button>

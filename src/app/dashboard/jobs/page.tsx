@@ -663,9 +663,9 @@ function JobsPageContent() {
                           )}
                         </div>
                         <div className="flex items-center text-[11px] text-ink-muted mt-1.5 flex-wrap gap-2">
-                          <span className="px-2 py-0.5 rounded bg-accent-sky text-primary-dark font-body font-semibold border border-white/50">{job.category}</span>
-                          <span className="flex items-center bg-white/50 px-2 py-0.5 rounded border border-white/50">
-                            <i className="lni lni-map-marker mr-1 text-primary" /> {job.barangay}, {job.municipality}
+                          <span className="px-2 py-0.5 rounded bg-accent-sky dark:bg-sky-900/70 text-primary-dark dark:text-sky-100 font-body font-semibold border border-white/50 dark:border-sky-700/60">{job.category}</span>
+                          <span className="flex items-center bg-white/50 dark:bg-slate-800/70 px-2 py-0.5 rounded border border-white/50 dark:border-slate-700">
+                            <i className="lni lni-map-marker mr-1 text-primary dark:text-sky-400" /> {job.barangay}, {job.municipality}
                           </span>
                         </div>
                         <div className="flex items-center text-[11px] text-ink-soft mt-1.5 gap-2 flex-wrap">
@@ -683,7 +683,7 @@ function JobsPageContent() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-accent-peach to-accent-peachBright/50 flex items-center justify-center text-primary-dark font-body font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
+                          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-accent-peach to-accent-peachBright/50 dark:from-amber-900/70 dark:to-amber-800/60 flex items-center justify-center text-primary-dark dark:text-amber-100 font-body font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
                             {(job.employer?.name || 'Deleted Account').charAt(0)}
                           </div>
                           <div className="min-w-0">
@@ -793,7 +793,7 @@ function JobsPageContent() {
 
       {/* Floating Bulk Actions Bar */}
       {selectedJobIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-ink text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4 border border-white/20 animate-fade-in backdrop-blur-md">
+        <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 max-w-[calc(100vw-1.5rem)] bg-ink text-white px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-2xl shadow-2xl flex flex-wrap items-center justify-center gap-2 sm:gap-4 border border-white/20 animate-fade-in backdrop-blur-md">
           <div className="flex items-center gap-2">
             <span className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold font-numeric">
               {selectedJobIds.size}
@@ -802,8 +802,8 @@ function JobsPageContent() {
               {selectedJobIds.size === 1 ? 'job' : 'jobs'} selected
             </span>
           </div>
-          <div className="h-4 w-px bg-white/20" />
-          <div className="flex items-center gap-2">
+          <div className="hidden sm:block h-4 w-px bg-white/20" />
+          <div className="flex flex-wrap items-center justify-center gap-2">
             {suspendableJobs.length > 0 && (
               <button
                 onClick={() => handleBulkJobSuspendToggle(true)}

@@ -405,7 +405,7 @@ export default function VerificationModal({
                       <h4 className="text-sm font-display font-bold text-rose-900">
                         ⚠️ Possible Blacklist Match Detected
                       </h4>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-200 text-rose-800 font-numeric">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-200 dark:bg-rose-900/70 text-rose-800 dark:text-rose-100 dark:border dark:border-rose-700/60 font-numeric">
                         {matches.length} {matches.length === 1 ? 'Match' : 'Matches'}
                       </span>
                     </div>
@@ -955,7 +955,7 @@ export default function VerificationModal({
                 className={`px-6 py-3 font-body font-semibold rounded-xl transition-colors flex items-center justify-center ${
                   !hasAnyDocs
                     ? 'bg-ink-faint text-ink-muted cursor-not-allowed opacity-60'
-                    : 'bg-status-success text-white hover:bg-status-success/90 disabled:opacity-50'
+                    : 'bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50'
                 }`}
               >
                 {actionLoading === 'approved' && (

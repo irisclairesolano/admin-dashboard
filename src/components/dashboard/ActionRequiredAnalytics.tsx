@@ -230,7 +230,7 @@ export default function ActionRequiredAnalytics({
                 setCurrentPage(1);
               }}
               className={`w-full flex items-center justify-between p-1.5 rounded-lg text-xs transition cursor-pointer ${
-                reasonFilter === 'pending_otp' ? 'bg-sky-100/80 font-bold text-sky-900' : 'hover:bg-slate-50 text-ink-soft'
+                reasonFilter === 'pending_otp' ? 'bg-sky-100/80 dark:bg-sky-900/60 font-bold text-sky-900 dark:text-sky-100' : 'hover:bg-slate-50 dark:hover:bg-slate-800/70 text-ink-soft dark:text-slate-300'
               }`}
             >
               <div className="flex items-center gap-1.5">
@@ -250,7 +250,7 @@ export default function ActionRequiredAnalytics({
                 setCurrentPage(1);
               }}
               className={`w-full flex items-center justify-between p-1.5 rounded-lg text-xs transition cursor-pointer ${
-                reasonFilter === 'pending_id_upload' ? 'bg-amber-100/80 font-bold text-amber-900' : 'hover:bg-slate-50 text-ink-soft'
+                reasonFilter === 'pending_id_upload' ? 'bg-amber-100/80 dark:bg-amber-900/60 font-bold text-amber-900 dark:text-amber-100' : 'hover:bg-slate-50 dark:hover:bg-slate-800/70 text-ink-soft dark:text-slate-300'
               }`}
             >
               <div className="flex items-center gap-1.5">
@@ -288,43 +288,47 @@ export default function ActionRequiredAnalytics({
 
           {/* Missing document sub-chips */}
           <div className="mt-2.5 pt-2 border-t border-ink-faint/30 flex flex-wrap gap-1 text-[10px]">
-            <span
+            <button
+              type="button"
               onClick={() => {
                 setReasonFilter('missing_front');
                 setCurrentPage(1);
               }}
-              className="px-1.5 py-0.5 rounded bg-slate-100 text-ink-muted hover:bg-slate-200 cursor-pointer"
+              className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-ink-soft dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer"
             >
               Front: {stats.byReason.pendingIdUpload.missingFront}
-            </span>
-            <span
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 setReasonFilter('missing_back');
                 setCurrentPage(1);
               }}
-              className="px-1.5 py-0.5 rounded bg-slate-100 text-ink-muted hover:bg-slate-200 cursor-pointer"
+              className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-ink-soft dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer"
             >
               Back: {stats.byReason.pendingIdUpload.missingBack}
-            </span>
-            <span
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 setReasonFilter('missing_selfie');
                 setCurrentPage(1);
               }}
-              className="px-1.5 py-0.5 rounded bg-slate-100 text-ink-muted hover:bg-slate-200 cursor-pointer"
+              className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-ink-soft dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer"
             >
               Selfie: {stats.byReason.pendingIdUpload.missingSelfie}
-            </span>
+            </button>
             {stats.byReason.pendingIdUpload.missingPermit > 0 && (
-              <span
+              <button
+                type="button"
                 onClick={() => {
                   setReasonFilter('missing_permit');
                   setCurrentPage(1);
                 }}
-                className="px-1.5 py-0.5 rounded bg-slate-100 text-ink-muted hover:bg-slate-200 cursor-pointer"
+                className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-ink-soft dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer"
               >
                 Permit: {stats.byReason.pendingIdUpload.missingPermit}
-              </span>
+              </button>
             )}
           </div>
         </div>
@@ -360,56 +364,60 @@ export default function ActionRequiredAnalytics({
             </span>
             <div className="grid grid-cols-2 gap-1.5 text-xs">
               <button
+                type="button"
                 onClick={() => {
                   setAgingFilter(agingFilter === '<12h' ? 'all' : '<12h');
                   setCurrentPage(1);
                 }}
                 className={`flex items-center justify-between px-2 py-1 rounded-md text-[11px] transition cursor-pointer border ${
                   agingFilter === '<12h'
-                    ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
-                    : 'bg-emerald-50/80 text-emerald-800 border-emerald-200/80 hover:bg-emerald-100'
+                    ? 'bg-emerald-700 text-white border-emerald-700 font-bold'
+                    : 'bg-emerald-50/80 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 border-emerald-200/80 dark:border-emerald-700/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/70'
                 }`}
               >
                 <span>&lt; 12h</span>
                 <span className="font-numeric font-bold">{stats.byAging.under12h.count}</span>
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setAgingFilter(agingFilter === '12-24h' ? 'all' : '12-24h');
                   setCurrentPage(1);
                 }}
                 className={`flex items-center justify-between px-2 py-1 rounded-md text-[11px] transition cursor-pointer border ${
                   agingFilter === '12-24h'
-                    ? 'bg-sky-600 text-white border-sky-600 font-bold'
-                    : 'bg-sky-50/80 text-sky-800 border-sky-200/80 hover:bg-sky-100'
+                    ? 'bg-sky-700 text-white border-sky-700 font-bold'
+                    : 'bg-sky-50/80 dark:bg-sky-950/60 text-sky-800 dark:text-sky-200 border-sky-200/80 dark:border-sky-700/60 hover:bg-sky-100 dark:hover:bg-sky-900/70'
                 }`}
               >
                 <span>12–24h</span>
                 <span className="font-numeric font-bold">{stats.byAging.h12to24.count}</span>
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setAgingFilter(agingFilter === '24-48h' ? 'all' : '24-48h');
                   setCurrentPage(1);
                 }}
                 className={`flex items-center justify-between px-2 py-1 rounded-md text-[11px] transition cursor-pointer border ${
                   agingFilter === '24-48h'
-                    ? 'bg-amber-600 text-white border-amber-600 font-bold'
-                    : 'bg-amber-50/80 text-amber-800 border-amber-200/80 hover:bg-amber-100'
+                    ? 'bg-amber-700 text-white border-amber-700 font-bold'
+                    : 'bg-amber-50/80 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border-amber-200/80 dark:border-amber-700/60 hover:bg-amber-100 dark:hover:bg-amber-900/70'
                 }`}
               >
                 <span>24–48h</span>
                 <span className="font-numeric font-bold">{stats.byAging.h24to48.count}</span>
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setAgingFilter(agingFilter === '>48h' ? 'all' : '>48h');
                   setCurrentPage(1);
                 }}
                 className={`flex items-center justify-between px-2 py-1 rounded-md text-[11px] transition cursor-pointer border ${
                   agingFilter === '>48h'
-                    ? 'bg-rose-600 text-white border-rose-600 font-bold'
-                    : 'bg-rose-50/80 text-rose-800 border-rose-200/80 hover:bg-rose-100'
+                    ? 'bg-rose-700 text-white border-rose-700 font-bold'
+                    : 'bg-rose-50/80 dark:bg-rose-950/60 text-rose-800 dark:text-rose-200 border-rose-200/80 dark:border-rose-700/60 hover:bg-rose-100 dark:hover:bg-rose-900/70'
                 }`}
               >
                 <span>&gt; 48h</span>
@@ -509,16 +517,19 @@ export default function ActionRequiredAnalytics({
               <i className="lni lni-search absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-xs" />
               <input
                 type="text"
+                aria-label="Search accounts by name, email, or ID"
                 placeholder="Search name, email, ID..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                className="w-full pl-8 pr-7 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink dark:text-slate-100 placeholder-ink-muted dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
               />
               {searchTerm && (
                 <button
+                  type="button"
+                  aria-label="Clear search"
                   onClick={() => setSearchTerm('')}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink text-xs cursor-pointer"
                 >
@@ -530,12 +541,13 @@ export default function ActionRequiredAnalytics({
             {/* 2. Reason Filter */}
             <div>
               <select
+                aria-label="Filter by reason"
                 value={reasonFilter}
                 onChange={(e) => {
                   setReasonFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer"
+                className="w-full px-3 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer"
               >
                 <option value="all">All Reasons ({users.length})</option>
                 <option value="pending_otp">✉️ Pending Email OTP ({stats.byReason.pendingOtp.count})</option>
@@ -555,12 +567,13 @@ export default function ActionRequiredAnalytics({
             {/* 3. Role Filter */}
             <div>
               <select
+                aria-label="Filter by role"
                 value={roleFilter}
                 onChange={(e) => {
                   setRoleFilter(e.target.value as any);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer"
+                className="w-full px-3 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer"
               >
                 <option value="all">All Roles ({users.length})</option>
                 <option value="worker">Workers ({stats.byRole.worker})</option>
@@ -571,12 +584,13 @@ export default function ActionRequiredAnalytics({
             {/* 4. Aging Filter */}
             <div>
               <select
+                aria-label="Filter by waiting duration"
                 value={agingFilter}
                 onChange={(e) => {
                   setAgingFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer"
+                className="w-full px-3 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer"
               >
                 <option value="all">All Durations</option>
                 <option value="<12h">&lt; 12 hours (Fresh: {stats.byAging.under12h.count})</option>
@@ -589,12 +603,13 @@ export default function ActionRequiredAnalytics({
             {/* 5. Sort By */}
             <div>
               <select
+                aria-label="Sort accounts"
                 value={sortBy}
                 onChange={(e) => {
                   setSortBy(e.target.value as any);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer"
+                className="w-full px-3 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer"
               >
                 <option value="duration_desc">Longest Waiting First</option>
                 <option value="duration_asc">Shortest Waiting First</option>
@@ -728,7 +743,7 @@ export default function ActionRequiredAnalytics({
                               </div>
                             )}
                             {(user.barangay || user.municipality) && (
-                              <span className="text-[10px] text-ink-muted/80 block mt-0.5">
+                              <span className="text-[10px] text-ink-muted dark:text-slate-300 block mt-0.5">
                                 {[user.barangay, user.municipality].filter(Boolean).join(', ')}
                               </span>
                             )}
@@ -741,10 +756,10 @@ export default function ActionRequiredAnalytics({
                         <span
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium border ${
                             isWorker
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800'
                               : isEmployer
-                              ? 'bg-blue-50 text-blue-800 border-blue-200'
-                              : 'bg-slate-100 text-slate-700 border-slate-200'
+                              ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
                           }`}
                         >
                           <i
@@ -789,7 +804,7 @@ export default function ActionRequiredAnalytics({
                               {reqInfo.missingItems.map((item, idx) => (
                                 <span
                                   key={idx}
-                                  className="text-[10px] font-medium text-amber-900 bg-amber-100/70 px-1.5 py-0.2 rounded border border-amber-200/60"
+                                  className="text-[10px] font-medium text-amber-900 dark:text-amber-200 bg-amber-100/70 dark:bg-amber-950/70 px-1.5 py-0.2 rounded border border-amber-200/60 dark:border-amber-800/70"
                                 >
                                   {item}
                                 </span>
@@ -826,7 +841,7 @@ export default function ActionRequiredAnalytics({
                                   : 'N/A'}
                               </strong>
                             </span>
-                            <span className="text-[9px] text-ink-muted/80 block">
+                            <span className="text-[9px] text-ink-muted dark:text-slate-300 block">
                               Event: {startInfo.eventName}
                             </span>
                           </div>

@@ -293,7 +293,7 @@ function VerificationsPageContent() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full pl-8 pr-3 py-1.5 bg-white/90 dark:bg-slate-900/90 rounded-xl border border-ink-faint/40 dark:border-slate-700 shadow-xs focus:bg-white dark:focus:bg-slate-900 focus:border-ink/50 dark:focus:border-slate-500 outline-none text-xs font-body transition text-ink dark:text-slate-200 placeholder:text-ink-muted/70 dark:placeholder:text-slate-500"
+                  className="w-full pl-8 pr-3 py-1.5 bg-white/90 dark:bg-slate-900/90 rounded-xl border border-ink-faint/40 dark:border-slate-700 shadow-xs focus:bg-white dark:focus:bg-slate-900 focus:border-ink/50 dark:focus:border-slate-500 outline-none text-xs font-body transition text-ink dark:text-slate-200 placeholder:text-ink-muted dark:placeholder:text-slate-400"
                 />
                 <i className="lni lni-search text-ink-muted dark:text-slate-400 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
               </div>
@@ -358,13 +358,13 @@ function VerificationsPageContent() {
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-body font-bold transition-all cursor-pointer ${
             statusTab === 'pending'
               ? 'bg-primary text-white shadow-2xs'
-              : 'bg-white/80 text-ink-muted hover:text-ink hover:bg-white border border-ink-faint/40'
+              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'
           }`}
         >
           <span>Pending Review</span>
           <span
             className={`px-1.5 py-0.5 rounded-full text-[10px] font-numeric font-bold ${
-              statusTab === 'pending' ? 'bg-white/20 text-white' : 'bg-slate-100 text-ink-muted'
+              statusTab === 'pending' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-ink-muted dark:text-slate-200'
             }`}
           >
             {allPendingUsers.length}
@@ -378,14 +378,14 @@ function VerificationsPageContent() {
           }}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-body font-bold transition-all cursor-pointer ${
             statusTab === 'awaiting_upload'
-              ? 'bg-amber-600 text-white shadow-2xs'
-              : 'bg-white/80 text-ink-muted hover:text-ink hover:bg-white border border-ink-faint/40'
+              ? 'bg-amber-700 text-white shadow-2xs'
+              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'
           }`}
         >
           <span>Action Required from User</span>
           <span
             className={`px-1.5 py-0.5 rounded-full text-[10px] font-numeric font-bold ${
-              statusTab === 'awaiting_upload' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
+              statusTab === 'awaiting_upload' ? 'bg-white/20 text-white' : 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200'
             }`}
           >
             {allActionRequiredUsers.length}
@@ -399,14 +399,14 @@ function VerificationsPageContent() {
           }}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-body font-bold transition-all cursor-pointer ${
             statusTab === 'rejected'
-              ? 'bg-rose-600 text-white shadow-2xs'
-              : 'bg-white/80 text-ink-muted hover:text-ink hover:bg-white border border-ink-faint/40'
+              ? 'bg-rose-700 text-white shadow-2xs'
+              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'
           }`}
         >
           <span>Rejected / Awaiting Re-upload</span>
           <span
             className={`px-1.5 py-0.5 rounded-full text-[10px] font-numeric font-bold ${
-              statusTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-700'
+              statusTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-200'
             }`}
           >
             {allRejectedUsers.length}
@@ -420,14 +420,14 @@ function VerificationsPageContent() {
           }}
           className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-body font-bold transition-all cursor-pointer ${
             statusTab === 'approved'
-              ? 'bg-emerald-600 text-white shadow-2xs'
-              : 'bg-white/80 text-ink-muted hover:text-ink hover:bg-white border border-ink-faint/40'
+              ? 'bg-emerald-700 text-white shadow-2xs'
+              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'
           }`}
         >
           <span>Approved</span>
           <span
             className={`px-1.5 py-0.5 rounded-full text-[10px] font-numeric font-bold ${
-              statusTab === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'
+              statusTab === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-200'
             }`}
           >
             {allApprovedUsers.length}
@@ -701,10 +701,10 @@ function VerificationsPageContent() {
               <i className="lni lni-timer text-xl" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-amber-900">
+              <h3 className="text-sm font-bold text-amber-900 dark:text-amber-200">
                 {allActionRequiredUsers.length} Incomplete Account{allActionRequiredUsers.length === 1 ? '' : 's'} Requiring User Action
               </h3>
-              <p className="text-xs text-amber-700/90 mt-0.5 leading-relaxed">
+              <p className="text-xs text-amber-700/90 dark:text-amber-300 mt-0.5 leading-relaxed">
                 These users registered on SIKAP but need to complete email OTP verification or upload identification documents. View real-time analytics, duration tracking, and filterable accounts.
               </p>
             </div>
@@ -714,7 +714,7 @@ function VerificationsPageContent() {
               setStatusTab('awaiting_upload');
               setCurrentPage(1);
             }}
-            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition shadow-xs whitespace-nowrap self-start sm:self-auto cursor-pointer flex items-center gap-1.5"
+            className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold rounded-xl transition shadow-xs whitespace-nowrap self-start sm:self-auto cursor-pointer flex items-center gap-1.5"
           >
             <span>View Action Required Analytics ({allActionRequiredUsers.length})</span>
             <i className="lni lni-arrow-right text-xs" />

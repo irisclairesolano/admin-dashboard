@@ -89,33 +89,38 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {/* Toast Render Portal / Container */}
       <aside
         aria-label="Notification alerts"
-        className="fixed top-5 right-5 z-[9999] flex flex-col gap-2.5 max-w-sm sm:max-w-md w-full pointer-events-none px-4 sm:px-0"
+        className="fixed top-4 right-3 left-3 sm:left-auto sm:top-5 sm:right-5 sm:w-full sm:max-w-md z-[9999] flex flex-col gap-2.5 pointer-events-none"
       >
         {toasts.map((t) => {
-          let bgClass = 'bg-white/95 border-ink-faint text-ink shadow-slate-900/10';
+          let bgClass =
+            'bg-white/95 dark:bg-slate-900/95 border-ink-faint dark:border-slate-700 text-ink dark:text-slate-100 shadow-slate-900/10';
           let IconComponent = Info;
-          let iconColor = 'text-primary';
+          let iconColor = 'text-primary dark:text-blue-400';
           let defaultTitle = 'Notification';
 
           if (t.type === 'success') {
-            bgClass = 'bg-emerald-50/95 border-emerald-200 text-emerald-950 shadow-emerald-900/10';
+            bgClass =
+              'bg-emerald-50/95 dark:bg-emerald-950/95 border-emerald-200 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100 shadow-emerald-900/10';
             IconComponent = CheckCircle2;
-            iconColor = 'text-emerald-600';
+            iconColor = 'text-emerald-600 dark:text-emerald-400';
             defaultTitle = 'Success';
           } else if (t.type === 'error') {
-            bgClass = 'bg-rose-50/95 border-rose-200 text-rose-950 shadow-rose-900/10';
+            bgClass =
+              'bg-rose-50/95 dark:bg-rose-950/95 border-rose-200 dark:border-rose-800 text-rose-950 dark:text-rose-100 shadow-rose-900/10';
             IconComponent = AlertCircle;
-            iconColor = 'text-rose-600';
+            iconColor = 'text-rose-600 dark:text-rose-400';
             defaultTitle = 'Error';
           } else if (t.type === 'warning') {
-            bgClass = 'bg-amber-50/95 border-amber-200 text-amber-950 shadow-amber-900/10';
+            bgClass =
+              'bg-amber-50/95 dark:bg-amber-950/95 border-amber-200 dark:border-amber-800 text-amber-950 dark:text-amber-100 shadow-amber-900/10';
             IconComponent = AlertTriangle;
-            iconColor = 'text-amber-600';
+            iconColor = 'text-amber-600 dark:text-amber-400';
             defaultTitle = 'Warning';
           } else if (t.type === 'info') {
-            bgClass = 'bg-sky-50/95 border-sky-200 text-sky-950 shadow-sky-900/10';
+            bgClass =
+              'bg-sky-50/95 dark:bg-sky-950/95 border-sky-200 dark:border-sky-800 text-sky-950 dark:text-sky-100 shadow-sky-900/10';
             IconComponent = Info;
-            iconColor = 'text-sky-600';
+            iconColor = 'text-sky-600 dark:text-sky-400';
             defaultTitle = 'Information';
           }
 

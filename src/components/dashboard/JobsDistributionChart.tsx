@@ -34,35 +34,35 @@ const CustomTooltip = ({ active, payload }: any) => {
     const remainingCount = item.subItems.length - previewList.length;
 
     return (
-      <div className="bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-ink-faint/60 text-xs min-w-[200px] max-w-[260px] animate-fade-in font-sans">
-        <div className="flex items-center justify-between gap-2 border-b border-ink-faint/40 pb-1.5 mb-2">
-          <span className="font-bold text-ink">Others</span>
-          <span className="font-numeric font-bold text-primary">
+      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-ink-faint/60 dark:border-slate-700 text-xs min-w-[200px] max-w-[260px] animate-fade-in font-sans">
+        <div className="flex items-center justify-between gap-2 border-b border-ink-faint/40 dark:border-slate-700 pb-1.5 mb-2">
+          <span className="font-bold text-ink dark:text-slate-100">Others</span>
+          <span className="font-numeric font-bold text-primary dark:text-sky-400">
             {item.jobs} job posts
           </span>
         </div>
 
-        <p className="text-[11px] font-semibold text-ink-muted mb-1.5">
+        <p className="text-[11px] font-semibold text-ink-muted dark:text-slate-400 mb-1.5">
           Includes {item.subItems.length} categories:
         </p>
 
-        <ul className="space-y-1 text-[11px] text-ink-soft mb-2 font-numeric">
+        <ul className="space-y-1 text-[11px] text-ink-soft dark:text-slate-300 mb-2 font-numeric">
           {previewList.map((sub, i) => (
             <li key={i} className="flex justify-between items-center gap-2">
-              <span className="truncate max-w-[130px] font-medium text-ink">
+              <span className="truncate max-w-[130px] font-medium text-ink dark:text-slate-100">
                 • {sub.name}
               </span>
-              <span className="text-ink-muted shrink-0">{sub.value}</span>
+              <span className="text-ink-muted dark:text-slate-400 shrink-0">{sub.value}</span>
             </li>
           ))}
           {remainingCount > 0 && (
-            <li className="text-[10px] text-ink-muted italic pt-0.5">
+            <li className="text-[10px] text-ink-muted dark:text-slate-400 italic pt-0.5">
               + {remainingCount} more categories...
             </li>
           )}
         </ul>
 
-        <div className="pt-1.5 border-t border-ink-faint/40 flex items-center justify-between text-[10px] text-primary font-semibold">
+        <div className="pt-1.5 border-t border-ink-faint/40 dark:border-slate-700 flex items-center justify-between text-[10px] text-primary dark:text-sky-400 font-semibold">
           <span>Click bar to view all</span>
           <span>→</span>
         </div>
@@ -71,9 +71,9 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
 
   return (
-    <div className="bg-white/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-lg border border-ink-faint/60 text-xs min-w-[140px] animate-fade-in font-sans">
-      <div className="font-bold text-ink">{item.name}</div>
-      <div className="font-numeric text-primary font-bold mt-0.5">
+    <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-lg border border-ink-faint/60 dark:border-slate-700 text-xs min-w-[140px] animate-fade-in font-sans">
+      <div className="font-bold text-ink dark:text-slate-100">{item.name}</div>
+      <div className="font-numeric text-primary dark:text-sky-400 font-bold mt-0.5">
         {item.jobs} job posts
       </div>
     </div>
@@ -104,7 +104,7 @@ const JobsDistributionChart = memo(function JobsDistributionChart({
             width={95}
             tickFormatter={(value) => (value.length > 12 ? `${value.slice(0, 12)}...` : value)}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip cursor={{ fill: 'rgba(148, 163, 184, 0.14)' }} content={<CustomTooltip />} />
           <Bar
             dataKey="jobs"
             name="Job Posts"

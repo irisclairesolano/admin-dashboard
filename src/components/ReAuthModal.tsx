@@ -128,7 +128,7 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
                   placeholder="Enter your password"
                   required
                   autoFocus={!confirmText}
-                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white text-ink"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:bg-white dark:focus:bg-slate-800 text-ink dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                 />
                 <KeyRound className="w-4 h-4 text-gray-400 absolute right-3.5 top-3" />
               </div>
@@ -146,7 +146,7 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
                 placeholder="123456"
                 required
                 autoFocus={!confirmText}
-                className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white text-ink"
+                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 focus:bg-white dark:focus:bg-slate-800 text-ink dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
               />
             </div>
           )}
@@ -165,7 +165,7 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-ink font-bold text-xs rounded-xl transition-colors"
+              className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-ink dark:text-slate-100 font-bold text-xs rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               Cancel
             </button>

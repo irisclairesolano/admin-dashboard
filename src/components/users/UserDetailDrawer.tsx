@@ -179,8 +179,8 @@ export default function UserDetailDrawer({
                   selectedDetailUser.role === 'admin'
                     ? 'bg-primary text-white border border-primary-dark/30 shadow-primary/20'
                     : selectedDetailUser.role === 'employer'
-                    ? 'bg-accent-peach text-primary-dark border border-accent-peachBright/50'
-                    : 'bg-accent-mint text-accent-mintDeep border border-accent-mintDeep/30'
+                    ? 'bg-accent-peach dark:bg-amber-900/60 text-primary-dark dark:text-amber-100 border border-accent-peachBright/50 dark:border-amber-700/60'
+                    : 'bg-accent-mint dark:bg-emerald-900/60 text-accent-mintDeep dark:text-emerald-200 border border-accent-mintDeep/30 dark:border-emerald-700/60'
                 }`}>
                   {selectedDetailUser.role === 'admin' ? (selectedDetailUser.admin_role || 'Staff Administrator') : selectedDetailUser.role}
                 </span>
@@ -305,8 +305,8 @@ export default function UserDetailDrawer({
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="text-sm font-bold text-amber-800">Pending Identification Upload</h4>
-                      <p className="text-xs text-amber-700/90 mt-1 leading-relaxed">
+                      <h4 className="text-sm font-bold text-amber-800 dark:text-amber-200">Pending Identification Upload</h4>
+                      <p className="text-xs text-amber-700/90 dark:text-amber-300 mt-1 leading-relaxed">
                         This user has registered their account but has not yet uploaded their government ID or business registration documents (Status: Pending ID Upload). Platform verification is disabled until valid identification documents are submitted.
                       </p>
                     </div>
@@ -604,7 +604,7 @@ export default function UserDetailDrawer({
                             <div>
                               <h4 className="text-xs font-bold text-ink-soft uppercase tracking-wider mb-2">Government ID & Verification Media</h4>
                               <div className="bg-paper rounded-2xl border border-ink-faint p-4 flex items-center gap-3 text-ink-muted">
-                                <FileText className="w-5 h-5 text-ink-muted/60 shrink-0" />
+                                <FileText className="w-5 h-5 text-ink-muted dark:text-slate-400 shrink-0" />
                                 <div>
                                   <p className="text-xs font-semibold text-ink-soft">No identification documents uploaded yet</p>
                                   <p className="text-[11px] text-ink-muted mt-0.5">The user has not submitted government identification media or is still completing onboarding.</p>

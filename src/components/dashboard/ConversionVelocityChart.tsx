@@ -88,8 +88,8 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
         <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <defs>
             <linearGradient id="colorAppsVelocity" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#FFB6C1" stopOpacity={0.35} />
-              <stop offset="95%" stopColor="#FFB6C1" stopOpacity={0} />
+              <stop offset="5%" stopColor="#DB2777" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#DB2777" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="colorHiresVelocity" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#10B981" stopOpacity={0.35} />
@@ -109,12 +109,12 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
           <Tooltip
             shared
             labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
+            wrapperClassName="bg-white/95 dark:bg-slate-900/95 text-ink dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg backdrop-blur-md"
             contentStyle={{
               borderRadius: '12px',
-              border: '1px solid rgba(255,255,255,0.5)',
-              boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)',
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(8px)',
+              border: 'none',
+              boxShadow: 'none',
+              backgroundColor: 'transparent',
             }}
           />
           <Legend wrapperStyle={{ paddingTop: 6, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
@@ -123,7 +123,7 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
               type="monotone"
               dataKey="applications"
               name="Applications Filed"
-              stroke="#FFB6C1"
+              stroke="#DB2777"
               strokeWidth={2.5}
               fillOpacity={1}
               fill="url(#colorAppsVelocity)"

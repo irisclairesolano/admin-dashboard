@@ -69,10 +69,10 @@ export default function LoginPage() {
         return;
       }
 
-      authStorage.setToken(res.data.token);
-      authStorage.setUser(user);
+      authStorage.setToken(res.data.token, rememberMe);
+      authStorage.setUser(user, rememberMe);
       if (res.data.permissions) {
-        authStorage.setPermissions(res.data.permissions);
+        authStorage.setPermissions(res.data.permissions, rememberMe);
       }
 
       router.push('/dashboard/verifications');
@@ -92,10 +92,10 @@ export default function LoginPage() {
       const res = await adminApi.mfaVerify(mfaToken, totpCode);
       const user = res.data.user;
 
-      authStorage.setToken(res.data.token);
-      authStorage.setUser(user);
+      authStorage.setToken(res.data.token, rememberMe);
+      authStorage.setUser(user, rememberMe);
       if (res.data.permissions) {
-        authStorage.setPermissions(res.data.permissions);
+        authStorage.setPermissions(res.data.permissions, rememberMe);
       }
 
       router.push('/dashboard/verifications');
@@ -107,7 +107,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen max-h-screen bg-[#070D0C] text-slate-100 relative flex flex-col justify-between overflow-hidden selection:bg-teal-400 selection:text-slate-950">
+    <div className="min-h-screen bg-[#070D0C] text-slate-100 relative flex flex-col justify-between overflow-x-hidden overflow-y-auto selection:bg-teal-400 selection:text-slate-950">
       
       {/* ── Ambient Background Glows & Subtle Grid ──────────────────────── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
@@ -287,7 +287,7 @@ export default function LoginPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-body text-sm text-slate-100 transition-all placeholder:text-slate-600"
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-body text-sm text-slate-100 transition-all placeholder:text-slate-400"
                     placeholder="admin@sikap.ph"
                     required
                   />
@@ -302,7 +302,7 @@ export default function LoginPage() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => setError('Password reset instructions have been forwarded to the municipal system coordinator.')}
+                    onClick={() => setError('To reset your administrator password or 2FA, please contact your municipal system administrator.')}
                     className="text-xs font-semibold text-teal-400 hover:text-teal-300 transition-colors cursor-pointer"
                   >
                     Forgot?
@@ -314,7 +314,7 @@ export default function LoginPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-9 pr-10 py-2.5 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-body text-sm text-slate-100 transition-all placeholder:text-slate-600"
+                    className="w-full pl-9 pr-10 py-2.5 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-body text-sm text-slate-100 transition-all placeholder:text-slate-400"
                     placeholder="Enter your password"
                     required
                   />
@@ -376,7 +376,7 @@ export default function LoginPage() {
                   maxLength={10}
                   value={totpCode}
                   onChange={(e) => setTotpCode(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-mono text-center text-lg tracking-widest text-white font-bold transition-all placeholder:text-slate-600"
+                  className="w-full px-4 py-2.5 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-mono text-center text-lg tracking-widest text-white font-bold transition-all placeholder:text-slate-400"
                   placeholder="000000"
                   autoFocus
                   required

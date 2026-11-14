@@ -3,16 +3,18 @@ import type { Config } from "tailwindcss";
 const config: Config = {
   darkMode: 'class',
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
       colors: {
+        slate: {
+          850: '#162032',
+        },
         primary: {
           DEFAULT: '#0D1B3D',
           dark: '#060C1B',
+          hover: '#172E66',
           soft: '#2C5E7A',
           tint: '#EBF0F6',
         },
@@ -26,6 +28,7 @@ const config: Config = {
         paper: {
           DEFAULT: '#F4F7FC',
           cream: '#E2E8F0',
+          dark: '#E2E8F0',
           bright: '#FFFFFF',
         },
         accent: {

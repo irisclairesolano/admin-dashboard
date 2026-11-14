@@ -18,7 +18,8 @@
   }
 }
 
-/* ── Global Dark Mode Styling for Cards, Surfaces, Buttons & Badges ──────── */
+/* ── Global Dark Mode Styling (Screen Only — Print stays crisp black-on-white) ── */
+@media screen {
 .dark :where(
   .bg-paper,
   .bg-paper\/95,
@@ -157,7 +158,7 @@
   .hover\:bg-slate-900:hover,
   .hover\:bg-slate-800:hover
 ) {
-  background-color: #3b82f6 !important;
+  background-color: #1d4ed8 !important;
   color: #ffffff !important;
 }
 
@@ -227,7 +228,7 @@
 }
 
 .dark :where(.bg-status-success.text-white) {
-  background-color: #059669;
+  background-color: #047857;
   color: #ffffff;
 }
 
@@ -236,20 +237,20 @@
 }
 
 /* Pastel Status Badges & Callout Banners in Dark Mode */
-.dark :where(.bg-amber-50, .bg-amber-50\/90, .bg-amber-50\/70, .bg-amber-50\/50, .bg-amber-100, .bg-amber-100\/80) {
+.dark :where(.bg-amber-50, .bg-amber-50\/90, .bg-amber-50\/70, .bg-amber-50\/50, .bg-amber-100, .bg-amber-100\/80, .bg-amber-100\/70) {
   background-color: rgba(245, 158, 11, 0.16);
 }
-.dark :where(.text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900) {
+.dark :where(.text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900, .text-amber-950) {
   color: #fde68a;
 }
 .dark :where(.border-amber-200, .border-amber-300, .border-amber-200\/70) {
   border-color: rgba(245, 158, 11, 0.35);
 }
 
-.dark :where(.bg-rose-50, .bg-rose-50\/90, .bg-rose-50\/70, .bg-rose-50\/60, .bg-rose-50\/50, .bg-rose-100, .bg-rose-100\/80) {
-  background-color: rgba(244, 63, 94, 0.16);
+.dark :where(.bg-rose-50, .bg-rose-50\/90, .bg-rose-50\/70, .bg-rose-50\/60, .bg-rose-50\/50, .bg-rose-100, .bg-rose-100\/80, .bg-rose-200) {
+  background-color: rgba(244, 63, 94, 0.18);
 }
-.dark :where(.text-rose-600, .text-rose-700, .text-rose-800, .text-rose-900) {
+.dark :where(.text-rose-600, .text-rose-700, .text-rose-800, .text-rose-800\/80, .text-rose-900, .text-rose-950) {
   color: #fecdd3;
 }
 .dark :where(.border-rose-200, .border-rose-200\/70, .border-rose-300) {
@@ -259,17 +260,17 @@
 .dark :where(.bg-emerald-50, .bg-emerald-50\/90, .bg-emerald-50\/70, .bg-emerald-100, .bg-emerald-100\/80) {
   background-color: rgba(16, 185, 129, 0.16);
 }
-.dark :where(.text-emerald-600, .text-emerald-700, .text-emerald-800, .text-emerald-900) {
+.dark :where(.text-emerald-600, .text-emerald-700, .text-emerald-800, .text-emerald-900, .text-emerald-950) {
   color: #a7f3d0;
 }
 .dark :where(.border-emerald-200, .border-emerald-300) {
   border-color: rgba(16, 185, 129, 0.35);
 }
 
-.dark :where(.bg-sky-50, .bg-sky-50\/90, .bg-sky-50\/70, .bg-sky-100, .bg-blue-50, .bg-indigo-50) {
+.dark :where(.bg-sky-50, .bg-sky-50\/90, .bg-sky-50\/70, .bg-sky-100, .bg-blue-50, .bg-blue-50\/70, .bg-indigo-50) {
   background-color: rgba(14, 165, 233, 0.16);
 }
-.dark :where(.text-sky-600, .text-sky-700, .text-sky-800, .text-sky-900, .text-blue-700, .text-indigo-700) {
+.dark :where(.text-sky-600, .text-sky-700, .text-sky-800, .text-sky-900, .text-sky-950, .text-blue-700, .text-blue-800, .text-blue-900, .text-indigo-700) {
   color: #bae6fd;
 }
 .dark :where(.border-sky-200, .border-sky-300, .border-blue-200, .border-indigo-200) {
@@ -296,7 +297,7 @@
 }
 
 .dark :where(input::placeholder, textarea::placeholder) {
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .dark select option {
@@ -339,6 +340,7 @@
   border-color: #334155 !important;
   color: #f8fafc !important;
 }
+} /* end @media screen */
 
 @layer utilities {
   .text-balance {

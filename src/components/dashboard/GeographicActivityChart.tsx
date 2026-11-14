@@ -38,13 +38,13 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
           <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} dy={6} />
           <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
           <Tooltip
-            cursor={{ fill: '#FDF8F0' }}
+            cursor={{ fill: 'rgba(148, 163, 184, 0.14)' }}
+            wrapperClassName="bg-white/95 dark:bg-slate-900/95 text-ink dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg backdrop-blur-md"
             contentStyle={{
               borderRadius: '12px',
-              border: '1px solid rgba(255,255,255,0.5)',
-              boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.08)',
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(8px)',
+              border: 'none',
+              boxShadow: 'none',
+              backgroundColor: 'transparent',
             }}
           />
           <Legend wrapperStyle={{ paddingTop: 6, fontSize: '11px', fontFamily: 'var(--font-body)' }} />
