@@ -558,6 +558,29 @@ export const adminApi = {
   getConversationStats: async () => {
     return cachedGet('/admin/conversations/stats');
   },
+
+  // ─── Skills Catalog Moderation ───────────────────────────────────────────
+  getSkillsCatalog: async (forceRefresh: boolean = false) => {
+    return forceRefresh ? freshGet('/admin/skills') : cachedGet('/admin/skills');
+  },
+  addCatalogSkill: async (name: string, category: string) => {
+    return mutate(
+      apiClient.post('/admin/skills', { name, category }),
+      ['/admin/skills', '/skills']
+    );
+  },
+  deleteCatalogSkill: async (id: number) => {
+    return mutate(
+      apiClient.delete(`/admin/skills/${id}`),
+      ['/admin/skills', '/skills']
+    );
+  },
+  dismissCustomSkill: async (name: string) => {
+    return mutate(
+      apiClient.post('/admin/skills/dismiss-custom', { name }),
+      ['/admin/skills']
+    );
+  },
 };
 
 /**
