@@ -614,7 +614,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   return (
-    <div className="fixed inset-0 h-screen w-screen bg-paper flex overflow-hidden">
+    <div className="fixed inset-0 w-full print:static print:h-auto bg-paper flex overflow-hidden">
       {/* Decorative background blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-soft/50 dark:bg-primary/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-30 animate-pulse-slow" />
       <div className="absolute top-[20%] right-[-5%] w-72 h-72 bg-accent-sky/50 dark:bg-sky-900/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-30 animate-pulse-slow" style={{ animationDelay: '1s' }} />
@@ -649,7 +649,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside className={`no-print
         fixed inset-y-0 left-0 z-30 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-r border-white/50 dark:border-slate-800 shadow-glass
         transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
-        lg:static lg:flex-shrink-0 h-full max-h-full flex flex-col overflow-hidden
+        lg:static lg:flex-shrink-0 lg:self-stretch h-full min-h-full flex flex-col overflow-hidden
         ${sidebarOpen ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0'}
         ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-72'}
       `}>
