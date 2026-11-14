@@ -347,9 +347,9 @@ function ModerationPageContent() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 mt-3 md:mt-0 text-xs">
+        <div className="flex flex-wrap items-center gap-2.5 mt-3 md:mt-0 text-sm">
           {/* Status Tabs with Badges */}
-          <div className="flex items-center gap-1.5 bg-white/90 p-1 rounded-xl border border-ink-faint/40 shadow-2xs">
+          <div className="flex items-center gap-1.5 bg-white/90 dark:bg-slate-900/80 p-1 rounded-xl border border-ink-faint/40 shadow-2xs h-10">
             {([
               { id: 'open', label: 'Open', count: openCount, highlight: true },
               { id: 'resolved', label: 'Resolved', count: statusFilter === 'resolved' ? (reports.length) : null, highlight: false },
@@ -361,14 +361,14 @@ function ModerationPageContent() {
                   setStatusFilter(id as any);
                   setCurrentPage(1);
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1 text-xs font-body font-semibold rounded-lg capitalize transition-all cursor-pointer ${statusFilter === id
-                  ? 'bg-ink text-white shadow-2xs'
-                  : 'text-ink-soft hover:text-ink hover:bg-slate-100/60'
+                className={`flex items-center gap-1.5 px-3 py-1 text-sm font-body font-medium rounded-lg capitalize transition-all cursor-pointer ${statusFilter === id
+                  ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs font-semibold'
+                  : 'text-ink-soft hover:text-ink hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
                   }`}
               >
                 <span>{label}</span>
                 {typeof count === 'number' && count > 0 && (
-                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${statusFilter === id
+                  <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${statusFilter === id
                     ? 'bg-white/20 text-white'
                     : highlight
                       ? 'bg-status-error/15 text-status-error border border-status-error/30'
@@ -381,7 +381,7 @@ function ModerationPageContent() {
             ))}
           </div>
 
-          <div className="relative w-full md:w-52 group">
+          <div className="relative w-full md:w-56 group">
             <input
               type="text"
               aria-label="Search reports"
@@ -391,33 +391,33 @@ function ModerationPageContent() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-8 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 outline-none text-xs font-body transition"
+              className="w-full pl-9 pr-3.5 h-10 bg-white/90 dark:bg-slate-900/80 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/95 focus:border-ink/50 outline-none text-sm font-body transition"
             />
-            <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
+            <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-sm" />
           </div>
 
           <button
             onClick={handleExportCSV}
             aria-label="Export moderation audit as CSV"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
+            className="flex items-center gap-2 px-3.5 h-10 bg-white dark:bg-slate-900/80 rounded-xl border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white dark:hover:bg-slate-800 text-ink-soft transition font-body font-medium text-sm cursor-pointer"
             title="Export filtered moderation audit as CSV"
           >
-            <i className="lni lni-download text-xs" />
-            <span>Export Audit (CSV)</span>
+            <i className="lni lni-download text-sm" />
+            <span>Export CSV</span>
           </button>
 
           <button
             onClick={() => fetchReports(false)}
             aria-label="Refresh reports list"
-            className="p-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-white text-ink-soft hover:text-primary transition flex items-center justify-center cursor-pointer"
+            className="w-10 h-10 bg-white dark:bg-slate-900/80 rounded-xl border border-ink-faint/40 shadow-2xs hover:bg-slate-100 dark:hover:bg-slate-800 text-ink-soft hover:text-primary transition flex items-center justify-center cursor-pointer"
             title="Refresh list"
           >
-            <i className={`lni lni-reload text-xs ${loading ? 'animate-spin' : ''}`} />
+            <i className={`lni lni-reload text-sm ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
 
-      <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
+      <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
         {loading && reports.length === 0 ? (
           <div className="p-6 space-y-3">
             {[1, 2, 3].map((i) => (
@@ -431,13 +431,13 @@ function ModerationPageContent() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[850px] text-left font-body table-fixed border-collapse">
-              <thead className="bg-slate-50/70 border-b border-ink-faint/30">
+              <thead className="bg-slate-50/70 dark:bg-slate-900/50 border-b border-ink-faint/30">
                 <tr>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[15%]">Target / Type</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[22%]">Reported By</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[33%]">Reason / Description</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[15%]">Reported At</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[15%] text-right">Actions</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[15%]">Target / Type</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[22%]">Reported By</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[33%]">Reason / Description</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[15%]">Reported At</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[15%] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-faint/20">
@@ -449,7 +449,7 @@ function ModerationPageContent() {
                           <i className="lni lni-shield text-xl text-status-success" />
                         </div>
                         <h3 className="font-display text-base text-ink font-bold">All Clear!</h3>
-                        <p className="font-body text-ink-muted mt-1 text-xs">No moderation tickets found matching your criteria.</p>
+                        <p className="font-body text-ink-muted mt-1 text-sm">No moderation tickets found matching your criteria.</p>
                       </div>
                     </td>
                   </tr>
@@ -460,51 +460,51 @@ function ModerationPageContent() {
                       onClick={() => setSelectedReport(report)}
                       className="hover:bg-slate-50/70 dark:hover:bg-slate-800/60 transition-colors duration-150 cursor-pointer group"
                     >
-                      <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-body font-bold tracking-wide uppercase bg-ink text-white inline-block truncate max-w-full">
+                      <td className="px-4 py-3.5">
+                        <span className="badge-neutral font-medium uppercase tracking-wide inline-block truncate max-w-full">
                           {humanizeModel(report.reportable_type)}
                         </span>
-                        <div className="mt-1 text-[10px] font-numeric font-bold text-ink-soft dark:text-slate-300 bg-white/70 dark:bg-slate-800/80 inline-block px-1.5 py-0.5 rounded border border-ink-faint/40 dark:border-slate-700">
+                        <div className="mt-1 text-xs font-numeric font-medium text-ink-muted">
                           ID: #{report.reportable_id}
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <div className="flex items-center">
                           {report.reporter ? (
                             <>
-                              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-paper-cream to-ink-faint dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-ink dark:text-slate-100 font-body font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
+                              <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-ink-faint/30 flex items-center justify-center text-ink dark:text-slate-100 font-body font-semibold text-xs flex-shrink-0 mr-2.5">
                                 {(report.reporter?.name || 'Deleted Account').charAt(0)}
                               </div>
                               <div className="min-w-0">
-                                <div className="font-body font-bold text-ink text-xs truncate">{report.reporter?.name || 'Deleted Account'}</div>
-                                <div className="text-[10px] text-ink-soft truncate mt-0.5">{report.reporter?.email || ''}</div>
+                                <div className="font-body font-bold text-ink text-sm truncate">{report.reporter?.name || 'Deleted Account'}</div>
+                                <div className="text-xs text-ink-muted truncate mt-0.5">{report.reporter?.email || ''}</div>
                               </div>
                             </>
                           ) : (
                             <>
-                              <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-sm shadow-inner mr-2.5 flex-shrink-0 border border-primary/20">
+                              <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-ink-faint/30 text-ink-soft flex items-center justify-center text-sm mr-2.5 flex-shrink-0">
                                 <i className="lni lni-shield" />
                               </div>
                               <div className="min-w-0">
-                                <div className="font-body font-bold text-ink text-xs truncate">System Auto-Moderation</div>
-                                <div className="text-[10px] text-primary font-semibold truncate mt-0.5">Word Filter Rule</div>
+                                <div className="font-body font-bold text-ink text-sm truncate">System Auto-Moderation</div>
+                                <div className="text-xs text-ink-muted font-medium truncate mt-0.5">Word Filter Rule</div>
                               </div>
                             </>
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="font-body font-bold text-ink text-xs truncate capitalize" title={report.type}>
+                      <td className="px-4 py-3.5">
+                        <div className="font-body font-bold text-ink text-sm truncate capitalize" title={report.type}>
                           {report.type.replace(/_/g, ' ')}
                         </div>
-                        <div className="text-xs text-ink-muted mt-0.5 leading-relaxed truncate" title={parseModerationNote(report.description).cleanDisplay}>
+                        <div className="text-sm text-ink-muted mt-0.5 leading-relaxed truncate" title={parseModerationNote(report.description).cleanDisplay}>
                           {parseModerationNote(report.description).cleanDisplay}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-xs font-body font-medium text-ink-soft whitespace-nowrap font-numeric">
+                      <td className="px-4 py-3.5 text-sm font-body font-medium text-ink-soft whitespace-nowrap font-numeric">
                         {formatDateTime(report.created_at)}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3.5 text-right">
                         {statusFilter === 'open' ? (
                           <div className="flex justify-end items-center space-x-2">
                             <button
@@ -512,7 +512,7 @@ function ModerationPageContent() {
                                 e.stopPropagation();
                                 setSelectedReport(report);
                               }}
-                              className="px-3 py-1.5 rounded-xl bg-ink group-hover:bg-primary text-white font-body font-bold text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                              className="btn-glass text-xs h-9"
                             >
                               <i className="lni lni-shield text-xs" />
                               <span>Take Action</span>
@@ -524,7 +524,7 @@ function ModerationPageContent() {
                                   e.stopPropagation();
                                   handleResolve(report.id, 'dismissed');
                                 }}
-                                className="p-1.5 rounded-lg bg-white/80 border border-ink-faint/50 text-ink-soft hover:text-ink hover:border-ink hover:bg-paper transition-all shadow-sm"
+                                className="w-8 h-8 rounded-lg bg-white/80 dark:bg-slate-800 border border-ink-faint/50 text-ink-soft hover:text-ink hover:border-ink transition-all shadow-2xs flex items-center justify-center cursor-pointer"
                                 title="Dismiss Report"
                               >
                                 <i className="lni lni-close text-xs" />
@@ -537,7 +537,7 @@ function ModerationPageContent() {
                                   e.stopPropagation();
                                   handleResolve(report.id, 'resolved');
                                 }}
-                                className="p-1.5 rounded-lg bg-status-success/10 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all shadow-sm"
+                                className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white transition-all shadow-2xs flex items-center justify-center cursor-pointer"
                                 title="Mark as Resolved"
                               >
                                 <i className="lni lni-checkmark-circle text-xs" />
@@ -545,7 +545,7 @@ function ModerationPageContent() {
                             </Tooltip>
                           </div>
                         ) : (
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-body font-semibold border ${statusFilter === 'resolved' ? 'bg-status-success/15 text-status-success border-status-success/20' : 'bg-ink-faint text-ink-soft border-ink-faint/45'
+                          <span className={`px-2.5 py-1 rounded-md text-xs font-body font-medium border ${statusFilter === 'resolved' ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                             }`}>
                             {statusFilter}
                           </span>

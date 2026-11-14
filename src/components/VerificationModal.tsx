@@ -308,7 +308,7 @@ export default function VerificationModal({
               <p className="text-ink-soft font-body text-sm" data-testid="user-email">{currentUser.email || user.email}</p>
             </div>
             <div className="text-right flex flex-col items-end gap-1.5">
-              <span className="capitalize font-body font-medium text-ink-muted bg-paper px-3 py-1 rounded-lg border border-ink-faint" data-testid="user-role">
+              <span className="badge-neutral text-xs capitalize" data-testid="user-role">
                 Role: {currentUser.role || user.role}
               </span>
               {(() => {
@@ -324,7 +324,7 @@ export default function VerificationModal({
 
                 if (isApproved) {
                   return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/20">
                       <span>✓ Verified Account</span>
                     </span>
                   );
@@ -332,7 +332,7 @@ export default function VerificationModal({
 
                 if (isRejected) {
                   return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold border bg-rose-50 text-rose-700 border-rose-300">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border bg-rose-500/10 text-rose-800 dark:text-rose-300 border-rose-500/20">
                       <span>Rejected — Awaiting Re-upload</span>
                     </span>
                   );
@@ -340,7 +340,7 @@ export default function VerificationModal({
 
                 if (!hasAnyDocs) {
                   return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold border bg-amber-50 text-amber-700 border-amber-300">
+                    <span className="badge-neutral text-xs font-medium">
                       <span>Awaiting ID Upload</span>
                     </span>
                   );
@@ -352,7 +352,7 @@ export default function VerificationModal({
                 return (
                   <span
                     title={`Submitted: ${new Date(subDate).toLocaleString()}`}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-bold border font-numeric ${sla.color}`}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border font-numeric ${sla.color}`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
@@ -372,16 +372,16 @@ export default function VerificationModal({
 
           {/* MISSING DOCUMENTS WARNING BANNER */}
           {!hasAnyDocs && (
-            <div className="mb-6 p-4 rounded-2xl border border-amber-200 bg-amber-50/90 shadow-sm animate-fade-in" data-testid="missing-docs-warning">
+            <div className="mb-6 p-4 rounded-2xl border border-amber-500/25 bg-amber-500/5 dark:bg-amber-950/20 shadow-2xs animate-fade-in" data-testid="missing-docs-warning">
               <div className="flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-amber-100 text-amber-700 flex-shrink-0 mt-0.5">
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 flex-shrink-0 mt-0.5">
                   <AlertCircle className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-display font-bold text-amber-900">
+                  <h4 className="text-sm font-display font-bold text-amber-900 dark:text-amber-200">
                     No Identification Documents Uploaded
                   </h4>
-                  <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                  <p className="text-xs text-amber-800 dark:text-amber-300 mt-1 leading-relaxed">
                     This user has not yet uploaded any government ID, selfie verification, or business registration documents. Approval is strictly disabled until valid identification documents are submitted.
                   </p>
                 </div>
@@ -395,21 +395,21 @@ export default function VerificationModal({
             if (matches.length === 0) return null;
 
             return (
-              <div className="mb-6 p-4 rounded-2xl border border-rose-200 bg-rose-50/90 shadow-sm animate-fade-in" data-testid="blacklist-warning-banner">
+              <div className="mb-6 p-4 rounded-2xl border border-rose-500/25 bg-rose-500/5 dark:bg-rose-950/20 shadow-2xs animate-fade-in" data-testid="blacklist-warning-banner">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-xl bg-rose-100 text-rose-600 flex-shrink-0 mt-0.5">
+                  <div className="p-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5">
                     <AlertCircle className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="text-sm font-display font-bold text-rose-900">
+                      <h4 className="text-sm font-display font-bold text-rose-900 dark:text-rose-200">
                         ⚠️ Possible Blacklist Match Detected
                       </h4>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-200 dark:bg-rose-900/70 text-rose-800 dark:text-rose-100 dark:border dark:border-rose-700/60 font-numeric">
+                      <span className="text-xs font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-800 dark:text-rose-200 border border-rose-500/20 font-numeric">
                         {matches.length} {matches.length === 1 ? 'Match' : 'Matches'}
                       </span>
                     </div>
-                    <p className="text-xs text-rose-700 mb-3">
+                    <p className="text-xs text-rose-800 dark:text-rose-300 mb-3">
                       This user shares contact or legal identity details with previously restricted accounts. Review ID photos carefully before approving.
                     </p>
 

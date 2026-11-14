@@ -68,8 +68,8 @@ const columnConfig = {
     shortLabel: 'Problems',
     icon: AlertTriangle,
     accentBorder: 'border-l-rose-500',
-    headerBg: 'bg-rose-50/80 text-rose-800 border-rose-200/80',
-    badgeText: 'text-rose-700 bg-rose-100',
+    headerBg: 'bg-rose-500/10 text-rose-800 dark:text-rose-300 border-rose-500/20',
+    badgeText: 'text-rose-700 bg-rose-500/10 border border-rose-500/20',
     dotColor: 'bg-rose-500',
   },
   recommendation: {
@@ -77,8 +77,8 @@ const columnConfig = {
     shortLabel: 'Suggestions',
     icon: Lightbulb,
     accentBorder: 'border-l-amber-500',
-    headerBg: 'bg-amber-50/80 text-amber-800 border-amber-200/80',
-    badgeText: 'text-amber-700 bg-amber-100',
+    headerBg: 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/20',
+    badgeText: 'text-amber-700 bg-amber-500/10 border border-amber-500/20',
     dotColor: 'bg-amber-500',
   },
   insight: {
@@ -86,8 +86,8 @@ const columnConfig = {
     shortLabel: 'Findings',
     icon: CheckCircle2,
     accentBorder: 'border-l-emerald-500',
-    headerBg: 'bg-emerald-50/80 text-emerald-800 border-emerald-200/80',
-    badgeText: 'text-emerald-700 bg-emerald-100',
+    headerBg: 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/20',
+    badgeText: 'text-emerald-700 bg-emerald-500/10 border border-emerald-500/20',
     dotColor: 'bg-emerald-500',
   },
   trend: {
@@ -95,8 +95,8 @@ const columnConfig = {
     shortLabel: 'Changes',
     icon: TrendingUp,
     accentBorder: 'border-l-sky-500',
-    headerBg: 'bg-sky-50/80 text-sky-800 border-sky-200/80',
-    badgeText: 'text-sky-700 bg-sky-100',
+    headerBg: 'bg-sky-500/10 text-sky-800 dark:text-sky-300 border-sky-500/20',
+    badgeText: 'text-sky-700 bg-sky-500/10 border border-sky-500/20',
     dotColor: 'bg-sky-500',
   },
 };
@@ -113,45 +113,45 @@ function CompactInsightCard({
   const cfg = columnConfig[category];
 
   return (
-    <div className={`bg-white/95 dark:bg-slate-900/90 rounded-xl p-3 border border-ink-faint/50 dark:border-slate-700/60 shadow-2xs hover:shadow-xs transition-all duration-150 border-l-[3.5px] ${cfg.accentBorder} flex flex-col justify-between group`}>
+    <div className={`bg-white/95 dark:bg-slate-900/90 rounded-xl p-3.5 border border-ink-faint/50 dark:border-slate-700/60 shadow-2xs hover:shadow-xs transition-all duration-150 border-l-[3.5px] ${cfg.accentBorder} flex flex-col justify-between group`}>
       <div>
-        <p className="text-xs font-body font-semibold text-ink leading-relaxed">
+        <p className="text-sm font-body font-semibold text-ink leading-relaxed">
           {item.text}
         </p>
       </div>
 
-      <div className="mt-2 pt-2 border-t border-ink-faint/25 flex flex-col gap-1.5 text-[11px]">
+      <div className="mt-2.5 pt-2 border-t border-ink-faint/25 flex flex-col gap-2 text-xs">
         <div className="flex items-center justify-between gap-1.5">
           {item.supportingData ? (
             <button
               type="button"
               onClick={() => setShowData(!showData)}
-              className="inline-flex items-center gap-1 text-[10px] font-body font-semibold text-ink-muted hover:text-ink px-1.5 py-0.5 rounded border border-ink-faint/50 hover:bg-slate-50 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-body font-medium text-ink-muted hover:text-ink px-2 py-0.5 rounded-md border border-ink-faint/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
-              <Database className="w-2.5 h-2.5" />
+              <Database className="w-3 h-3" />
               <span>{showData ? 'Hide Evidence' : 'Evidence'}</span>
-              {showData ? <ChevronUp className="w-2.5 h-2.5" /> : <ChevronDown className="w-2.5 h-2.5" />}
+              {showData ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
           ) : (
-            <span className="text-[10px] text-ink-muted/70 flex items-center gap-1">
-              <Info className="w-2.5 h-2.5" /> Baseline
+            <span className="text-xs text-ink-muted/70 flex items-center gap-1">
+              <Info className="w-3 h-3" /> Baseline
             </span>
           )}
 
           {item.actionLink && (
             <a
               href={item.actionLink}
-              className="inline-flex items-center gap-1 text-[10px] font-body font-bold text-primary hover:text-primary-dark hover:underline transition-colors ml-auto py-0.5"
+              className="inline-flex items-center gap-1 text-xs font-body font-bold text-primary hover:text-primary-dark hover:underline transition-colors ml-auto py-0.5"
             >
               <span>Action</span>
-              <ArrowUpRight className="w-2.5 h-2.5" />
+              <ArrowUpRight className="w-3 h-3" />
             </a>
           )}
         </div>
 
         {showData && item.supportingData && (
-          <div className="p-2 rounded-lg bg-slate-50 border border-ink-faint/50 text-[10px] font-mono text-ink-soft leading-normal animate-fade-in break-words">
-            <span className="font-bold text-ink-muted uppercase tracking-wider text-[8px] block mb-0.5">Underlying Metrics</span>
+          <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-ink-faint/50 text-xs font-mono text-ink-soft dark:text-slate-300 leading-normal animate-fade-in break-words">
+            <span className="font-bold text-ink-muted uppercase tracking-wider text-[10px] block mb-1">Underlying Metrics</span>
             {item.supportingData}
           </div>
         )}
@@ -311,19 +311,19 @@ export function AIInsightsCard({
           /* 4-COLUMN SYNCHRONIZED DECK */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Column 1: Problems & Risks */}
-            <div className="flex flex-col bg-slate-100/60 rounded-xl p-2.5 border border-slate-200/80">
-              <div className="flex items-center justify-between px-1 mb-2">
-                <div className="flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-                  <span className="text-xs font-bold text-ink">Problems</span>
+            <div className="flex flex-col bg-slate-100/60 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200/80 dark:border-slate-800">
+              <div className="flex items-center justify-between px-1 mb-2.5">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                  <span className="text-sm font-bold text-ink">Problems</span>
                 </div>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">
                   {allConcerns.length}
                 </span>
               </div>
-              <div className="max-h-[380px] overflow-y-auto space-y-2 pr-0.5 custom-scrollbar">
+              <div className="max-h-[380px] overflow-y-auto space-y-2.5 pr-0.5 custom-scrollbar">
                 {allConcerns.length === 0 ? (
-                  <div className="p-4 text-center text-[11px] text-ink-muted italic">No issues detected</div>
+                  <div className="p-4 text-center text-xs text-ink-muted italic">No issues detected</div>
                 ) : (
                   allConcerns.map((item, idx) => (
                     <CompactInsightCard key={`concern-${idx}`} item={item} category="concern" />
@@ -333,19 +333,19 @@ export function AIInsightsCard({
             </div>
 
             {/* Column 2: Suggestions */}
-            <div className="flex flex-col bg-slate-100/60 rounded-xl p-2.5 border border-slate-200/80">
-              <div className="flex items-center justify-between px-1 mb-2">
-                <div className="flex items-center gap-1.5">
-                  <Lightbulb className="w-3.5 h-3.5 text-amber-600" />
-                  <span className="text-xs font-bold text-ink">Suggestions</span>
+            <div className="flex flex-col bg-slate-100/60 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200/80 dark:border-slate-800">
+              <div className="flex items-center justify-between px-1 mb-2.5">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  <span className="text-sm font-bold text-ink">Suggestions</span>
                 </div>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20">
                   {recommendations.length}
                 </span>
               </div>
-              <div className="max-h-[380px] overflow-y-auto space-y-2 pr-0.5 custom-scrollbar">
+              <div className="max-h-[380px] overflow-y-auto space-y-2.5 pr-0.5 custom-scrollbar">
                 {recommendations.length === 0 ? (
-                  <div className="p-4 text-center text-[11px] text-ink-muted italic">No suggestions</div>
+                  <div className="p-4 text-center text-xs text-ink-muted italic">No suggestions</div>
                 ) : (
                   recommendations.map((item, idx) => (
                     <CompactInsightCard key={`rec-${idx}`} item={item} category="recommendation" />
@@ -355,19 +355,19 @@ export function AIInsightsCard({
             </div>
 
             {/* Column 3: Findings */}
-            <div className="flex flex-col bg-slate-100/60 rounded-xl p-2.5 border border-slate-200/80">
-              <div className="flex items-center justify-between px-1 mb-2">
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="text-xs font-bold text-ink">Findings</span>
+            <div className="flex flex-col bg-slate-100/60 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200/80 dark:border-slate-800">
+              <div className="flex items-center justify-between px-1 mb-2.5">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-sm font-bold text-ink">Findings</span>
                 </div>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20">
                   {keyInsights.length}
                 </span>
               </div>
-              <div className="max-h-[380px] overflow-y-auto space-y-2 pr-0.5 custom-scrollbar">
+              <div className="max-h-[380px] overflow-y-auto space-y-2.5 pr-0.5 custom-scrollbar">
                 {keyInsights.length === 0 ? (
-                  <div className="p-4 text-center text-[11px] text-ink-muted italic">No findings recorded</div>
+                  <div className="p-4 text-center text-xs text-ink-muted italic">No findings recorded</div>
                 ) : (
                   keyInsights.map((item, idx) => (
                     <CompactInsightCard key={`insight-${idx}`} item={item} category="insight" />
@@ -377,19 +377,19 @@ export function AIInsightsCard({
             </div>
 
             {/* Column 4: Market Changes */}
-            <div className="flex flex-col bg-slate-100/60 rounded-xl p-2.5 border border-slate-200/80">
-              <div className="flex items-center justify-between px-1 mb-2">
-                <div className="flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-sky-600" />
-                  <span className="text-xs font-bold text-ink">Changes</span>
+            <div className="flex flex-col bg-slate-100/60 dark:bg-slate-900/60 rounded-xl p-3 border border-slate-200/80 dark:border-slate-800">
+              <div className="flex items-center justify-between px-1 mb-2.5">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                  <span className="text-sm font-bold text-ink">Changes</span>
                 </div>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-700">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-800 dark:text-sky-300 border border-sky-500/20">
                   {trends.length}
                 </span>
               </div>
-              <div className="max-h-[380px] overflow-y-auto space-y-2 pr-0.5 custom-scrollbar">
+              <div className="max-h-[380px] overflow-y-auto space-y-2.5 pr-0.5 custom-scrollbar">
                 {trends.length === 0 ? (
-                  <div className="p-4 text-center text-[11px] text-ink-muted italic">No trend shifts</div>
+                  <div className="p-4 text-center text-xs text-ink-muted italic">No trend shifts</div>
                 ) : (
                   trends.map((item, idx) => (
                     <CompactInsightCard key={`trend-${idx}`} item={item} category="trend" />

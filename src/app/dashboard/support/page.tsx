@@ -273,26 +273,26 @@ function SupportTicketsPageContent() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleExportCSV}
-            className="flex items-center px-3 py-1.5 bg-white text-ink-soft hover:text-ink text-xs font-body font-semibold rounded-lg hover:bg-slate-50 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer"
+            className="flex items-center px-3.5 h-10 bg-white dark:bg-slate-900/80 text-ink-soft hover:text-ink text-sm font-body font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer"
             title="Export support tickets to CSV"
           >
-            <i className="lni lni-download mr-1.5 text-xs text-ink-muted group-hover:text-ink transition-colors" />
+            <i className="lni lni-download mr-2 text-sm text-ink-muted group-hover:text-ink transition-colors" />
             Export CSV
           </button>
           <button 
             onClick={() => fetchTickets(false)}
             disabled={loading}
-            className="flex items-center px-3 py-1.5 bg-white text-ink-soft hover:text-ink text-xs font-body font-semibold rounded-lg hover:bg-slate-50 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer"
+            className="flex items-center px-3.5 h-10 bg-white dark:bg-slate-900/80 text-ink-soft hover:text-ink text-sm font-body font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer"
           >
-            <i className={`lni lni-reload mr-1.5 text-xs ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+            <i className={`lni lni-reload mr-2 text-sm ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
             Refresh
           </button>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-ink-faint/30 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
-        <div className="flex flex-wrap gap-1.5 w-full md:w-auto">
+      <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md px-4 py-3 rounded-2xl border border-ink-faint/30 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
           {[
             { id: 'all', label: 'All', count: tickets.length, highlight: false },
             { id: 'open', label: 'Open', count: tickets.filter(t => t.status === 'open').length, highlight: true },
@@ -303,19 +303,19 @@ function SupportTicketsPageContent() {
               key={id}
               aria-label={id}
               onClick={() => { setStatusFilter(id as any); setCurrentPage(1); }}
-              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-body font-semibold rounded-lg capitalize transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 h-10 text-sm font-body rounded-xl capitalize transition-all cursor-pointer ${
                 statusFilter === id 
-                  ? 'bg-ink text-white shadow-2xs' 
-                  : 'text-ink-soft hover:text-ink bg-white border border-ink-faint/40'
+                  ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs font-semibold' 
+                  : 'text-ink-soft hover:text-ink bg-white/70 dark:bg-slate-800/60 border border-ink-faint/40 font-medium'
               }`}
             >
               <span>{label}</span>
               {count > 0 && (
-                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                   statusFilter === id
                     ? 'bg-white/20 text-white'
                     : highlight
-                    ? 'bg-status-warning/20 text-status-warning border border-status-warning/30 font-bold'
+                    ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/25 font-bold'
                     : 'bg-ink-faint/60 text-ink-muted'
                 }`}>
                   {count}
@@ -325,7 +325,7 @@ function SupportTicketsPageContent() {
           ))}
         </div>
         
-        <div className="relative w-full md:w-60 group">
+        <div className="relative w-full md:w-64 group">
           <input
             type="text"
             aria-label="Search tickets"
@@ -334,9 +334,9 @@ function SupportTicketsPageContent() {
             onChange={(e) => {
               setSearchTerm(e.target.value);
             }}
-            className="w-full pl-8 pr-3 py-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 outline-none text-xs font-body transition"
+            className="w-full pl-9 pr-3.5 h-10 bg-white dark:bg-slate-900/80 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/95 focus:border-ink/50 outline-none text-sm font-body transition"
           />
-          <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
+          <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-sm" />
         </div>
       </div>
 
@@ -374,29 +374,29 @@ function SupportTicketsPageContent() {
             <div 
               key={ticket.id} 
               onClick={() => setSelectedTicket(ticket)}
-              className="bg-white/90 backdrop-blur-md p-4 rounded-xl border border-ink-faint/30 shadow-xs cursor-pointer hover:shadow-md transition-all group flex flex-col justify-between"
+              className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-ink-faint/30 shadow-xs cursor-pointer hover:shadow-md transition-all group flex flex-col justify-between"
             >
               <div>
-                <div className="flex justify-between items-start mb-2.5">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-body font-bold ${
+                <div className="flex justify-between items-start mb-3">
+                  <span className={`px-2.5 py-1 rounded-md text-xs font-body font-semibold border ${
                     ticket.status === 'open' 
-                      ? 'bg-status-warning/20 text-status-warning dark:text-amber-300' 
+                      ? 'bg-amber-500/10 text-amber-800 dark:text-amber-400 border-amber-500/20' 
                       : ticket.status === 'processing'
-                      ? 'bg-accent-sky/20 dark:bg-sky-900/50 text-accent-skyDeep dark:text-sky-200'
-                      : 'bg-status-success/20 text-status-success dark:text-emerald-300'
+                      ? 'bg-blue-500/10 text-blue-800 dark:text-blue-400 border-blue-500/20'
+                      : 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border-emerald-500/20'
                   }`}>
                     {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
                   </span>
-                  <span className="text-[11px] text-ink-muted font-body font-semibold">
+                  <span className="text-xs text-ink-muted font-body font-medium">
                     {formatDate(ticket.created_at)}
                   </span>
                 </div>
                 
-                <h3 className="font-display font-bold text-sm text-ink mb-1 line-clamp-1">{ticket.subject}</h3>
-                <p className="text-xs text-ink-muted font-body mb-3 line-clamp-2">{ticket.message}</p>
+                <h3 className="font-display font-bold text-base text-ink mb-1.5 line-clamp-1">{ticket.subject}</h3>
+                <p className="text-sm text-ink-muted font-body mb-3.5 line-clamp-2 leading-relaxed">{ticket.message}</p>
               </div>
               
-              <div className="flex items-center gap-2.5 pt-2.5 border-t border-ink-faint/20 mt-auto">
+              <div className="flex items-center gap-3 pt-3 border-t border-ink-faint/20 mt-auto">
                 <Avatar name={ticket.user.name} url={ticket.user.avatar_url} size="sm" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-body font-bold text-ink truncate">{ticket.user.name}</p>

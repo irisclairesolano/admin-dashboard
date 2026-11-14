@@ -581,6 +581,20 @@ export const adminApi = {
       ['/admin/skills']
     );
   },
+
+  // ─── Web Push Subscriptions ──────────────────────────────────────────────
+  getVapidPublicKey: async () => {
+    return apiClient.get('/admin/push-subscriptions/vapid-key');
+  },
+  subscribePush: async (subscription: {
+    endpoint: string;
+    keys: { p256dh: string; auth: string };
+  }) => {
+    return apiClient.post('/admin/push-subscriptions', subscription);
+  },
+  unsubscribePush: async (endpoint: string) => {
+    return apiClient.delete('/admin/push-subscriptions', { data: { endpoint } });
+  },
 };
 
 /**

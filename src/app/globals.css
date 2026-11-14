@@ -132,18 +132,25 @@
   .hover\:bg-primary\/10:hover,
   .hover\:bg-primary\/20:hover
 ) {
-  background-color: rgba(59, 130, 246, 0.2);
+  background-color: rgba(59, 130, 246, 0.15);
 }
 
-/* Solid Dark-Navy Buttons & Active Filter Pills (bg-ink, bg-primary, bg-primary-dark, bg-slate-900) */
+/* Neutral Dark Controls & Active Filter Pills - Replaces aggressive electric blue with calm slate/ink glass */
 .dark :where(
   .bg-ink:not(.fixed),
-  .bg-primary,
-  .bg-primary-dark,
   .bg-slate-900,
   .bg-slate-800
 ) {
-  background-color: #2563eb;
+  background-color: #1e293b;
+  color: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.dark :where(
+  .bg-primary,
+  .bg-primary-dark
+) {
+  background-color: #1e3a8a;
   color: #ffffff;
   border-color: rgba(96, 165, 250, 0.35);
 }
@@ -151,10 +158,16 @@
 .dark :where(
   .hover\:bg-ink:hover,
   .hover\:bg-ink-soft:hover,
-  .hover\:bg-primary:hover,
-  .hover\:bg-primary-dark:hover,
   .hover\:bg-slate-900:hover,
   .hover\:bg-slate-800:hover
+) {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+}
+
+.dark :where(
+  .hover\:bg-primary:hover,
+  .hover\:bg-primary-dark:hover
 ) {
   background-color: #1d4ed8 !important;
   color: #ffffff !important;
@@ -358,6 +371,12 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+  .btn-glass {
+    @apply inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-800 text-ink dark:text-slate-100 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs backdrop-blur-md transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20;
+  }
+  .badge-neutral {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80;
   }
 }
 

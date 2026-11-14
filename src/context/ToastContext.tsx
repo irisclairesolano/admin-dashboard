@@ -136,10 +136,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                   <IconComponent className={`w-4 h-4 ${iconColor}`} />
                 </div>
                 <div className="min-w-0 pr-1">
-                  <h4 className="text-xs sm:text-[13px] font-bold font-body leading-tight text-ink dark:text-slate-100">
+                  <h4 className="text-sm font-bold font-body leading-tight text-ink dark:text-slate-100">
                     {t.title || defaultTitle}
                   </h4>
-                  <p className="text-[11px] sm:text-xs font-body text-ink-soft dark:text-slate-300 leading-snug mt-1 break-words">
+                  <p className="text-xs sm:text-[13px] font-body text-ink-soft dark:text-slate-300 leading-relaxed mt-1 break-words">
                     {t.message}
                   </p>
                 </div>

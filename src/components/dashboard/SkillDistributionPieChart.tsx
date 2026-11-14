@@ -13,8 +13,8 @@ import {
 const RechartsPie = Pie as any;
 
 const DEFAULT_COLORS = [
-  '#3E7648', '#0284C7', '#D97706', '#9333EA', '#E11D48',
-  '#059669', '#2563EB', '#D946EF', '#64748B'
+  '#3B82F6', '#10B981', '#F59E0B', '#6366F1', '#06B6D4',
+  '#8B5CF6', '#EC4899', '#64748B', '#0284C7'
 ];
 
 const renderActiveShape = (props: any) => {
@@ -159,23 +159,23 @@ const SkillDistributionPieChart = memo(function SkillDistributionPieChart({
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-4">
           {activePieIndex !== null && data[activePieIndex] ? (
             <>
-              <span className="text-[10px] font-bold text-ink-muted uppercase max-w-[90px] truncate">
+              <span className="text-xs font-semibold text-ink-muted uppercase max-w-[90px] truncate">
                 {data[activePieIndex].name}
               </span>
-              <strong className="text-lg font-numeric text-ink">
+              <strong className="text-xl font-numeric font-bold text-ink">
                 {((data[activePieIndex].value / (totalWorkers || 1)) * 100).toFixed(0)}%
               </strong>
-              <span className="text-[9px] text-ink-muted">
+              <span className="text-xs text-ink-muted">
                 {data[activePieIndex].value} workers
               </span>
             </>
           ) : (
             <>
-              <span className="text-[10px] text-ink-muted font-bold uppercase tracking-wider">Top Skill</span>
+              <span className="text-xs text-ink-muted font-semibold uppercase tracking-wider">Top Skill</span>
               <strong className="text-sm font-bold text-ink max-w-[90px] truncate text-center">
                 {data[0]?.name || 'N/A'}
               </strong>
-              <span className="text-[9px] text-ink-muted">
+              <span className="text-xs text-ink-muted">
                 {data[0]?.value ? `${data[0].value} workers` : '—'}
               </span>
             </>

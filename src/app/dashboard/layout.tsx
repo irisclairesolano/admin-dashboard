@@ -10,13 +10,19 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { usePolling } from '@/hooks/usePolling';
 import { useInactivityTimer } from '@/hooks/useInactivityTimer';
 import { TwoFactorSetupModal } from '@/components/TwoFactorSetupModal';
-import { ShieldCheck, ShieldAlert, KeyRound, Volume2, VolumeX, Moon, Sun } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, KeyRound, Volume2, VolumeX, Moon, Sun, Bell, BellOff } from 'lucide-react';
 import { authStorage } from '@/lib/authStorage';
 import { humanizeModel } from '@/lib/constants';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { CommandPalette } from '@/components/CommandPalette';
 import { playModerationAlertChime } from '@/lib/sound';
 import { useToast } from '@/context/ToastContext';
+import {
+  getAdminPushSubscription,
+  isWebPushSupported,
+  subscribeAdminWebPush,
+  unsubscribeAdminWebPush,
+} from '@/lib/webPush';
 
 type PrefetchStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -53,6 +59,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [adminName, setAdminName] = useState('');
   const [adminRole, setAdminRole] = useState<'superadmin' | 'moderator'>('moderator');
   const [is2faEnabled, setIs2faEnabled] = useState(false);
+  const [webPushSupported, setWebPushSupported] = useState(false);
+  const [webPushEnabled, setWebPushEnabled] = useState(false);
+  const [webPushBusy, setWebPushBusy] = useState(false);
+
+  useEffect(() => {
+    if (!isWebPushSupported()) return;
+    setWebPushSupported(true);
+    getAdminPushSubscription()
+      .then((sub) => setWebPushEnabled(!!sub))
+      .catch(() => {});
+  }, []);
+
+  const handleToggleWebPush = async () => {
+    try {
+      setWebPushBusy(true);
+      if (webPushEnabled) {
+        await unsubscribeAdminWebPush();
+        setWebPushEnabled(false);
+        toast.info('Background push notifications disabled for this browser.');
+      } else {
+        await subscribeAdminWebPush();
+        setWebPushEnabled(true);
+        toast.success('Background push notifications enabled! Alerts will arrive even when this tab is closed.');
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Could not update background push notifications.');
+    } finally {
+      setWebPushBusy(false);
+    }
+  };
   const [show2faModal, setShow2faModal] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [prefetchStatus, setPrefetchStatus] = useState<PrefetchStatus>('idle');
@@ -1077,24 +1113,43 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
 
               {/* Action Toolbar */}
-              <div className="flex items-center justify-between mt-3 pt-2 border-t border-ink-faint/20 dark:border-slate-800 text-xs">
-                {unreadCount > 0 ? (
+              <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-2 border-t border-ink-faint/20 dark:border-slate-800 text-xs">
+                <div className="flex items-center gap-3">
+                  {unreadCount > 0 ? (
+                    <button
+                      onClick={markAllAsRead}
+                      className="font-body font-semibold text-primary dark:text-sky-400 hover:text-primary-dark dark:hover:text-sky-300 transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      <i className="lni lni-checkmark text-xs" />
+                      Mark all read
+                    </button>
+                  ) : (
+                    <span className="text-[11px] text-ink-muted dark:text-slate-400">All notifications caught up</span>
+                  )}
+                  {notifications.some(n => readNotifications.includes(n.id)) && (
+                    <button
+                      onClick={clearReadNotifications}
+                      className="font-body text-ink-muted dark:text-slate-400 hover:text-status-error dark:hover:text-rose-400 transition-colors cursor-pointer"
+                    >
+                      Clear read
+                    </button>
+                  )}
+                </div>
+
+                {webPushSupported && (
                   <button
-                    onClick={markAllAsRead}
-                    className="font-body font-semibold text-primary dark:text-sky-400 hover:text-primary-dark dark:hover:text-sky-300 transition-colors flex items-center gap-1 cursor-pointer"
+                    type="button"
+                    disabled={webPushBusy}
+                    onClick={handleToggleWebPush}
+                    title="Receive push alerts even when this tab is closed"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-body font-semibold transition-all cursor-pointer disabled:opacity-50 ${
+                      webPushEnabled
+                        ? 'bg-emerald-500/10 dark:bg-emerald-950/50 border-emerald-500/25 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-200'
+                        : 'bg-white/70 dark:bg-slate-800/70 border-ink-faint/40 dark:border-slate-700 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white'
+                    }`}
                   >
-                    <i className="lni lni-checkmark text-xs" />
-                    Mark all read
-                  </button>
-                ) : (
-                  <span className="text-[11px] text-ink-muted dark:text-slate-400">All notifications caught up</span>
-                )}
-                {notifications.some(n => readNotifications.includes(n.id)) && (
-                  <button
-                    onClick={clearReadNotifications}
-                    className="font-body text-ink-muted dark:text-slate-400 hover:text-status-error dark:hover:text-rose-400 transition-colors cursor-pointer"
-                  >
-                    Clear read
+                    {webPushEnabled ? <Bell className="w-3.5 h-3.5" /> : <BellOff className="w-3.5 h-3.5" />}
+                    <span>{webPushBusy ? 'Updating...' : webPushEnabled ? 'Background Push On' : 'Enable Background Push'}</span>
                   </button>
                 )}
               </div>
@@ -1164,12 +1219,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1.5">
-                          <span className={`text-[10px] font-body font-bold uppercase tracking-wider ${
+                          <span className={`text-xs font-body font-semibold uppercase tracking-wider ${
                             isCritical ? 'text-status-error' : isAttention ? 'text-amber-600 dark:text-amber-400' : 'text-primary dark:text-sky-400'
                           }`}>
                             {isCritical ? 'Critical Report' : isAttention ? 'ID Verification' : 'Support Inquiry'}
                           </span>
-                          <span className="text-[10px] font-mono text-ink-muted dark:text-slate-400 flex items-center gap-1">
+                          <span className="text-xs font-mono text-ink-muted dark:text-slate-400 flex items-center gap-1">
                             {!isRead && <span className="w-2 h-2 rounded-full bg-primary dark:bg-sky-400 flex-shrink-0 animate-ping" />}
                             {getRelativeTime(item.timestamp)}
                           </span>

@@ -169,39 +169,39 @@ export default function ProfanityFilterPage() {
 
               {/* Action Tier Selector */}
               <div>
-                <label className="block text-[11px] font-body font-semibold text-ink-muted uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-body font-semibold text-ink-muted uppercase tracking-wider mb-2">
                   Action Policy Tier
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setNewAction('block')}
-                    className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-body font-semibold transition-all cursor-pointer ${
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border text-sm font-body font-medium transition-all cursor-pointer ${
                       newAction === 'block'
-                        ? 'bg-rose-50 border-rose-300 text-rose-800 shadow-2xs'
-                        : 'bg-white border-ink-faint/50 text-ink-muted hover:bg-slate-50'
+                        ? 'bg-rose-500/10 border-rose-500/30 text-rose-900 dark:text-rose-300 shadow-2xs font-semibold'
+                        : 'bg-white/80 dark:bg-slate-800/80 border-ink-faint/50 text-ink-muted hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <Ban className="w-4 h-4 mb-1 text-rose-600" />
+                    <Ban className="w-4 h-4 mb-1 text-rose-600 dark:text-rose-400" />
                     <span>Block</span>
-                    <span className="text-[10px] font-normal text-rose-600/80 mt-0.5">Hard reject (422)</span>
+                    <span className="text-xs font-normal text-rose-700/80 dark:text-rose-400/80 mt-0.5">Hard reject (422)</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setNewAction('flag')}
-                    className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-body font-semibold transition-all cursor-pointer ${
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border text-sm font-body font-medium transition-all cursor-pointer ${
                       newAction === 'flag'
-                        ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-2xs'
-                        : 'bg-white border-ink-faint/50 text-ink-muted hover:bg-slate-50'
+                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-300 shadow-2xs font-semibold'
+                        : 'bg-white/80 dark:bg-slate-800/80 border-ink-faint/50 text-ink-muted hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <Flag className="w-4 h-4 mb-1 text-amber-600" />
+                    <Flag className="w-4 h-4 mb-1 text-amber-600 dark:text-amber-400" />
                     <span>Flag</span>
-                    <span className="text-[10px] font-normal text-amber-600/80 mt-0.5">Context review</span>
+                    <span className="text-xs font-normal text-amber-700/80 dark:text-amber-400/80 mt-0.5">Context review</span>
                   </button>
                 </div>
-                <p className="text-[10px] text-ink-muted mt-2 leading-relaxed">
+                <p className="text-xs text-ink-muted mt-2 leading-relaxed">
                   {newAction === 'block'
                     ? 'Prohibits submission outright across job posts, profiles, and listings.'
                     : 'Allows conversational submission (reviews/notes) and auto-routes a report to Moderation.'}
@@ -211,11 +211,11 @@ export default function ProfanityFilterPage() {
               <button
                 type="submit"
                 disabled={addLoading || !newWord.trim()}
-                className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-body font-bold text-white bg-ink hover:bg-ink-soft disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xs cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 h-11 px-4 rounded-xl text-sm font-body font-semibold text-white bg-ink hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xs cursor-pointer"
               >
                 {addLoading ? (
                   <>
-                    <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -223,7 +223,7 @@ export default function ProfanityFilterPage() {
                   </>
                 ) : (
                   <>
-                    <Plus className="w-3.5 h-3.5" />
+                    <Plus className="w-4 h-4" />
                     <span>Add Filter Word</span>
                   </>
                 )}
@@ -237,14 +237,14 @@ export default function ProfanityFilterPage() {
           <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md p-5 rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-glass space-y-4">
             {/* List Header & Tabs */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-ink-faint/30">
-              <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
                   onClick={() => setActiveTab('all')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-body font-semibold transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-xl text-sm font-body transition-all cursor-pointer ${
                     activeTab === 'all'
-                      ? 'bg-ink text-white shadow-2xs'
-                      : 'bg-white border border-ink-faint/50 text-ink-soft hover:bg-slate-50'
+                      ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs font-semibold'
+                      : 'bg-white/80 dark:bg-slate-800/80 border border-ink-faint/50 text-ink-soft hover:bg-slate-50 dark:hover:bg-slate-800 font-medium'
                   }`}
                 >
                   All ({words.length})
@@ -252,37 +252,37 @@ export default function ProfanityFilterPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab('block')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-body font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-body transition-all cursor-pointer ${
                     activeTab === 'block'
-                      ? 'bg-rose-600 text-white shadow-2xs'
-                      : 'bg-white border border-ink-faint/50 text-rose-700 hover:bg-rose-50'
+                      ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs font-semibold'
+                      : 'bg-white/80 dark:bg-slate-800/80 border border-ink-faint/50 text-ink-soft hover:bg-slate-50 dark:hover:bg-slate-800 font-medium'
                   }`}
                 >
-                  <Ban className="w-3 h-3" />
+                  <Ban className="w-3.5 h-3.5 text-rose-600" />
                   <span>Blocked ({blockedCount})</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('flag')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-body font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-body transition-all cursor-pointer ${
                     activeTab === 'flag'
-                      ? 'bg-amber-600 text-white shadow-2xs'
-                      : 'bg-white border border-ink-faint/50 text-amber-700 hover:bg-amber-50'
+                      ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs font-semibold'
+                      : 'bg-white/80 dark:bg-slate-800/80 border border-ink-faint/50 text-ink-soft hover:bg-slate-50 dark:hover:bg-slate-800 font-medium'
                   }`}
                 >
-                  <Flag className="w-3 h-3" />
+                  <Flag className="w-3.5 h-3.5 text-amber-600" />
                   <span>Flagged ({flaggedCount})</span>
                 </button>
               </div>
 
               {/* Search input */}
-              <div className="w-full sm:w-48">
+              <div className="w-full sm:w-56">
                 <input
                   type="text"
                   placeholder="Search words..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-3 py-1 bg-slate-50 rounded-lg border border-ink-faint/50 outline-none text-xs font-body focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 transition-all"
+                  className="w-full px-3.5 h-10 bg-slate-50 dark:bg-slate-800 rounded-xl border border-ink-faint/50 outline-none text-sm font-body focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 transition-all"
                 />
               </div>
             </div>
@@ -296,11 +296,11 @@ export default function ProfanityFilterPage() {
               </div>
             ) : filteredWords.length === 0 ? (
               <div className="py-14 text-center flex flex-col items-center justify-center">
-                <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-ink-faint/30 flex items-center justify-center mb-2.5">
+                <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-ink-faint/30 flex items-center justify-center mb-2.5">
                   <ShieldAlert className="w-5 h-5 text-ink-muted" />
                 </div>
-                <h4 className="text-sm font-display font-bold text-ink">No Words in Filter</h4>
-                <p className="text-xs font-body text-ink-muted mt-1 max-w-xs">
+                <h4 className="text-base font-display font-bold text-ink">No Words in Filter</h4>
+                <p className="text-sm font-body text-ink-muted mt-1 max-w-xs">
                   {searchQuery ? 'No words match your search query.' : 'No filter words registered in this tier.'}
                 </p>
               </div>
@@ -311,27 +311,27 @@ export default function ProfanityFilterPage() {
                   return (
                     <div
                       key={item.id}
-                      className="flex justify-between items-center bg-slate-50/70 border border-ink-faint/30 rounded-xl px-3.5 py-2 hover:bg-white transition-all group"
+                      className="flex justify-between items-center bg-slate-50/70 dark:bg-slate-800/60 border border-ink-faint/30 rounded-xl px-4 py-2.5 hover:bg-white dark:hover:bg-slate-800 transition-all group"
                     >
                       <div className="flex items-center gap-2 min-w-0 pr-2">
-                        <span className="font-body text-xs font-semibold text-ink truncate">
+                        <span className="font-body text-sm font-semibold text-ink truncate">
                           {item.word}
                         </span>
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-body font-bold border ${
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-body font-medium border ${
                             isBlock
-                              ? 'bg-rose-50 text-rose-700 border-rose-200'
-                              : 'bg-amber-50 text-amber-700 border-amber-200'
+                              ? 'bg-rose-500/10 text-rose-800 dark:text-rose-400 border-rose-500/20'
+                              : 'bg-amber-500/10 text-amber-800 dark:text-amber-400 border-amber-500/20'
                           }`}
                         >
                           {isBlock ? (
                             <>
-                              <Ban className="w-2.5 h-2.5" />
+                              <Ban className="w-3 h-3 text-rose-600" />
                               Blocked
                             </>
                           ) : (
                             <>
-                              <Flag className="w-2.5 h-2.5" />
+                              <Flag className="w-3 h-3 text-amber-600" />
                               Flagged
                             </>
                           )}
@@ -341,7 +341,7 @@ export default function ProfanityFilterPage() {
                       <button
                         onClick={() => handleDeleteWord(item.id, item.word, item.action || 'block')}
                         disabled={actionLoading === item.id}
-                        className="p-1.5 text-ink-muted hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all disabled:opacity-50 cursor-pointer flex-shrink-0"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-muted hover:text-rose-600 hover:bg-rose-500/10 transition-all disabled:opacity-50 cursor-pointer flex-shrink-0"
                         title="Delete Word"
                       >
                         {actionLoading === item.id ? (
@@ -350,7 +350,7 @@ export default function ProfanityFilterPage() {
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
                         ) : (
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         )}
                       </button>
                     </div>

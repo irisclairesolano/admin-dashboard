@@ -611,23 +611,23 @@ function JobsPageContent() {
                       className="w-4 h-4 rounded border-ink-faint text-primary focus:ring-primary/30 cursor-pointer"
                     />
                   </th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[30%]">Job Details</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[18%]">Employer</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[10%] text-center">Applicants</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[12%] text-center">Posted Date</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[12%] text-center">Status</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[13%] text-right"></th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[30%]">Job Details</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[18%]">Employer</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[10%] text-center">Applicants</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[12%] text-center">Posted Date</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[12%] text-center">Status</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[13%] text-right"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-faint/20">
+              <tbody className="divide-y divide-ink-faint/20 dark:divide-slate-800">
                 {paginatedJobs.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-ink-soft">
+                    <td colSpan={7} className="px-4 py-12 text-center text-ink-soft dark:text-slate-400">
                       <div className="flex flex-col items-center justify-center">
-                        <div className="w-12 h-12 bg-ink-faint/30 rounded-full flex items-center justify-center mb-3">
-                          <i className="lni lni-briefcase text-xl text-ink-muted" />
+                        <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
+                          <i className="lni lni-briefcase text-xl text-slate-400" />
                         </div>
-                        <p className="text-sm font-semibold">No active job posts found.</p>
+                        <p className="text-sm font-semibold text-ink dark:text-slate-200">No active job posts found.</p>
                       </div>
                     </td>
                   </tr>
@@ -644,7 +644,7 @@ function JobsPageContent() {
                           : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/60'
                       }`}
                     >
-                      <td className="px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-3 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           aria-label={`Select job ${job.title}`}
@@ -653,24 +653,24 @@ function JobsPageContent() {
                           className="w-4 h-4 rounded border-ink-faint text-primary focus:ring-primary/30 cursor-pointer"
                         />
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="font-body font-bold text-ink text-sm flex items-center flex-wrap gap-1.5">
+                      <td className="px-4 py-3.5">
+                        <div className="font-body font-semibold text-ink dark:text-slate-100 text-sm flex items-center flex-wrap gap-1.5">
                           <span>{job.title}</span>
                           {job.reports_count > 0 && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-status-error/10 text-status-error border border-status-error/20 animate-pulse">
-                              ⚠️ {job.reports_count} {job.reports_count === 1 ? 'report' : 'reports'}
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">
+                              <i className="lni lni-warning text-xs" /> {job.reports_count} {job.reports_count === 1 ? 'report' : 'reports'}
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center text-[11px] text-ink-muted mt-1.5 flex-wrap gap-2">
-                          <span className="px-2 py-0.5 rounded bg-accent-sky dark:bg-sky-900/70 text-primary-dark dark:text-sky-100 font-body font-semibold border border-white/50 dark:border-sky-700/60">{job.category}</span>
-                          <span className="flex items-center bg-white/50 dark:bg-slate-800/70 px-2 py-0.5 rounded border border-white/50 dark:border-slate-700">
-                            <i className="lni lni-map-marker mr-1 text-primary dark:text-sky-400" /> {job.barangay}, {job.municipality}
+                        <div className="flex items-center text-xs text-ink-muted dark:text-slate-400 mt-1.5 flex-wrap gap-2">
+                          <span className="badge-neutral text-xs">{job.category}</span>
+                          <span className="flex items-center bg-slate-100/80 dark:bg-slate-800/60 px-2 py-0.5 rounded border border-slate-200/80 dark:border-slate-700 text-xs">
+                            <i className="lni lni-map-marker mr-1 text-slate-500 dark:text-slate-400 text-xs" /> {job.barangay}, {job.municipality}
                           </span>
                         </div>
-                        <div className="flex items-center text-[11px] text-ink-soft mt-1.5 gap-2 flex-wrap">
-                          <span className="font-numeric font-bold text-ink bg-primary-soft/40 px-2 py-0.5 rounded border border-primary/10">
-                            ₱{(parseFloat(job.compensation) || 0).toFixed(2)} <span className="text-[10px] text-ink-muted font-normal">/ {
+                        <div className="flex items-center text-xs text-ink-soft dark:text-slate-300 mt-1.5 gap-2 flex-wrap">
+                          <span className="font-numeric font-medium text-ink dark:text-slate-100 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+                            ₱{(parseFloat(job.compensation) || 0).toFixed(2)} <span className="text-xs text-ink-muted dark:text-slate-400 font-normal">/ {
                               job.rate_unit === 'per_hour' ? 'hour' :
                               job.rate_unit === 'per_project' ? 'project' :
                               job.rate_unit === 'per_piece' ? 'piece' :
@@ -678,43 +678,43 @@ function JobsPageContent() {
                               job.duration_type || 'day'
                             }</span>
                           </span>
-                          <span className="text-[10px] text-ink-soft font-body font-semibold bg-white/40 px-2 py-0.5 rounded border border-ink-faint/30">Slots: {(job.filled_slots ?? job.accepted_count) ?? 0}/{job.slots}</span>
+                          <span className="text-xs text-ink-muted dark:text-slate-400 font-body font-medium bg-slate-100/60 dark:bg-slate-800/40 px-2 py-0.5 rounded border border-slate-200/60 dark:border-slate-700/60">Slots: {(job.filled_slots ?? job.accepted_count) ?? 0}/{job.slots}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-accent-peach to-accent-peachBright/50 dark:from-amber-900/70 dark:to-amber-800/60 flex items-center justify-center text-primary-dark dark:text-amber-100 font-body font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
+                          <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 font-body font-semibold text-xs shadow-inner mr-2.5 flex-shrink-0">
                             {(job.employer?.name || 'Deleted Account').charAt(0)}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-body font-bold text-ink text-xs truncate">{job.employer?.name || 'Deleted Account'}</div>
-                            <div className="text-[10px] text-ink-soft truncate mt-0.5">{job.employer?.email || ''}</div>
+                            <div className="font-body font-semibold text-ink dark:text-slate-100 text-xs truncate">{job.employer?.name || 'Deleted Account'}</div>
+                            <div className="text-xs text-ink-muted dark:text-slate-400 truncate mt-0.5">{job.employer?.email || ''}</div>
                           </div>
                         </div>
                       </td>
 
-                      <td className="px-4 py-3 text-center text-xs font-bold text-ink">
+                      <td className="px-4 py-3.5 text-center text-xs font-semibold text-ink dark:text-slate-100 font-numeric">
                         {job.applications_count ?? 0}
                       </td>
-                      <td className="px-4 py-3 text-center text-xs text-ink-soft font-numeric">
+                      <td className="px-4 py-3.5 text-center text-xs text-ink-muted dark:text-slate-400 font-numeric">
                         {formatDate(job.created_at)}
                       </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-body font-bold uppercase tracking-wide inline-block ${
+                      <td className="px-4 py-3.5 text-center">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-body font-semibold uppercase tracking-wide inline-block ${
                           job.deleted_at
-                            ? 'bg-status-error/15 text-status-error border border-status-error/20'
+                            ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20'
                             : (STATUS_BADGE_MAP[job.status] ?? DEFAULT_BADGE_CLASS)
                         }`}>
                           {job.deleted_at ? 'Archived' : job.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-4 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end space-x-1.5">
                           {job.deleted_at ? (
                             <button
                               disabled={actionLoading === job.id}
                               onClick={() => handleRestore(job.id)}
-                              className="p-1.5 rounded-lg bg-white border border-ink-faint/40 text-status-success hover:bg-status-success hover:text-white hover:border-status-success transition-all shadow-xs cursor-pointer"
+                              className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white transition-all shadow-2xs cursor-pointer"
                               title="Restore Job Post"
                             >
                               <i className="lni lni-reload text-xs" />
@@ -724,10 +724,10 @@ function JobsPageContent() {
                               <button
                                 disabled={actionLoading === job.id}
                                 onClick={() => handleSuspendToggle(job.id, job.status)}
-                                className={`p-1.5 rounded-lg border transition-all shadow-xs group cursor-pointer ${
+                                className={`p-2 rounded-lg border transition-all shadow-2xs group cursor-pointer ${
                                   job.status === 'suspended'
-                                    ? 'bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border-status-success/30'
-                                    : 'bg-status-warning/10 text-status-warning hover:bg-status-warning hover:text-white border-status-warning/30'
+                                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white border-emerald-500/20'
+                                    : 'bg-amber-500/10 text-amber-800 dark:text-amber-300 hover:bg-amber-500 hover:text-white border-amber-500/20'
                                 }`}
                                 title={job.status === 'suspended' ? "Unsuspend Job Post" : "Suspend Job Post"}
                               >
@@ -736,7 +736,7 @@ function JobsPageContent() {
                               <button
                                 disabled={actionLoading === job.id}
                                 onClick={() => handleDelete(job.id)}
-                                className="p-1.5 rounded-lg bg-white border border-ink-faint/40 text-status-error hover:bg-status-error hover:text-white hover:border-status-error transition-all shadow-xs cursor-pointer"
+                                className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 hover:bg-rose-600 hover:text-white transition-all shadow-2xs cursor-pointer"
                                 title="Soft Delete Job Post"
                               >
                                 <i className="lni lni-trash-can text-xs" />

@@ -167,7 +167,7 @@ export default function UserDetailDrawer({
                   {selectedDetailUser.name}
                 </h2>
                 {selectedDetailUser.deleted_at && (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-status-error/15 text-status-error uppercase tracking-wider">
+                  <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20 uppercase tracking-wider">
                     Archived / Soft Deleted
                   </span>
                 )}
@@ -175,34 +175,32 @@ export default function UserDetailDrawer({
               <p className="text-sm font-body text-ink-muted truncate mt-0.5">{selectedDetailUser.email}</p>
 
               <div className="flex flex-wrap gap-2 mt-3">
-                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm ${
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider shadow-2xs ${
                   selectedDetailUser.role === 'admin'
-                    ? 'bg-primary text-white border border-primary-dark/30 shadow-primary/20'
-                    : selectedDetailUser.role === 'employer'
-                    ? 'bg-accent-peach dark:bg-amber-900/60 text-primary-dark dark:text-amber-100 border border-accent-peachBright/50 dark:border-amber-700/60'
-                    : 'bg-accent-mint dark:bg-emerald-900/60 text-accent-mintDeep dark:text-emerald-200 border border-accent-mintDeep/30 dark:border-emerald-700/60'
+                    ? 'bg-ink text-white dark:bg-slate-800 border border-ink-faint/30'
+                    : 'badge-neutral'
                 }`}>
                   {selectedDetailUser.role === 'admin' ? (selectedDetailUser.admin_role || 'Staff Administrator') : selectedDetailUser.role}
                 </span>
 
                 {selectedDetailUser.role === 'admin' && (
-                  <span className="flex items-center text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20 uppercase tracking-wider">
-                    <ShieldCheck className="w-3 h-3 mr-1" /> Protected Admin
+                  <span className="flex items-center text-xs font-semibold text-primary dark:text-sky-400 bg-primary/10 dark:bg-sky-950/40 px-2.5 py-0.5 rounded-full border border-primary/20 dark:border-sky-800 uppercase tracking-wider">
+                    <ShieldCheck className="w-3.5 h-3.5 mr-1" /> Protected Admin
                   </span>
                 )}
 
                 {selectedDetailUser.is_suspended && (
-                  <span className="flex items-center text-[10px] font-bold text-status-error bg-status-error/10 px-2 py-0.5 rounded-full border border-status-error/20 uppercase tracking-wider">
-                    <ShieldAlert className="w-3 h-3 mr-1" /> Suspended
+                  <span className="flex items-center text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20 uppercase tracking-wider">
+                    <ShieldAlert className="w-3.5 h-3.5 mr-1" /> Suspended
                   </span>
                 )}
 
                 {selectedDetailUser.role !== 'admin' && (() => {
                   const verifInfo = getUserVerificationInfo(selectedDetailUser);
                   return (
-                    <span className={`flex items-center text-[10px] font-bold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${verifInfo.badgeClass}`}>
-                      {verifInfo.statusKey === 'approved' && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                      {verifInfo.statusKey === 'rejected' && <AlertCircle className="w-3 h-3 mr-1" />}
+                    <span className={`flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${verifInfo.badgeClass}`}>
+                      {verifInfo.statusKey === 'approved' && <CheckCircle2 className="w-3.5 h-3.5 mr-1" />}
+                      {verifInfo.statusKey === 'rejected' && <AlertCircle className="w-3.5 h-3.5 mr-1" />}
                       {verifInfo.statusKey !== 'approved' && verifInfo.statusKey !== 'rejected' && (
                         <span className="w-1.5 h-1.5 rounded-full mr-1.5 bg-current opacity-70" />
                       )}

@@ -243,46 +243,46 @@ function LogsPageContent() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-8 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 outline-none text-xs font-body transition"
+              className="w-full pl-9 pr-3.5 h-10 bg-white/90 dark:bg-slate-900/80 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/95 focus:border-ink/50 outline-none text-sm font-body transition"
             />
-            <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
+            <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-sm" />
           </form>
         </div>
       </div>
 
       {/* Date Range Inputs & Action Filter & Admin Filter */}
-      <div className="flex flex-wrap gap-2.5 items-center mb-4 font-body text-xs">
-        <div className="flex items-center space-x-1.5 bg-white border border-ink-faint/40 px-2.5 py-1 rounded-lg shadow-2xs">
-          <span className="text-[11px] text-ink-muted font-semibold">From:</span>
+      <div className="flex flex-wrap gap-2.5 items-center mb-5 font-body text-sm">
+        <div className="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/80 border border-ink-faint/40 px-3 h-10 rounded-xl shadow-2xs">
+          <span className="text-xs text-ink-muted font-semibold">From:</span>
           <input
             type="date"
             aria-label="From date"
             value={dateFrom}
             onChange={(e) => { setDateFrom(e.target.value); setCurrentPage(1); }}
-            className="bg-transparent text-xs text-ink outline-none border-none font-semibold cursor-pointer"
+            className="bg-transparent text-sm text-ink outline-none border-none font-medium cursor-pointer"
           />
         </div>
 
-        <div className="flex items-center space-x-1.5 bg-white border border-ink-faint/40 px-2.5 py-1 rounded-lg shadow-2xs">
-          <span className="text-[11px] text-ink-muted font-semibold">To:</span>
+        <div className="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/80 border border-ink-faint/40 px-3 h-10 rounded-xl shadow-2xs">
+          <span className="text-xs text-ink-muted font-semibold">To:</span>
           <input
             type="date"
             aria-label="To date"
             value={dateTo}
             onChange={(e) => { setDateTo(e.target.value); setCurrentPage(1); }}
-            className="bg-transparent text-xs text-ink outline-none border-none font-semibold cursor-pointer"
+            className="bg-transparent text-sm text-ink outline-none border-none font-medium cursor-pointer"
           />
         </div>
 
-        <div className="flex items-center space-x-1.5 bg-white border border-ink-faint/40 px-2.5 py-1 rounded-lg shadow-2xs">
-          <span className="text-[11px] text-ink-muted font-semibold">Admin:</span>
+        <div className="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/80 border border-ink-faint/40 px-3 h-10 rounded-xl shadow-2xs">
+          <span className="text-xs text-ink-muted font-semibold">Admin:</span>
           <input
             type="text"
             aria-label="Filter by admin name"
             placeholder="Any admin..."
             value={adminNameFilter}
             onChange={(e) => { setAdminNameFilter(e.target.value); setCurrentPage(1); }}
-            className="bg-transparent text-xs text-ink outline-none border-none font-semibold w-28 placeholder:text-ink-muted placeholder:font-normal"
+            className="bg-transparent text-sm text-ink outline-none border-none font-medium w-32 placeholder:text-ink-muted placeholder:font-normal"
           />
         </div>
 
@@ -293,7 +293,7 @@ function LogsPageContent() {
             setActionFilter(e.target.value);
             setCurrentPage(1);
           }}
-          className="px-2.5 py-1 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white border border-ink-faint/40 text-ink-soft focus:bg-white dark:focus:bg-slate-900/90 outline-none cursor-pointer shadow-2xs"
+          className="px-3 h-10 rounded-xl font-body font-medium text-sm transition-colors whitespace-nowrap bg-white/90 dark:bg-slate-900/80 border border-ink-faint/40 text-ink-soft focus:bg-white dark:focus:bg-slate-900/95 outline-none cursor-pointer shadow-2xs"
         >
           <option value="">All Actions</option>
           {Array.from(new Set(Object.keys(ACTION_TYPES).filter((k) => !k.includes('.')))).map((act) => (
@@ -305,16 +305,16 @@ function LogsPageContent() {
           <button
             type="button"
             onClick={handleClearFilters}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-ink-soft text-[11px] font-semibold transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-ink-soft text-xs font-semibold transition-colors cursor-pointer"
           >
-            <i className="lni lni-reload text-[10px]" />
+            <i className="lni lni-reload text-xs" />
             Clear Filters
           </button>
         )}
       </div>
 
       {/* Table Section */}
-      <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
+      <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
         {loading ? (
           <div className="p-6 space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -328,13 +328,13 @@ function LogsPageContent() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left font-body table-fixed border-collapse">
-              <thead className="bg-slate-50/70 border-b border-ink-faint/30">
+              <thead className="bg-slate-50/70 dark:bg-slate-900/50 border-b border-ink-faint/30">
                 <tr>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[15%]">Timestamp</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[22%]">Administrator</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[15%]">Action</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[18%]">Target</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[30%]">Description</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[15%]">Timestamp</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[22%]">Administrator</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[15%]">Action</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[18%]">Target</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[30%]">Description</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-faint/20">
@@ -346,54 +346,54 @@ function LogsPageContent() {
                           <i className="lni lni-shield text-xl text-primary" />
                         </div>
                         <h3 className="font-display text-base text-ink font-bold">No Logs</h3>
-                        <p className="font-body text-ink-muted mt-1 text-xs">No admin audit logs match your query.</p>
+                        <p className="font-body text-ink-muted mt-1 text-sm">No admin audit logs match your query.</p>
                       </div>
                     </td>
                   </tr>
                 ) : (
                   logs.map((log) => (
                     <tr key={log.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/60 transition-colors duration-150">
-                      <td className="px-4 py-3 text-xs text-ink-soft whitespace-nowrap font-numeric">
+                      <td className="px-4 py-3.5 text-sm text-ink-soft whitespace-nowrap font-numeric">
                         <div className="flex items-center text-ink-muted">
                           <i className="lni lni-calendar mr-1.5 text-primary text-xs" />
                           {formatDate(log.created_at)} {new Date(log.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <div className="flex items-center">
                           <Avatar name={log.admin?.name || 'System Admin'} url={log.admin?.avatar_url} size="sm" className="mr-2.5 flex-shrink-0" />
                           <div className="min-w-0">
-                            <div className="font-body font-bold text-ink text-xs truncate">{log.admin?.name || 'System Admin'}</div>
-                            <div className="text-[10px] text-ink-soft truncate mt-0.5">{log.admin?.email || 'system@sikap.app'}</div>
+                            <div className="font-body font-bold text-ink text-sm truncate">{log.admin?.name || 'System Admin'}</div>
+                            <div className="text-xs text-ink-muted truncate mt-0.5">{log.admin?.email || 'system@sikap.app'}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-body font-semibold border ${getActionBadgeColor(log.action)}`}>
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <span className={`px-2.5 py-1 rounded-md text-xs font-body font-medium border ${getActionBadgeColor(log.action)}`}>
                           {formatActionName(log.action)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs">
+                      <td className="px-4 py-3.5 text-sm">
                         {log.target_name && log.target_name !== '-' ? (
                           <div className="flex flex-col min-w-0">
-                            <span className="font-bold text-ink truncate block" title={log.target_name}>
+                            <span className="font-semibold text-ink truncate block" title={log.target_name}>
                               {log.target_name}
                             </span>
                             {log.target_id && (
-                              <span className="text-[10px] text-ink-muted font-numeric">
+                              <span className="text-xs text-ink-muted font-numeric">
                                 {log.target_type ? log.target_type.split('\\').pop() : 'Entity'} #{log.target_id}
                               </span>
                             )}
                           </div>
                         ) : log.target_type ? (
-                          <span className="text-ink-soft text-xs font-semibold">
+                          <span className="text-ink-soft text-sm font-medium">
                             {log.target_type.split('\\').pop()} #{log.target_id || ''}
                           </span>
                         ) : (
-                          <span className="text-ink-muted text-xs">-</span>
+                          <span className="text-ink-muted text-sm">-</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-ink font-body font-medium text-xs leading-relaxed">
+                      <td className="px-4 py-3.5 text-ink font-body font-normal text-sm leading-relaxed">
                         {log.description}
                       </td>
                     </tr>

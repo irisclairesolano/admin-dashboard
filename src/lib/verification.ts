@@ -45,8 +45,8 @@ export function getUserVerificationInfo(user: any): UserVerificationInfo {
     return {
       statusKey: 'approved',
       label: 'Verified',
-      badgeClass: 'text-status-success bg-status-success/10 border-status-success/20',
-      iconClass: 'lni lni-checkmark-circle',
+      badgeClass: 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+      iconClass: 'lni lni-checkmark-circle text-emerald-600 dark:text-emerald-400',
       canVerify: false,
       disabledReason: 'User is already verified and approved',
     };
@@ -60,8 +60,8 @@ export function getUserVerificationInfo(user: any): UserVerificationInfo {
     return {
       statusKey: 'rejected',
       label: 'Rejected',
-      badgeClass: 'text-status-error bg-status-error/10 border-status-error/20',
-      iconClass: 'lni lni-close',
+      badgeClass: 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/20',
+      iconClass: 'lni lni-close text-rose-600 dark:text-rose-400',
       canVerify: false,
       disabledReason: 'Verification was rejected; user must re-upload in mobile app',
     };
@@ -75,8 +75,8 @@ export function getUserVerificationInfo(user: any): UserVerificationInfo {
     return {
       statusKey: 'pending_email',
       label: 'Pending Email OTP',
-      badgeClass: 'text-sky-700 bg-sky-50 border-sky-200',
-      iconClass: 'lni lni-envelope text-sky-600',
+      badgeClass: 'text-slate-700 dark:text-slate-300 bg-slate-100/80 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/80',
+      iconClass: 'lni lni-envelope text-slate-500 dark:text-slate-400',
       canVerify: false,
       disabledReason: 'User has not verified email address yet',
     };
@@ -89,8 +89,8 @@ export function getUserVerificationInfo(user: any): UserVerificationInfo {
     return {
       statusKey: 'pending_id_upload',
       label: 'Pending ID Upload',
-      badgeClass: 'text-amber-700 bg-amber-50 border-amber-200',
-      iconClass: 'lni lni-timer text-amber-600',
+      badgeClass: 'text-slate-700 dark:text-slate-300 bg-slate-100/80 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/80',
+      iconClass: 'lni lni-timer text-slate-500 dark:text-slate-400',
       canVerify: false,
       disabledReason: 'Cannot verify: User has not uploaded identification documents yet',
     };
@@ -105,8 +105,8 @@ export function getUserVerificationInfo(user: any): UserVerificationInfo {
     return {
       statusKey: 'pending_review',
       label: 'Pending Review',
-      badgeClass: 'text-status-gold bg-status-gold/10 border-status-gold/20',
-      iconClass: 'lni lni-warning text-status-warning',
+      badgeClass: 'text-amber-800 dark:text-amber-300 bg-amber-500/10 border-amber-500/20',
+      iconClass: 'lni lni-warning text-amber-600 dark:text-amber-400',
       canVerify: true,
     };
   }
@@ -115,8 +115,8 @@ export function getUserVerificationInfo(user: any): UserVerificationInfo {
   return {
     statusKey: 'unverified',
     label: 'Unverified',
-    badgeClass: 'text-ink-muted bg-paper border-ink-faint',
-    iconClass: 'lni lni-user',
+    badgeClass: 'text-slate-600 dark:text-slate-400 bg-slate-100/60 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/80',
+    iconClass: 'lni lni-user text-slate-400',
     canVerify: false,
     disabledReason: 'Cannot verify: User has not submitted documents',
   };
@@ -218,7 +218,7 @@ export function getSlaStatus(
       durationText: 'Just now',
       label: 'Just now (Normal)',
       modalLabel: 'SLA: Just now in queue',
-      color: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-medium',
+      color: 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 font-medium',
       isOverdue: false,
       badge: 'normal',
       diffHours: 0,
@@ -231,7 +231,7 @@ export function getSlaStatus(
       durationText: 'Just now',
       label: 'Just now (Normal)',
       modalLabel: 'SLA: Just now in queue',
-      color: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-medium',
+      color: 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 font-medium',
       isOverdue: false,
       badge: 'normal',
       diffHours: 0,
@@ -247,7 +247,7 @@ export function getSlaStatus(
       durationText,
       label: `${durationText} (Overdue)`,
       modalLabel: `SLA: ${durationText} in queue (Overdue)`,
-      color: 'bg-rose-50 text-rose-700 border-rose-300 font-bold',
+      color: 'bg-rose-500/10 text-rose-800 dark:text-rose-300 border border-rose-500/25 font-semibold',
       isOverdue: true,
       badge: 'overdue',
       diffHours,
@@ -258,7 +258,7 @@ export function getSlaStatus(
       durationText,
       label: `${durationText} (Urgent)`,
       modalLabel: `SLA: ${durationText} in queue (Urgent)`,
-      color: 'bg-amber-50 text-amber-700 border-amber-300 font-semibold',
+      color: 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20 font-medium',
       isOverdue: false,
       badge: 'urgent',
       diffHours,
@@ -269,7 +269,7 @@ export function getSlaStatus(
       durationText,
       label: `${durationText} (Priority)`,
       modalLabel: `SLA: ${durationText} in queue (Priority)`,
-      color: 'bg-sky-50 text-sky-700 border-sky-200 font-medium',
+      color: 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 font-medium',
       isOverdue: false,
       badge: 'priority',
       diffHours,
@@ -279,7 +279,7 @@ export function getSlaStatus(
     durationText,
     label: `${durationText} (Normal)`,
     modalLabel: `SLA: ${durationText} in queue`,
-    color: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-medium',
+    color: 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 font-medium',
     isOverdue: false,
     badge: 'normal',
     diffHours,
@@ -374,7 +374,7 @@ export function getWaitingDurationInfo(
       durationText: 'Just now',
       agingBucket: '<12h',
       agingLabel: '< 12h (Fresh)',
-      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      badgeClass: 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/80',
       isStalled: false,
     };
   }
@@ -387,7 +387,7 @@ export function getWaitingDurationInfo(
       durationText: 'Just now',
       agingBucket: '<12h',
       agingLabel: '< 12h (Fresh)',
-      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      badgeClass: 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/80',
       isStalled: false,
     };
   }
@@ -403,7 +403,7 @@ export function getWaitingDurationInfo(
       durationText,
       agingBucket: '>48h',
       agingLabel: '> 48h (Stalled)',
-      badgeClass: 'bg-rose-50 text-rose-700 border-rose-300 font-bold',
+      badgeClass: 'bg-rose-500/10 text-rose-800 dark:text-rose-300 border-rose-500/25 font-semibold',
       isStalled: true,
     };
   }
@@ -415,7 +415,7 @@ export function getWaitingDurationInfo(
       durationText,
       agingBucket: '24-48h',
       agingLabel: '24 – 48h (Urgent)',
-      badgeClass: 'bg-amber-50 text-amber-700 border-amber-300 font-semibold',
+      badgeClass: 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/20 font-medium',
       isStalled: false,
     };
   }
@@ -427,7 +427,7 @@ export function getWaitingDurationInfo(
       durationText,
       agingBucket: '12-24h',
       agingLabel: '12 – 24h (Priority)',
-      badgeClass: 'bg-sky-50 text-sky-700 border-sky-200 font-medium',
+      badgeClass: 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/80 font-medium',
       isStalled: false,
     };
   }
@@ -438,7 +438,7 @@ export function getWaitingDurationInfo(
     durationText,
     agingBucket: '<12h',
     agingLabel: '< 12h (Fresh)',
-    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-medium',
+    badgeClass: 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/80 font-medium',
     isStalled: false,
   };
 }

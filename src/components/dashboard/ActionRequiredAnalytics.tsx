@@ -514,7 +514,7 @@ export default function ActionRequiredAnalytics({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-2">
             {/* 1. Search Field */}
             <div className="relative">
-              <i className="lni lni-search absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-xs" />
+              <i className="lni lni-search absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted dark:text-slate-400 text-sm" />
               <input
                 type="text"
                 aria-label="Search accounts by name, email, or ID"
@@ -524,16 +524,16 @@ export default function ActionRequiredAnalytics({
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-8 pr-7 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink dark:text-slate-100 placeholder-ink-muted dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white/80 dark:bg-slate-800/80 text-ink dark:text-slate-100 placeholder-ink-muted dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
               />
               {searchTerm && (
                 <button
                   type="button"
                   aria-label="Clear search"
                   onClick={() => setSearchTerm('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink text-xs cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-slate-200 text-xs cursor-pointer p-1"
                 >
-                  <i className="lni lni-close text-[10px]" />
+                  <i className="lni lni-close text-xs" />
                 </button>
               )}
             </div>
@@ -547,7 +547,7 @@ export default function ActionRequiredAnalytics({
                   setReasonFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white/80 dark:bg-slate-800/80 text-ink dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition cursor-pointer"
               >
                 <option value="all">All Reasons ({users.length})</option>
                 <option value="pending_otp">✉️ Pending Email OTP ({stats.byReason.pendingOtp.count})</option>
@@ -573,7 +573,7 @@ export default function ActionRequiredAnalytics({
                   setRoleFilter(e.target.value as any);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white/80 dark:bg-slate-800/80 text-ink dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition cursor-pointer"
               >
                 <option value="all">All Roles ({users.length})</option>
                 <option value="worker">Workers ({stats.byRole.worker})</option>
@@ -590,7 +590,7 @@ export default function ActionRequiredAnalytics({
                   setAgingFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white/80 dark:bg-slate-800/80 text-ink dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition cursor-pointer"
               >
                 <option value="all">All Durations</option>
                 <option value="<12h">&lt; 12 hours (Fresh: {stats.byAging.under12h.count})</option>
@@ -609,7 +609,7 @@ export default function ActionRequiredAnalytics({
                   setSortBy(e.target.value as any);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-1.5 text-xs rounded-lg border border-ink-faint/60 bg-white dark:bg-slate-800 text-ink dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 cursor-pointer"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200/80 dark:border-slate-700/80 bg-white/80 dark:bg-slate-800/80 text-ink dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition cursor-pointer"
               >
                 <option value="duration_desc">Longest Waiting First</option>
                 <option value="duration_asc">Shortest Waiting First</option>
@@ -626,22 +626,22 @@ export default function ActionRequiredAnalytics({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-ink-faint/30">
-                <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[10%]">
+                <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[10%]">
                   User ID
                 </th>
-                <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[30%]">
+                <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[30%]">
                   User Details
                 </th>
-                <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[12%]">
+                <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[12%]">
                   Role
                 </th>
-                <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[23%]">
+                <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[23%]">
                   Required Action & Missing Items
                 </th>
-                <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[15%]">
+                <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[15%]">
                   Waiting Since & Duration
                 </th>
-                <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[9%] text-right">
+                <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[9%] text-right">
                   Action
                 </th>
               </tr>
@@ -654,8 +654,8 @@ export default function ActionRequiredAnalytics({
                       <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-3">
                         <i className="lni lni-inbox text-xl" />
                       </div>
-                      <h4 className="text-sm font-bold text-ink">No Accounts Found</h4>
-                      <p className="text-xs text-ink-muted mt-1 leading-relaxed">
+                      <h4 className="text-sm font-bold text-ink dark:text-slate-100">No Accounts Found</h4>
+                      <p className="text-xs text-ink-muted dark:text-slate-400 mt-1 leading-relaxed">
                         {hasActiveFilters
                           ? 'No waiting accounts match the applied filters and search criteria.'
                           : 'There are currently no accounts waiting for user actions.'}
@@ -663,7 +663,7 @@ export default function ActionRequiredAnalytics({
                       {hasActiveFilters && (
                         <button
                           onClick={resetFilters}
-                          className="mt-3 px-3.5 py-1.5 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition cursor-pointer"
+                          className="mt-3 px-3.5 py-1.5 text-xs font-semibold text-ink dark:text-slate-200 bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg transition cursor-pointer shadow-2xs"
                         >
                           Clear all filters
                         </button>
@@ -683,25 +683,25 @@ export default function ActionRequiredAnalytics({
                       className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition group"
                     >
                       {/* 1. User ID */}
-                      <td className="px-4 py-3 align-top">
+                      <td className="px-4 py-3.5 align-top">
                         <div className="flex flex-col gap-1 items-start">
-                          <span className="font-numeric font-bold text-xs text-ink bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-ink-faint/30">
+                          <span className="font-numeric font-bold text-xs text-ink dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-ink-faint/30 dark:border-slate-700">
                             #{user.id}
                           </span>
                           {hasBlacklist && (
                             <span
                               title="Blacklist match detected"
-                              className="inline-flex items-center gap-1 text-[9px] font-bold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200"
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20"
                             >
-                              <i className="lni lni-warning text-[9px]" />
-                              <span>Match</span>
+                              <i className="lni lni-warning text-xs" />
+                              <span>Blacklist Match</span>
                             </span>
                           )}
                         </div>
                       </td>
 
                       {/* 2. User Details */}
-                      <td className="px-4 py-3 align-top">
+                      <td className="px-4 py-3.5 align-top">
                         <div className="flex items-start gap-3">
                           <Avatar
                             name={user.name}
@@ -710,40 +710,40 @@ export default function ActionRequiredAnalytics({
                             className="shrink-0 mt-0.5"
                           />
                           <div className="min-w-0">
-                            <span className="font-semibold text-xs text-ink block truncate group-hover:text-amber-800 transition">
+                            <span className="font-semibold text-sm text-ink dark:text-slate-100 block truncate group-hover:text-primary dark:group-hover:text-sky-400 transition">
                               {user.name}
                             </span>
-                            <div className="flex items-center gap-1.5 text-[11px] text-ink-muted truncate mt-0.5">
+                            <div className="flex items-center gap-1.5 text-xs text-ink-muted dark:text-slate-400 truncate mt-0.5">
                               <span className="truncate">{user.email}</span>
                               {user.email_verified_at ? (
-                                <span title="Email Verified" className="text-emerald-600 shrink-0">
-                                  <i className="lni lni-checkmark-circle text-[11px]" />
+                                <span title="Email Verified" className="text-emerald-600 dark:text-emerald-400 shrink-0">
+                                  <i className="lni lni-checkmark-circle text-xs" />
                                 </span>
                               ) : (
-                                <span title="Email Unverified (Awaiting OTP)" className="text-sky-600 shrink-0">
-                                  <i className="lni lni-envelope text-[11px]" />
+                                <span title="Email Unverified (Awaiting OTP)" className="text-slate-400 shrink-0">
+                                  <i className="lni lni-envelope text-xs" />
                                 </span>
                               )}
                             </div>
                             {user.phone && (
-                              <div className="flex items-center gap-1 text-[10px] text-ink-muted mt-0.5">
+                              <div className="flex items-center gap-1 text-xs text-ink-muted dark:text-slate-400 mt-0.5">
                                 <span>{user.phone}</span>
                                 <button
                                   type="button"
                                   onClick={() => handleCopyContact(user.id, user.phone)}
-                                  className="text-ink-muted hover:text-ink cursor-pointer"
+                                  className="text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
                                   title="Copy phone number"
                                 >
                                   <i
                                     className={`lni ${
                                       copiedId === user.id ? 'lni-checkmark text-emerald-600' : 'lni-clipboard'
-                                    } text-[10px]`}
+                                    } text-xs`}
                                   />
                                 </button>
                               </div>
                             )}
                             {(user.barangay || user.municipality) && (
-                              <span className="text-[10px] text-ink-muted dark:text-slate-300 block mt-0.5">
+                              <span className="text-xs text-ink-muted dark:text-slate-400 block mt-0.5">
                                 {[user.barangay, user.municipality].filter(Boolean).join(', ')}
                               </span>
                             )}
@@ -752,86 +752,71 @@ export default function ActionRequiredAnalytics({
                       </td>
 
                       {/* 3. Role */}
-                      <td className="px-4 py-3 align-top">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium border ${
-                            isWorker
-                              ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800'
-                              : isEmployer
-                              ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
-                          }`}
-                        >
+                      <td className="px-4 py-3.5 align-top">
+                        <span className="badge-neutral capitalize">
                           <i
                             className={`lni ${
                               isWorker ? 'lni-construction' : isEmployer ? 'lni-briefcase' : 'lni-user'
-                            } text-[10px]`}
+                            } text-xs text-slate-500 dark:text-slate-400`}
                           />
-                          <span className="capitalize">{user.role || 'User'}</span>
+                          <span>{user.role || 'User'}</span>
                         </span>
                       </td>
 
                       {/* 4. Required Action & Missing Items */}
-                      <td className="px-4 py-3 align-top">
+                      <td className="px-4 py-3.5 align-top">
                         <div className="flex flex-col gap-1.5 items-start">
                           {startInfo.reasonKey === 'pending_otp' ? (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold text-sky-800 bg-sky-50 border border-sky-200">
-                              <i className="lni lni-envelope text-[10px]" />
+                            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-ink dark:text-slate-200">
+                              <i className="lni lni-envelope text-xs text-slate-500 dark:text-slate-400" />
                               <span>Pending Email OTP Verification</span>
                             </span>
                           ) : startInfo.reasonKey === 'rejected_reupload' ? (
                             <div className="flex flex-col gap-1 items-start">
-                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold text-rose-800 bg-rose-50 border border-rose-200">
-                                <i className="lni lni-reload text-[10px]" />
+                              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-800 dark:text-rose-300">
+                                <i className="lni lni-reload text-xs text-rose-600 dark:text-rose-400" />
                                 <span>Awaiting Re-upload After Rejection</span>
                               </span>
                               {user.rejection_reason && (
-                                <span className="text-[10px] text-rose-900 italic bg-rose-50/60 px-1.5 py-0.5 rounded border border-rose-200/50 max-w-xs truncate">
+                                <span className="text-xs text-rose-700 dark:text-rose-400 italic bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 max-w-xs truncate">
                                   "{user.rejection_reason}"
                                 </span>
                               )}
                             </div>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200">
-                              <i className="lni lni-empty-file text-[10px]" />
+                            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-ink dark:text-slate-200">
+                              <i className="lni lni-empty-file text-xs text-slate-500 dark:text-slate-400" />
                               <span>Pending Identification Upload</span>
                             </span>
                           )}
 
-                          {/* Specific missing requirements chips */}
+                          {/* Specific missing requirements calm secondary text */}
                           {reqInfo.missingItems.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-0.5">
-                              {reqInfo.missingItems.map((item, idx) => (
-                                <span
-                                  key={idx}
-                                  className="text-[10px] font-medium text-amber-900 dark:text-amber-200 bg-amber-100/70 dark:bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-200/60 dark:border-amber-800/70"
-                                >
-                                  {item}
-                                </span>
-                              ))}
-                            </div>
+                            <p className="text-xs text-ink-muted dark:text-slate-400 mt-0.5">
+                              <span className="font-medium text-ink-soft dark:text-slate-300">Missing:</span>{' '}
+                              {reqInfo.missingItems.join(' · ')}
+                            </p>
                           )}
                         </div>
                       </td>
 
                       {/* 5. Waiting Since & Duration */}
-                      <td className="px-4 py-3 align-top">
+                      <td className="px-4 py-3.5 align-top">
                         <div className="flex flex-col gap-1 items-start">
-                          <span
-                            title={`Waiting duration: ${durInfo.durationHours.toFixed(1)} hours`}
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-numeric border ${durInfo.badgeClass}`}
-                          >
+                          <div className="flex items-center gap-1.5 text-xs font-numeric font-medium text-ink dark:text-slate-200">
+                            <i className="lni lni-timer text-xs text-slate-500 dark:text-slate-400" />
+                            <span>Waiting: {durInfo.durationText}</span>
                             {durInfo.isStalled && (
-                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping mr-0.5" />
+                              <span className="inline-flex items-center gap-1 text-rose-700 dark:text-rose-400 font-semibold ml-1">
+                                · <i className="lni lni-warning text-xs" /> Stalled
+                              </span>
                             )}
-                            <i className="lni lni-timer text-[9px]" />
-                            <span>{durInfo.durationText}</span>
-                          </span>
+                          </div>
 
-                          <div className="text-[10px] text-ink-muted">
+                          <div className="text-xs text-ink-muted dark:text-slate-400">
                             <span className="block">
                               {startInfo.label}:{' '}
-                              <strong className="text-ink-soft">
+                              <strong className="text-ink-soft dark:text-slate-300 font-medium">
                                 {startInfo.startTime
                                   ? new Date(startInfo.startTime).toLocaleDateString(undefined, {
                                       month: 'short',
@@ -841,7 +826,7 @@ export default function ActionRequiredAnalytics({
                                   : 'N/A'}
                               </strong>
                             </span>
-                            <span className="text-[9px] text-ink-muted dark:text-slate-300 block">
+                            <span className="text-[11px] text-ink-muted/80 dark:text-slate-400/80 block">
                               Event: {startInfo.eventName}
                             </span>
                           </div>
@@ -849,13 +834,13 @@ export default function ActionRequiredAnalytics({
                       </td>
 
                       {/* 6. Action */}
-                      <td className="px-4 py-3 align-top text-right">
+                      <td className="px-4 py-3.5 align-top text-right">
                         <button
                           onClick={() => onInspectUser(user)}
-                          className="px-2.5 py-1 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                          className="btn-glass"
                         >
                           <span>Inspect</span>
-                          <i className="lni lni-chevron-right text-[9px]" />
+                          <i className="lni lni-chevron-right text-[10px]" />
                         </button>
                       </td>
                     </tr>

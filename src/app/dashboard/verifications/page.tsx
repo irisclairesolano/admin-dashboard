@@ -355,16 +355,16 @@ function VerificationsPageContent() {
             setStatusTab('pending');
             setCurrentPage(1);
           }}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-body font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
             statusTab === 'pending'
-              ? 'bg-primary text-white shadow-2xs'
-              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'
+              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white dark:border dark:border-slate-700 shadow-2xs'
+              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
           }`}
         >
           <span>Pending Review</span>
           <span
-            className={`px-1.5 py-0.5 rounded-full text-[10px] font-numeric font-bold ${
-              statusTab === 'pending' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-ink-muted dark:text-slate-200'
+            className={`px-1.5 py-0.5 rounded-full text-xs font-numeric font-medium ${
+              statusTab === 'pending' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-ink-muted dark:text-slate-300'
             }`}
           >
             {allPendingUsers.length}
@@ -376,16 +376,16 @@ function VerificationsPageContent() {
             setStatusTab('awaiting_upload');
             setCurrentPage(1);
           }}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-body font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
             statusTab === 'awaiting_upload'
-              ? 'bg-amber-700 text-white shadow-2xs'
-              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'
+              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white dark:border dark:border-slate-700 shadow-2xs'
+              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
           }`}
         >
           <span>Action Required from User</span>
           <span
-            className={`px-1.5 py-0.5 rounded-full text-[10px] font-numeric font-bold ${
-              statusTab === 'awaiting_upload' ? 'bg-white/20 text-white' : 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200'
+            className={`px-1.5 py-0.5 rounded-full text-xs font-numeric font-medium ${
+              statusTab === 'awaiting_upload' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-ink-muted dark:text-slate-300'
             }`}
           >
             {allActionRequiredUsers.length}
@@ -397,16 +397,16 @@ function VerificationsPageContent() {
             setStatusTab('rejected');
             setCurrentPage(1);
           }}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-body font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
             statusTab === 'rejected'
-              ? 'bg-rose-700 text-white shadow-2xs'
-              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'
+              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white dark:border dark:border-slate-700 shadow-2xs'
+              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
           }`}
         >
           <span>Rejected / Awaiting Re-upload</span>
           <span
-            className={`px-1.5 py-0.5 rounded-full text-[10px] font-numeric font-bold ${
-              statusTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-200'
+            className={`px-1.5 py-0.5 rounded-full text-xs font-numeric font-medium ${
+              statusTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-ink-muted dark:text-slate-300'
             }`}
           >
             {allRejectedUsers.length}
@@ -418,16 +418,16 @@ function VerificationsPageContent() {
             setStatusTab('approved');
             setCurrentPage(1);
           }}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-body font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
             statusTab === 'approved'
-              ? 'bg-emerald-700 text-white shadow-2xs'
-              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'
+              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white dark:border dark:border-slate-700 shadow-2xs'
+              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
           }`}
         >
           <span>Approved</span>
           <span
-            className={`px-1.5 py-0.5 rounded-full text-[10px] font-numeric font-bold ${
-              statusTab === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-200'
+            className={`px-1.5 py-0.5 rounded-full text-xs font-numeric font-medium ${
+              statusTab === 'approved' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-ink-muted dark:text-slate-300'
             }`}
           >
             {allApprovedUsers.length}
@@ -439,16 +439,16 @@ function VerificationsPageContent() {
             setStatusTab('all');
             setCurrentPage(1);
           }}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-body font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
             statusTab === 'all'
-              ? 'bg-slate-800 text-white shadow-2xs'
-              : 'bg-white/80 text-ink-muted hover:text-ink hover:bg-white border border-ink-faint/40'
+              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white dark:border dark:border-slate-700 shadow-2xs'
+              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
           }`}
         >
           <span>All Records</span>
           <span
-            className={`px-1.5 py-0.5 rounded-full text-[10px] font-numeric font-bold ${
-              statusTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-ink-muted'
+            className={`px-1.5 py-0.5 rounded-full text-xs font-numeric font-medium ${
+              statusTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-ink-muted dark:text-slate-300'
             }`}
           >
             {users.length}
@@ -506,98 +506,96 @@ function VerificationsPageContent() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left font-body table-fixed border-collapse">
-              <thead className="bg-slate-50/70 border-b border-ink-faint/30">
+              <thead className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-ink-faint/30 dark:border-slate-800">
                 <tr>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[10%]">User ID</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[36%]">User Details</th>
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[16%]">Role</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[10%]">User ID</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[36%]">User Details</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[16%]">Role</th>
                   {statusTab === 'rejected' ? (
-                    <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[24%]">Rejection Reason</th>
+                    <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[24%]">Rejection Reason</th>
                   ) : (
-                    <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[24%]">Submitted & SLA Age</th>
+                    <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[24%]">Submitted & SLA Age</th>
                   )}
-                  <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[14%] text-right">
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[14%] text-right">
                     {statusTab === 'rejected' ? 'Status' : 'Action'}
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-faint/20">
+              <tbody className="divide-y divide-ink-faint/20 dark:divide-slate-800">
                 {paginatedUsers.map((user) => {
                   const isUserRejected = user.verification_status === 'rejected' || user.registration_status === 'rejected';
                   const isUserApproved = user.verification_status === 'approved' || !!user.verification_badge;
 
                   return (
                     <tr key={user.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/60 transition-colors duration-150">
-                      <td className="px-4 py-3 text-xs font-numeric font-bold text-ink-muted">
+                      <td className="px-4 py-3.5 text-xs font-numeric font-semibold text-ink-muted dark:text-slate-400">
                         #{user.id}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <div className="flex items-center">
                           <Avatar name={user.name} url={user.avatar_url} />
                           <div className="ml-3 truncate">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-body font-bold text-ink text-xs truncate">{user.name}</span>
+                              <span className="font-body font-semibold text-ink dark:text-slate-100 text-sm truncate">{user.name}</span>
                               {user.blacklist_matches && user.blacklist_matches.length > 0 && (
                                 <span
-                                  className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 border border-rose-200 px-1.5 py-0.5 rounded-full"
+                                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-md"
                                   title={`Possible Blacklist Match (${user.blacklist_matches.length})`}
                                 >
-                                  ⚠️ Blacklist Match
+                                  <i className="lni lni-warning text-xs" /> Blacklist Match
                                 </span>
                               )}
                             </div>
-                            <div className="text-[11px] text-ink-muted truncate">{user.email}</div>
+                            <div className="text-xs text-ink-muted dark:text-slate-400 truncate mt-0.5">{user.email}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex flex-col gap-1 items-start">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-body font-bold tracking-wide uppercase ${
-                            user.role === 'employer' ? 'bg-accent-peach text-primary-dark border border-accent-peachBright/50' : 'bg-accent-mint text-accent-mintDeep border border-accent-mintDeep/30'
-                          }`}>
+                      <td className="px-4 py-3.5">
+                        <div className="flex flex-col gap-1.5 items-start">
+                          <span className="badge-neutral uppercase tracking-wide text-xs">
                             {user.role}
                           </span>
                           {isUserRejected ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
-                              <i className="lni lni-cross-circle text-[10px]" /> Rejected
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+                              <i className="lni lni-cross-circle text-xs" /> Rejected
                             </span>
                           ) : isUserApproved ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                              <i className="lni lni-checkmark text-[10px]" /> Verified
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                              <i className="lni lni-checkmark text-xs" /> Verified
                             </span>
                           ) : user.role === 'employer' && (user.business_documents && (Array.isArray(user.business_documents) ? user.business_documents.length > 0 : !!user.business_documents)) ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
-                              <i className="lni lni-files text-[10px]" />
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+                              <i className="lni lni-files text-xs text-slate-500 dark:text-slate-400" />
                               {Array.isArray(user.business_documents) ? `${user.business_documents.length} Doc(s)` : 'Business Doc'}
                             </span>
                           ) : user.document_url ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-ink-soft bg-paper px-1.5 py-0.5 rounded border border-ink-faint">
-                              <i className="lni lni-postcard text-[10px]" /> Govt ID
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+                              <i className="lni lni-postcard text-xs text-slate-500 dark:text-slate-400" /> Govt ID
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                              <i className="lni lni-timer text-[10px]" /> Pending ID
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/60 px-2 py-0.5 rounded border border-slate-200/80 dark:border-slate-700/80">
+                              <i className="lni lni-timer text-xs text-slate-400" /> Pending ID
                             </span>
                           )}
                         </div>
                       </td>
 
                       {statusTab === 'rejected' ? (
-                        <td className="px-4 py-3 text-xs font-body">
-                          <div className="bg-rose-50/70 border border-rose-200/70 rounded-lg p-2 max-w-sm">
-                            <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block mb-0.5">
+                        <td className="px-4 py-3.5 text-xs font-body">
+                          <div className="bg-rose-500/10 border border-rose-500/20 rounded-lg p-2.5 max-w-sm">
+                            <span className="text-xs font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wider block mb-0.5">
                               Rejection Reason:
                             </span>
-                            <span className="text-rose-900 font-medium text-[11px] italic">
+                            <span className="text-rose-800 dark:text-rose-300 font-medium text-xs italic">
                               "{user.rejection_reason || 'Document does not meet verification requirements.'}"
                             </span>
                           </div>
                         </td>
                       ) : (
-                        <td className="px-4 py-3 text-xs font-body font-medium text-ink-soft">
+                        <td className="px-4 py-3.5 text-xs font-body font-medium text-ink-soft dark:text-slate-300">
                           <div>
                             {new Date(user.updated_at || user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                            <span className="text-[10px] text-ink-muted ml-1">
+                            <span className="text-xs text-ink-muted dark:text-slate-400 ml-1">
                               {new Date(user.updated_at || user.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
@@ -608,10 +606,10 @@ function VerificationsPageContent() {
                                 return (
                                   <span
                                     title={`Submitted: ${new Date(user.updated_at || user.created_at).toLocaleString()}`}
-                                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-numeric border ${sla.color}`}
+                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-numeric border ${sla.color}`}
                                   >
                                     {sla.isOverdue && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />}
-                                    <i className="lni lni-timer text-[9px]" />
+                                    <i className="lni lni-timer text-xs" />
                                     <span>SLA: {sla.label}</span>
                                   </span>
                                 );
@@ -621,35 +619,35 @@ function VerificationsPageContent() {
                         </td>
                       )}
 
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3.5 text-right">
                         {isUserRejected ? (
                           <div className="flex flex-col items-end gap-1">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                              <i className="lni lni-reload text-[9px]" /> Awaiting Re-upload
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                              <i className="lni lni-reload text-xs text-slate-500" /> Awaiting Re-upload
                             </span>
-                            <span className="text-[10px] text-ink-muted">
+                            <span className="text-xs text-ink-muted dark:text-slate-400">
                               {new Date(user.updated_at || user.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                             </span>
                           </div>
                         ) : isUserApproved ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20">
                             Approved ✓
                           </span>
                         ) : !hasSubmittedDocs(user) ? (
                           <div className="flex flex-col items-end gap-0.5">
                             <span
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 cursor-not-allowed select-none"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 cursor-not-allowed select-none"
                               title="Cannot verify: User has not uploaded identification documents yet. Awaiting applicant upload in mobile app."
                             >
-                              <i className="lni lni-hourglass text-[10px]" />
+                              <i className="lni lni-hourglass text-xs" />
                               Awaiting User
                             </span>
-                            <span className="text-[9px] text-ink-muted">Verification Locked</span>
+                            <span className="text-[11px] text-ink-muted dark:text-slate-400">Verification Locked</span>
                           </div>
                         ) : (
                           <button
                             onClick={() => setReviewUser(user)}
-                            className="bg-ink text-white px-3 py-1.5 rounded-lg text-xs font-body font-semibold hover:bg-ink-soft transition-colors cursor-pointer"
+                            className="btn-glass px-3.5 py-1.5 text-xs font-semibold"
                           >
                             Review
                           </button>

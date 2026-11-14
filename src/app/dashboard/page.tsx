@@ -180,7 +180,7 @@ function HealthStatusBadge({ type, value }: { type: 'throughput' | 'conversion' 
   if (type === 'throughput') {
     if (value >= 3) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-500/20">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           Plenty of applicants
         </span>
@@ -188,14 +188,14 @@ function HealthStatusBadge({ type, value }: { type: 'throughput' | 'conversion' 
     }
     if (value >= 1) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
-          <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
           Steady
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-800 dark:text-amber-400 border border-amber-500/20">
         <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
         Not enough applicants
       </span>
@@ -205,7 +205,7 @@ function HealthStatusBadge({ type, value }: { type: 'throughput' | 'conversion' 
   if (type === 'conversion') {
     if (value >= 20) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-500/20">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           Many jobs getting filled (20%+)
         </span>
@@ -213,14 +213,14 @@ function HealthStatusBadge({ type, value }: { type: 'throughput' | 'conversion' 
     }
     if (value >= 10) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
-          <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
           Some jobs getting filled
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-800 dark:text-amber-400 border border-amber-500/20">
         <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
         Few jobs getting filled (under 10%)
       </span>
@@ -230,7 +230,7 @@ function HealthStatusBadge({ type, value }: { type: 'throughput' | 'conversion' 
   if (type === 'reports') {
     if (value === 0) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-500/20">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           No reports
         </span>
@@ -238,14 +238,14 @@ function HealthStatusBadge({ type, value }: { type: 'throughput' | 'conversion' 
     }
     if (value <= 3) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
-          <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
           Just a few reports
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-800 dark:text-rose-400 border border-rose-500/20">
         <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
         Needs a look
       </span>
@@ -1572,9 +1572,9 @@ export default function AnalyticsDashboard() {
                       </h3>
                     </div>
                   </div>
-                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 dark:border-slate-800 flex items-center justify-between text-[11px] font-medium text-ink-muted dark:text-slate-400">
+                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 dark:border-slate-800 flex items-center justify-between text-xs font-medium text-ink-muted dark:text-slate-400">
                     <span>{detailedTotals.new_workers.toLocaleString()} Workers · {detailedTotals.new_employers.toLocaleString()} Employers</span>
-                    <span className="text-[10px] text-ink-muted/70 dark:text-slate-500 group-hover:text-primary-dark dark:group-hover:text-blue-400 transition-colors">Users →</span>
+                    <span className="text-xs text-ink-muted/80 dark:text-slate-400 group-hover:text-primary-dark dark:group-hover:text-blue-400 transition-colors">Users →</span>
                   </div>
                 </div>
 
@@ -1588,7 +1588,7 @@ export default function AnalyticsDashboard() {
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-ink-muted dark:text-slate-400">Job Posts</span>
+                      <span className="text-xs sm:text-sm font-semibold text-ink-muted dark:text-slate-400">Job Posts</span>
                       <i className="lni lni-briefcase text-sm text-sky-700/80 dark:text-sky-400" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
@@ -1597,9 +1597,9 @@ export default function AnalyticsDashboard() {
                       </h3>
                     </div>
                   </div>
-                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 dark:border-slate-800 flex items-center justify-between text-[11px] font-medium text-ink-muted dark:text-slate-400">
+                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 dark:border-slate-800 flex items-center justify-between text-xs font-medium text-ink-muted dark:text-slate-400">
                     <span>Jobs open right now</span>
-                    <span className="text-[10px] text-ink-muted/70 dark:text-slate-500 group-hover:text-primary-dark dark:group-hover:text-blue-400 transition-colors">Jobs →</span>
+                    <span className="text-xs text-ink-muted/80 dark:text-slate-400 group-hover:text-primary-dark dark:group-hover:text-blue-400 transition-colors">Jobs →</span>
                   </div>
                 </div>
 
@@ -1613,7 +1613,7 @@ export default function AnalyticsDashboard() {
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-ink-muted dark:text-slate-400">Job Applications</span>
+                      <span className="text-xs sm:text-sm font-semibold text-ink-muted dark:text-slate-400">Job Applications</span>
                       <i className="lni lni-files text-sm text-emerald-700/80 dark:text-emerald-400" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
@@ -1622,9 +1622,9 @@ export default function AnalyticsDashboard() {
                       </h3>
                     </div>
                   </div>
-                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 dark:border-slate-800 flex items-center justify-between text-[11px] font-medium text-ink-muted dark:text-slate-400">
+                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 dark:border-slate-800 flex items-center justify-between text-xs font-medium text-ink-muted dark:text-slate-400">
                     <span>Workers who applied</span>
-                    <span className="text-[10px] text-ink-muted/70 dark:text-slate-500 group-hover:text-primary-dark dark:group-hover:text-blue-400 transition-colors">Applications →</span>
+                    <span className="text-xs text-ink-muted/80 dark:text-slate-400 group-hover:text-primary-dark dark:group-hover:text-blue-400 transition-colors">Applications →</span>
                   </div>
                 </div>
 
@@ -1638,7 +1638,7 @@ export default function AnalyticsDashboard() {
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-ink-muted dark:text-slate-400">Reports Received</span>
+                      <span className="text-xs sm:text-sm font-semibold text-ink-muted dark:text-slate-400">Reports Received</span>
                       <i className="lni lni-shield text-sm text-rose-700/80 dark:text-rose-400" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
@@ -1648,11 +1648,11 @@ export default function AnalyticsDashboard() {
                       <HealthStatusBadge type="reports" value={data?.kpis?.unresolved_reports?.value ?? 0} />
                     </div>
                   </div>
-                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 dark:border-slate-800 flex items-center justify-between text-[11px] font-medium text-ink-muted dark:text-slate-400">
+                  <div className="mt-2.5 pt-2 border-t border-ink-faint/40 dark:border-slate-800 flex items-center justify-between text-xs font-medium text-ink-muted dark:text-slate-400">
                     <span className="truncate">
                       {data?.verification?.pending_verifications ? `${data.verification.pending_verifications} pending reviews` : 'Queue cleared'}
                     </span>
-                    <span className="text-[10px] text-ink-muted/70 dark:text-slate-500 group-hover:text-primary-dark dark:group-hover:text-blue-400 transition-colors">Reports →</span>
+                    <span className="text-xs text-ink-muted/80 dark:text-slate-400 group-hover:text-primary-dark dark:group-hover:text-blue-400 transition-colors">Reports →</span>
                   </div>
                 </div>
               </div>

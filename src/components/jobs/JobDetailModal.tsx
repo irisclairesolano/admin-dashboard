@@ -277,35 +277,35 @@ export default function JobDetailModal({
 
               {/* Badges & Meta Row */}
               <div className="flex flex-wrap items-center gap-2 mt-2.5">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-accent-sky dark:bg-sky-900/70 text-primary-dark dark:text-sky-100 border border-white/50 dark:border-sky-700/60">
+                <span className="badge-neutral text-xs font-semibold">
                   {currentJob.category || 'General'}
                 </span>
 
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                  className={`px-2.5 py-0.5 rounded-md text-xs font-semibold uppercase tracking-wider border ${
                     currentJob.status === 'open'
-                      ? 'bg-status-success/15 text-status-success border-status-success/30'
+                      ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border-emerald-500/20'
                       : currentJob.status === 'in_progress' || currentJob.status === 'in progress'
-                      ? 'bg-status-warning/15 text-status-warning border-status-warning/30'
+                      ? 'bg-blue-500/10 text-blue-800 dark:text-blue-400 border-blue-500/20'
                       : currentJob.status === 'completed'
-                      ? 'bg-primary/15 text-primary border-primary/30'
+                      ? 'bg-indigo-500/10 text-indigo-800 dark:text-indigo-400 border-indigo-500/20'
                       : currentJob.status === 'suspended'
-                      ? 'bg-status-error/15 text-status-error border-status-error/30'
-                      : 'bg-ink-faint/50 text-ink-soft border-ink-faint'
+                      ? 'bg-rose-500/10 text-rose-800 dark:text-rose-400 border-rose-500/20'
+                      : 'badge-neutral'
                   }`}
                 >
                   {currentJob.status}
                 </span>
 
                 {currentJob.is_urgent && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-status-error text-white animate-pulse">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">
                     Urgent Hiring
                   </span>
                 )}
 
                 {reportsCount > 0 && (
-                  <span className="flex items-center text-[10px] font-bold text-status-error bg-status-error/10 px-2.5 py-0.5 rounded-full border border-status-error/20 uppercase tracking-wider">
-                    <ShieldAlert className="w-3 h-3 mr-1" />
+                  <span className="flex items-center text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20 uppercase tracking-wider">
+                    <ShieldAlert className="w-3.5 h-3.5 mr-1" />
                     {reportsCount} {reportsCount === 1 ? 'Report' : 'Reports'}
                   </span>
                 )}
@@ -710,53 +710,53 @@ export default function JobDetailModal({
               ) : (
                 <div className="overflow-x-auto bg-white rounded-2xl border border-ink-faint shadow-2xs">
                   <table className="w-full text-left font-body table-fixed border-collapse">
-                    <thead className="bg-paper border-b border-ink-faint text-[11px] font-bold text-ink-muted uppercase tracking-wider">
+                    <thead className="bg-paper dark:bg-slate-800/80 border-b border-ink-faint text-xs font-semibold text-ink-muted uppercase tracking-wider">
                       <tr>
-                        <th className="px-4 py-3 w-[35%]">Worker Details</th>
-                        <th className="px-4 py-3 w-[20%]">Status</th>
-                        <th className="px-4 py-3 w-[25%]">Applied Date</th>
-                        <th className="px-4 py-3 w-[20%] text-right">Proposed Price</th>
+                        <th className="px-4 py-3.5 w-[35%]">Worker Details</th>
+                        <th className="px-4 py-3.5 w-[20%]">Status</th>
+                        <th className="px-4 py-3.5 w-[25%]">Applied Date</th>
+                        <th className="px-4 py-3.5 w-[20%] text-right">Proposed Price</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-ink-faint/30 text-xs">
+                    <tbody className="divide-y divide-ink-faint/30 text-sm">
                       {applications.map((app) => {
                         const worker = app.worker || {};
                         const statusColors: Record<string, string> = {
-                          pending: 'bg-status-warning/10 text-status-warning border-status-warning/20',
-                          shortlisted: 'bg-accent-sky text-primary-dark border-accent-sky/30',
-                          accepted: 'bg-status-success/10 text-status-success border-status-success/20',
-                          employer_confirmed: 'bg-status-success/15 text-status-success border-status-success/30',
-                          completed: 'bg-primary/10 text-primary border-primary/20',
-                          rejected: 'bg-status-error/10 text-status-error border-status-error/20',
-                          withdrawn: 'bg-ink-faint/60 text-ink-muted border-ink-faint',
+                          pending: 'bg-amber-500/10 text-amber-800 dark:text-amber-400 border-amber-500/20',
+                          shortlisted: 'bg-blue-500/10 text-blue-800 dark:text-blue-400 border-blue-500/20',
+                          accepted: 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border-emerald-500/20',
+                          employer_confirmed: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30',
+                          completed: 'bg-indigo-500/10 text-indigo-800 dark:text-indigo-400 border-indigo-500/20',
+                          rejected: 'bg-rose-500/10 text-rose-800 dark:text-rose-400 border-rose-500/20',
+                          withdrawn: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700',
                         };
 
                         return (
-                          <tr key={app.id} className="hover:bg-paper/40 transition-colors">
-                            <td className="px-4 py-3">
+                          <tr key={app.id} className="hover:bg-paper/40 dark:hover:bg-slate-800/40 transition-colors">
+                            <td className="px-4 py-3.5">
                               <div className="flex items-center gap-3">
                                 <Avatar name={worker.name || 'Worker'} url={worker.avatar_url} size="sm" />
                                 <div className="min-w-0">
-                                  <div className="font-bold text-ink truncate">{worker.name || 'Unknown Worker'}</div>
-                                  <div className="text-[11px] text-ink-muted truncate">{worker.email}</div>
+                                  <div className="font-bold text-ink truncate text-sm">{worker.name || 'Unknown Worker'}</div>
+                                  <div className="text-xs text-ink-muted truncate">{worker.email}</div>
                                   {app.cover_note && (
-                                    <div className="text-[11px] text-ink-soft italic mt-0.5 line-clamp-1">
+                                    <div className="text-xs text-ink-muted italic mt-0.5 line-clamp-1">
                                       "{app.cover_note}"
                                     </div>
                                   )}
                                 </div>
                               </div>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-4 py-3.5">
                               <span
-                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
-                                  statusColors[app.status] || 'bg-paper text-ink-muted border-ink-faint'
+                                className={`px-2.5 py-0.5 rounded-md text-xs font-semibold uppercase tracking-wide border ${
+                                  statusColors[app.status] || 'badge-neutral'
                                 }`}
                               >
                                 {app.status ? app.status.replace(/_/g, ' ') : 'Pending'}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-ink-soft">
+                            <td className="px-4 py-3.5 text-ink-soft text-sm font-numeric">
                               {app.created_at ? formatDate(app.created_at) : 'N/A'}
                             </td>
                             <td className="px-4 py-3 text-right font-bold text-ink">

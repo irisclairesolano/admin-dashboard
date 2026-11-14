@@ -453,51 +453,49 @@ function ArchivesPageContent() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left font-body table-fixed border-collapse">
-                  <thead className="bg-slate-50/70 border-b border-ink-faint/30">
+                  <thead className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-ink-faint/30 dark:border-slate-800">
                     <tr>
-                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[12%]">User ID</th>
-                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[38%]">User Details</th>
-                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[18%]">Role</th>
-                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[17%]">Deleted At</th>
-                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[15%] text-right">Actions</th>
+                      <th className="px-4 py-3.5 text-xs font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider w-[12%]">User ID</th>
+                      <th className="px-4 py-3.5 text-xs font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider w-[38%]">User Details</th>
+                      <th className="px-4 py-3.5 text-xs font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider w-[18%]">Role</th>
+                      <th className="px-4 py-3.5 text-xs font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider w-[17%]">Deleted At</th>
+                      <th className="px-4 py-3.5 text-xs font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider w-[15%] text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-ink-faint/20">
+                  <tbody className="divide-y divide-ink-faint/20 dark:divide-slate-800">
                     {filteredUsers.map(user => (
                       <tr
                         key={user.id}
                         onClick={() => setSelectedDetailUser(user)}
-                        className="hover:bg-slate-50/70 transition-colors duration-150 cursor-pointer"
+                        className="hover:bg-slate-50/70 dark:hover:bg-slate-800/60 transition-colors duration-150 cursor-pointer"
                       >
-                        <td className="px-4 py-3 text-xs font-numeric font-bold text-ink-muted">#{user.id}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3.5 text-xs font-numeric font-semibold text-ink-muted dark:text-slate-400">#{user.id}</td>
+                        <td className="px-4 py-3.5">
                           <div className="flex items-center">
-                            <div className="h-8 w-8 rounded-lg bg-status-error/10 text-status-error border border-status-error/20 flex items-center justify-center font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
+                            <div className="h-8 w-8 rounded-lg bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20 flex items-center justify-center font-bold text-xs shadow-inner mr-2.5 flex-shrink-0">
                               {(user.name || 'U').charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0">
-                              <div className="font-bold text-ink text-xs truncate">{user.name}</div>
-                              <div className="text-[10px] text-ink-soft truncate mt-0.5">{user.email}</div>
+                              <div className="font-semibold text-ink dark:text-slate-100 text-sm truncate">{user.name}</div>
+                              <div className="text-xs text-ink-muted dark:text-slate-400 truncate mt-0.5">{user.email}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                            user.role === 'employer' ? 'bg-accent-peach dark:bg-amber-900/60 text-primary-dark dark:text-amber-100 border border-accent-peachBright/50 dark:border-amber-700/60' : 'bg-accent-mint dark:bg-emerald-900/60 text-accent-mintDeep dark:text-emerald-200 border border-accent-mintDeep/20 dark:border-emerald-700/60'
-                          }`}>
+                        <td className="px-4 py-3.5">
+                          <span className="badge-neutral text-xs uppercase">
                             {user.role}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-xs text-status-error font-numeric">
+                        <td className="px-4 py-3.5 text-xs text-rose-700 dark:text-rose-400 font-numeric">
                           {formatDate(user.deleted_at)}
                         </td>
-                        <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-4 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
                           {isSuperAdmin ? (
                             <div className="flex justify-end space-x-1.5">
                               <button
                                 disabled={actionLoading === `user-${user.id}`}
                                 onClick={() => handleRestoreUser(user.id)}
-                                className="p-1.5 rounded-lg bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border border-status-success/20 transition-all cursor-pointer"
+                                className="p-2 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white border border-emerald-500/20 transition-all cursor-pointer shadow-2xs"
                                 title="Restore User"
                                 aria-label="Restore User"
                               >
@@ -506,7 +504,7 @@ function ArchivesPageContent() {
                               <button
                                 disabled={actionLoading === `user-force-${user.id}`}
                                 onClick={() => handlePermanentDeleteUser(user.id, user.name)}
-                                className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all cursor-pointer"
+                                className="p-2 rounded-lg bg-rose-500/10 text-rose-700 dark:text-rose-400 hover:bg-rose-600 hover:text-white border border-rose-500/20 transition-all cursor-pointer shadow-2xs"
                                 title="Permanently Delete User"
                                 aria-label="Permanently Delete User"
                               >
@@ -514,7 +512,7 @@ function ArchivesPageContent() {
                               </button>
                             </div>
                           ) : (
-                            <span className="text-[10px] text-ink-muted dark:text-slate-400 italic">Superadmin Only</span>
+                            <span className="text-xs text-ink-muted dark:text-slate-400 italic">Superadmin Only</span>
                           )}
                         </td>
                       </tr>
@@ -535,40 +533,40 @@ function ArchivesPageContent() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left font-body table-fixed border-collapse">
-                  <thead className="bg-slate-50/70 border-b border-ink-faint/30">
+                  <thead className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-ink-faint/30 dark:border-slate-800">
                     <tr>
-                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[12%]">Job ID</th>
-                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[35%]">Job Details</th>
-                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[21%]">Employer</th>
-                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[17%]">Deleted At</th>
-                      <th className="px-4 py-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wider w-[15%] text-right">Actions</th>
+                      <th className="px-4 py-3.5 text-xs font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider w-[12%]">Job ID</th>
+                      <th className="px-4 py-3.5 text-xs font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider w-[35%]">Job Details</th>
+                      <th className="px-4 py-3.5 text-xs font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider w-[21%]">Employer</th>
+                      <th className="px-4 py-3.5 text-xs font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider w-[17%]">Deleted At</th>
+                      <th className="px-4 py-3.5 text-xs font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider w-[15%] text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-ink-faint/20">
+                  <tbody className="divide-y divide-ink-faint/20 dark:divide-slate-800">
                     {filteredJobs.map(job => (
                       <tr
                         key={job.id}
                         onClick={() => setSelectedDetailJob(job)}
-                        className="hover:bg-slate-50/70 transition-colors duration-150 cursor-pointer"
+                        className="hover:bg-slate-50/70 dark:hover:bg-slate-800/60 transition-colors duration-150 cursor-pointer"
                       >
-                        <td className="px-4 py-3 text-xs font-numeric font-bold text-ink-muted">#{job.id}</td>
-                        <td className="px-4 py-3">
-                          <div className="font-bold text-ink text-xs truncate">{job.title}</div>
-                          <span className="inline-block px-1.5 py-0.5 rounded bg-status-error/10 text-status-error text-[9px] font-bold border border-status-error/20 mt-0.5">{job.category}</span>
+                        <td className="px-4 py-3.5 text-xs font-numeric font-semibold text-ink-muted dark:text-slate-400">#{job.id}</td>
+                        <td className="px-4 py-3.5">
+                          <div className="font-semibold text-ink dark:text-slate-100 text-sm truncate">{job.title}</div>
+                          <span className="badge-neutral text-xs mt-1">{job.category}</span>
                         </td>
-                        <td className="px-4 py-3 text-xs text-ink font-bold truncate">
+                        <td className="px-4 py-3.5 text-xs text-ink dark:text-slate-100 font-semibold truncate">
                           {job.employer?.name || 'Deleted Account'}
                         </td>
-                        <td className="px-4 py-3 text-xs text-status-error font-numeric">
+                        <td className="px-4 py-3.5 text-xs text-rose-700 dark:text-rose-400 font-numeric">
                           {formatDate(job.deleted_at)}
                         </td>
-                        <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-4 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
                           {isSuperAdmin ? (
                             <div className="flex justify-end space-x-1.5">
                               <button
                                 disabled={actionLoading === `job-${job.id}`}
                                 onClick={() => handleRestoreJob(job.id)}
-                                className="p-1.5 rounded-lg bg-status-success/10 text-status-success hover:bg-status-success hover:text-white border border-status-success/20 transition-all cursor-pointer"
+                                className="p-2 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white border border-emerald-500/20 transition-all cursor-pointer shadow-2xs"
                                 title="Restore Job Post"
                                 aria-label="Restore Job Post"
                               >
@@ -577,7 +575,7 @@ function ArchivesPageContent() {
                               <button
                                 disabled={actionLoading === `job-force-${job.id}`}
                                 onClick={() => handlePermanentDeleteJob(job.id, job.title)}
-                                className="p-1.5 rounded-lg bg-status-error/10 text-status-error hover:bg-status-error hover:text-white border border-status-error/20 transition-all cursor-pointer"
+                                className="p-2 rounded-lg bg-rose-500/10 text-rose-700 dark:text-rose-400 hover:bg-rose-600 hover:text-white border border-rose-500/20 transition-all cursor-pointer shadow-2xs"
                                 title="Permanently Delete Job Post"
                                 aria-label="Permanently Delete Job Post"
                               >
@@ -585,7 +583,7 @@ function ArchivesPageContent() {
                               </button>
                             </div>
                           ) : (
-                            <span className="text-[10px] text-ink-muted dark:text-slate-400 italic">Superadmin Only</span>
+                            <span className="text-xs text-ink-muted dark:text-slate-400 italic">Superadmin Only</span>
                           )}
                         </td>
                       </tr>

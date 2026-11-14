@@ -123,20 +123,21 @@ export default function UserTable({
                         </span>
                         {/* Note: since reports_count and job_posts_count / applications_count are dynamically added, check safety */}
                         {(user as any).reports_count > 0 && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-status-error/10 text-status-error border border-status-error/20 animate-pulse">
-                            ⚠️ {(user as any).reports_count} {(user as any).reports_count === 1 ? 'report' : 'reports'}
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20">
+                            <i className="lni lni-warning text-xs" />
+                            <span>{(user as any).reports_count} {(user as any).reports_count === 1 ? 'report' : 'reports'}</span>
                           </span>
                         )}
                       </div>
-                      <div className="text-sm text-ink-muted dark:text-slate-400 mt-0.5 group-hover/user:text-ink-soft dark:group-hover/user:text-slate-300">{user.email}</div>
+                      <div className="text-xs text-ink-muted dark:text-slate-400 mt-0.5 group-hover/user:text-ink-soft dark:group-hover/user:text-slate-300">{user.email}</div>
                       {user.role === 'worker' ? (
-                        <div className="text-[11px] text-ink-muted mt-1 font-body font-semibold flex items-center gap-1">
-                          <i className="lni lni-briefcase text-[10px] text-primary" />
+                        <div className="text-xs text-ink-muted dark:text-slate-400 mt-1 font-body font-medium flex items-center gap-1.5">
+                          <i className="lni lni-briefcase text-xs text-slate-500 dark:text-slate-400" />
                           <span>{(user as any).applications_count ?? 0} {(user as any).applications_count === 1 ? 'application' : 'applications'}</span>
                         </div>
                       ) : user.role === 'employer' ? (
-                        <div className="text-[11px] text-ink-muted mt-1 font-body font-semibold flex items-center gap-1">
-                          <i className="lni lni-gallery text-[10px] text-primary" />
+                        <div className="text-xs text-ink-muted dark:text-slate-400 mt-1 font-body font-medium flex items-center gap-1.5">
+                          <i className="lni lni-gallery text-xs text-slate-500 dark:text-slate-400" />
                           <span>{(user as any).job_posts_count ?? 0} {(user as any).job_posts_count === 1 ? 'post' : 'posts'}</span>
                         </div>
                       ) : null}
@@ -145,15 +146,14 @@ export default function UserTable({
                 </td>
                 <td className="px-4 py-3.5">
                   <div className="flex flex-col space-y-2 items-start">
-                    <span className={`px-4 py-1.5 rounded-full text-xs font-body font-bold tracking-wide uppercase shadow-sm ${user.role === 'employer' ? 'bg-accent-peach dark:bg-amber-900/60 border border-accent-peachBright/50 dark:border-amber-700/60 text-primary-dark dark:text-amber-100' : 'bg-accent-mint dark:bg-emerald-900/60 border border-accent-mintDeep/30 dark:border-emerald-700/60 text-accent-mintDeep dark:text-emerald-200'
-                      }`}>
+                    <span className="badge-neutral uppercase tracking-wide text-xs">
                       {user.role}
                     </span>
                     {(() => {
                       const verifInfo = getUserVerificationInfo(user);
                       return user.deleted_at ? (
-                        <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
-                          <i className="lni lni-trash-can mr-1.5 text-xs text-status-error" /> Archived
+                        <span className="flex items-center text-xs font-body font-semibold text-rose-700 dark:text-rose-400 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20">
+                          <i className="lni lni-trash-can mr-1.5 text-xs text-rose-600 dark:text-rose-400" /> Archived
                         </span>
                       ) : (
                         <>
@@ -162,13 +162,13 @@ export default function UserTable({
                               <i className={`${verifInfo.iconClass} mr-1.5 text-xs`} /> {verifInfo.label}
                             </span>
                             {verifInfo.statusKey === 'rejected' && (user as any).rejection_reason && (
-                              <span className="text-xs text-status-error mt-0.5 max-w-[200px]">
+                              <span className="text-xs text-rose-700 dark:text-rose-400 mt-0.5 max-w-[200px]">
                                 Reason: {(user as any).rejection_reason}
                               </span>
                             )}
                           </div>
                           {user.is_suspended && (
-                            <span className="flex items-center text-xs font-body font-semibold text-status-error bg-status-error/10 px-3 py-1 rounded-full border border-status-error/20">
+                            <span className="flex items-center text-xs font-body font-semibold text-amber-800 dark:text-amber-300 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
                               <i className="lni lni-shield mr-1.5 text-xs" /> Suspended
                             </span>
                           )}
@@ -177,12 +177,12 @@ export default function UserTable({
                     })()}
                   </div>
                 </td>
-                <td className="px-4 py-3.5 text-xs font-body font-medium text-ink-soft">
+                <td className="px-4 py-3.5 text-xs font-body font-medium text-ink-soft dark:text-slate-300">
                   {new Date(user.created_at).toLocaleString('en-US', { timeZone: 'Asia/Manila', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })} PHT
                 </td>
-                <td className="px-4 py-3.5 text-xs text-ink-soft whitespace-nowrap">
-                  <div className="flex items-center text-ink-muted font-body font-semibold">
-                    <i className="lni lni-timer mr-1.5 text-primary text-xs" />
+                <td className="px-4 py-3.5 text-xs text-ink-soft dark:text-slate-300 whitespace-nowrap">
+                  <div className="flex items-center text-ink-muted dark:text-slate-400 font-body font-medium">
+                    <i className="lni lni-timer mr-1.5 text-slate-500 dark:text-slate-400 text-xs" />
                     {(user as any).last_login_at 
                       ? new Date((user as any).last_login_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) 
                       : (user.updated_at 
@@ -198,7 +198,7 @@ export default function UserTable({
                           <button
                             disabled={actionLoading === user.id}
                             onClick={() => onRestore(user.id)}
-                            className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-status-success/15 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all text-center cursor-pointer"
+                            className="w-24 py-1.5 text-xs font-body font-semibold rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white transition-all text-center cursor-pointer"
                           >
                             Restore
                           </button>
@@ -213,7 +213,7 @@ export default function UserTable({
                               <button
                                 disabled={actionLoading === user.id}
                                 onClick={() => onVerify(user)}
-                                className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-status-success/15 border border-status-success/20 text-status-success hover:bg-status-success hover:text-white transition-all text-center cursor-pointer"
+                                className="w-24 py-1.5 text-xs font-body font-semibold rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white transition-all text-center cursor-pointer"
                                 title="Review & Verify User"
                               >
                                 Verify
@@ -222,7 +222,7 @@ export default function UserTable({
                               <button
                                 disabled
                                 title={verifInfo.disabledReason || 'Cannot verify: User has not uploaded ID documents yet'}
-                                className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-ink-faint/30 border border-ink-faint/40 text-ink-muted cursor-not-allowed opacity-60 text-center"
+                                className="w-24 py-1.5 text-xs font-body font-medium rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-slate-400 cursor-not-allowed opacity-70 text-center"
                               >
                                 {verifInfo.statusKey === 'rejected' ? 'Rejected' : 'No ID'}
                               </button>
@@ -231,10 +231,10 @@ export default function UserTable({
                           <button
                             disabled={actionLoading === user.id}
                             onClick={() => onSuspend(user)}
-                            className={`w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg border transition-all text-center cursor-pointer ${
+                            className={`w-24 py-1.5 text-xs font-body font-medium rounded-lg border transition-all text-center cursor-pointer ${
                               user.is_suspended
-                                ? 'bg-status-warning/15 border-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
-                                : 'bg-white/80 border border-ink-faint/50 text-ink hover:bg-ink hover:text-white'
+                                ? 'bg-amber-500/10 border-amber-500/20 text-amber-800 dark:text-amber-300 hover:bg-amber-500 hover:text-white'
+                                : 'bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-ink dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700'
                             }`}
                           >
                             {user.is_suspended ? 'Unsuspend' : 'Suspend'}
@@ -242,7 +242,7 @@ export default function UserTable({
                           <button
                             disabled={actionLoading === user.id}
                             onClick={() => onDelete(user.id)}
-                            className="w-24 py-1 text-[10px] font-body font-bold uppercase tracking-wider rounded-lg bg-status-error/15 border border-status-error/20 text-status-error hover:bg-status-error hover:text-white transition-all text-center cursor-pointer"
+                            className="w-24 py-1.5 text-xs font-body font-medium rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 hover:bg-rose-600 hover:text-white transition-all text-center cursor-pointer"
                           >
                             Delete
                           </button>
@@ -251,7 +251,7 @@ export default function UserTable({
                     </div>
                   )}
                   {user.role === 'admin' && (
-                    <span className="text-[10px] font-body font-bold text-ink-muted uppercase tracking-wider bg-ink-faint/50 px-2.5 py-1 rounded-lg border border-ink-faint inline-block">Protected Admin</span>
+                    <span className="text-xs font-body font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 inline-block">Protected Admin</span>
                   )}
                 </td>
               </tr>
