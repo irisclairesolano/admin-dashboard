@@ -1,6 +1,6 @@
 # SIKAP Admin Dashboard — QA API Testing Guide (Postman)
 
-> **Document Version:** 1.0 (Admin Command Center & Backend Verification)  
+> **Document Version:** 1.1 (Admin Command Center & Backend Verification)  
 > **Target Backend:** SIKAP Laravel REST API (`sikap-backend`)  
 > **Target Frontend:** Next.js Admin Dashboard (`sikap-admin`)  
 > **Base URL Path:** `{{base_url}}/admin` (`http://127.0.0.1:8000/api/v1/admin`)  
@@ -380,7 +380,8 @@ pm.test("Capture Report ID", function () {
 * **Body (raw JSON):**
 ```json
 {
-  "status": "resolved"
+  "status": "resolved",
+  "admin_response": "Thank you for reporting. The offending post has been removed."
 }
 ```
 * **Expected Status:** `200 OK`
@@ -388,6 +389,8 @@ pm.test("Capture Report ID", function () {
   * Report `status` becomes `resolved`.
   * `resolved_at` timestamp is set to current time.
   * Automated email notification dispatched to reporting user.
+  * `admin_response` (optional, nullable, max 2000 chars) is stored on the report; `status` must be `resolved` or `dismissed` (otherwise `422`).
+  * Reporter-side check: `GET {{base_url}}/reports/my` (as the reporting user) lists the report with `status`, `target_label` and `admin_response`; `GET {{base_url}}/reports/{id}` returns it only to the reporter (other users get `404`).
 
 #### TC-ADM-API-023: Aggregated Municipal & Barangay Demographics Report
 * **Method & URL:** `GET {{base_url}}/admin/reports/demographics?municipality=Sorsogon City`
