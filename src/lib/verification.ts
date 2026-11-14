@@ -286,3 +286,354 @@ export function getSlaStatus(
   };
 }
 
+export type WaitingReasonKey = 'pending_otp' | 'pending_id_upload' | 'rejected_reupload';
+export type AgingBucketKey = '<12h' | '12-24h' | '24-48h' | '>48h';
+
+export interface WaitingStartTimeInfo {
+  startTime: string | null;
+  label: string;
+  reasonKey: WaitingReasonKey;
+  reasonLabel: string;
+  eventName: string;
+}
+
+/**
+ * Accurately determines the waiting-start timestamp and underlying trigger event:
+ * - Awaiting Re-upload: waiting starts when admin rejected documents (`updated_at` || `created_at`)
+ * - Pending Email OTP: waiting starts at initial registration (`created_at`)
+ * - Pending ID Upload: waiting starts once OTP is completed (`email_verified_at` || `created_at`)
+ */
+export function getWaitingStartTime(user: any): WaitingStartTimeInfo {
+  if (!user) {
+    return {
+      startTime: null,
+      label: 'Unknown',
+      reasonKey: 'pending_id_upload',
+      reasonLabel: 'Pending ID Upload',
+      eventName: 'Registration',
+    };
+  }
+
+  const isRejected = user.verification_status === 'rejected' || user.registration_status === 'rejected';
+  if (isRejected) {
+    return {
+      startTime: user.updated_at || user.created_at || null,
+      label: 'Rejected',
+      reasonKey: 'rejected_reupload',
+      reasonLabel: 'Awaiting Re-upload (Post-Rejection)',
+      eventName: 'Admin Rejection',
+    };
+  }
+
+  const isPendingOtp = user.registration_status === 'pending_email_verification' || !user.email_verified_at;
+  if (isPendingOtp) {
+    return {
+      startTime: user.created_at || null,
+      label: 'Registered',
+      reasonKey: 'pending_otp',
+      reasonLabel: 'Pending Email OTP',
+      eventName: 'Account Registration',
+    };
+  }
+
+  // Email verified, awaiting initial ID / permit upload
+  return {
+    startTime: user.email_verified_at || user.created_at || null,
+    label: 'OTP Verified',
+    reasonKey: 'pending_id_upload',
+    reasonLabel: 'Pending ID Upload',
+    eventName: 'OTP Verification',
+  };
+}
+
+export interface WaitingDurationInfo {
+  durationMs: number;
+  durationHours: number;
+  durationText: string;
+  agingBucket: AgingBucketKey;
+  agingLabel: string;
+  badgeClass: string;
+  isStalled: boolean;
+}
+
+/**
+ * Calculates exact waiting duration elapsed and assigns standardized 4-tier aging SLA buckets:
+ * - <12h: Fresh / Normal (Emerald)
+ * - 12-24h: Priority (Sky)
+ * - 24-48h: Urgent (Amber)
+ * - >48h: Stalled / Overdue (Rose)
+ */
+export function getWaitingDurationInfo(
+  startTime: string | null | undefined,
+  nowMs: number = Date.now()
+): WaitingDurationInfo {
+  if (!startTime) {
+    return {
+      durationMs: 0,
+      durationHours: 0,
+      durationText: 'Just now',
+      agingBucket: '<12h',
+      agingLabel: '< 12h (Fresh)',
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      isStalled: false,
+    };
+  }
+
+  const startMs = new Date(startTime).getTime();
+  if (Number.isNaN(startMs)) {
+    return {
+      durationMs: 0,
+      durationHours: 0,
+      durationText: 'Just now',
+      agingBucket: '<12h',
+      agingLabel: '< 12h (Fresh)',
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      isStalled: false,
+    };
+  }
+
+  const durationMs = Math.max(0, nowMs - startMs);
+  const durationHours = durationMs / (1000 * 60 * 60);
+  const durationText = formatQueueDuration(startTime, nowMs, true);
+
+  if (durationHours >= 48) {
+    return {
+      durationMs,
+      durationHours,
+      durationText,
+      agingBucket: '>48h',
+      agingLabel: '> 48h (Stalled)',
+      badgeClass: 'bg-rose-50 text-rose-700 border-rose-300 font-bold',
+      isStalled: true,
+    };
+  }
+
+  if (durationHours >= 24) {
+    return {
+      durationMs,
+      durationHours,
+      durationText,
+      agingBucket: '24-48h',
+      agingLabel: '24 – 48h (Urgent)',
+      badgeClass: 'bg-amber-50 text-amber-700 border-amber-300 font-semibold',
+      isStalled: false,
+    };
+  }
+
+  if (durationHours >= 12) {
+    return {
+      durationMs,
+      durationHours,
+      durationText,
+      agingBucket: '12-24h',
+      agingLabel: '12 – 24h (Priority)',
+      badgeClass: 'bg-sky-50 text-sky-700 border-sky-200 font-medium',
+      isStalled: false,
+    };
+  }
+
+  return {
+    durationMs,
+    durationHours,
+    durationText,
+    agingBucket: '<12h',
+    agingLabel: '< 12h (Fresh)',
+    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-medium',
+    isStalled: false,
+  };
+}
+
+export interface WaitingAccountStats {
+  totalUnique: number;
+  byRole: {
+    worker: number;
+    employer: number;
+    workerPct: number;
+    employerPct: number;
+  };
+  byReason: {
+    pendingOtp: { count: number; pct: number; avgHours: number; avgFormatted: string };
+    pendingIdUpload: {
+      count: number;
+      pct: number;
+      avgHours: number;
+      avgFormatted: string;
+      missingFront: number;
+      missingBack: number;
+      missingSelfie: number;
+      missingPermit: number;
+    };
+    rejectedReupload: { count: number; pct: number; avgHours: number; avgFormatted: string };
+  };
+  byAging: {
+    under12h: { count: number; pct: number };
+    h12to24: { count: number; pct: number };
+    h24to48: { count: number; pct: number };
+    over48h: { count: number; pct: number };
+  };
+  durationMetrics: {
+    avgHours: number;
+    avgFormatted: string;
+    medianHours: number;
+    medianFormatted: string;
+    longestWaiting: {
+      user: any;
+      durationText: string;
+      hours: number;
+      reasonLabel: string;
+    } | null;
+  };
+}
+
+/**
+ * Aggregates complete analytics for all unique accounts awaiting user action.
+ */
+export function getWaitingAccountStats(users: any[], nowMs: number = Date.now()): WaitingAccountStats {
+  const totalUnique = users.length;
+
+  let workerCount = 0;
+  let employerCount = 0;
+
+  let otpCount = 0;
+  let otpHoursSum = 0;
+
+  let idCount = 0;
+  let idHoursSum = 0;
+  let missingFront = 0;
+  let missingBack = 0;
+  let missingSelfie = 0;
+  let missingPermit = 0;
+
+  let reuploadCount = 0;
+  let reuploadHoursSum = 0;
+
+  let under12hCount = 0;
+  let h12to24Count = 0;
+  let h24to48Count = 0;
+  let over48hCount = 0;
+
+  const allHours: number[] = [];
+  let maxDurationHours = -1;
+  let longestUserRecord: any = null;
+  let longestReasonLabel = '';
+
+  for (const user of users) {
+    if (user.role === 'employer') {
+      employerCount++;
+    } else {
+      workerCount++;
+    }
+
+    const startInfo = getWaitingStartTime(user);
+    const durInfo = getWaitingDurationInfo(startInfo.startTime, nowMs);
+    allHours.push(durInfo.durationHours);
+
+    if (durInfo.durationHours > maxDurationHours) {
+      maxDurationHours = durInfo.durationHours;
+      longestUserRecord = user;
+      longestReasonLabel = startInfo.reasonLabel;
+    }
+
+    if (durInfo.agingBucket === '<12h') under12hCount++;
+    else if (durInfo.agingBucket === '12-24h') h12to24Count++;
+    else if (durInfo.agingBucket === '24-48h') h24to48Count++;
+    else if (durInfo.agingBucket === '>48h') over48hCount++;
+
+    if (startInfo.reasonKey === 'pending_otp') {
+      otpCount++;
+      otpHoursSum += durInfo.durationHours;
+    } else if (startInfo.reasonKey === 'rejected_reupload') {
+      reuploadCount++;
+      reuploadHoursSum += durInfo.durationHours;
+    } else {
+      idCount++;
+      idHoursSum += durInfo.durationHours;
+      const req = getMissingRequirements(user);
+      if (req.missingItems.includes('Front of ID') || req.missingItems.includes('Representative ID')) missingFront++;
+      if (req.missingItems.includes('Back of ID')) missingBack++;
+      if (req.missingItems.includes('Selfie holding ID')) missingSelfie++;
+      if (req.missingItems.includes('Business Permit')) missingPermit++;
+    }
+  }
+
+  const formatHours = (hrs: number): string => {
+    if (hrs <= 0) return '0m';
+    if (hrs < 1) return `${Math.max(1, Math.round(hrs * 60))}m`;
+    if (hrs < 24) {
+      const h = Math.floor(hrs);
+      const m = Math.round((hrs - h) * 60);
+      return m > 0 ? `${h}h ${m}m` : `${h}h`;
+    }
+    const days = Math.floor(hrs / 24);
+    const remHours = Math.round(hrs % 24);
+    return remHours > 0 ? `${days}d ${remHours}h` : `${days}d`;
+  };
+
+  const totalSafe = Math.max(1, totalUnique);
+
+  allHours.sort((a, b) => a - b);
+  const totalHoursSum = allHours.reduce((acc, h) => acc + h, 0);
+  const avgHours = totalUnique > 0 ? totalHoursSum / totalUnique : 0;
+
+  let medianHours = 0;
+  if (totalUnique > 0) {
+    const mid = Math.floor(totalUnique / 2);
+    medianHours = totalUnique % 2 !== 0 ? allHours[mid] : (allHours[mid - 1] + allHours[mid]) / 2;
+  }
+
+  return {
+    totalUnique,
+    byRole: {
+      worker: workerCount,
+      employer: employerCount,
+      workerPct: Math.round((workerCount / totalSafe) * 100),
+      employerPct: Math.round((employerCount / totalSafe) * 100),
+    },
+    byReason: {
+      pendingOtp: {
+        count: otpCount,
+        pct: Math.round((otpCount / totalSafe) * 100),
+        avgHours: otpCount > 0 ? otpHoursSum / otpCount : 0,
+        avgFormatted: formatHours(otpCount > 0 ? otpHoursSum / otpCount : 0),
+      },
+      pendingIdUpload: {
+        count: idCount,
+        pct: Math.round((idCount / totalSafe) * 100),
+        avgHours: idCount > 0 ? idHoursSum / idCount : 0,
+        avgFormatted: formatHours(idCount > 0 ? idHoursSum / idCount : 0),
+        missingFront,
+        missingBack,
+        missingSelfie,
+        missingPermit,
+      },
+      rejectedReupload: {
+        count: reuploadCount,
+        pct: Math.round((reuploadCount / totalSafe) * 100),
+        avgHours: reuploadCount > 0 ? reuploadHoursSum / reuploadCount : 0,
+        avgFormatted: formatHours(reuploadCount > 0 ? reuploadHoursSum / reuploadCount : 0),
+      },
+    },
+    byAging: {
+      under12h: { count: under12hCount, pct: Math.round((under12hCount / totalSafe) * 100) },
+      h12to24: { count: h12to24Count, pct: Math.round((h12to24Count / totalSafe) * 100) },
+      h24to48: { count: h24to48Count, pct: Math.round((h24to48Count / totalSafe) * 100) },
+      over48h: { count: over48hCount, pct: Math.round((over48hCount / totalSafe) * 100) },
+    },
+    durationMetrics: {
+      avgHours,
+      avgFormatted: formatHours(avgHours),
+      medianHours,
+      medianFormatted: formatHours(medianHours),
+      longestWaiting:
+        longestUserRecord && maxDurationHours >= 0
+          ? {
+              user: longestUserRecord,
+              durationText: formatHours(maxDurationHours),
+              hours: maxDurationHours,
+              reasonLabel: longestReasonLabel,
+            }
+          : null,
+    },
+  };
+}
+

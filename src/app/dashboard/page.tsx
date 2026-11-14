@@ -1937,6 +1937,24 @@ export default function AnalyticsDashboard() {
                         </div>
                         <p className="text-[11px] text-ink-muted mb-3">How fast IDs get checked and how many workers come back.</p>
 
+                        {data?.verification?.total_awaiting_user_action !== undefined && (
+                          <div
+                            onClick={() => router.push('/dashboard/verifications?tab=awaiting_upload')}
+                            className="mb-3 p-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 flex items-center justify-between text-xs transition cursor-pointer group shadow-2xs"
+                          >
+                            <div className="flex items-center gap-2 text-amber-900">
+                              <i className="lni lni-timer text-amber-700 text-sm" />
+                              <span className="font-bold text-xs">
+                                {data.verification.total_awaiting_user_action} Accounts Awaiting User Action
+                              </span>
+                            </div>
+                            <span className="text-[11px] font-bold text-amber-800 group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
+                              <span>Action Required Analytics</span>
+                              <i className="lni lni-arrow-right text-[10px]" />
+                            </span>
+                          </div>
+                        )}
+
                         <div className="grid grid-cols-2 gap-2 mb-3">
                           <div className="bg-white/70 p-2.5 rounded-lg border border-ink-faint/50 text-center">
                             <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Average Wait Time</span>

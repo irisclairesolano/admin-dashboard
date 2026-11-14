@@ -27,7 +27,7 @@
  * ============================================================================
  */
 
-import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import Avatar from '@/components/Avatar';
@@ -36,6 +36,7 @@ import { AlertDialog } from '@/components/AlertDialog';
 import { useToast } from '@/context/ToastContext';
 import { usePolling } from '@/hooks/usePolling';
 import { hasSubmittedDocs, getMissingRequirements, getSlaStatus } from '@/lib/verification';
+import ActionRequiredAnalytics from '@/components/dashboard/ActionRequiredAnalytics';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
   ssr: false,
@@ -44,13 +45,18 @@ const VerificationModal = dynamic(() => import('@/components/VerificationModal')
 function VerificationsPageContent() {
   const searchParams = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
+  const urlTab = searchParams.get('tab');
 
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [reviewUser, setReviewUser] = useState<any | null>(null);
   const [actionLoading, setActionLoading] = useState<'approved' | 'rejected' | null>(null);
-  const [statusTab, setStatusTab] = useState<'pending' | 'awaiting_upload' | 'rejected' | 'approved' | 'all'>('pending');
+  const [statusTab, setStatusTab] = useState<'pending' | 'awaiting_upload' | 'rejected' | 'approved' | 'all'>(
+    urlTab === 'awaiting_upload' || urlTab === 'rejected' || urlTab === 'approved' || urlTab === 'all'
+      ? (urlTab as any)
+      : 'pending'
+  );
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [slaFilter, setSlaFilter] = useState<'all' | 'overdue' | 'urgent' | 'priority' | 'normal'>('all');
@@ -177,16 +183,24 @@ function VerificationsPageContent() {
     return !isApproved && !isRejected && hasSubmittedDocs(u);
   });
 
-  // 2. Awaiting ID Upload: registered users who have not yet submitted verification documents
-  const allAwaitingUploadUsers = users.filter((u) => {
-    const isApproved =
-      u.verification_status === 'approved' ||
-      !!u.verification_badge;
-    const isRejected =
-      u.verification_status === 'rejected' ||
-      u.registration_status === 'rejected';
-    return !isApproved && !isRejected && !hasSubmittedDocs(u);
-  });
+  // 2. Action Required from User: registered users waiting for user action (OTP, ID upload, or re-upload)
+  const allActionRequiredUsers = useMemo(() => {
+    return users.filter((u) => {
+      const isApproved =
+        u.verification_status === 'approved' ||
+        !!u.verification_badge;
+      if (isApproved) return false;
+
+      const isRejected =
+        u.verification_status === 'rejected' ||
+        u.registration_status === 'rejected';
+
+      return isRejected || !hasSubmittedDocs(u);
+    });
+  }, [users]);
+
+  // Backward-compatible alias for awaiting initial upload
+  const allAwaitingUploadUsers = allActionRequiredUsers;
 
   // 3. Rejected: users who were rejected and are awaiting re-upload in the app
   const allRejectedUsers = users.filter((u) => {
@@ -213,7 +227,7 @@ function VerificationsPageContent() {
     statusTab === 'pending'
       ? allPendingUsers
       : statusTab === 'awaiting_upload'
-        ? allAwaitingUploadUsers
+        ? allActionRequiredUsers
         : statusTab === 'rejected'
           ? allRejectedUsers
           : statusTab === 'approved'
@@ -270,57 +284,61 @@ function VerificationsPageContent() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mt-3 md:mt-0 text-xs">
-          <div className="relative w-full md:w-60 group">
-            <input
-              type="text"
-              aria-label={statusTab === 'pending' ? 'Search pending users' : 'Search users'}
-              placeholder={statusTab === 'rejected' ? 'Search rejected users or reasons...' : 'Search users...'}
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-8 pr-3 py-1.5 bg-white/90 dark:bg-slate-900/90 rounded-xl border border-ink-faint/40 dark:border-slate-700 shadow-xs focus:bg-white dark:focus:bg-slate-900 focus:border-ink/50 dark:focus:border-slate-500 outline-none text-xs font-body transition text-ink dark:text-slate-200 placeholder:text-ink-muted/70 dark:placeholder:text-slate-500"
-            />
-            <i className="lni lni-search text-ink-muted dark:text-slate-400 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
-          </div>
+          {statusTab !== 'awaiting_upload' && (
+            <>
+              <div className="relative w-full md:w-60 group">
+                <input
+                  type="text"
+                  aria-label={statusTab === 'pending' ? 'Search pending users' : 'Search users'}
+                  placeholder={statusTab === 'rejected' ? 'Search rejected users or reasons...' : 'Search users...'}
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full pl-8 pr-3 py-1.5 bg-white/90 dark:bg-slate-900/90 rounded-xl border border-ink-faint/40 dark:border-slate-700 shadow-xs focus:bg-white dark:focus:bg-slate-900 focus:border-ink/50 dark:focus:border-slate-500 outline-none text-xs font-body transition text-ink dark:text-slate-200 placeholder:text-ink-muted/70 dark:placeholder:text-slate-500"
+                />
+                <i className="lni lni-search text-ink-muted dark:text-slate-400 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
+              </div>
 
-          {statusTab === 'pending' && (
-            <div className="relative">
-              <select
-                aria-label="Filter by SLA status"
-                value={slaFilter}
-                onChange={(e) => {
-                  setSlaFilter(e.target.value as any);
-                  setCurrentPage(1);
-                }}
-                className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
-              >
-                <option value="all" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">All SLAs</option>
-                <option value="overdue" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">🚨 Overdue (&gt;48h)</option>
-                <option value="urgent" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">⚠️ Urgent (24-48h)</option>
-                <option value="priority" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">⏱️ Priority (12-24h)</option>
-                <option value="normal" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">✅ Normal (&lt;12h)</option>
-              </select>
-              <i className="lni lni-chevron-down absolute right-2.5 top-1/2 transform -translate-y-1/2 text-ink-muted dark:text-slate-400 text-[10px] pointer-events-none" />
-            </div>
+              {statusTab === 'pending' && (
+                <div className="relative">
+                  <select
+                    aria-label="Filter by SLA status"
+                    value={slaFilter}
+                    onChange={(e) => {
+                      setSlaFilter(e.target.value as any);
+                      setCurrentPage(1);
+                    }}
+                    className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
+                  >
+                    <option value="all" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">All SLAs</option>
+                    <option value="overdue" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">🚨 Overdue (&gt;48h)</option>
+                    <option value="urgent" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">⚠️ Urgent (24-48h)</option>
+                    <option value="priority" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">⏱️ Priority (12-24h)</option>
+                    <option value="normal" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">✅ Normal (&lt;12h)</option>
+                  </select>
+                  <i className="lni lni-chevron-down absolute right-2.5 top-1/2 transform -translate-y-1/2 text-ink-muted dark:text-slate-400 text-[10px] pointer-events-none" />
+                </div>
+              )}
+
+              <div className="relative">
+                <select
+                  aria-label="Sort order"
+                  value={sortOrder}
+                  onChange={(e) => {
+                    setSortOrder(e.target.value as any);
+                    setCurrentPage(1);
+                  }}
+                  className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
+                >
+                  <option value="newest" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Newest First</option>
+                  <option value="oldest" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Oldest First</option>
+                </select>
+                <i className="lni lni-chevron-down absolute right-2.5 top-1/2 transform -translate-y-1/2 text-ink-muted dark:text-slate-400 text-[10px] pointer-events-none" />
+              </div>
+            </>
           )}
-
-          <div className="relative">
-            <select
-              aria-label="Sort order"
-              value={sortOrder}
-              onChange={(e) => {
-                setSortOrder(e.target.value as any);
-                setCurrentPage(1);
-              }}
-              className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
-            >
-              <option value="newest" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Newest First</option>
-              <option value="oldest" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Oldest First</option>
-            </select>
-            <i className="lni lni-chevron-down absolute right-2.5 top-1/2 transform -translate-y-1/2 text-ink-muted dark:text-slate-400 text-[10px] pointer-events-none" />
-          </div>
 
           <button
             onClick={() => fetchVerifications(false, true)}
@@ -373,7 +391,7 @@ function VerificationsPageContent() {
               statusTab === 'awaiting_upload' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
             }`}
           >
-            {allAwaitingUploadUsers.length}
+            {allActionRequiredUsers.length}
           </span>
         </button>
 
@@ -441,30 +459,24 @@ function VerificationsPageContent() {
         </button>
       </div>
 
-      <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
-        {statusTab === 'awaiting_upload' && (
-          <div className="p-4 bg-amber-500/10 border-b border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-800 shrink-0 mt-0.5">
-                <i className="lni lni-timer text-lg" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-amber-900">
-                  Accounts Requiring User Action Before Verification
-                </h3>
-                <p className="text-xs text-amber-700/90 mt-0.5 leading-relaxed">
-                  These accounts have registered on SIKAP but have not yet uploaded their required identification documents (Government ID / Selfie / Business Permits). Admin verification is locked until the applicant submits documents via the mobile app.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 self-start sm:self-auto text-xs font-semibold text-amber-800 bg-amber-100/80 px-3 py-1.5 rounded-xl border border-amber-300 whitespace-nowrap">
-              <i className="lni lni-lock text-sm" />
-              <span>Verification Locked</span>
-            </div>
+      {statusTab === 'awaiting_upload' ? (
+        loading ? (
+          <div className="p-8 space-y-3 bg-white/95 rounded-2xl border border-ink-faint/30">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-ink-faint/20 rounded-xl animate-pulse" />
+            ))}
           </div>
-        )}
-
-        {loading ? (
+        ) : (
+          <ActionRequiredAnalytics
+            users={allActionRequiredUsers}
+            nowMs={nowMs}
+            onInspectUser={(u) => setReviewUser(u)}
+          />
+        )
+      ) : (
+        <>
+          <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
+            {loading ? (
           <div className="p-6 space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-12 bg-ink-faint/20 rounded-xl animate-pulse flex items-center justify-between px-4">
@@ -482,20 +494,16 @@ function VerificationsPageContent() {
             <h3 className="font-display text-lg font-bold text-ink">
               {statusTab === 'pending'
                 ? 'All caught up!'
-                : statusTab === 'awaiting_upload'
-                  ? 'No accounts awaiting user action'
-                  : statusTab === 'rejected'
-                    ? 'No rejected verifications'
-                    : 'No records found'}
+                : statusTab === 'rejected'
+                  ? 'No rejected verifications'
+                  : 'No records found'}
             </h3>
             <p className="font-body text-ink-muted mt-1 text-xs">
               {statusTab === 'pending'
                 ? 'There are no pending ID verifications at the moment.'
-                : statusTab === 'awaiting_upload'
-                  ? 'All registered users have submitted their documents or are already verified.'
-                  : statusTab === 'rejected'
-                    ? 'No users currently have rejected verification credentials awaiting re-upload.'
-                    : 'No verification records match your filter criteria.'}
+                : statusTab === 'rejected'
+                  ? 'No users currently have rejected verification credentials awaiting re-upload.'
+                  : 'No verification records match your filter criteria.'}
             </p>
           </div>
         ) : (
@@ -506,15 +514,13 @@ function VerificationsPageContent() {
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[10%]">User ID</th>
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[36%]">User Details</th>
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[16%]">Role</th>
-                  {statusTab === 'awaiting_upload' ? (
-                    <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[24%]">Required User Action</th>
-                  ) : statusTab === 'rejected' ? (
+                  {statusTab === 'rejected' ? (
                     <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[24%]">Rejection Reason</th>
                   ) : (
                     <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[24%]">Submitted & SLA Age</th>
                   )}
                   <th className="px-4 py-3 font-body font-semibold text-ink-muted text-[11px] uppercase tracking-wider w-[14%] text-right">
-                    {statusTab === 'rejected' ? 'Status' : statusTab === 'awaiting_upload' ? 'State' : 'Action'}
+                    {statusTab === 'rejected' ? 'Status' : 'Action'}
                   </th>
                 </tr>
               </thead>
@@ -579,24 +585,7 @@ function VerificationsPageContent() {
                         </div>
                       </td>
 
-                      {statusTab === 'awaiting_upload' ? (
-                        <td className="px-4 py-3 text-xs font-body">
-                          {(() => {
-                            const req = getMissingRequirements(user);
-                            return (
-                              <div className="flex flex-col gap-1 items-start">
-                                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                                  <i className="lni lni-timer text-[10px]" />
-                                  {req.summary}
-                                </span>
-                                <span className="text-[10px] text-ink-muted">
-                                  Joined {new Date(user.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                </span>
-                              </div>
-                            );
-                          })()}
-                        </td>
-                      ) : statusTab === 'rejected' ? (
+                      {statusTab === 'rejected' ? (
                         <td className="px-4 py-3 text-xs font-body">
                           <div className="bg-rose-50/70 border border-rose-200/70 rounded-lg p-2 max-w-sm">
                             <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block mb-0.5">
@@ -704,9 +693,11 @@ function VerificationsPageContent() {
           </div>
         </div>
       )}
+    </>
+  )}
 
       {/* Callout Section for Accounts Requiring User Action */}
-      {statusTab === 'pending' && allAwaitingUploadUsers.length > 0 && (
+      {statusTab === 'pending' && allActionRequiredUsers.length > 0 && (
         <div className="mt-8 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
           <div className="flex items-start gap-3">
             <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-800 shrink-0 mt-0.5">
@@ -714,10 +705,10 @@ function VerificationsPageContent() {
             </div>
             <div>
               <h3 className="text-sm font-bold text-amber-900">
-                {allAwaitingUploadUsers.length} Incomplete Account{allAwaitingUploadUsers.length === 1 ? '' : 's'} Requiring User Action
+                {allActionRequiredUsers.length} Incomplete Account{allActionRequiredUsers.length === 1 ? '' : 's'} Requiring User Action
               </h3>
               <p className="text-xs text-amber-700/90 mt-0.5 leading-relaxed">
-                These users registered on SIKAP but have not yet uploaded identification documents. They are segregated into the "Action Required from User" section so they do not clutter the active review queue or the main users directory.
+                These users registered on SIKAP but need to complete email OTP verification or upload identification documents. View real-time analytics, duration tracking, and filterable accounts.
               </p>
             </div>
           </div>
@@ -728,7 +719,7 @@ function VerificationsPageContent() {
             }}
             className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition shadow-xs whitespace-nowrap self-start sm:self-auto cursor-pointer flex items-center gap-1.5"
           >
-            <span>View Incomplete Accounts ({allAwaitingUploadUsers.length})</span>
+            <span>View Action Required Analytics ({allActionRequiredUsers.length})</span>
             <i className="lni lni-arrow-right text-xs" />
           </button>
         </div>
