@@ -368,7 +368,7 @@ function ModerationPageContent() {
               >
                 <span>{label}</span>
                 {typeof count === 'number' && count > 0 && (
-                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${statusFilter === id
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${statusFilter === id
                     ? 'bg-white/20 text-white'
                     : highlight
                       ? 'bg-status-error/15 text-status-error border border-status-error/30'
@@ -391,7 +391,7 @@ function ModerationPageContent() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-8 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white focus:border-ink/50 outline-none text-xs font-body transition"
+              className="w-full pl-8 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 outline-none text-xs font-body transition"
             />
             <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
           </div>
@@ -606,7 +606,7 @@ function ModerationPageContent() {
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" role="dialog" aria-modal="true">
-            <div className="bg-white rounded-3xl max-w-2xl w-full p-7 sm:p-8 shadow-2xl border border-white/60 max-h-[92vh] overflow-y-auto">
+            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl max-w-2xl w-full p-7 sm:p-8 shadow-2xl border border-white/50 dark:border-slate-700/70 max-h-[92vh] overflow-y-auto">
               {/* Header */}
               <div className="flex items-center justify-between pb-4 border-b border-ink-faint/30 mb-6">
                 <div>

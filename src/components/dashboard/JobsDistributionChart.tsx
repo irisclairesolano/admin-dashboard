@@ -94,13 +94,13 @@ const JobsDistributionChart = memo(function JobsDistributionChart({
           margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
         >
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E8DFCE" opacity={0.5} />
-          <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 10 }} allowDecimals={false} />
+          <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#5C4F42', fontSize: 11 }} allowDecimals={false} />
           <YAxis
             dataKey="name"
             type="category"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#8C7B6A', fontSize: 10 }}
+            tick={{ fill: '#5C4F42', fontSize: 11 }}
             width={95}
             tickFormatter={(value) => (value.length > 12 ? `${value.slice(0, 12)}...` : value)}
           />

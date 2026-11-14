@@ -129,7 +129,7 @@ export default function OthersBreakdownModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="others-modal-title"
-        className="relative bg-white rounded-2xl shadow-2xl border border-ink-faint/80 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden z-10 animate-scale-up"
+        className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 dark:border-slate-700/70 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden z-10 animate-scale-up"
       >
         {/* Modal Header */}
         <div className="p-4 sm:p-5 border-b border-ink-faint/50 dark:border-slate-700 bg-gradient-to-r from-paper to-white dark:from-slate-900 dark:to-slate-900 flex items-start justify-between gap-4">

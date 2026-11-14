@@ -311,7 +311,7 @@ function SupportTicketsPageContent() {
             >
               <span>{label}</span>
               {count > 0 && (
-                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
                   statusFilter === id
                     ? 'bg-white/20 text-white'
                     : highlight
@@ -334,7 +334,7 @@ function SupportTicketsPageContent() {
             onChange={(e) => {
               setSearchTerm(e.target.value);
             }}
-            className="w-full pl-8 pr-3 py-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-xs focus:bg-white focus:border-ink/50 outline-none text-xs font-body transition"
+            className="w-full pl-8 pr-3 py-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 outline-none text-xs font-body transition"
           />
           <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
         </div>
@@ -444,8 +444,8 @@ function SupportTicketsPageContent() {
           }}
           className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 outline-none"
         >
-          <div className="bg-paper w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-ink-faint/20 flex justify-between items-center bg-white">
+          <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl w-full max-w-2xl rounded-3xl shadow-2xl border border-white/50 dark:border-slate-700/70 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-ink-faint/20 dark:border-slate-700/60 flex justify-between items-center bg-white/60 dark:bg-slate-900/60">
               <h2 id="ticket-modal-title" className="text-xl font-display font-bold text-ink">Ticket Details</h2>
               <button 
                 onClick={closeModal}

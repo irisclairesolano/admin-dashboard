@@ -154,11 +154,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (soundAlertsEnabled) {
         playModerationAlertChime();
       }
-      // Always surface an immediate real-time in-browser toast so the admin sees it even if tab is focused or OS Focus Assist mutes desktop popups
-      if (category === 'report') {
-        toast.warning(body, title);
-      } else {
+      // Always surface an immediate real-time in-browser toast so the admin sees it even if tab is focused or OS Focus Assist mutes desktop popups.
+      // Report SSE events already surface the dedicated SSE Report Alert card when active, so avoid double-toasting reports.
+      if (category !== 'report') {
         toast.info(body, title);
+      } else if (newReportCount === 0) {
+        toast.warning(body, title);
       }
 
       if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
@@ -517,7 +518,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-body font-bold text-ink dark:text-slate-100 truncate">{adminName}</p>
                   <div className="flex items-center gap-1.5 mt-1">
-                    <span className={`text-[10px] font-body font-bold px-1.5 py-0.2 rounded-md ${
+                    <span className={`text-[10px] font-body font-bold px-1.5 py-0.5 rounded-md ${
                       adminRole === 'superadmin' 
                         ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800' 
                         : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
@@ -525,7 +526,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       {adminRole === 'superadmin' ? 'Super Admin' : 'Moderator'}
                     </span>
                     {is2faEnabled && (
-                      <span className="text-[10px] bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 font-bold px-1.5 py-0.2 rounded-md flex items-center gap-0.5">
+                      <span className="text-[10px] bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
                         <ShieldCheck className="w-2.5 h-2.5" /> 2FA
                       </span>
                     )}
@@ -730,7 +731,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           >
                             <span>{item.name}</span>
                             {hasBadge && (
-                              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
                                 item.badgeColor || 'bg-status-error text-white'
                               }`}>
                                 {item.badge > 99 ? '99+' : item.badge}
@@ -765,8 +766,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── SSE Report Alert Toast ────────────────────────────────── */}
       {newReportCount > 0 && !reportToastDismissed && (
         <div
-          className="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-white border border-status-error/30 shadow-2xl rounded-2xl overflow-hidden animate-slide-in"
-          style={{ boxShadow: '0 8px 32px rgba(220,53,69,0.18)' }}
+          role="alert"
+          className="fixed left-3 right-3 sm:left-auto sm:right-6 z-[55] sm:w-full sm:max-w-sm bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border border-status-error/30 dark:border-rose-500/40 shadow-xl rounded-2xl overflow-hidden animate-slide-in transition-all"
+          style={{ bottom: 'calc(1rem + var(--undo-toast-offset, 0px))' }}
         >
           {/* Red accent top bar */}
           <div className="h-1 w-full bg-gradient-to-r from-status-error to-rose-400" />
@@ -778,8 +780,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[10px] font-body font-bold uppercase tracking-wider text-status-error">New Report Filed</span>
                 <button
+                  type="button"
                   onClick={() => setReportToastDismissed(true)}
-                  className="w-5 h-5 flex items-center justify-center text-ink-muted hover:text-ink rounded transition-colors flex-shrink-0"
+                  className="w-6 h-6 flex items-center justify-center text-ink-muted hover:text-ink hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-error/50 cursor-pointer"
                   aria-label="Dismiss"
                 >
                   <i className="lni lni-close text-[10px]" />
@@ -796,12 +799,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </p>
               )}
               <button
+                type="button"
                 onClick={() => {
                   setReportToastDismissed(true);
                   clearSSECount();
                   router.push('/dashboard/moderation');
                 }}
-                className="mt-2.5 text-xs font-body font-semibold text-status-error hover:underline flex items-center gap-1"
+                className="mt-2.5 text-xs font-body font-semibold text-status-error hover:underline flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-status-error/50 rounded cursor-pointer"
               >
                 Review Moderation Queue <i className="lni lni-arrow-right text-[10px]" />
               </button>
@@ -952,7 +956,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── 10-Minute Inactivity Warning Modal ─────────────────── */}
       {showWarning && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in" role="dialog" aria-modal="true">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-amber-200 dark:border-amber-800/50 text-center">
+          <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl max-w-md w-full p-6 shadow-2xl border border-amber-300/60 dark:border-amber-700/60 text-center">
             <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 flex items-center justify-center text-amber-600 dark:text-amber-400 animate-pulse">
               <ShieldAlert className="w-8 h-8" />
             </div>
@@ -1132,7 +1136,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       className={`
                         w-full text-left p-4 transition-all flex gap-3.5 rounded-2xl border cursor-pointer
                         ${isRead
-                          ? 'opacity-60 bg-white/40 dark:bg-slate-900/40 border-transparent hover:opacity-90 hover:bg-white/70 dark:hover:bg-slate-800/70'
+                          ? 'bg-slate-50/70 dark:bg-slate-900/50 border-ink-faint/25 dark:border-slate-800/80 hover:bg-white/80 dark:hover:bg-slate-800/75'
                           : isCritical
                             ? 'bg-status-error/5 dark:bg-status-error/15 border-status-error/25 dark:border-status-error/40 shadow-sm hover:bg-status-error/10'
                             : isAttention

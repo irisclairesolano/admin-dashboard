@@ -113,7 +113,7 @@ function CompactInsightCard({
   const cfg = columnConfig[category];
 
   return (
-    <div className={`bg-white rounded-xl p-3 border border-ink-faint/50 shadow-2xs hover:shadow-xs transition-all duration-150 border-l-[3.5px] ${cfg.accentBorder} flex flex-col justify-between group`}>
+    <div className={`bg-white/95 dark:bg-slate-900/90 rounded-xl p-3 border border-ink-faint/50 dark:border-slate-700/60 shadow-2xs hover:shadow-xs transition-all duration-150 border-l-[3.5px] ${cfg.accentBorder} flex flex-col justify-between group`}>
       <div>
         <p className="text-xs font-body font-semibold text-ink leading-relaxed">
           {item.text}
@@ -213,9 +213,9 @@ export function AIInsightsCard({
   ];
 
   return (
-    <div className="w-full rounded-2xl bg-white border border-ink-faint/50 shadow-sm overflow-hidden animate-fade-in flex flex-col">
+    <div className="w-full rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border border-white/60 dark:border-slate-700/60 shadow-glass overflow-hidden animate-fade-in flex flex-col">
       {/* 1. COMPACT TOP HEADER */}
-      <div className="px-4 py-3 bg-slate-50/90 border-b border-ink-faint/40 flex flex-wrap items-center justify-between gap-2.5">
+      <div className="px-4 py-3 bg-slate-50/75 dark:bg-slate-800/60 border-b border-ink-faint/40 dark:border-slate-700/60 flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
             <Sparkles className="w-3.5 h-3.5 text-primary" />
@@ -225,7 +225,7 @@ export function AIInsightsCard({
               <h3 className="font-display font-bold text-sm text-ink tracking-tight">
                 AI Platform Intelligence
               </h3>
-              <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20 font-numeric">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20 font-numeric">
                 {totalInsights} Insights
               </span>
             </div>
@@ -290,7 +290,7 @@ export function AIInsightsCard({
               <Icon className={`w-3 h-3 ${activeCategory === id ? 'text-white' : color || 'text-ink-muted'}`} />
               <span>{label}</span>
               {count > 0 && (
-                <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-bold ${
+                <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${
                   activeCategory === id ? 'bg-white/20 text-white' : 'bg-ink-faint/50 text-ink-muted'
                 }`}>
                   {count}
@@ -317,7 +317,7 @@ export function AIInsightsCard({
                   <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
                   <span className="text-xs font-bold text-ink">Problems</span>
                 </div>
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-700">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700">
                   {allConcerns.length}
                 </span>
               </div>
@@ -339,7 +339,7 @@ export function AIInsightsCard({
                   <Lightbulb className="w-3.5 h-3.5 text-amber-600" />
                   <span className="text-xs font-bold text-ink">Suggestions</span>
                 </div>
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-700">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
                   {recommendations.length}
                 </span>
               </div>
@@ -361,7 +361,7 @@ export function AIInsightsCard({
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                   <span className="text-xs font-bold text-ink">Findings</span>
                 </div>
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-700">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
                   {keyInsights.length}
                 </span>
               </div>
@@ -383,7 +383,7 @@ export function AIInsightsCard({
                   <TrendingUp className="w-3.5 h-3.5 text-sky-600" />
                   <span className="text-xs font-bold text-ink">Changes</span>
                 </div>
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-sky-100 text-sky-700">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-700">
                   {trends.length}
                 </span>
               </div>

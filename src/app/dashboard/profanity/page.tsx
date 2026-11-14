@@ -142,7 +142,7 @@ export default function ProfanityFilterPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Left Column: Form */}
         <div className="md:col-span-1">
-          <div className="bg-white p-5 rounded-2xl border border-ink-faint/40 shadow-xs sticky top-20 space-y-4">
+          <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md p-5 rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-glass sticky top-20 space-y-4">
             <div>
               <h3 className="text-sm font-display font-bold text-ink">Add Moderation Word</h3>
               <p className="text-[11px] text-ink-muted mt-0.5">
@@ -161,7 +161,7 @@ export default function ProfanityFilterPage() {
                   placeholder="e.g. bakla, bading, spamword"
                   value={newWord}
                   onChange={(e) => setNewWord(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-slate-50 rounded-xl border border-ink-faint/50 outline-none text-xs font-body focus:bg-white focus:border-ink/50 transition-all"
+                  className="w-full px-3.5 py-2 bg-slate-50 rounded-xl border border-ink-faint/50 outline-none text-xs font-body focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 transition-all"
                   disabled={addLoading}
                   required
                 />
@@ -234,7 +234,7 @@ export default function ProfanityFilterPage() {
 
         {/* Right Column: Words List */}
         <div className="md:col-span-2">
-          <div className="bg-white p-5 rounded-2xl border border-ink-faint/40 shadow-xs space-y-4">
+          <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md p-5 rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-glass space-y-4">
             {/* List Header & Tabs */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-ink-faint/30">
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -282,7 +282,7 @@ export default function ProfanityFilterPage() {
                   placeholder="Search words..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-3 py-1 bg-slate-50 rounded-lg border border-ink-faint/50 outline-none text-xs font-body focus:bg-white focus:border-ink/50 transition-all"
+                  className="w-full px-3 py-1 bg-slate-50 rounded-lg border border-ink-faint/50 outline-none text-xs font-body focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 transition-all"
                 />
               </div>
             </div>

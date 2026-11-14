@@ -93,17 +93,18 @@ const UserGrowthChart = memo(function UserGrowthChart({
             dataKey="name"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#8C7B6A', fontSize: 10 }}
+            tick={{ fill: '#5C4F42', fontSize: 11 }}
             tickFormatter={(val) => formatAxisTick(val, intervalFilter)}
             dy={6}
           />
-          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
+          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5C4F42', fontSize: 11 }} allowDecimals={false} />
           <Tooltip
             cursor={{ fill: 'rgba(148, 163, 184, 0.14)' }}
-            wrapperClassName="bg-white/95 dark:bg-slate-900/95 text-ink dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg"
+            wrapperClassName="bg-white/85 dark:bg-slate-900/85 text-ink dark:text-slate-100 border border-white/60 dark:border-slate-700/70 rounded-xl shadow-glass backdrop-blur-md"
             contentStyle={{
               borderRadius: '12px',
               border: 'none',
+              boxShadow: 'none',
               backgroundColor: 'transparent',
             }}
             labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}

@@ -1559,7 +1559,7 @@ export default function AnalyticsDashboard() {
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/users')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/users'); }}
-                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 shadow-2xs hover:shadow-sm dark:hover:bg-slate-850 dark:hover:border-slate-700 transition-all duration-200 flex flex-col justify-between"
+                  className="cursor-pointer group p-3.5 sm:p-4 rounded-2xl border border-white/60 dark:border-slate-700/60 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md shadow-glass hover:shadow-md dark:hover:bg-slate-800/80 dark:hover:border-slate-600 transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between">
@@ -1584,7 +1584,7 @@ export default function AnalyticsDashboard() {
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/jobs')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/jobs'); }}
-                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 shadow-2xs hover:shadow-sm dark:hover:bg-slate-850 dark:hover:border-slate-700 transition-all duration-200 flex flex-col justify-between"
+                  className="cursor-pointer group p-3.5 sm:p-4 rounded-2xl border border-white/60 dark:border-slate-700/60 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md shadow-glass hover:shadow-md dark:hover:bg-slate-800/80 dark:hover:border-slate-600 transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between">
@@ -1609,7 +1609,7 @@ export default function AnalyticsDashboard() {
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/jobs')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/jobs'); }}
-                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 shadow-2xs hover:shadow-sm dark:hover:bg-slate-850 dark:hover:border-slate-700 transition-all duration-200 flex flex-col justify-between"
+                  className="cursor-pointer group p-3.5 sm:p-4 rounded-2xl border border-white/60 dark:border-slate-700/60 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md shadow-glass hover:shadow-md dark:hover:bg-slate-800/80 dark:hover:border-slate-600 transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between">
@@ -1634,7 +1634,7 @@ export default function AnalyticsDashboard() {
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/moderation')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/moderation'); }}
-                  className="cursor-pointer group p-3.5 sm:p-4 rounded-xl border border-ink-faint/60 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 shadow-2xs hover:shadow-sm dark:hover:bg-slate-850 dark:hover:border-slate-700 transition-all duration-200 flex flex-col justify-between"
+                  className="cursor-pointer group p-3.5 sm:p-4 rounded-2xl border border-white/60 dark:border-slate-700/60 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md shadow-glass hover:shadow-md dark:hover:bg-slate-800/80 dark:hover:border-slate-600 transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between">
@@ -1691,7 +1691,7 @@ export default function AnalyticsDashboard() {
               )}
 
               {/* AI Insights Strip (Collapsible) */}
-              <div ref={aiInsightsRef} className="bg-white rounded-2xl border border-ink-faint/40 p-3.5 sm:p-4 shadow-2xs print-chart-container transition-all scroll-mt-4">
+              <div ref={aiInsightsRef} className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md rounded-2xl border border-white/60 dark:border-slate-700/60 p-3.5 sm:p-4 shadow-glass print-chart-container transition-all scroll-mt-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
@@ -3302,10 +3302,10 @@ export default function AnalyticsDashboard() {
                       </h2>
                     </div>
                     <div className="flex gap-1 text-[8px] font-medium text-slate-600">
-                      <span className="px-1.5 py-0.2 bg-white rounded border border-slate-200">
+                      <span className="px-1.5 py-0.5 bg-white rounded border border-slate-200">
                         <strong>Period:</strong> {from} to {to} ({globalPreset})
                       </span>
-                      <span className="px-1.5 py-0.2 bg-white rounded border border-slate-200">
+                      <span className="px-1.5 py-0.5 bg-white rounded border border-slate-200">
                         <strong>Granularity:</strong> {intervalFilter.toUpperCase()}
                       </span>
                     </div>
@@ -3593,7 +3593,7 @@ export default function AnalyticsDashboard() {
                                   PHP {avg.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </td>
                                 <td className="text-right">
-                                  <span className={`px-1 py-0.2 rounded text-[6.5pt] font-bold ${
+                                  <span className={`px-1 py-0.5 rounded text-[6.5pt] font-bold ${
                                     avg >= 1000 ? 'bg-emerald-50 text-emerald-700' : avg >= 500 ? 'bg-sky-50 text-sky-700' : 'bg-slate-100 text-slate-700'
                                   }`}>
                                     {avg >= 1000 ? 'High' : avg >= 500 ? 'Mid' : 'Base'}

@@ -11,6 +11,7 @@ export interface AlertState {
   onCancel?: () => void;
   confirmText?: string;
   cancelText?: string;
+  confirmVariant?: 'primary' | 'destructive';
 }
 
 interface AlertDialogProps extends AlertState {
@@ -25,6 +26,7 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
   message,
   confirmText = 'OK',
   cancelText,
+  confirmVariant = 'primary',
   onConfirm,
   onCancel,
 }) => {
@@ -109,7 +111,11 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
           )}
           <button
             onClick={onConfirm}
-            className="px-5 py-2.5 rounded-xl text-sm font-body font-semibold text-white bg-ink hover:bg-ink-soft transition-all shadow-md active:scale-95"
+            className={`px-5 py-2.5 rounded-xl text-sm font-body font-semibold text-white transition-all shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 cursor-pointer ${
+              confirmVariant === 'destructive'
+                ? 'bg-rose-700 hover:bg-rose-800 focus-visible:ring-rose-500/50'
+                : 'bg-ink hover:bg-ink-soft focus-visible:ring-primary/50'
+            }`}
           >
             {confirmText}
           </button>

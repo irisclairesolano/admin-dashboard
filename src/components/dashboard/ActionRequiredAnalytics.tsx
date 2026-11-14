@@ -175,7 +175,7 @@ export default function ActionRequiredAnalytics({
       {/* ── TOP ANALYTICS SCORECARDS GRID ──────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Total Unique Accounts Waiting */}
-        <div className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-5 border border-ink-faint/40 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md rounded-2xl p-5 border border-white/60 dark:border-slate-700/60 shadow-glass flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold tracking-wider uppercase text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
@@ -209,7 +209,7 @@ export default function ActionRequiredAnalytics({
         </div>
 
         {/* Metric 2: Breakdown by Primary Reason */}
-        <div className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-5 border border-ink-faint/40 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md rounded-2xl p-5 border border-white/60 dark:border-slate-700/60 shadow-glass flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold tracking-wider uppercase text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200">
@@ -334,7 +334,7 @@ export default function ActionRequiredAnalytics({
         </div>
 
         {/* Metric 3: Waiting Duration & Turnaround */}
-        <div className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-5 border border-ink-faint/40 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md rounded-2xl p-5 border border-white/60 dark:border-slate-700/60 shadow-glass flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
@@ -428,7 +428,7 @@ export default function ActionRequiredAnalytics({
         </div>
 
         {/* Metric 4: Longest Waiting & Stalled Attention */}
-        <div className="bg-white/95 dark:bg-slate-900/90 rounded-2xl p-5 border border-ink-faint/40 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md rounded-2xl p-5 border border-white/60 dark:border-slate-700/60 shadow-glass flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className={`text-[11px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-md border ${
@@ -483,7 +483,7 @@ export default function ActionRequiredAnalytics({
       </div>
 
       {/* ── FILTERABLE TABLE SECTION ───────────────────────────────────────── */}
-      <div className="bg-white/95 dark:bg-slate-900/90 rounded-2xl border border-ink-faint/40 shadow-xs overflow-hidden">
+      <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-glass overflow-hidden">
         {/* Table Header Controls */}
         <div className="p-4 sm:p-5 border-b border-ink-faint/30 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -804,7 +804,7 @@ export default function ActionRequiredAnalytics({
                               {reqInfo.missingItems.map((item, idx) => (
                                 <span
                                   key={idx}
-                                  className="text-[10px] font-medium text-amber-900 dark:text-amber-200 bg-amber-100/70 dark:bg-amber-950/70 px-1.5 py-0.2 rounded border border-amber-200/60 dark:border-amber-800/70"
+                                  className="text-[10px] font-medium text-amber-900 dark:text-amber-200 bg-amber-100/70 dark:bg-amber-950/70 px-1.5 py-0.5 rounded border border-amber-200/60 dark:border-amber-800/70"
                                 >
                                   {item}
                                 </span>

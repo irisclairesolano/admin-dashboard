@@ -101,15 +101,15 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
             dataKey="name"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#8C7B6A', fontSize: 10 }}
+            tick={{ fill: '#5C4F42', fontSize: 11 }}
             tickFormatter={(val) => formatAxisTick(val, intervalFilter)}
             dy={6}
           />
-          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#8C7B6A', fontSize: 11 }} allowDecimals={false} />
+          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5C4F42', fontSize: 11 }} allowDecimals={false} />
           <Tooltip
             shared
             labelFormatter={(label) => formatPeriodLabel(label, intervalFilter)}
-            wrapperClassName="bg-white/95 dark:bg-slate-900/95 text-ink dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg backdrop-blur-md"
+            wrapperClassName="bg-white/85 dark:bg-slate-900/85 text-ink dark:text-slate-100 border border-white/60 dark:border-slate-700/70 rounded-xl shadow-glass backdrop-blur-md"
             contentStyle={{
               borderRadius: '12px',
               border: 'none',

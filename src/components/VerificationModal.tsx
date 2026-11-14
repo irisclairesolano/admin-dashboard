@@ -277,7 +277,7 @@ export default function VerificationModal({
       data-testid="verification-modal"
     >
       <div 
-        className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto relative z-10 animate-scale-up"
+        className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl max-w-2xl w-full shadow-2xl border border-white/50 dark:border-slate-700/70 overflow-hidden flex flex-col max-h-[90vh] my-auto relative z-10 animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

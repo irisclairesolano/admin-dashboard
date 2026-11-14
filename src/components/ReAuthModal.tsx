@@ -70,7 +70,7 @@ export const ReAuthModal: React.FC<ReAuthModalProps> = ({
 
   const modalContent = (
     <div className="fixed inset-0 z-[140] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in overflow-y-auto" role="dialog" aria-modal="true">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 relative my-auto">
+      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl max-w-md w-full p-6 shadow-2xl border border-white/50 dark:border-slate-700/70 relative my-auto">
         <button
           onClick={onCancel}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors"

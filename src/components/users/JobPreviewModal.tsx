@@ -83,7 +83,7 @@ export default function JobPreviewModal({ selectedJob, onClose }: JobPreviewModa
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl max-w-lg w-full shadow-2xl border border-white/50 dark:border-slate-700/70 overflow-hidden flex flex-col max-h-[85vh]">
         <div className="p-6 border-b border-ink-faint flex justify-between items-center bg-paper-cream">
           <div>
             <span className="text-xs font-mono font-semibold text-primary uppercase bg-primary/10 px-2.5 py-1 rounded-md">

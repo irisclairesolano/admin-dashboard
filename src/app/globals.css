@@ -43,9 +43,7 @@
 }
 
 .dark :where(.bg-white, .bg-paper-bright),
-.dark .bg-white,
-.dark .bg-white\/90,
-.dark .bg-white\/80 {
+.dark .bg-white {
   background-color: #0f172a;
 }
 
@@ -64,16 +62,16 @@
   background-color: #1e293b;
 }
 
-.dark :where(
-  .bg-white\/95,
-  .bg-white\/90,
-  .bg-white\/80,
-  .bg-white\/70,
-  .bg-white\/60,
-  .bg-white\/50,
-  .bg-white\/40
-) {
+.dark :where(.bg-white\/95, .bg-white\/90) {
   background-color: rgba(15, 23, 42, 0.88);
+}
+
+.dark :where(.bg-white\/80, .bg-white\/70) {
+  background-color: rgba(15, 23, 42, 0.78);
+}
+
+.dark :where(.bg-white\/60, .bg-white\/50, .bg-white\/40) {
+  background-color: rgba(15, 23, 42, 0.64);
 }
 
 .dark :where(
@@ -296,6 +294,13 @@
   border-color: rgba(71, 85, 105, 0.65);
 }
 
+.dark :where(input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):focus, select:focus, textarea:focus) {
+  background-color: rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  border-color: rgba(96, 165, 250, 0.75);
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
+}
+
 .dark :where(input::placeholder, textarea::placeholder) {
   color: #94a3b8;
 }
@@ -336,8 +341,9 @@
 }
 
 .dark .recharts-default-tooltip {
-  background-color: #0f172a !important;
-  border-color: #334155 !important;
+  background-color: rgba(15, 23, 42, 0.85) !important;
+  backdrop-filter: blur(12px);
+  border-color: rgba(71, 85, 105, 0.6) !important;
   color: #f8fafc !important;
 }
 } /* end @media screen */

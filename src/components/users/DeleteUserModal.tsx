@@ -73,7 +73,7 @@ export default function DeleteUserModal({
         if (e.target === e.currentTarget && !loading) onClose();
       }}
     >
-      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200 my-auto">
+      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/50 dark:border-slate-700/70 flex flex-col animate-in fade-in zoom-in-95 duration-200 my-auto">
         <div className="p-6 border-b border-ink-faint dark:border-slate-700 flex justify-between items-center bg-rose-50/60 dark:bg-rose-950/40 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center">

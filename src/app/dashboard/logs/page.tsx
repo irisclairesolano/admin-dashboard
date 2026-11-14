@@ -243,7 +243,7 @@ function LogsPageContent() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-8 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white focus:border-ink/50 outline-none text-xs font-body transition"
+              className="w-full pl-8 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 outline-none text-xs font-body transition"
             />
             <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
           </form>
@@ -293,7 +293,7 @@ function LogsPageContent() {
             setActionFilter(e.target.value);
             setCurrentPage(1);
           }}
-          className="px-2.5 py-1 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white border border-ink-faint/40 text-ink-soft focus:bg-white outline-none cursor-pointer shadow-2xs"
+          className="px-2.5 py-1 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white border border-ink-faint/40 text-ink-soft focus:bg-white dark:focus:bg-slate-900/90 outline-none cursor-pointer shadow-2xs"
         >
           <option value="">All Actions</option>
           {Array.from(new Set(Object.keys(ACTION_TYPES).filter((k) => !k.includes('.')))).map((act) => (

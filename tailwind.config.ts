@@ -60,6 +60,8 @@ const config: Config = {
         "glass-gradient": "linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.2) 100%)",
       },
       boxShadow: {
+        '2xs': '0 1px 2px rgba(13, 27, 61, 0.02)',
+        'xs': '0 1px 3px rgba(13, 27, 61, 0.04), 0 1px 2px rgba(13, 27, 61, 0.02)',
         'sm': '0 2px 4px rgba(13, 27, 61, 0.03), 0 1px 2px rgba(13, 27, 61, 0.03)',
         'DEFAULT': '0 6px 16px rgba(13, 27, 61, 0.05), 0 1px 3px rgba(13, 27, 61, 0.03)',
         'md': '0 10px 20px -3px rgba(13, 27, 61, 0.06), 0 4px 6px -2px rgba(13, 27, 61, 0.04)',

@@ -290,7 +290,7 @@ export default function BlacklistPage() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-9 pr-3 py-2 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white focus:border-ink/50 outline-none font-body transition-all text-xs"
+              className="w-full pl-9 pr-3 py-2 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 outline-none font-body transition-all text-xs"
             />
             <Search className="w-3.5 h-3.5 text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2" />
           </div>

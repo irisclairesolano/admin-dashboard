@@ -89,38 +89,38 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {/* Toast Render Portal / Container */}
       <aside
         aria-label="Notification alerts"
-        className="fixed top-4 right-3 left-3 sm:left-auto sm:top-5 sm:right-5 sm:w-full sm:max-w-md z-[9999] flex flex-col gap-2.5 pointer-events-none"
+        className="fixed top-4 right-3 left-3 sm:left-auto sm:top-5 sm:right-5 sm:w-full sm:max-w-md z-[9999] flex flex-col gap-2.5 pointer-events-none max-h-[60vh] overflow-hidden"
       >
-        {toasts.map((t) => {
-          let bgClass =
-            'bg-white/95 dark:bg-slate-900/95 border-ink-faint dark:border-slate-700 text-ink dark:text-slate-100 shadow-slate-900/10';
+        {toasts.slice(-3).map((t) => {
+          let accentBar = 'bg-primary dark:bg-sky-400';
+          let iconWrap = 'bg-primary/10 dark:bg-sky-500/15 border-primary/25 dark:border-sky-400/30';
           let IconComponent = Info;
-          let iconColor = 'text-primary dark:text-blue-400';
+          let iconColor = 'text-primary dark:text-sky-400';
           let defaultTitle = 'Notification';
 
           if (t.type === 'success') {
-            bgClass =
-              'bg-emerald-50/95 dark:bg-emerald-950/95 border-emerald-200 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100 shadow-emerald-900/10';
+            accentBar = 'bg-emerald-600 dark:bg-emerald-400';
+            iconWrap = 'bg-emerald-500/10 dark:bg-emerald-500/15 border-emerald-500/25 dark:border-emerald-400/30';
             IconComponent = CheckCircle2;
-            iconColor = 'text-emerald-600 dark:text-emerald-400';
+            iconColor = 'text-emerald-700 dark:text-emerald-400';
             defaultTitle = 'Success';
           } else if (t.type === 'error') {
-            bgClass =
-              'bg-rose-50/95 dark:bg-rose-950/95 border-rose-200 dark:border-rose-800 text-rose-950 dark:text-rose-100 shadow-rose-900/10';
+            accentBar = 'bg-rose-600 dark:bg-rose-400';
+            iconWrap = 'bg-rose-500/10 dark:bg-rose-500/15 border-rose-500/25 dark:border-rose-400/30';
             IconComponent = AlertCircle;
-            iconColor = 'text-rose-600 dark:text-rose-400';
+            iconColor = 'text-rose-700 dark:text-rose-400';
             defaultTitle = 'Error';
           } else if (t.type === 'warning') {
-            bgClass =
-              'bg-amber-50/95 dark:bg-amber-950/95 border-amber-200 dark:border-amber-800 text-amber-950 dark:text-amber-100 shadow-amber-900/10';
+            accentBar = 'bg-amber-500 dark:bg-amber-400';
+            iconWrap = 'bg-amber-500/10 dark:bg-amber-500/15 border-amber-500/25 dark:border-amber-400/30';
             IconComponent = AlertTriangle;
-            iconColor = 'text-amber-600 dark:text-amber-400';
+            iconColor = 'text-amber-700 dark:text-amber-400';
             defaultTitle = 'Warning';
           } else if (t.type === 'info') {
-            bgClass =
-              'bg-sky-50/95 dark:bg-sky-950/95 border-sky-200 dark:border-sky-800 text-sky-950 dark:text-sky-100 shadow-sky-900/10';
+            accentBar = 'bg-sky-600 dark:bg-sky-400';
+            iconWrap = 'bg-sky-500/10 dark:bg-sky-500/15 border-sky-500/25 dark:border-sky-400/30';
             IconComponent = Info;
-            iconColor = 'text-sky-600 dark:text-sky-400';
+            iconColor = 'text-sky-700 dark:text-sky-400';
             defaultTitle = 'Information';
           }
 
@@ -128,18 +128,18 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <div
               key={t.id}
               role="alert"
-              className={`pointer-events-auto flex items-start justify-between gap-3 p-3.5 sm:p-4 rounded-xl border shadow-lg backdrop-blur-md animate-slide-in transition-all ${bgClass}`}
-              style={{ boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.12)' }}
+              className="pointer-events-auto relative overflow-hidden flex items-start justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border border-ink-faint/40 dark:border-slate-700/70 bg-white/85 dark:bg-slate-900/85 text-ink dark:text-slate-100 shadow-glass backdrop-blur-md animate-slide-in transition-all"
             >
-              <div className="flex items-start gap-3 min-w-0">
-                <div className="mt-0.5 flex-shrink-0">
-                  <IconComponent className={`w-5 h-5 ${iconColor}`} />
+              <span className={`absolute left-0 top-0 bottom-0 w-1 ${accentBar}`} aria-hidden="true" />
+              <div className="flex items-start gap-3 min-w-0 pl-1">
+                <div className={`mt-0.5 w-8 h-8 rounded-xl border flex items-center justify-center flex-shrink-0 ${iconWrap}`}>
+                  <IconComponent className={`w-4 h-4 ${iconColor}`} />
                 </div>
                 <div className="min-w-0 pr-1">
-                  <h4 className="text-xs sm:text-[13px] font-bold font-body leading-tight">
+                  <h4 className="text-xs sm:text-[13px] font-bold font-body leading-tight text-ink dark:text-slate-100">
                     {t.title || defaultTitle}
                   </h4>
-                  <p className="text-[11px] sm:text-xs font-body opacity-90 leading-snug mt-1 break-words">
+                  <p className="text-[11px] sm:text-xs font-body text-ink-soft dark:text-slate-300 leading-snug mt-1 break-words">
                     {t.message}
                   </p>
                 </div>
@@ -148,7 +148,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={() => removeToast(t.id)}
-                className="flex-shrink-0 p-1 rounded-md opacity-60 hover:opacity-100 hover:bg-black/5 transition-colors cursor-pointer"
+                className="flex-shrink-0 p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-slate-200/70 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 dark:focus-visible:ring-sky-400/60 transition-colors cursor-pointer"
                 aria-label="Close notification"
               >
                 <X className="w-4 h-4" />
