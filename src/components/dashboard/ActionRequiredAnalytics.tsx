@@ -38,7 +38,6 @@ import {
   getWaitingDurationInfo,
   getWaitingAccountStats,
   getMissingRequirements,
-  AgingBucketKey,
 } from '@/lib/verification';
 
 export interface ActionRequiredAnalyticsProps {

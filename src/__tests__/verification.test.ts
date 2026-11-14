@@ -3,8 +3,6 @@ import {
   getWaitingStartTime,
   getWaitingDurationInfo,
   getWaitingAccountStats,
-  hasSubmittedDocs,
-  getMissingRequirements,
 } from '@/lib/verification';
 
 describe('Verification & Action Required Telemetries', () => {

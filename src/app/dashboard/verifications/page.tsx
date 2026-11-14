@@ -35,7 +35,7 @@ import dynamic from 'next/dynamic';
 import { AlertDialog } from '@/components/AlertDialog';
 import { useToast } from '@/context/ToastContext';
 import { usePolling } from '@/hooks/usePolling';
-import { hasSubmittedDocs, getMissingRequirements, getSlaStatus } from '@/lib/verification';
+import { hasSubmittedDocs, getSlaStatus } from '@/lib/verification';
 import ActionRequiredAnalytics from '@/components/dashboard/ActionRequiredAnalytics';
 
 const VerificationModal = dynamic(() => import('@/components/VerificationModal'), {
@@ -170,19 +170,6 @@ function VerificationsPageContent() {
     }
   };
 
-  if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
-
-  // 1. Pending: only users who submitted verification documents and are awaiting review (not approved, not rejected, not badged)
-  const allPendingUsers = users.filter((u) => {
-    const isApproved =
-      u.verification_status === 'approved' ||
-      !!u.verification_badge;
-    const isRejected =
-      u.verification_status === 'rejected' ||
-      u.registration_status === 'rejected';
-    return !isApproved && !isRejected && hasSubmittedDocs(u);
-  });
-
   // 2. Action Required from User: registered users waiting for user action (OTP, ID upload, or re-upload)
   const allActionRequiredUsers = useMemo(() => {
     return users.filter((u) => {
@@ -199,8 +186,18 @@ function VerificationsPageContent() {
     });
   }, [users]);
 
-  // Backward-compatible alias for awaiting initial upload
-  const allAwaitingUploadUsers = allActionRequiredUsers;
+  if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
+
+  // 1. Pending: only users who submitted verification documents and are awaiting review (not approved, not rejected, not badged)
+  const allPendingUsers = users.filter((u) => {
+    const isApproved =
+      u.verification_status === 'approved' ||
+      !!u.verification_badge;
+    const isRejected =
+      u.verification_status === 'rejected' ||
+      u.registration_status === 'rejected';
+    return !isApproved && !isRejected && hasSubmittedDocs(u);
+  });
 
   // 3. Rejected: users who were rejected and are awaiting re-upload in the app
   const allRejectedUsers = users.filter((u) => {

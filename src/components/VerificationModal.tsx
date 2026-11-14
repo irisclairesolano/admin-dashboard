@@ -165,7 +165,17 @@ export default function VerificationModal({
     return () => {
       isCancelled = true;
     };
-  }, [user.id, user.document_url, user.document_front_url, user.id_front_url, user.document_back_url, user.selfie_url, user.business_documents]);
+  }, [
+    user.id,
+    user.document_url,
+    user.document_front_url,
+    user.id_front_url,
+    user.document_back_url,
+    user.id_back_url,
+    user.selfie_url,
+    user.id_selfie_url,
+    user.business_documents,
+  ]);
 
   const frontUrl = currentUser.document_url || currentUser.document_front_url || currentUser.id_front_url || null;
   const backUrl = currentUser.document_back_url || currentUser.id_back_url || null;
