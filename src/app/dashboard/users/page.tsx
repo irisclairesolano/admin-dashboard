@@ -529,7 +529,7 @@ function UsersContent() {
     }
   };
 
-  const handleExportCSV = () => {
+  const handleExport = async (format: 'csv' | 'xlsx') => {
     if (!users || users.length === 0) {
       setAlertState({
         open: true,
@@ -568,26 +568,25 @@ function UsersContent() {
       formatCSVDate(u.created_at)
     ]);
 
-    exportMultiSectionCSV(
-      `sikap_users_directory_${new Date().toISOString().slice(0, 10)}`,
-      'SIKAP Registered Users Masterlist',
-      [
-        ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Report Type:', 'User Registry Summary'],
-        ['Total Records Exported:', String(sortedUsers.length)],
-        ['Active View Filter:', showArchived ? `${filter.toUpperCase()} (Including Archived)` : filter.toUpperCase()],
-        ['Role Filter:', roleFilter.toUpperCase()],
-      ],
-      [
-        {
-          title: 'Users Directory',
-          headers,
-          rows,
-        },
-      ]
-    );
+    const filename = `sikap_users_directory_${new Date().toISOString().slice(0, 10)}`;
+    const title = 'SIKAP Registered Users Masterlist';
+    const metadata: [string, string][] = [
+      ['Generated On:', formatCSVDate(new Date().toISOString())],
+      ['Report Type:', 'User Registry Summary'],
+      ['Total Records Exported:', String(sortedUsers.length)],
+      ['Active View Filter:', showArchived ? `${filter.toUpperCase()} (Including Archived)` : filter.toUpperCase()],
+      ['Role Filter:', roleFilter.toUpperCase()],
+    ];
+    const sections = [{ title: 'Users Directory', headers, rows }];
 
-    toast.success(`Exported ${sortedUsers.length} user record(s) to CSV.`, 'CSV Export Ready');
+    if (format === 'xlsx') {
+      const { exportMultiSectionExcel } = await import('@/lib/export/excel');
+      await exportMultiSectionExcel(filename, title, metadata, sections);
+      toast.success(`Exported ${sortedUsers.length} user record(s) to Excel.`, 'Excel Export Ready');
+    } else {
+      exportMultiSectionCSV(filename, title, metadata, sections);
+      toast.success(`Exported ${sortedUsers.length} user record(s) to CSV.`, 'CSV Export Ready');
+    }
   };
 
   const filteredUsers = useMemo(() => {
@@ -978,13 +977,23 @@ function UsersContent() {
           </select>
 
           <button
-            onClick={handleExportCSV}
+            onClick={() => handleExport('csv')}
             aria-label="Export users as CSV"
             className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
             title="Export filtered users directory as CSV"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
+          </button>
+
+          <button
+            onClick={() => handleExport('xlsx')}
+            aria-label="Export users as Excel"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg border border-emerald-700 shadow-2xs transition font-body font-bold text-xs cursor-pointer"
+            title="Export filtered users directory as styled Excel (.xlsx)"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Excel (.xlsx)</span>
           </button>
         </div>
       </div>

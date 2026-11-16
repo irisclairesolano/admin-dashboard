@@ -172,7 +172,7 @@ function SupportTicketsPageContent() {
   const totalPages = Math.ceil(filteredTickets.length / itemsPerPage) || 1;
   const paginatedTickets = filteredTickets.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  const handleExportCSV = () => {
+  const handleExport = async (format: 'csv' | 'xlsx') => {
     if (!filteredTickets || filteredTickets.length === 0) {
       setAlertState({
         open: true,
@@ -219,26 +219,25 @@ function SupportTicketsPageContent() {
             ? 'Resolved Inquiries'
             : 'All Inquiries Masterlist';
 
-    exportMultiSectionCSV(
-      `sikap_support_tickets_${statusFilter}_${new Date().toISOString().slice(0, 10)}`,
-      `SIKAP Support & Inquiries Audit (${reportTypeName})`,
-      [
-        ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Report Type:', reportTypeName],
-        ['Total Tickets Exported:', String(filteredTickets.length)],
-        ['Status Filter:', statusFilter.toUpperCase()],
-        ['Search Query:', searchTerm.trim() || 'NONE'],
-      ],
-      [
-        {
-          title: `Support Inquiries (${reportTypeName})`,
-          headers,
-          rows,
-        },
-      ]
-    );
+    const filename = `sikap_support_tickets_${statusFilter}_${new Date().toISOString().slice(0, 10)}`;
+    const title = `SIKAP Support & Inquiries Audit (${reportTypeName})`;
+    const metadata: [string, string][] = [
+      ['Generated On:', formatCSVDate(new Date().toISOString())],
+      ['Report Type:', reportTypeName],
+      ['Total Tickets Exported:', String(filteredTickets.length)],
+      ['Status Filter:', statusFilter.toUpperCase()],
+      ['Search Query:', searchTerm.trim() || 'NONE'],
+    ];
+    const sections = [{ title: `Support Inquiries (${reportTypeName})`, headers, rows }];
 
-    toast.success(`Exported ${filteredTickets.length} support ticket(s) to CSV.`, 'CSV Export Ready');
+    if (format === 'xlsx') {
+      const { exportMultiSectionExcel } = await import('@/lib/export/excel');
+      await exportMultiSectionExcel(filename, title, metadata, sections);
+      toast.success(`Exported ${filteredTickets.length} support ticket(s) to Excel.`, 'Excel Export Ready');
+    } else {
+      exportMultiSectionCSV(filename, title, metadata, sections);
+      toast.success(`Exported ${filteredTickets.length} support ticket(s) to CSV.`, 'CSV Export Ready');
+    }
   };
 
   const closeModal = () => {
@@ -272,12 +271,20 @@ function SupportTicketsPageContent() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={handleExportCSV}
+            onClick={() => handleExport('csv')}
             className="flex items-center px-3.5 h-10 bg-white dark:bg-slate-900/80 text-ink-soft hover:text-ink text-sm font-body font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer"
             title="Export support tickets to CSV"
           >
             <i className="lni lni-download mr-2 text-sm text-ink-muted group-hover:text-ink transition-colors" />
             Export CSV
+          </button>
+          <button
+            onClick={() => handleExport('xlsx')}
+            className="flex items-center px-3.5 h-10 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-body font-medium rounded-xl transition-all border border-emerald-700 shadow-2xs cursor-pointer"
+            title="Export support tickets to styled Excel (.xlsx)"
+          >
+            <i className="lni lni-download mr-2 text-sm" />
+            Excel (.xlsx)
           </button>
           <button 
             onClick={() => fetchTickets(false)}

@@ -572,12 +572,12 @@ export default function AnalyticsDashboard() {
   // ── MULTI-SECTION CSV & MASTER EXCEL (.XLSX) EXPORT HANDLERS ────────────────
   // Exports all 9 analytics sections into an RFC-4180 UTF-8 BOM CSV or dynamically
   // imports `excel.ts` to build a 7-sheet formatted ExcelJS workbook on the client.
-  const handleExportCSV = () => {
+  const handleExportSummary = async (format: 'csv' | 'xlsx' = 'csv') => {
     if (!data) return;
 
     const sections = [
       {
-        title: 'Section 1: Key Platform Indicators',
+        title: 'Section 1 Key Platform Indicators',
         headers: ['Key Platform Metric', 'Total Value in Scope', 'Operational Health'],
         rows: [
           ['New Sign-ups', data.kpis?.total_users?.value ?? 0, (data.kpis?.total_users?.value ?? 0) > 0 ? 'Active Member Growth' : 'Baseline / Steady'],
@@ -587,7 +587,7 @@ export default function AnalyticsDashboard() {
         ]
       },
       {
-        title: 'Section 2: Full Activity Table',
+        title: 'Section 2 Full Activity Table',
         headers: [
           'Date',
           'New Workers',
@@ -612,7 +612,7 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: 'Section 3: Sign-ups Over Time',
+        title: 'Section 3 Sign-ups Over Time',
         headers: ['Date', 'New Workers', 'New Employers'],
         rows: (transformedUserGrowth || []).map((item: any) => [
           item.name || '',
@@ -621,7 +621,7 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: 'Section 4: Applications and Job Posts Over Time',
+        title: 'Section 4 Applications & Jobs',
         headers: ['Date', 'Applications', 'Job Posts'],
         rows: (transformedApplicationVolume || []).map((item: any) => [
           item.name || '',
@@ -630,7 +630,7 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: 'Section 5: From Applying to Getting Hired',
+        title: 'Section 5 Hiring Funnel',
         headers: ['Step', 'Total', 'Hire Rate (%)'],
         rows: (funnelSteps || []).map((step: any) => [
           step.label || '',
@@ -639,7 +639,7 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: 'Section 6: Users and ID Checks',
+        title: 'Section 6 Users and ID Checks',
         headers: ['Group', 'Count', 'Share of Total'],
         rows: [
           ['Registered Workers', data.user_ratio?.workers ?? 0, `${data.user_ratio?.workers_pct ?? 0}%`],
@@ -649,7 +649,7 @@ export default function AnalyticsDashboard() {
         ]
       },
       {
-        title: 'Section 7: Pay by Job Category',
+        title: 'Section 7 Pay by Job Category',
         headers: ['Job Category', 'Average Wage (PHP)', 'Min Wage (PHP)', 'Max Wage (PHP)'],
         rows: (data.compensation?.categories && data.compensation.categories.length > 0)
           ? data.compensation.categories.map((c: any) => [
@@ -661,7 +661,7 @@ export default function AnalyticsDashboard() {
           : [['General Labor', formatCSVCurrency(data.compensation?.avg), formatCSVCurrency(data.compensation?.min), formatCSVCurrency(data.compensation?.max)]]
       },
       {
-        title: 'Section 8: Activity by Area',
+        title: 'Section 8 Activity by Area',
         headers: ['Town / Area', 'Job Posts', 'Applications'],
         rows: (transformedGeographicActivity || []).map((g: any) => [
           g.name || 'Bulan',
@@ -670,7 +670,7 @@ export default function AnalyticsDashboard() {
         ])
       },
       {
-        title: 'Section 9: Reports Received',
+        title: 'Section 9 Reports Received',
         headers: ['Report Type', 'Number of Reports'],
         rows: (data.reports?.breakdown && data.reports.breakdown.length > 0)
           ? data.reports.breakdown.map((r: any) => [
@@ -681,22 +681,27 @@ export default function AnalyticsDashboard() {
       }
     ];
 
-    exportMultiSectionCSV(
-      `sikap_analytics_${from}_to_${to}`,
-      'SIKAP Platform Summary Report',
-      [
-        ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Dates in Scope:', `${from} to ${to}`],
-        ['Preset Filter:', globalPreset],
-        ['Grouped by:', intervalFilter.toUpperCase()],
-        ['Platform:', 'SIKAP: Skills & Job Matching Platform']
-      ],
-      sections
-    );
-    toast.success('Platform summary exported to CSV.', 'CSV Export Ready');
+    const filename = `sikap_analytics_${from}_to_${to}`;
+    const title = 'SIKAP Platform Summary Report';
+    const metadata: [string, string][] = [
+      ['Generated On:', formatCSVDate(new Date().toISOString())],
+      ['Dates in Scope:', `${from} to ${to}`],
+      ['Preset Filter:', globalPreset],
+      ['Grouped by:', intervalFilter.toUpperCase()],
+      ['Platform:', 'SIKAP: Skills & Job Matching Platform']
+    ];
+
+    if (format === 'xlsx') {
+      const { exportMultiSectionExcel } = await import('@/lib/export/excel');
+      await exportMultiSectionExcel(filename, title, metadata, sections);
+      toast.success('Platform summary exported to Excel.', 'Excel Export Ready');
+    } else {
+      exportMultiSectionCSV(filename, title, metadata, sections);
+      toast.success('Platform summary exported to CSV.', 'CSV Export Ready');
+    }
   };
 
-  const handleExportGeographicCSV = () => {
+  const handleExportGeographic = async (format: 'csv' | 'xlsx' = 'csv') => {
     if (!data?.geographic_activity) return;
 
     // Filter raw location records
@@ -797,35 +802,41 @@ export default function AnalyticsDashboard() {
       ];
     });
 
-    exportMultiSectionCSV(
-      `SIKAP_DEMOGRAPHICS_${distRegionFilter.toUpperCase()}_${distBarangayFilter.toUpperCase()}_${from}_TO_${to}`,
-      'SIKAP Regional & Municipal Demographics Report',
-      [
-        ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Dates in Scope:', `${from} to ${to} (${globalPreset})`],
-        ['Grouping Interval:', intervalFilter.toUpperCase()],
-        ['Municipality Filter:', distRegionFilter === 'all' ? 'All Municipalities' : distRegionFilter],
-        ['Barangay Filter:', distBarangayFilter === 'all' ? 'All Barangays' : distBarangayFilter],
-        ['Active Municipalities in Scope:', String(municipalSummaryList.length)],
-        ['Total Locations Covered:', String(rawFiltered.length)],
-        ['Total Job Posts in Scope:', String(totalJobsCount)],
-        ['Total Applications in Scope:', String(totalAppsCount)],
-        ['Total Platform Activity Impact:', String(totalPlatformActivity)],
-      ],
-      [
-        {
-          title: 'Executive Municipal Coverage Summary',
-          headers: municipalHeaders,
-          rows: municipalRows,
-        },
-        {
-          title: 'Barangay-Level Demographics Breakdown',
-          headers: barangayHeaders,
-          rows: barangayRows,
-        },
-      ]
-    );
-    toast.success('Demographics report exported to CSV.', 'CSV Export Ready');
+    const filename = `SIKAP_DEMOGRAPHICS_${distRegionFilter.toUpperCase()}_${distBarangayFilter.toUpperCase()}_${from}_TO_${to}`;
+    const title = 'SIKAP Regional & Municipal Demographics Report';
+    const metadata: [string, string][] = [
+      ['Generated On:', formatCSVDate(new Date().toISOString())],
+      ['Dates in Scope:', `${from} to ${to} (${globalPreset})`],
+      ['Grouping Interval:', intervalFilter.toUpperCase()],
+      ['Municipality Filter:', distRegionFilter === 'all' ? 'All Municipalities' : distRegionFilter],
+      ['Barangay Filter:', distBarangayFilter === 'all' ? 'All Barangays' : distBarangayFilter],
+      ['Active Municipalities in Scope:', String(municipalSummaryList.length)],
+      ['Total Locations Covered:', String(rawFiltered.length)],
+      ['Total Job Posts in Scope:', String(totalJobsCount)],
+      ['Total Applications in Scope:', String(totalAppsCount)],
+      ['Total Platform Activity Impact:', String(totalPlatformActivity)],
+    ];
+    const sections = [
+      {
+        title: 'Executive Municipal Coverage',
+        headers: municipalHeaders,
+        rows: municipalRows,
+      },
+      {
+        title: 'Barangay Demographics',
+        headers: barangayHeaders,
+        rows: barangayRows,
+      },
+    ];
+
+    if (format === 'xlsx') {
+      const { exportMultiSectionExcel } = await import('@/lib/export/excel');
+      await exportMultiSectionExcel(filename, title, metadata, sections);
+      toast.success('Demographics report exported to Excel.', 'Excel Export Ready');
+    } else {
+      exportMultiSectionCSV(filename, title, metadata, sections);
+      toast.success('Demographics report exported to CSV.', 'CSV Export Ready');
+    }
   };
 
 
@@ -2114,13 +2125,22 @@ export default function AnalyticsDashboard() {
                   </div>
                   <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-0.5">
                     <span>Check: these totals match the numbers at the top.</span>
-                    <button
-                      onClick={handleExportCSV}
-                      className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
-                    >
-                      <i className="lni lni-download text-xs" />
-                      Export Table as CSV
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => handleExportSummary('csv')}
+                        className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <i className="lni lni-download text-xs" />
+                        Export Table as CSV
+                      </button>
+                      <button
+                        onClick={() => handleExportSummary('xlsx')}
+                        className="text-emerald-700 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <i className="lni lni-download text-xs" />
+                        Excel (.xlsx)
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -2346,13 +2366,22 @@ export default function AnalyticsDashboard() {
                   </div>
                   <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-0.5">
                     <span>Check: these totals match the numbers at the top.</span>
-                    <button
-                      onClick={handleExportCSV}
-                      className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
-                    >
-                      <i className="lni lni-download text-xs" />
-                      Export Table as CSV
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => handleExportSummary('csv')}
+                        className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <i className="lni lni-download text-xs" />
+                        Export Table as CSV
+                      </button>
+                      <button
+                        onClick={() => handleExportSummary('xlsx')}
+                        className="text-emerald-700 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <i className="lni lni-download text-xs" />
+                        Excel (.xlsx)
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -2805,13 +2834,22 @@ export default function AnalyticsDashboard() {
                   )}
                   <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-0.5">
                     <span>Reconciliation check: Job Posts and Applications reconcile with database totals for this time window.</span>
-                    <button
-                      onClick={distTableView === 'geographic' ? handleExportGeographicCSV : handleExportCSV}
-                      className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
-                    >
-                      <i className="lni lni-download text-xs" />
-                      {distTableView === 'geographic' ? 'Export Demographics CSV' : 'Export Table as CSV'}
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => distTableView === 'geographic' ? handleExportGeographic('csv') : handleExportSummary('csv')}
+                        className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <i className="lni lni-download text-xs" />
+                        {distTableView === 'geographic' ? 'Export Demographics CSV' : 'Export Table as CSV'}
+                      </button>
+                      <button
+                        onClick={() => distTableView === 'geographic' ? handleExportGeographic('xlsx') : handleExportSummary('xlsx')}
+                        className="text-emerald-700 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <i className="lni lni-download text-xs" />
+                        Excel (.xlsx)
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -3246,13 +3284,22 @@ export default function AnalyticsDashboard() {
                 </div>
                 <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-0.5">
                   <span>Reconciliation check: Report counts synchronize with the Platform Reports queue and Audit logs.</span>
-                  <button
-                    onClick={handleExportCSV}
-                    className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
-                  >
-                    <i className="lni lni-download text-xs" />
-                    Export Table as CSV
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleExportSummary('csv')}
+                      className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <i className="lni lni-download text-xs" />
+                      Export Table as CSV
+                    </button>
+                    <button
+                      onClick={() => handleExportSummary('xlsx')}
+                      className="text-emerald-700 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <i className="lni lni-download text-xs" />
+                      Excel (.xlsx)
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

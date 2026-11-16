@@ -237,7 +237,7 @@ function ArchivesPageContent() {
     (job.employer?.name || '').toLowerCase().includes(jobSearch.toLowerCase())
   );
 
-  const handleExportCSV = () => {
+  const handleExport = async (format: 'csv' | 'xlsx') => {
     const isUsersTab = activeTab.startsWith('Deleted Users');
 
     if (isUsersTab) {
@@ -274,25 +274,24 @@ function ArchivesPageContent() {
         formatCSVDate(u.deleted_at)
       ]);
 
-      exportMultiSectionCSV(
-        `sikap_archived_users_${new Date().toISOString().slice(0, 10)}`,
-        'SIKAP Soft-Deleted Users Registry',
-        [
-          ['Generated On:', formatCSVDate(new Date().toISOString())],
-          ['Report Type:', 'Archived User Accounts Masterlist'],
-          ['Total Records Exported:', String(filteredUsers.length)],
-          ['Search Filter:', userSearch.trim() || 'NONE'],
-        ],
-        [
-          {
-            title: 'Archived Users',
-            headers,
-            rows,
-          },
-        ]
-      );
+      const filename = `sikap_archived_users_${new Date().toISOString().slice(0, 10)}`;
+      const title = 'SIKAP Soft-Deleted Users Registry';
+      const metadata: [string, string][] = [
+        ['Generated On:', formatCSVDate(new Date().toISOString())],
+        ['Report Type:', 'Archived User Accounts Masterlist'],
+        ['Total Records Exported:', String(filteredUsers.length)],
+        ['Search Filter:', userSearch.trim() || 'NONE'],
+      ];
+      const sections = [{ title: 'Archived Users', headers, rows }];
 
-      toast.success(`Exported ${filteredUsers.length} archived user record(s) to CSV.`, 'CSV Export Ready');
+      if (format === 'xlsx') {
+        const { exportMultiSectionExcel } = await import('@/lib/export/excel');
+        await exportMultiSectionExcel(filename, title, metadata, sections);
+        toast.success(`Exported ${filteredUsers.length} archived user record(s) to Excel.`, 'Excel Export Ready');
+      } else {
+        exportMultiSectionCSV(filename, title, metadata, sections);
+        toast.success(`Exported ${filteredUsers.length} archived user record(s) to CSV.`, 'CSV Export Ready');
+      }
     } else {
       if (!filteredJobs || filteredJobs.length === 0) {
         showAlert('Export Empty', 'There are no deleted jobs matching the current filter to export.');
@@ -329,25 +328,24 @@ function ArchivesPageContent() {
         formatCSVDate(j.deleted_at)
       ]);
 
-      exportMultiSectionCSV(
-        `sikap_archived_jobs_${new Date().toISOString().slice(0, 10)}`,
-        'SIKAP Soft-Deleted Job Postings Registry',
-        [
-          ['Generated On:', formatCSVDate(new Date().toISOString())],
-          ['Report Type:', 'Archived Job Postings Masterlist'],
-          ['Total Records Exported:', String(filteredJobs.length)],
-          ['Search Filter:', jobSearch.trim() || 'NONE'],
-        ],
-        [
-          {
-            title: 'Archived Job Postings',
-            headers,
-            rows,
-          },
-        ]
-      );
+      const filename = `sikap_archived_jobs_${new Date().toISOString().slice(0, 10)}`;
+      const title = 'SIKAP Soft-Deleted Job Postings Registry';
+      const metadata: [string, string][] = [
+        ['Generated On:', formatCSVDate(new Date().toISOString())],
+        ['Report Type:', 'Archived Job Postings Masterlist'],
+        ['Total Records Exported:', String(filteredJobs.length)],
+        ['Search Filter:', jobSearch.trim() || 'NONE'],
+      ];
+      const sections = [{ title: 'Archived Job Postings', headers, rows }];
 
-      toast.success(`Exported ${filteredJobs.length} archived job posting(s) to CSV.`, 'CSV Export Ready');
+      if (format === 'xlsx') {
+        const { exportMultiSectionExcel } = await import('@/lib/export/excel');
+        await exportMultiSectionExcel(filename, title, metadata, sections);
+        toast.success(`Exported ${filteredJobs.length} archived job posting(s) to Excel.`, 'Excel Export Ready');
+      } else {
+        exportMultiSectionCSV(filename, title, metadata, sections);
+        toast.success(`Exported ${filteredJobs.length} archived job posting(s) to CSV.`, 'CSV Export Ready');
+      }
     }
   };
 
@@ -365,12 +363,20 @@ function ArchivesPageContent() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={handleExportCSV}
+            onClick={() => handleExport('csv')}
             className="flex items-center px-3 py-1.5 bg-white rounded-lg text-ink-soft hover:text-ink font-body font-semibold hover:bg-slate-50 border border-ink-faint/40 shadow-2xs transition-colors text-xs cursor-pointer"
             title={`Export ${activeTab} to CSV`}
           >
             <i className="lni lni-download mr-1.5 text-xs text-ink-muted group-hover:text-ink transition-colors" />
             Export CSV
+          </button>
+          <button
+            onClick={() => handleExport('xlsx')}
+            className="flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-body font-semibold border border-emerald-700 shadow-2xs transition-colors text-xs cursor-pointer"
+            title={`Export ${activeTab} to styled Excel (.xlsx)`}
+          >
+            <i className="lni lni-download mr-1.5 text-xs" />
+            Excel (.xlsx)
           </button>
           <button 
             onClick={() => fetchArchives(true, true)}

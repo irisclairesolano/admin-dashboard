@@ -29,7 +29,11 @@ export function escapeCSVField(value: any): string {
   if (value === null || value === undefined) {
     return '""';
   }
-  const str = String(value);
+  let str = String(value);
+  // Neutralize spreadsheet formula injection for string values starting with formula triggers
+  if (typeof value !== 'number' && /^[=+\-@\t\r]/.test(str)) {
+    str = `'${str}`;
+  }
   if (str.includes('"') || str.includes(',') || str.includes('\n') || str.includes('\r')) {
     return `"${str.replace(/"/g, '""')}"`;
   }

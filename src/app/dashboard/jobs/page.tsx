@@ -55,7 +55,7 @@ function JobsPageContent() {
   const currentJobList = isArchivedView ? archivedJobs : activeJobs;
   const jobs = currentJobList;
 
-  const handleExportCSV = () => {
+  const handleExport = async (format: 'csv' | 'xlsx') => {
     if (!jobs || jobs.length === 0) {
       setAlertState({
         open: true,
@@ -104,25 +104,24 @@ function JobsPageContent() {
       formatCSVDate(j.created_at)
     ]);
 
-    exportMultiSectionCSV(
-      `sikap_jobs_${new Date().toISOString().slice(0, 10)}`,
-      'SIKAP Job Postings & Opportunities Masterlist',
-      [
-        ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Report Type:', 'Job Postings Directory'],
-        ['Total Records Exported:', String(filteredJobs.length)],
-        ['Status Filter:', statusFilter.toUpperCase()],
-      ],
-      [
-        {
-          title: 'Job Postings Directory',
-          headers,
-          rows,
-        },
-      ]
-    );
+    const filename = `sikap_jobs_${new Date().toISOString().slice(0, 10)}`;
+    const title = 'SIKAP Job Postings & Opportunities Masterlist';
+    const metadata: [string, string][] = [
+      ['Generated On:', formatCSVDate(new Date().toISOString())],
+      ['Report Type:', 'Job Postings Directory'],
+      ['Total Records Exported:', String(filteredJobs.length)],
+      ['Status Filter:', statusFilter.toUpperCase()],
+    ];
+    const sections = [{ title: 'Job Postings Directory', headers, rows }];
 
-    toast.success(`Exported ${filteredJobs.length} job posting(s) to CSV.`, 'CSV Export Ready');
+    if (format === 'xlsx') {
+      const { exportMultiSectionExcel } = await import('@/lib/export/excel');
+      await exportMultiSectionExcel(filename, title, metadata, sections);
+      toast.success(`Exported ${filteredJobs.length} job posting(s) to Excel.`, 'Excel Export Ready');
+    } else {
+      exportMultiSectionCSV(filename, title, metadata, sections);
+      toast.success(`Exported ${filteredJobs.length} job posting(s) to CSV.`, 'CSV Export Ready');
+    }
   };
 
   // Sync search from URL query param
@@ -586,13 +585,23 @@ function JobsPageContent() {
           </div>
 
           <button
-            onClick={handleExportCSV}
+            onClick={() => handleExport('csv')}
             aria-label="Export jobs as CSV"
             className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
             title="Export filtered job postings as CSV"
           >
             <i className="lni lni-download text-xs" />
             <span>Export CSV</span>
+          </button>
+
+          <button
+            onClick={() => handleExport('xlsx')}
+            aria-label="Export jobs as Excel"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg border border-emerald-700 shadow-2xs transition font-body font-bold text-xs cursor-pointer"
+            title="Export filtered job postings as styled Excel (.xlsx)"
+          >
+            <i className="lni lni-download text-xs" />
+            <span>Excel (.xlsx)</span>
           </button>
         </div>
 

@@ -114,7 +114,7 @@ export default function BlacklistPage() {
     });
   };
 
-  const handleExportCSV = async () => {
+  const handleExport = async (format: 'csv' | 'xlsx') => {
     try {
       setExporting(true);
       let allRecords: BlacklistRecord[] = [];
@@ -190,26 +190,25 @@ export default function BlacklistPage() {
                 ? 'Self-Deleted Accounts Registry'
                 : 'All Restrictions Masterlist';
 
-      exportMultiSectionCSV(
-        `sikap_blacklist_${activeTab}_${new Date().toISOString().slice(0, 10)}`,
-        `SIKAP Blacklist & Restrictions Audit (${reportTypeName})`,
-        [
-          ['Generated On:', formatCSVDate(new Date().toISOString())],
-          ['Report Type:', reportTypeName],
-          ['Total Restrictions Exported:', String(allRecords.length)],
-          ['Active Filter:', activeTab.toUpperCase()],
-          ['Search Filter:', debouncedSearch.trim() || 'NONE'],
-        ],
-        [
-          {
-            title: `Restriction Records (${reportTypeName})`,
-            headers,
-            rows,
-          },
-        ]
-      );
+      const filename = `sikap_blacklist_${activeTab}_${new Date().toISOString().slice(0, 10)}`;
+      const title = `SIKAP Blacklist & Restrictions Audit (${reportTypeName})`;
+      const metadata: [string, string][] = [
+        ['Generated On:', formatCSVDate(new Date().toISOString())],
+        ['Report Type:', reportTypeName],
+        ['Total Restrictions Exported:', String(allRecords.length)],
+        ['Active Filter:', activeTab.toUpperCase()],
+        ['Search Filter:', debouncedSearch.trim() || 'NONE'],
+      ];
+      const sections = [{ title: `Restriction Records (${reportTypeName})`, headers, rows }];
 
-      toast.success(`Exported ${allRecords.length} blacklist record(s) to CSV.`, 'CSV Export Ready');
+      if (format === 'xlsx') {
+        const { exportMultiSectionExcel } = await import('@/lib/export/excel');
+        await exportMultiSectionExcel(filename, title, metadata, sections);
+        toast.success(`Exported ${allRecords.length} blacklist record(s) to Excel.`, 'Excel Export Ready');
+      } else {
+        exportMultiSectionCSV(filename, title, metadata, sections);
+        toast.success(`Exported ${allRecords.length} blacklist record(s) to CSV.`, 'CSV Export Ready');
+      }
     } catch (err: any) {
       toast.error('Failed to export blacklist registry.', 'Export Failed');
     } finally {
@@ -296,7 +295,7 @@ export default function BlacklistPage() {
           </div>
 
           <button
-            onClick={handleExportCSV}
+            onClick={() => handleExport('csv')}
             disabled={exporting}
             aria-label="Export blacklist to CSV"
             className="flex items-center px-3 py-2 bg-white text-ink-soft hover:text-ink text-xs font-body font-semibold rounded-xl hover:bg-slate-50 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer disabled:opacity-60"
@@ -304,6 +303,17 @@ export default function BlacklistPage() {
           >
             <Download className={`w-3.5 h-3.5 mr-1.5 text-ink-muted group-hover:text-ink transition-colors ${exporting ? 'animate-bounce' : ''}`} />
             {exporting ? 'Exporting...' : 'Export CSV'}
+          </button>
+
+          <button
+            onClick={() => handleExport('xlsx')}
+            disabled={exporting}
+            aria-label="Export blacklist to Excel"
+            className="flex items-center px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-body font-semibold rounded-xl transition-all border border-emerald-700 shadow-2xs cursor-pointer disabled:opacity-60"
+            title="Export blacklist records to styled Excel (.xlsx)"
+          >
+            <Download className={`w-3.5 h-3.5 mr-1.5 ${exporting ? 'animate-bounce' : ''}`} />
+            {exporting ? 'Exporting...' : 'Excel (.xlsx)'}
           </button>
 
           <button

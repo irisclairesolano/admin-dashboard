@@ -121,8 +121,8 @@ function LogsPageContent() {
       .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-  // Convert current or all matching logs list to CSV and trigger browser download
-  const handleExportCSV = async () => {
+  // Convert current or all matching logs list to CSV or Excel and trigger browser download
+  const handleExport = async (format: 'csv' | 'xlsx') => {
     try {
       setExporting(true);
       const res = await adminApi.getLogs(
@@ -166,24 +166,24 @@ function LogsPageContent() {
         log.description || ''
       ]);
 
-      exportMultiSectionCSV(
-        `sikap_audit_logs_${new Date().toISOString().slice(0, 10)}`,
-        'SIKAP Administrative Activity Audit Trail',
-        [
-          ['Generated On:', formatCSVDate(new Date().toISOString())],
-          ['Report Type:', 'Activity Audit Trail'],
-          ['Total Audit Events:', String(exportLogs.length)],
-          ['Action Filter:', actionFilter ? formatActionName(actionFilter) : 'ALL ACTIONS'],
-        ],
-        [
-          {
-            title: 'Administrative Logs',
-            headers,
-            rows,
-          },
-        ]
-      );
-      toast.success(`Exported ${exportLogs.length} audit log record(s) to CSV.`, 'CSV Export Ready');
+      const filename = `sikap_audit_logs_${new Date().toISOString().slice(0, 10)}`;
+      const title = 'SIKAP Administrative Activity Audit Trail';
+      const metadata: [string, string][] = [
+        ['Generated On:', formatCSVDate(new Date().toISOString())],
+        ['Report Type:', 'Activity Audit Trail'],
+        ['Total Audit Events:', String(exportLogs.length)],
+        ['Action Filter:', actionFilter ? formatActionName(actionFilter) : 'ALL ACTIONS'],
+      ];
+      const sections = [{ title: 'Administrative Logs', headers, rows }];
+
+      if (format === 'xlsx') {
+        const { exportMultiSectionExcel } = await import('@/lib/export/excel');
+        await exportMultiSectionExcel(filename, title, metadata, sections);
+        toast.success(`Exported ${exportLogs.length} audit log record(s) to Excel.`, 'Excel Export Ready');
+      } else {
+        exportMultiSectionCSV(filename, title, metadata, sections);
+        toast.success(`Exported ${exportLogs.length} audit log record(s) to CSV.`, 'CSV Export Ready');
+      }
     } catch (err: any) {
       setAlertState({
         isOpen: true,
@@ -225,12 +225,22 @@ function LogsPageContent() {
 
         <div className="flex flex-wrap items-center gap-2 mt-3 md:mt-0 text-xs">
           <button
-            onClick={handleExportCSV}
+            onClick={() => handleExport('csv')}
             disabled={exporting}
             className="flex items-center px-3 py-1.5 bg-white text-ink-soft hover:text-ink rounded-lg font-body font-semibold border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white transition-colors text-xs disabled:opacity-50 cursor-pointer"
           >
             <Download className="w-3.5 h-3.5 mr-1.5" />
             {exporting ? 'Exporting...' : 'Export CSV'}
+          </button>
+
+          <button
+            onClick={() => handleExport('xlsx')}
+            disabled={exporting}
+            className="flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-body font-semibold border border-emerald-700 shadow-2xs transition-colors text-xs disabled:opacity-50 cursor-pointer"
+            title="Export audit logs as styled Excel (.xlsx)"
+          >
+            <Download className="w-3.5 h-3.5 mr-1.5" />
+            {exporting ? 'Exporting...' : 'Excel (.xlsx)'}
           </button>
           
           <form onSubmit={handleSearchSubmit} className="relative w-full md:w-72 group">

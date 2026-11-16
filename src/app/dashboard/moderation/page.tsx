@@ -101,7 +101,7 @@ function ModerationPageContent() {
     onConfirm: () => { },
   });
 
-  const handleExportCSV = () => {
+  const handleExport = async (format: 'csv' | 'xlsx') => {
     if (!reports || reports.length === 0) {
       setAlertState({
         open: true,
@@ -138,25 +138,24 @@ function ModerationPageContent() {
       formatCSVDate(r.resolved_at)
     ]);
 
-    exportMultiSectionCSV(
-      `sikap_moderation_audit_${new Date().toISOString().slice(0, 10)}`,
-      'SIKAP Moderation & Safety Audit Report',
-      [
-        ['Generated On:', formatCSVDate(new Date().toISOString())],
-        ['Report Type:', 'Moderation Audit Summary'],
-        ['Total Audit Records:', String(filteredReports.length)],
-        ['Status Filter:', statusFilter.toUpperCase()],
-      ],
-      [
-        {
-          title: 'Moderation Reports',
-          headers,
-          rows,
-        },
-      ]
-    );
+    const filename = `sikap_moderation_audit_${new Date().toISOString().slice(0, 10)}`;
+    const title = 'SIKAP Moderation & Safety Audit Report';
+    const metadata: [string, string][] = [
+      ['Generated On:', formatCSVDate(new Date().toISOString())],
+      ['Report Type:', 'Moderation Audit Summary'],
+      ['Total Audit Records:', String(filteredReports.length)],
+      ['Status Filter:', statusFilter.toUpperCase()],
+    ];
+    const sections = [{ title: 'Moderation Reports', headers, rows }];
 
-    toast.success(`Exported ${filteredReports.length} moderation record(s) to CSV.`, 'CSV Export Ready');
+    if (format === 'xlsx') {
+      const { exportMultiSectionExcel } = await import('@/lib/export/excel');
+      await exportMultiSectionExcel(filename, title, metadata, sections);
+      toast.success(`Exported ${filteredReports.length} moderation record(s) to Excel.`, 'Excel Export Ready');
+    } else {
+      exportMultiSectionCSV(filename, title, metadata, sections);
+      toast.success(`Exported ${filteredReports.length} moderation record(s) to CSV.`, 'CSV Export Ready');
+    }
   };
 
   // Sync search query from URL query parameter
@@ -397,13 +396,23 @@ function ModerationPageContent() {
           </div>
 
           <button
-            onClick={handleExportCSV}
+            onClick={() => handleExport('csv')}
             aria-label="Export moderation audit as CSV"
             className="flex items-center gap-2 px-3.5 h-10 bg-white dark:bg-slate-900/80 rounded-xl border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white dark:hover:bg-slate-800 text-ink-soft transition font-body font-medium text-sm cursor-pointer"
             title="Export filtered moderation audit as CSV"
           >
             <i className="lni lni-download text-sm" />
             <span>Export CSV</span>
+          </button>
+
+          <button
+            onClick={() => handleExport('xlsx')}
+            aria-label="Export moderation audit as Excel"
+            className="flex items-center gap-2 px-3.5 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl border border-emerald-700 shadow-2xs transition font-body font-medium text-sm cursor-pointer"
+            title="Export filtered moderation audit as styled Excel (.xlsx)"
+          >
+            <i className="lni lni-download text-sm" />
+            <span>Excel (.xlsx)</span>
           </button>
 
           <button
