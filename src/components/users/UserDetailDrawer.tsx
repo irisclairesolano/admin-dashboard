@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { User } from '@/types/models';
 import { formatBirthDate } from '@/lib/date';
 import { hasSubmittedDocs, getUserVerificationInfo } from '@/lib/verification';
+import { adminApi } from '@/lib/api';
 
 interface UserDetailDrawerProps {
   selectedDetailUser: User;
@@ -60,8 +61,8 @@ interface UserDetailDrawerProps {
 export default function UserDetailDrawer({
   selectedDetailUser,
   onClose,
-  userDetailData,
-  detailLoading = false,
+  userDetailData: externalUserDetailData,
+  detailLoading: externalDetailLoading,
   activeTab: externalActiveTab,
   setActiveTab: externalSetActiveTab,
   actionLoading = null,
@@ -76,29 +77,29 @@ export default function UserDetailDrawer({
   setActivitySearch: externalSetActivitySearch,
   activityStatus: externalActivityStatus,
   setActivityStatus: externalSetActivityStatus,
-  activityLoading = false,
-  activityData = null,
+  activityLoading: externalActivityLoading,
+  activityData: externalActivityData,
   activityPage: externalActivityPage,
   setActivityPage: externalSetActivityPage,
   onSelectJob = () => {},
 
-  reviewsLoading = false,
-  reviewsData = null,
+  reviewsLoading: externalReviewsLoading,
+  reviewsData: externalReviewsData,
   reviewsPage: externalReviewsPage,
   setReviewsPage: externalSetReviewsPage,
 
-  reportsLoading = false,
-  reportsData = null,
+  reportsLoading: externalReportsLoading,
+  reportsData: externalReportsData,
   reportsPage: externalReportsPage,
   setReportsPage: externalSetReportsPage,
 
-  logsLoading = false,
-  logsData = null,
+  logsLoading: externalLogsLoading,
+  logsData: externalLogsData,
   logsPage: externalLogsPage,
   setLogsPage: externalSetLogsPage,
 
-  blocksLoading = false,
-  blocksData = null,
+  blocksLoading: externalBlocksLoading,
+  blocksData: externalBlocksData,
 }: UserDetailDrawerProps) {
   // Internal state fallbacks to prevent prop drilling overload
   const [internalActiveTab, setInternalActiveTab] = React.useState<'profile' | 'activity' | 'reviews' | 'reports' | 'logs' | 'blocks'>('profile');
@@ -110,6 +111,21 @@ export default function UserDetailDrawer({
   const [internalReportsPage, setInternalReportsPage] = React.useState(1);
   const [internalLogsPage, setInternalLogsPage] = React.useState(1);
   const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
+
+  // Self-fetching state used when parent does not manage detail data (e.g. Archives page)
+  const isExternallyManaged = externalSetActiveTab !== undefined || externalDetailLoading !== undefined;
+  const [internalUserDetailData, setInternalUserDetailData] = useState<any>(null);
+  const [internalDetailLoading, setInternalDetailLoading] = useState(false);
+  const [internalActivityData, setInternalActivityData] = useState<any>(null);
+  const [internalActivityLoading, setInternalActivityLoading] = useState(false);
+  const [internalReviewsData, setInternalReviewsData] = useState<any>(null);
+  const [internalReviewsLoading, setInternalReviewsLoading] = useState(false);
+  const [internalReportsData, setInternalReportsData] = useState<any>(null);
+  const [internalReportsLoading, setInternalReportsLoading] = useState(false);
+  const [internalLogsData, setInternalLogsData] = useState<any>(null);
+  const [internalLogsLoading, setInternalLogsLoading] = useState(false);
+  const [internalBlocksData, setInternalBlocksData] = useState<{ blocked: any[]; blocked_by: any[] } | null>(null);
+  const [internalBlocksLoading, setInternalBlocksLoading] = useState(false);
 
   const activeTab = externalActiveTab ?? internalActiveTab;
   const setActiveTab = externalSetActiveTab ?? setInternalActiveTab;
@@ -127,6 +143,161 @@ export default function UserDetailDrawer({
   const setReportsPage = externalSetReportsPage ?? setInternalReportsPage;
   const logsPage = externalLogsPage ?? internalLogsPage;
   const setLogsPage = externalSetLogsPage ?? setInternalLogsPage;
+
+  const userDetailData = externalUserDetailData !== undefined ? externalUserDetailData : internalUserDetailData;
+  const detailLoading = externalDetailLoading !== undefined ? externalDetailLoading : internalDetailLoading;
+  const activityData = externalActivityData !== undefined ? externalActivityData : internalActivityData;
+  const activityLoading = externalActivityLoading !== undefined ? externalActivityLoading : internalActivityLoading;
+  const reviewsData = externalReviewsData !== undefined ? externalReviewsData : internalReviewsData;
+  const reviewsLoading = externalReviewsLoading !== undefined ? externalReviewsLoading : internalReviewsLoading;
+  const reportsData = externalReportsData !== undefined ? externalReportsData : internalReportsData;
+  const reportsLoading = externalReportsLoading !== undefined ? externalReportsLoading : internalReportsLoading;
+  const logsData = externalLogsData !== undefined ? externalLogsData : internalLogsData;
+  const logsLoading = externalLogsLoading !== undefined ? externalLogsLoading : internalLogsLoading;
+  const blocksData = externalBlocksData !== undefined ? externalBlocksData : internalBlocksData;
+  const blocksLoading = externalBlocksLoading !== undefined ? externalBlocksLoading : internalBlocksLoading;
+
+  useEffect(() => {
+    if (isExternallyManaged || !selectedDetailUser?.id) return;
+    let cancelled = false;
+    setInternalActiveTab('profile');
+    setInternalActivityPage(1);
+    setInternalActivitySearch('');
+    setInternalActivityStatus('all');
+    setInternalActivityData(null);
+    setInternalReviewsPage(1);
+    setInternalReviewsData(null);
+    setInternalEmployerSubTab('posts');
+    setInternalReportsPage(1);
+    setInternalReportsData(null);
+    setInternalLogsPage(1);
+    setInternalLogsData(null);
+    setInternalBlocksData(null);
+
+    const loadDetails = async () => {
+      setInternalDetailLoading(true);
+      try {
+        const res = await adminApi.getUserDetails(selectedDetailUser.id);
+        if (!cancelled) setInternalUserDetailData(res.data);
+      } catch {
+        if (!cancelled) {
+          const rawUser = selectedDetailUser as any;
+          setInternalUserDetailData({
+            user: selectedDetailUser,
+            stats: {
+              average_rating: 0,
+              reviews_count: rawUser.reviews_received_count ?? 0,
+              blocked_users_count: 0,
+              blocked_by_count: 0,
+              job_posts_count: rawUser.job_posts_count ?? 0,
+              hired_workers_count: 0,
+              applications_count: rawUser.applications_count ?? 0,
+              completed_jobs_count: 0,
+            },
+          });
+        }
+      } finally {
+        if (!cancelled) setInternalDetailLoading(false);
+      }
+    };
+    loadDetails();
+    return () => { cancelled = true; };
+  }, [isExternallyManaged, selectedDetailUser]);
+
+  useEffect(() => {
+    if (isExternallyManaged || !selectedDetailUser?.id || activeTab !== 'activity') return;
+    let cancelled = false;
+    const loadActivity = async () => {
+      setInternalActivityLoading(true);
+      try {
+        const res =
+          selectedDetailUser.role === 'employer'
+            ? employerSubTab === 'posts'
+              ? await adminApi.getUserPosts(selectedDetailUser.id, activityPage, activitySearch, activityStatus)
+              : await adminApi.getUserHired(selectedDetailUser.id, activityPage, activitySearch)
+            : await adminApi.getUserApplications(selectedDetailUser.id, activityPage, activitySearch, activityStatus);
+        if (!cancelled) setInternalActivityData(res.data);
+      } catch {
+        if (!cancelled) setInternalActivityData({ data: [], current_page: 1, last_page: 1 });
+      } finally {
+        if (!cancelled) setInternalActivityLoading(false);
+      }
+    };
+    loadActivity();
+    return () => { cancelled = true; };
+  }, [isExternallyManaged, selectedDetailUser, activeTab, employerSubTab, activityPage, activitySearch, activityStatus]);
+
+  useEffect(() => {
+    if (isExternallyManaged || !selectedDetailUser?.id || activeTab !== 'reviews') return;
+    let cancelled = false;
+    const loadReviews = async () => {
+      setInternalReviewsLoading(true);
+      try {
+        const res = await adminApi.getUserReviews(selectedDetailUser.id, reviewsPage);
+        if (!cancelled) setInternalReviewsData(res.data);
+      } catch {
+        if (!cancelled) setInternalReviewsData({ data: [], current_page: 1, last_page: 1 });
+      } finally {
+        if (!cancelled) setInternalReviewsLoading(false);
+      }
+    };
+    loadReviews();
+    return () => { cancelled = true; };
+  }, [isExternallyManaged, selectedDetailUser, activeTab, reviewsPage]);
+
+  useEffect(() => {
+    if (isExternallyManaged || !selectedDetailUser?.id || activeTab !== 'reports') return;
+    let cancelled = false;
+    const loadReports = async () => {
+      setInternalReportsLoading(true);
+      try {
+        const res = await adminApi.getUserReports(selectedDetailUser.id, reportsPage);
+        if (!cancelled) setInternalReportsData(res.data);
+      } catch {
+        if (!cancelled) setInternalReportsData({ data: [], current_page: 1, last_page: 1 });
+      } finally {
+        if (!cancelled) setInternalReportsLoading(false);
+      }
+    };
+    loadReports();
+    return () => { cancelled = true; };
+  }, [isExternallyManaged, selectedDetailUser, activeTab, reportsPage]);
+
+  useEffect(() => {
+    if (isExternallyManaged || !selectedDetailUser?.id || activeTab !== 'logs') return;
+    let cancelled = false;
+    const loadLogs = async () => {
+      setInternalLogsLoading(true);
+      try {
+        const res = await adminApi.getUserLogs(selectedDetailUser.id, logsPage);
+        if (!cancelled) setInternalLogsData(res.data);
+      } catch {
+        if (!cancelled) setInternalLogsData({ data: [], current_page: 1, last_page: 1 });
+      } finally {
+        if (!cancelled) setInternalLogsLoading(false);
+      }
+    };
+    loadLogs();
+    return () => { cancelled = true; };
+  }, [isExternallyManaged, selectedDetailUser, activeTab, logsPage]);
+
+  useEffect(() => {
+    if (isExternallyManaged || !selectedDetailUser?.id || activeTab !== 'blocks') return;
+    let cancelled = false;
+    const loadBlocks = async () => {
+      setInternalBlocksLoading(true);
+      try {
+        const res = await adminApi.getUserBlocks(selectedDetailUser.id);
+        if (!cancelled) setInternalBlocksData(res.data);
+      } catch {
+        if (!cancelled) setInternalBlocksData({ blocked: [], blocked_by: [] });
+      } finally {
+        if (!cancelled) setInternalBlocksLoading(false);
+      }
+    };
+    loadBlocks();
+    return () => { cancelled = true; };
+  }, [isExternallyManaged, selectedDetailUser, activeTab]);
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
