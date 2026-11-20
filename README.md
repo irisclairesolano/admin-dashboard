@@ -13,7 +13,7 @@
 - **Content Moderation (`/dashboard/moderation`)**: Two-tier profanity dictionary management (`block` vs. `flag`), live Server-Sent Events (SSE) auto-flag stream, and user report triage.
 - **AI Macroeconomic Insights (`/dashboard/analytics/ai-insights`)**: Google Gemini 1.5 Flash labor market analysis with suspect wage filtering (`< ₱50/hr`) and on-demand cache refresh.
 - **Action Required Analytics (`/dashboard`)**: `ActionRequiredAnalytics` counts users stuck in onboarding (awaiting OTP, awaiting ID upload); unverified users are kept out of the main directory.
-- **Theme & Verification Updates**: Dark mode toggle, real-time SLA counter, fresh signed URLs for KYC documents, and shared verification helpers in `src/lib/verification.ts` (with Vitest coverage). Report resolution supports an optional `admin_response` shown to the reporter in the mobile app.
+- **Theme, UI Hierarchy & Verification Updates**: Light/dark mode toggle with neutral glass styling and enlarged readable typography, real-time SLA counter, fresh signed URLs for KYC documents, and shared verification helpers in `src/lib/verification.ts` (with Vitest coverage). Displays role-segregated Bayesian reputation scores (`m = 3, C = 4.00` for `v >= 1`, unrated when `v = 0`). Report resolution supports an optional `admin_response` shown to the reporter in the mobile app.
 - **Universal Data Export (`/dashboard/export-reports`)**: Styled Excel (`.xlsx`), CSV, and PDF report generation.
 - **Support & Audit Logs (`/dashboard/support`, `/dashboard/logs`)**: Helpdesk ticket resolution and immutable administrative activity logs.
 
