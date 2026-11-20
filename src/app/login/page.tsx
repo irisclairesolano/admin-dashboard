@@ -107,13 +107,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-paper dark:bg-slate-950 text-ink dark:text-slate-100 relative flex flex-col justify-between overflow-x-hidden overflow-y-auto selection:bg-primary selection:text-white dark:selection:bg-sky-400 dark:selection:text-slate-950 transition-colors">
+    <div className="min-h-dvh bg-paper dark:bg-slate-950 text-ink dark:text-slate-100 relative flex flex-col justify-between overflow-x-hidden overflow-y-auto selection:bg-primary selection:text-white dark:selection:bg-sky-400 dark:selection:text-slate-950 transition-colors">
 
       {/* ── Ambient Background Glows & Subtle Grid (SIKAP Pastel Palette) ── */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute -top-24 -left-24 w-[480px] h-[480px] bg-accent-sky/45 dark:bg-sky-900/20 rounded-full blur-[130px]" />
-        <div className="absolute top-1/4 -right-16 w-[520px] h-[520px] bg-accent-peach/45 dark:bg-rose-900/15 rounded-full blur-[140px]" />
-        <div className="absolute -bottom-24 left-1/3 w-[440px] h-[440px] bg-accent-mint/35 dark:bg-emerald-950/20 rounded-full blur-[130px]" />
+        <div className="absolute -top-20 -left-20 w-64 h-64 sm:w-[400px] sm:h-[400px] lg:w-[480px] lg:h-[480px] bg-accent-sky/45 dark:bg-sky-900/20 rounded-full blur-[100px] sm:blur-[130px]" />
+        <div className="absolute top-1/4 -right-16 w-72 h-72 sm:w-[420px] sm:h-[420px] lg:w-[520px] lg:h-[520px] bg-accent-peach/45 dark:bg-rose-900/15 rounded-full blur-[110px] sm:blur-[140px]" />
+        <div className="absolute -bottom-20 left-1/3 w-64 h-64 sm:w-[360px] sm:h-[360px] lg:w-[440px] lg:h-[440px] bg-accent-mint/35 dark:bg-emerald-950/20 rounded-full blur-[100px] sm:blur-[130px]" />
 
         {/* Delicate blueprint grid overlay */}
         <svg
@@ -136,11 +136,11 @@ export default function LoginPage() {
       </div>
 
       {/* ── Top Navigation Bar ────────────────────────────────────────────── */}
-      <header className="w-full z-30 px-6 sm:px-10 lg:px-14 py-3 sm:py-3.5 flex items-center justify-between border-b border-ink-faint/70 dark:border-slate-800 bg-white/70 dark:bg-slate-950/75 backdrop-blur-xl shrink-0">
+      <header className="w-full z-30 px-4 sm:px-8 lg:px-14 py-3 sm:py-3.5 flex items-center justify-between gap-2 border-b border-ink-faint/70 dark:border-slate-800 bg-white/70 dark:bg-slate-950/75 backdrop-blur-xl shrink-0">
 
         {/* Left: Official SIKAP Wordmark + Admin Pill */}
-        <div className="flex items-center gap-2.5">
-          <div className="relative h-7 w-24 sm:h-8 sm:w-28 flex items-center">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+          <div className="relative h-6 w-20 sm:h-8 sm:w-28 flex items-center shrink-0">
             <Image
               src="/logo/04_Wordmark.png"
               alt="SIKAP Logo"
@@ -150,32 +150,34 @@ export default function LoginPage() {
               className="object-contain dark:brightness-0 dark:invert opacity-95 hover:opacity-100 transition-opacity"
             />
           </div>
-          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-body font-semibold bg-primary-tint dark:bg-slate-800 text-primary dark:text-slate-300 border border-primary/15 dark:border-slate-700">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-body font-semibold bg-primary-tint dark:bg-slate-800 text-primary dark:text-slate-300 border border-primary/15 dark:border-slate-700 shrink-0">
             Admin
           </span>
         </div>
 
         {/* Right: Location Badge */}
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 dark:bg-slate-900/90 border border-ink-faint/80 dark:border-slate-700 text-xs font-semibold text-ink-soft dark:text-slate-200 shadow-2xs backdrop-blur-sm">
-          <span className="w-2 h-2 rounded-full bg-accent-mintDeep dark:bg-emerald-400 animate-pulse" />
-          <span>Sorsogon, Philippines</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-white/90 dark:bg-slate-900/90 border border-ink-faint/80 dark:border-slate-700 text-[11px] sm:text-xs font-semibold text-ink-soft dark:text-slate-200 shadow-2xs backdrop-blur-sm shrink-0">
+          <span className="w-2 h-2 rounded-full bg-accent-mintDeep dark:bg-emerald-400 animate-pulse shrink-0" />
+          <span className="whitespace-nowrap">
+            Sorsogon<span className="hidden sm:inline">, Philippines</span>
+          </span>
         </div>
       </header>
 
       {/* ── Main Hero Section ─────────────────────────────────────────────── */}
-      <main className="relative z-20 flex-1 min-h-0 max-w-7xl mx-auto w-full px-6 sm:px-10 lg:px-14 py-4 sm:py-6 lg:py-8 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 lg:gap-12">
+      <main className="relative z-20 flex-1 min-h-0 max-w-7xl mx-auto w-full px-4 sm:px-8 lg:px-14 py-6 sm:py-10 lg:py-8 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 sm:gap-10 lg:gap-12">
 
         {/* ── Left Column: SIKAP Brand Hero ── */}
-        <div className="flex-1 max-w-xl text-left space-y-3 sm:space-y-4 lg:space-y-5 animate-slide-up order-2 lg:order-1">
+        <div className="w-full lg:flex-1 max-w-xl text-center lg:text-left flex flex-col items-center lg:items-start space-y-3.5 sm:space-y-4 lg:space-y-5 animate-slide-up order-2 lg:order-1">
 
           {/* Eyebrow Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-tint/90 dark:bg-slate-900/90 border border-primary/15 dark:border-slate-700 text-primary dark:text-sky-300 text-[11px] font-bold uppercase tracking-wider shadow-2xs backdrop-blur-sm">
-            <Shield className="w-3.5 h-3.5 text-primary dark:text-sky-400" />
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 rounded-full bg-primary-tint/90 dark:bg-slate-900/90 border border-primary/15 dark:border-slate-700 text-primary dark:text-sky-300 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider shadow-2xs backdrop-blur-sm">
+            <Shield className="w-3.5 h-3.5 text-primary dark:text-sky-400 shrink-0" />
             <span>Built for Informal Work · Admin Console</span>
           </div>
 
           {/* Heading */}
-          <h1 className="font-display text-3xl sm:text-4xl lg:text-[42px] xl:text-[46px] font-black tracking-tight text-ink dark:text-white leading-[1.12]">
+          <h1 className="font-display text-2xl sm:text-4xl lg:text-[42px] xl:text-[46px] font-black tracking-tight text-ink dark:text-white leading-[1.14]">
             Trusted Local Work.<br />
             Steward the{' '}
             <span className="italic text-primary-soft dark:text-sky-300">
@@ -184,31 +186,31 @@ export default function LoginPage() {
           </h1>
 
           {/* Description */}
-          <p className="font-body text-xs sm:text-sm text-ink-soft dark:text-slate-300 leading-relaxed max-w-lg">
+          <p className="font-body text-xs sm:text-sm text-ink-soft dark:text-slate-300 leading-relaxed max-w-md lg:max-w-lg">
             The administrative console behind the SIKAP mobile job platform.
             Verify identities, moderate job listings, and keep Sorsogon&apos;s
             informal workforce community safe and trusted.
           </p>
 
           {/* Feature / Value Props Row */}
-          <div className="flex flex-wrap items-center gap-2 pt-0.5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/85 dark:bg-slate-900/80 border border-ink-faint/80 dark:border-slate-700 text-xs font-medium text-ink-soft dark:text-slate-200 shadow-2xs backdrop-blur-sm">
-              <ShieldCheck className="w-3.5 h-3.5 text-accent-mintDeep dark:text-emerald-400" />
+          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 pt-0.5">
+            <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-white/85 dark:bg-slate-900/80 border border-ink-faint/80 dark:border-slate-700 text-[11px] sm:text-xs font-medium text-ink-soft dark:text-slate-200 shadow-2xs backdrop-blur-sm">
+              <ShieldCheck className="w-3.5 h-3.5 text-accent-mintDeep dark:text-emerald-400 shrink-0" />
               <span>ID Verification</span>
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/85 dark:bg-slate-900/80 border border-ink-faint/80 dark:border-slate-700 text-xs font-medium text-ink-soft dark:text-slate-200 shadow-2xs backdrop-blur-sm">
-              <Briefcase className="w-3.5 h-3.5 text-primary dark:text-sky-400" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-white/85 dark:bg-slate-900/80 border border-ink-faint/80 dark:border-slate-700 text-[11px] sm:text-xs font-medium text-ink-soft dark:text-slate-200 shadow-2xs backdrop-blur-sm">
+              <Briefcase className="w-3.5 h-3.5 text-primary dark:text-sky-400 shrink-0" />
               <span>Job Moderation</span>
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/85 dark:bg-slate-900/80 border border-ink-faint/80 dark:border-slate-700 text-xs font-medium text-ink-soft dark:text-slate-200 shadow-2xs backdrop-blur-sm">
-              <AlertTriangle className="w-3.5 h-3.5 text-primary-soft dark:text-sky-300" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-white/85 dark:bg-slate-900/80 border border-ink-faint/80 dark:border-slate-700 text-[11px] sm:text-xs font-medium text-ink-soft dark:text-slate-200 shadow-2xs backdrop-blur-sm">
+              <AlertTriangle className="w-3.5 h-3.5 text-primary-soft dark:text-sky-300 shrink-0" />
               <span>Safety &amp; Trust</span>
             </div>
           </div>
 
           {/* Team Credits */}
-          <div className="pt-2 sm:pt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted dark:text-slate-400">
-            <span className="font-bold uppercase tracking-wider text-primary dark:text-sky-400 text-[11px] mr-1">
+          <div className="pt-2 sm:pt-3 flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-1.5 text-[11px] sm:text-xs text-ink-muted dark:text-slate-400">
+            <span className="font-bold uppercase tracking-wider text-primary dark:text-sky-400 text-[10px] sm:text-[11px] mr-1">
               TEAM
             </span>
             <span className="text-ink-soft dark:text-slate-300">
@@ -230,10 +232,10 @@ export default function LoginPage() {
         </div>
 
         {/* ── Right Column: Administrator Portal Sign-In Card ── */}
-        <div className="relative w-full max-w-md sm:w-[400px] lg:w-[420px] flex-shrink-0 order-1 lg:order-2 animate-slide-up">
+        <div className="relative w-full max-w-[420px] lg:w-[420px] flex-shrink-0 order-1 lg:order-2 animate-slide-up">
           {/* Card-scoped ambient pastel glows matching SIKAP LoginScreen */}
-          <div className="pointer-events-none absolute -top-6 -right-6 w-36 h-36 rounded-full bg-accent-peach/40 dark:bg-rose-500/15 blur-2xl" />
-          <div className="pointer-events-none absolute -bottom-6 -left-6 w-36 h-36 rounded-full bg-accent-sky/45 dark:bg-sky-500/15 blur-2xl" />
+          <div className="pointer-events-none absolute -top-5 -right-4 sm:-top-6 sm:-right-6 w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-accent-peach/40 dark:bg-rose-500/15 blur-2xl" />
+          <div className="pointer-events-none absolute -bottom-5 -left-4 sm:-bottom-6 sm:-left-6 w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-accent-sky/45 dark:bg-sky-500/15 blur-2xl" />
 
           <div className="relative z-20 bg-white/85 dark:bg-slate-900/85 rounded-2xl sm:rounded-3xl border border-white/80 dark:border-slate-800 shadow-glass p-5 sm:p-6 lg:p-7 backdrop-blur-xl">
 
@@ -296,7 +298,7 @@ export default function LoginPage() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-9 pr-3.5 py-2.5 bg-paper/80 dark:bg-slate-950/80 rounded-xl border border-ink-faint dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-primary dark:focus:border-sky-400 focus:ring-2 focus:ring-primary/15 dark:focus:ring-sky-400/20 outline-none font-body text-sm text-ink dark:text-slate-100 transition-all placeholder:text-ink-light dark:placeholder:text-slate-500"
+                      className="w-full pl-9 pr-3.5 py-2.5 bg-paper/80 dark:bg-slate-950/80 rounded-xl border border-ink-faint dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-primary dark:focus:border-sky-400 focus:ring-2 focus:ring-primary/15 dark:focus:ring-sky-400/20 outline-none font-body text-base sm:text-sm text-ink dark:text-slate-100 transition-all placeholder:text-ink-light dark:placeholder:text-slate-500"
                       placeholder="admin@sikap.ph"
                       required
                     />
@@ -324,14 +326,14 @@ export default function LoginPage() {
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-9 pr-10 py-2.5 bg-paper/80 dark:bg-slate-950/80 rounded-xl border border-ink-faint dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-primary dark:focus:border-sky-400 focus:ring-2 focus:ring-primary/15 dark:focus:ring-sky-400/20 outline-none font-body text-sm text-ink dark:text-slate-100 transition-all placeholder:text-ink-light dark:placeholder:text-slate-500"
+                      className="w-full pl-9 pr-11 py-2.5 bg-paper/80 dark:bg-slate-950/80 rounded-xl border border-ink-faint dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-primary dark:focus:border-sky-400 focus:ring-2 focus:ring-primary/15 dark:focus:ring-sky-400/20 outline-none font-body text-base sm:text-sm text-ink dark:text-slate-100 transition-all placeholder:text-ink-light dark:placeholder:text-slate-500"
                       placeholder="Enter your password"
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2.5 text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-200 p-1 cursor-pointer transition-colors"
+                      className="absolute right-2 text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-200 p-1.5 cursor-pointer transition-colors"
                       aria-label="Toggle password visibility"
                     >
                       {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -444,7 +446,7 @@ export default function LoginPage() {
       </main>
 
       {/* ── Minimal Bottom Edge ───────────────────────────────────────────── */}
-      <footer className="w-full px-6 sm:px-10 lg:px-14 py-2.5 border-t border-ink-faint/60 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-[10px] sm:text-[11px] text-ink-muted dark:text-slate-400 relative z-20 gap-1 shrink-0 bg-white/40 dark:bg-slate-950/40 backdrop-blur-sm">
+      <footer className="w-full px-4 sm:px-8 lg:px-14 py-3 border-t border-ink-faint/60 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-center sm:text-left text-[10px] sm:text-[11px] text-ink-muted dark:text-slate-400 relative z-20 gap-1 shrink-0 bg-white/40 dark:bg-slate-950/40 backdrop-blur-sm">
         <span>&copy; {new Date().getFullYear()} SIKAP Project · Skills &amp; Job Matching Platform</span>
         <span className="hidden sm:inline">Built for Informal Work · Sorsogon, Philippines</span>
       </footer>
