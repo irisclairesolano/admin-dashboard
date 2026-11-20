@@ -132,23 +132,27 @@ function JobsPageContent() {
   const fetchJobs = async (forceRefresh: boolean = false) => {
     try {
       setLoading(true);
-      const [activeRes, archivedRes] = await Promise.all([
-        adminApi.getJobs({
-          trashed: false,
-          all: true,
-          forceRefresh,
-        }),
-        adminApi.getJobs({
+      const activeRes = await adminApi.getJobs({
+        trashed: false,
+        all: true,
+        forceRefresh,
+      });
+      setActiveJobs(activeRes.data?.data || []);
+      setLoading(false);
+
+      // Load archived jobs in the background without blocking initial page render
+      adminApi
+        .getJobs({
           trashed: true,
           all: true,
           forceRefresh,
-        }),
-      ]);
-      setActiveJobs(activeRes.data?.data || []);
-      setArchivedJobs(archivedRes.data?.data || []);
+        })
+        .then((archivedRes) => {
+          setArchivedJobs(archivedRes.data?.data || []);
+        })
+        .catch(() => {});
     } catch (err: any) {
       setError(err.message || 'Failed to load jobs');
-    } finally {
       setLoading(false);
     }
   };

@@ -183,8 +183,10 @@ const cachedGet = async (url: string) => {
 
   const fetchPromise = fetchAndStore(url);
 
-  if (localData && isFresh) {
-    fetchPromise.catch(console.error); // Revalidate quietly
+  if (localData) {
+    if (!isFresh) {
+      fetchPromise.catch(console.error); // Revalidate quietly in background
+    }
     return localData;
   }
 

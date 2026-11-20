@@ -147,23 +147,27 @@ function UsersContent() {
   const fetchUsers = useCallback(async (forceRefresh: boolean = false) => {
     try {
       setLoading(true);
-      const [activeRes, archivedRes] = await Promise.all([
-        adminApi.getUsers({
-          trashed: false,
-          all: true,
-          forceRefresh,
-        }),
-        adminApi.getUsers({
+      const activeRes = await adminApi.getUsers({
+        trashed: false,
+        all: true,
+        forceRefresh,
+      });
+      setActiveUsers(activeRes.data?.data || []);
+      setLoading(false);
+
+      // Load archived users in the background without blocking initial page render
+      adminApi
+        .getUsers({
           trashed: true,
           all: true,
           forceRefresh,
-        }),
-      ]);
-      setActiveUsers(activeRes.data?.data || []);
-      setArchivedUsers(archivedRes.data?.data || []);
+        })
+        .then((archivedRes) => {
+          setArchivedUsers(archivedRes.data?.data || []);
+        })
+        .catch(() => {});
     } catch (err: any) {
       setError(err.message || 'Failed to load users');
-    } finally {
       setLoading(false);
     }
   }, []);

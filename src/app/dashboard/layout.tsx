@@ -114,10 +114,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = window.localStorage.getItem('admin_dark_mode');
-      if (saved === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        setIsDarkMode(true);
-      }
       if ('Notification' in window) {
         setDesktopPermission(Notification.permission);
         const dismissed = sessionStorage.getItem('admin_notif_banner_dismissed');
@@ -126,7 +122,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
       }
     }
-  }, [setIsDarkMode]);
+  }, []);
 
   const requestDesktopNotifications = async () => {
     if (typeof window !== 'undefined' && 'Notification' in window) {

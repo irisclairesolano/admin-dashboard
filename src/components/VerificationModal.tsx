@@ -932,38 +932,50 @@ export default function VerificationModal({
             </div>
           </div>
         ) : (
-          <div className="p-4 sm:p-6 border-t border-ink-faint bg-white flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-4" data-testid="actions-section">
-            <Tooltip text="Reject ID — user will be asked to re-upload" position="top" variant="danger">
+          <div className="shrink-0 px-5 sm:px-7 py-4 border-t border-ink-faint/30 dark:border-slate-700/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3" data-testid="actions-section">
+            <div className="flex items-center gap-2.5">
+              <Tooltip text="Reject ID — user will be asked to re-upload" position="top" variant="danger">
+                <button
+                  disabled={!!actionLoading}
+                  onClick={() => setIsRejecting(true)}
+                  data-testid="reject-btn"
+                  className="w-full sm:w-auto px-5 py-2.5 border border-rose-300 dark:border-rose-700/70 text-status-error dark:text-rose-400 font-body font-semibold text-sm rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors disabled:opacity-50 flex items-center justify-center cursor-pointer"
+                >
+                  Reject ID
+                </button>
+              </Tooltip>
+            </div>
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2.5">
               <button
+                type="button"
+                onClick={onClose}
                 disabled={!!actionLoading}
-                onClick={() => setIsRejecting(true)}
-                data-testid="reject-btn"
-                className="px-6 py-3 border border-status-error text-status-error font-body font-semibold rounded-xl hover:bg-status-error/10 transition-colors disabled:opacity-50 flex items-center justify-center"
+                className="px-5 py-2.5 rounded-xl font-body font-semibold text-sm text-ink-soft hover:bg-paper dark:text-slate-300 dark:hover:bg-slate-800 transition-colors cursor-pointer disabled:opacity-50"
               >
-                Reject ID
+                Close
               </button>
-            </Tooltip>
-            <Tooltip
-              text={!hasAnyDocs ? "Cannot approve: No identification documents uploaded yet" : "Approve — grants verification badge"}
-              position="top"
-              variant={hasAnyDocs ? "success" : "default"}
-            >
-              <button
-                disabled={!hasAnyDocs || !!actionLoading}
-                onClick={handleApprove}
-                data-testid="approve-btn"
-                className={`px-6 py-3 font-body font-semibold rounded-xl transition-colors flex items-center justify-center ${
-                  !hasAnyDocs
-                    ? 'bg-ink-faint text-ink-muted cursor-not-allowed opacity-60'
-                    : 'bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50'
-                }`}
+              <Tooltip
+                text={!hasAnyDocs ? "Cannot approve: No identification documents uploaded yet" : "Approve — grants verification badge"}
+                position="top"
+                variant={hasAnyDocs ? "success" : "default"}
               >
-                {actionLoading === 'approved' && (
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                )}
-                Approve & Verify
-              </button>
-            </Tooltip>
+                <button
+                  disabled={!hasAnyDocs || !!actionLoading}
+                  onClick={handleApprove}
+                  data-testid="approve-btn"
+                  className={`px-6 py-2.5 font-body font-semibold text-sm rounded-xl transition-all flex items-center justify-center shadow-sm ${
+                    !hasAnyDocs
+                      ? 'bg-ink-faint text-ink-muted cursor-not-allowed opacity-60'
+                      : 'bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50 cursor-pointer'
+                  }`}
+                >
+                  {actionLoading === 'approved' && (
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                  )}
+                  Approve & Verify
+                </button>
+              </Tooltip>
+            </div>
           </div>
         )}
       </div>

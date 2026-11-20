@@ -6,6 +6,7 @@ import { adminApi } from '@/lib/api';
 import Tooltip from '@/components/Tooltip';
 import Avatar from '@/components/Avatar';
 import { AlertDialog } from '@/components/AlertDialog';
+import AdminModal from '@/components/AdminModal';
 import { usePolling } from '@/hooks/usePolling';
 import { formatDate } from '@/lib/date';
 import { useToast } from '@/context/ToastContext';
@@ -439,119 +440,170 @@ function SupportTicketsPageContent() {
 
       {/* Reply Modal */}
       {selectedTicket && (
-        <div 
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="ticket-modal-title"
-          tabIndex={-1}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              closeModal();
-            }
-          }}
-          className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 outline-none"
-        >
-          <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl w-full max-w-2xl rounded-3xl shadow-2xl border border-white/50 dark:border-slate-700/70 overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-ink-faint/20 dark:border-slate-700/60 flex justify-between items-center bg-white/60 dark:bg-slate-900/60">
-              <h2 id="ticket-modal-title" className="text-xl font-display font-bold text-ink">Ticket Details</h2>
-              <button 
+        <AdminModal
+          isOpen={!!selectedTicket}
+          onClose={closeModal}
+          titleId="ticket-modal-title"
+          size="lg"
+          badge={
+            <>
+              <span className="px-2.5 py-0.5 rounded-md text-[11px] font-body font-bold uppercase tracking-wider bg-primary/10 text-primary dark:bg-sky-900/50 dark:text-sky-300 border border-primary/20">
+                Ticket #{selectedTicket.id}
+              </span>
+              <span className="text-xs font-body text-ink-muted dark:text-slate-400">
+                {formatDate(selectedTicket.created_at)}
+              </span>
+            </>
+          }
+          title={selectedTicket.subject}
+          headerRight={
+            <div className="hidden sm:flex bg-paper/90 dark:bg-slate-800/90 p-1 rounded-xl border border-ink-faint/40 dark:border-slate-700/70">
+              {([
+                { key: 'open',       label: 'Open',       tip: 'Mark as open — awaiting response',    variant: 'warning' },
+                { key: 'processing', label: 'Processing', tip: 'Mark as in-progress',                  variant: 'default' },
+                { key: 'resolved',   label: 'Resolved',   tip: 'Mark resolved — closes the ticket',   variant: 'success' },
+              ] as const).map(({ key, label, tip, variant }) => (
+                <Tooltip key={key} text={tip} position="bottom" variant={variant}>
+                  <button
+                    type="button"
+                    disabled={statusLoading}
+                    onClick={() => handleStatusChange(key)}
+                    className={`px-3 py-1.5 text-xs font-body font-semibold rounded-lg transition-all capitalize cursor-pointer ${
+                      selectedTicket.status === key
+                        ? 'bg-white dark:bg-slate-700 shadow-sm text-ink dark:text-white border border-ink-faint/40 dark:border-slate-600'
+                        : 'text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                </Tooltip>
+              ))}
+            </div>
+          }
+          footerLeft={
+            selectedTicket.status === 'resolved' ? (
+              <span className="text-xs font-body text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
+                <i className="lni lni-checkmark-circle text-sm" />
+                Resolved ticket
+              </span>
+            ) : (
+              <span className="text-xs font-body text-ink-muted dark:text-slate-400">
+                Sending a reply emails the user and marks the ticket resolved.
+              </span>
+            )
+          }
+          footerRight={
+            selectedTicket.status === 'resolved' ? (
+              <button
+                type="button"
                 onClick={closeModal}
-                className="p-2 hover:bg-paper-dark rounded-full text-ink-muted hover:text-ink transition-colors"
-                aria-label="Close modal"
+                className="px-5 py-2.5 rounded-xl font-body font-semibold text-sm text-ink-soft hover:bg-paper dark:text-slate-300 dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700 transition-colors cursor-pointer"
               >
-                <i className="lni lni-close text-lg" />
+                Close
               </button>
+            ) : (
+              <>
+                <Tooltip text="Discard reply and close" position="top">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="px-5 py-2.5 rounded-xl font-body font-semibold text-sm text-ink-soft hover:bg-paper dark:text-slate-300 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </Tooltip>
+                <Tooltip text="Send reply & resolve ticket" position="top" variant="success">
+                  <button
+                    type="button"
+                    onClick={handleReply}
+                    disabled={replying || !replyText.trim()}
+                    className="px-6 py-2.5 bg-primary text-white font-body font-semibold text-sm rounded-xl hover:bg-primary-dark transition-all shadow-md disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                  >
+                    {replying ? (
+                      <i className="lni lni-reload animate-spin text-sm" />
+                    ) : (
+                      <i className="lni lni-comments text-sm" />
+                    )}
+                    Send Reply
+                  </button>
+                </Tooltip>
+              </>
+            )
+          }
+        >
+          <div className="space-y-6">
+            {/* Mobile Status Switcher */}
+            <div className="flex sm:hidden bg-paper/90 dark:bg-slate-800/90 p-1 rounded-xl border border-ink-faint/40 dark:border-slate-700/70">
+              {(['open', 'processing', 'resolved'] as const).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  disabled={statusLoading}
+                  onClick={() => handleStatusChange(key)}
+                  className={`flex-1 px-3 py-1.5 text-xs font-body font-semibold rounded-lg transition-all capitalize ${
+                    selectedTicket.status === key
+                      ? 'bg-white dark:bg-slate-700 shadow-sm text-ink dark:text-white'
+                      : 'text-ink-muted'
+                  }`}
+                >
+                  {key}
+                </button>
+              ))}
             </div>
-            
-            <div className="p-8 overflow-y-auto flex-1">
-              {/* User Info */}
-              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-ink-faint/20">
+
+            {/* Compact User Strip */}
+            <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-paper/60 dark:bg-slate-800/60 border border-ink-faint/30 dark:border-slate-700/60">
+              <div className="flex items-center gap-3 min-w-0">
                 <Avatar name={selectedTicket.user.name} url={selectedTicket.user.avatar_url} size="md" />
-                <div>
-                  <p className="font-body font-bold text-lg text-ink">{selectedTicket.user.name}</p>
-                  <p className="text-sm text-ink-muted font-body font-semibold">{selectedTicket.user.email} • {selectedTicket.user.role}</p>
+                <div className="min-w-0">
+                  <p className="font-body font-bold text-sm text-ink dark:text-slate-100 truncate">{selectedTicket.user.name}</p>
+                  <p className="text-xs text-ink-muted dark:text-slate-400 font-body truncate">{selectedTicket.user.email}</p>
                 </div>
               </div>
-
-              {/* Message */}
-              <div className="mb-8">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-display font-bold text-xl text-ink truncate mr-2">{selectedTicket.subject}</h3>
-                  <div className="flex bg-paper p-1 rounded-xl border border-ink-faint/30 flex-shrink-0">
-                    {([
-                      { key: 'open',       label: 'Open',       tip: 'Mark as open — awaiting response',    variant: 'warning' },
-                      { key: 'processing', label: 'Processing', tip: 'Mark as in-progress',                  variant: 'default' },
-                      { key: 'resolved',   label: 'Resolved',   tip: 'Mark resolved — closes the ticket',   variant: 'success' },
-                    ] as const).map(({ key, label, tip, variant }) => (
-                      <Tooltip key={key} text={tip} position="top" variant={variant}>
-                        <button
-                          disabled={statusLoading}
-                          onClick={() => handleStatusChange(key)}
-                          className={`px-3 py-1.5 text-xs font-body font-semibold rounded-lg transition-colors capitalize ${
-                            selectedTicket.status === key
-                              ? 'bg-white shadow-sm text-ink border border-ink-faint/30'
-                              : 'text-ink-muted hover:text-ink'
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      </Tooltip>
-                    ))}
-                  </div>
-                </div>
-                <div className="bg-white p-5 rounded-2xl border border-ink-faint/20 shadow-sm">
-                  <p className="text-ink-soft font-body whitespace-pre-wrap leading-relaxed">{selectedTicket.message}</p>
-                </div>
-              </div>
-
-              {/* Reply Section */}
-              {selectedTicket.status === 'resolved' ? (
-                <div>
-                  <h4 className="font-body font-bold text-sm text-ink-muted uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <i className="lni lni-checkmark-circle text-status-success text-sm" /> Admin Reply
-                  </h4>
-                  <div className="bg-accent-mint/20 border border-accent-mint/30 p-5 rounded-2xl">
-                    <p className="text-ink-soft font-body whitespace-pre-wrap leading-relaxed">{selectedTicket.admin_reply}</p>
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <h4 className="font-body font-bold text-sm text-ink-muted uppercase tracking-wider mb-3">Your Reply</h4>
-                  <textarea
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    placeholder="Type your response here. This will be emailed to the user..."
-                    className="w-full h-40 p-4 rounded-xl border border-ink-faint/30 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-body resize-none bg-white shadow-inner"
-                  />
-                  <div className="mt-4 flex justify-end gap-3">
-                    <Tooltip text="Discard reply and close" position="top">
-                      <button
-                        onClick={closeModal}
-                        className="px-6 py-2.5 rounded-xl font-body font-semibold text-ink-soft hover:bg-white transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </Tooltip>
-                    <Tooltip text="Send reply & resolve ticket" position="top" variant="success">
-                      <button
-                        onClick={handleReply}
-                        disabled={replying || !replyText.trim()}
-                        className="px-6 py-2.5 bg-primary text-white font-body font-semibold rounded-xl hover:bg-primary-dark transition-all shadow-md disabled:opacity-50 flex items-center gap-2"
-                      >
-                        {replying ? (
-                          <i className="lni lni-reload animate-spin mr-1 text-sm" />
-                        ) : (
-                          <i className="lni lni-comments mr-1 text-sm" />
-                        )}
-                        Send Reply
-                      </button>
-                    </Tooltip>
-                  </div>
-                </div>
-              )}
+              <span className="px-2.5 py-1 rounded-lg bg-white/80 dark:bg-slate-900/70 border border-ink-faint/40 dark:border-slate-700 text-[11px] font-body font-bold uppercase tracking-wider text-ink-soft dark:text-slate-300 shrink-0">
+                {selectedTicket.user.role}
+              </span>
             </div>
+
+            {/* User Issue Message */}
+            <div>
+              <h4 className="text-[11px] font-body font-bold text-ink-muted uppercase tracking-wider mb-2">
+                User Message
+              </h4>
+              <div className="bg-white/80 dark:bg-slate-800/70 p-5 rounded-2xl border border-ink-faint/30 dark:border-slate-700/60 shadow-2xs">
+                <p className="text-sm text-ink-soft dark:text-slate-200 font-body whitespace-pre-wrap leading-relaxed">
+                  {selectedTicket.message}
+                </p>
+              </div>
+            </div>
+
+            {/* Admin Reply Section */}
+            {selectedTicket.status === 'resolved' ? (
+              <div>
+                <h4 className="text-[11px] font-body font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <i className="lni lni-checkmark-circle text-sm" /> Admin Reply
+                </h4>
+                <div className="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-800/60 p-5 rounded-2xl">
+                  <p className="text-sm text-ink-soft dark:text-slate-200 font-body whitespace-pre-wrap leading-relaxed">
+                    {selectedTicket.admin_reply || 'Marked as resolved without a written reply.'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <h4 className="text-[11px] font-body font-bold text-ink-muted uppercase tracking-wider mb-2">
+                  Your Reply
+                </h4>
+                <textarea
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Type your response here. This will be emailed to the user..."
+                  className="w-full h-36 p-4 rounded-2xl border border-ink-faint/40 dark:border-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm font-body resize-none bg-white/90 dark:bg-slate-800/80 text-ink dark:text-slate-100 shadow-inner focus:outline-none"
+                />
+              </div>
+            )}
           </div>
-        </div>
+        </AdminModal>
       )}
 
       <AlertDialog
