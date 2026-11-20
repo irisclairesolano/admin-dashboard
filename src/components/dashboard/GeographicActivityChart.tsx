@@ -11,6 +11,20 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
+import {
+  CHART_AXIS_TICK,
+  CHART_BAR_RADIUS,
+  CHART_DEFAULT_MARGIN,
+  CHART_GRID_PROPS,
+  CHART_HORIZONTAL_BAR_RADIUS,
+  CHART_HORIZONTAL_GRID_PROPS,
+  CHART_LEGEND_STYLE,
+  CHART_PALETTE,
+  ChartTooltip,
+  getAdaptiveBarConfig,
+  renderCompactLegendText,
+  truncateLabel,
+} from './chartTheme';
 
 interface GeographicActivityChartProps {
   data: Array<{
@@ -28,33 +42,152 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
   data,
   heightClass = 'h-56',
   stacked = false,
-  margin = { top: 10, right: 10, left: -20, bottom: 0 },
+  margin = CHART_DEFAULT_MARGIN,
 }: GeographicActivityChartProps) {
+  // Automatically switch to horizontal bars when there are many towns/barangays
+  // so municipality & barangay labels remain crisp and never overlap.
+  const useHorizontalLayout = data.length > 7;
+  const barConfig = getAdaptiveBarConfig(data.length, 1);
+
+  if (useHorizontalLayout) {
+    const dynamicHeight = Math.max(224, Math.min(data.length * 32 + 44, 420));
+
+    return (
+      <div className="w-full min-w-0 font-numeric" style={{ height: dynamicHeight }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={data}
+            layout="vertical"
+            margin={{ top: 8, right: 16, left: 4, bottom: 2 }}
+            barCategoryGap="28%"
+          >
+            <CartesianGrid {...CHART_HORIZONTAL_GRID_PROPS} />
+            <XAxis
+              type="number"
+              axisLine={false}
+              tickLine={false}
+              tick={CHART_AXIS_TICK}
+              allowDecimals={false}
+            />
+            <YAxis
+              dataKey="name"
+              type="category"
+              axisLine={false}
+              tickLine={false}
+              tick={CHART_AXIS_TICK}
+              width={116}
+              tickFormatter={(val) => truncateLabel(val, 16)}
+            />
+            <Tooltip
+              cursor={{ fill: CHART_PALETTE.cursorFill }}
+              content={<ChartTooltip />}
+            />
+            <Legend
+              iconType="circle"
+              iconSize={7}
+              wrapperStyle={CHART_LEGEND_STYLE}
+              formatter={renderCompactLegendText}
+            />
+            {stacked ? (
+              <>
+                <Bar
+                  dataKey="jobs"
+                  name="Job Posts"
+                  fill={CHART_PALETTE.jobs}
+                  stackId="a"
+                  barSize={12}
+                  radius={[0, 0, 0, 0]}
+                />
+                <Bar
+                  dataKey="applications"
+                  name="Applications"
+                  fill={CHART_PALETTE.applications}
+                  stackId="a"
+                  barSize={12}
+                  radius={CHART_HORIZONTAL_BAR_RADIUS}
+                />
+              </>
+            ) : (
+              <Bar
+                dataKey="jobs"
+                name="Job Posts"
+                fill={CHART_PALETTE.jobs}
+                barSize={12}
+                radius={CHART_HORIZONTAL_BAR_RADIUS}
+              />
+            )}
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+
   return (
     <div className={`${heightClass} w-full min-w-0 font-numeric`}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={margin}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8DFCE" opacity={0.4} />
-          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12 }} dy={6} />
-          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12 }} allowDecimals={false} />
-          <Tooltip
-            cursor={{ fill: 'rgba(148, 163, 184, 0.14)' }}
-            wrapperClassName="bg-white/85 dark:bg-slate-900/85 text-ink dark:text-slate-100 border border-white/60 dark:border-slate-700/70 rounded-xl shadow-glass backdrop-blur-md"
-            contentStyle={{
-              borderRadius: '12px',
-              border: 'none',
-              boxShadow: 'none',
-              backgroundColor: 'transparent',
-            }}
+        <BarChart
+          data={data}
+          margin={margin}
+          barGap={barConfig.barGap}
+          barCategoryGap={barConfig.barCategoryGap}
+        >
+          <CartesianGrid {...CHART_GRID_PROPS} />
+          <XAxis
+            dataKey="name"
+            axisLine={false}
+            tickLine={false}
+            tick={CHART_AXIS_TICK}
+            tickFormatter={(val) => truncateLabel(val, 14)}
+            interval={0}
+            dy={8}
           />
-          <Legend wrapperStyle={{ paddingTop: 8, fontSize: '12px', fontFamily: 'var(--font-body)' }} />
+          <YAxis
+            axisLine={false}
+            tickLine={false}
+            tick={CHART_AXIS_TICK}
+            allowDecimals={false}
+            width={36}
+          />
+          <Tooltip
+            cursor={{ fill: CHART_PALETTE.cursorFill }}
+            content={<ChartTooltip />}
+          />
+          <Legend
+            iconType="circle"
+            iconSize={7}
+            wrapperStyle={CHART_LEGEND_STYLE}
+            formatter={renderCompactLegendText}
+          />
           {stacked ? (
             <>
-              <Bar dataKey="jobs" name="Job Posts" fill="#0284C7" stackId="a" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="applications" name="Applications" fill="#10B981" stackId="a" radius={[4, 4, 0, 0]} />
+              <Bar
+                dataKey="jobs"
+                name="Job Posts"
+                fill={CHART_PALETTE.jobs}
+                stackId="a"
+                barSize={barConfig.barSize}
+                maxBarSize={barConfig.maxBarSize}
+                radius={[0, 0, 0, 0]}
+              />
+              <Bar
+                dataKey="applications"
+                name="Applications"
+                fill={CHART_PALETTE.applications}
+                stackId="a"
+                barSize={barConfig.barSize}
+                maxBarSize={barConfig.maxBarSize}
+                radius={CHART_BAR_RADIUS}
+              />
             </>
           ) : (
-            <Bar dataKey="jobs" name="Job Posts" fill="#0284C7" radius={[4, 4, 0, 0]} />
+            <Bar
+              dataKey="jobs"
+              name="Job Posts"
+              fill={CHART_PALETTE.jobs}
+              barSize={barConfig.barSize}
+              maxBarSize={barConfig.maxBarSize}
+              radius={CHART_BAR_RADIUS}
+            />
           )}
         </BarChart>
       </ResponsiveContainer>

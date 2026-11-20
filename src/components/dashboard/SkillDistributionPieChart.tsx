@@ -9,12 +9,13 @@ import {
   Sector,
   Tooltip,
 } from 'recharts';
+import { CHART_PALETTE } from './chartTheme';
 
 const RechartsPie = Pie as any;
 
 const DEFAULT_COLORS = [
-  '#3B82F6', '#10B981', '#F59E0B', '#6366F1', '#06B6D4',
-  '#8B5CF6', '#EC4899', '#64748B', '#0284C7'
+  '#3E7648', '#0284C7', '#6366F1', '#10B981', '#F59E0B',
+  '#06B6D4', '#8B5CF6', '#94A3B8',
 ];
 
 const renderActiveShape = (props: any) => {
@@ -25,7 +26,7 @@ const renderActiveShape = (props: any) => {
         cx={cx}
         cy={cy}
         innerRadius={innerRadius}
-        outerRadius={outerRadius + 6}
+        outerRadius={outerRadius + 5}
         startAngle={startAngle}
         endAngle={endAngle}
         fill={fill}
@@ -59,35 +60,37 @@ const CustomTooltip = ({ active, payload, totalWorkers }: any) => {
     const remainingCount = item.subItems.length - previewList.length;
 
     return (
-      <div className="bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-ink-faint/60 text-xs min-w-[200px] max-w-[260px] animate-fade-in font-sans">
-        <div className="flex items-center justify-between gap-2 border-b border-ink-faint/40 pb-1.5 mb-2">
-          <span className="font-bold text-ink">Others</span>
-          <span className="font-numeric font-bold text-primary">
-            {item.value} workers ({pct}%)
+      <div className="bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl shadow-md border border-slate-200/90 dark:border-slate-700/80 text-xs min-w-[200px] max-w-[260px] font-sans">
+        <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-1.5 mb-2">
+          <span className="font-semibold text-slate-800 dark:text-slate-100">Others</span>
+          <span className="font-numeric font-semibold text-primary dark:text-sky-400 tabular-nums">
+            {item.value.toLocaleString()} ({pct}%)
           </span>
         </div>
 
-        <p className="text-[11px] font-semibold text-ink-muted mb-1.5">
+        <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
           Includes {item.subItems.length} skills:
         </p>
 
-        <ul className="space-y-1 text-[11px] text-ink-soft mb-2 font-numeric">
+        <ul className="space-y-1 text-[11px] text-slate-600 dark:text-slate-300 mb-2 font-numeric">
           {previewList.map((sub, i) => (
             <li key={i} className="flex justify-between items-center gap-2">
-              <span className="truncate max-w-[130px] font-medium text-ink">
+              <span className="truncate max-w-[140px] font-medium text-slate-700 dark:text-slate-200">
                 • {sub.name}
               </span>
-              <span className="text-ink-muted shrink-0">{sub.value}</span>
+              <span className="text-slate-500 dark:text-slate-400 shrink-0 tabular-nums">
+                {sub.value.toLocaleString()}
+              </span>
             </li>
           ))}
           {remainingCount > 0 && (
-            <li className="text-[10px] text-ink-muted italic pt-0.5">
-              + {remainingCount} more skills...
+            <li className="text-[10px] text-slate-400 dark:text-slate-500 italic pt-0.5">
+              + {remainingCount} more skills
             </li>
           )}
         </ul>
 
-        <div className="pt-1.5 border-t border-ink-faint/40 flex items-center justify-between text-[10px] text-primary font-semibold">
+        <div className="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-primary dark:text-sky-400 font-semibold">
           <span>Click slice to view all</span>
           <span>→</span>
         </div>
@@ -96,15 +99,18 @@ const CustomTooltip = ({ active, payload, totalWorkers }: any) => {
   }
 
   return (
-    <div className="bg-white/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-lg border border-ink-faint/60 text-xs min-w-[150px] animate-fade-in font-sans">
-      <div className="font-bold text-ink">{item.name}</div>
+    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl shadow-md border border-slate-200/90 dark:border-slate-700/80 text-xs min-w-[152px] font-sans">
+      <div className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">{item.name}</div>
       {item.category && (
-        <div className="text-[10px] text-ink-muted uppercase tracking-wider mb-1">
+        <div className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-0.5 mb-1">
           {item.category}
         </div>
       )}
-      <div className="font-numeric text-primary font-bold">
-        {item.value} workers <span className="text-ink-muted font-normal">({pct}%)</span>
+      <div className="flex items-center justify-between gap-3 mt-1">
+        <span className="text-[11px] text-slate-500 dark:text-slate-400">Workers</span>
+        <span className="text-[11px] font-numeric font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+          {item.value.toLocaleString()} <span className="text-slate-400 font-normal">({pct}%)</span>
+        </span>
       </div>
     </div>
   );
@@ -114,7 +120,7 @@ const SkillDistributionPieChart = memo(function SkillDistributionPieChart({
   data,
   totalWorkers = 1,
   colors = DEFAULT_COLORS,
-  heightClass = 'h-48',
+  heightClass = 'h-52',
   onSliceClick,
 }: SkillDistributionPieChartProps) {
   const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
@@ -125,6 +131,9 @@ const SkillDistributionPieChart = memo(function SkillDistributionPieChart({
     }
   };
 
+  const getSliceColor = (entry: SkillDistributionItem, index: number) =>
+    entry.name === 'Others' ? CHART_PALETTE.others : colors[index % colors.length];
+
   return (
     <div className="w-full flex flex-col">
       <div className={`${heightClass} w-full min-w-0 relative flex items-center justify-center font-numeric`}>
@@ -134,9 +143,10 @@ const SkillDistributionPieChart = memo(function SkillDistributionPieChart({
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={55}
-              outerRadius={80}
-              paddingAngle={3}
+              innerRadius={56}
+              outerRadius={78}
+              paddingAngle={2.5}
+              stroke="none"
               dataKey="value"
               label={false}
               activeIndex={activePieIndex !== null ? activePieIndex : undefined}
@@ -145,61 +155,70 @@ const SkillDistributionPieChart = memo(function SkillDistributionPieChart({
               onMouseLeave={() => setActivePieIndex(null)}
               onClick={(entry: any) => handleSliceClick(entry)}
             >
-              {data.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={colors[index % colors.length]} className="cursor-pointer" />
+              {data.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={getSliceColor(entry, index)}
+                  className="cursor-pointer transition-opacity"
+                />
               ))}
             </RechartsPie>
-            <Tooltip
-              content={<CustomTooltip totalWorkers={totalWorkers} />}
-            />
+            <Tooltip content={<CustomTooltip totalWorkers={totalWorkers} />} />
           </PieChart>
         </ResponsiveContainer>
 
         {/* Donut Center Display */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-4">
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           {activePieIndex !== null && data[activePieIndex] ? (
             <>
-              <span className="text-xs font-semibold text-ink-muted uppercase max-w-[90px] truncate">
+              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider max-w-[92px] truncate">
                 {data[activePieIndex].name}
               </span>
-              <strong className="text-xl font-numeric font-bold text-ink">
+              <strong className="text-lg font-numeric font-bold text-slate-900 dark:text-slate-100 leading-tight mt-0.5 tabular-nums">
                 {((data[activePieIndex].value / (totalWorkers || 1)) * 100).toFixed(0)}%
               </strong>
-              <span className="text-xs text-ink-muted">
-                {data[activePieIndex].value} workers
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
+                {data[activePieIndex].value.toLocaleString()} workers
               </span>
             </>
           ) : (
             <>
-              <span className="text-xs text-ink-muted font-semibold uppercase tracking-wider">Top Skill</span>
-              <strong className="text-sm font-bold text-ink max-w-[90px] truncate text-center">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider">
+                Top Skill
+              </span>
+              <strong className="text-xs font-bold text-slate-800 dark:text-slate-100 max-w-[96px] truncate text-center mt-0.5">
                 {data[0]?.name || 'N/A'}
               </strong>
-              <span className="text-xs text-ink-muted">
-                {data[0]?.value ? `${data[0].value} workers` : '—'}
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
+                {data[0]?.value ? `${data[0].value.toLocaleString()} workers` : '—'}
               </span>
             </>
           )}
         </div>
       </div>
 
-      {/* Clean swatch-only legend underneath */}
-      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 mt-2 text-xs font-semibold text-ink-soft">
+      {/* Compact swatch legend underneath */}
+      <div className="flex flex-wrap justify-center gap-x-3.5 gap-y-1.5 mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-[11px] font-medium text-slate-600 dark:text-slate-300">
         {data.map((entry, idx) => (
           <button
             key={idx}
             type="button"
-            className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity focus:outline-none"
+            className="inline-flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity focus:outline-none"
             onMouseEnter={() => setActivePieIndex(idx)}
             onMouseLeave={() => setActivePieIndex(null)}
             onClick={() => handleSliceClick(entry)}
             title={entry.subItems ? `Click to view breakdown of ${entry.subItems.length} skills` : undefined}
           >
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: colors[idx % colors.length] }} />
-            <span className={activePieIndex === idx ? 'text-ink font-bold' : ''}>
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: getSliceColor(entry, idx) }}
+            />
+            <span className={activePieIndex === idx ? 'text-slate-900 dark:text-white font-semibold' : ''}>
               {entry.name}
               {entry.subItems && (
-                <span className="text-[10px] text-primary ml-1 font-normal">({entry.subItems.length})</span>
+                <span className="text-[10px] text-primary dark:text-sky-400 ml-1 font-normal">
+                  ({entry.subItems.length})
+                </span>
               )}
             </span>
           </button>

@@ -32,15 +32,21 @@
  * ============================================================================
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area, Sector, Legend
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
+  AreaChart, Area,
 } from 'recharts';
 import { adminApi } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { AIInsightsCard, InsightsData } from '@/components/AIInsightsCard';
 import { CHART_COLORS } from '@/lib/constants';
+import {
+  CHART_BAR_RADIUS,
+  CHART_PALETTE,
+  formatAxisTick,
+  formatPeriodLabel,
+} from '@/components/dashboard/chartTheme';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus } from '@/lib/export/csv';
 import { useToast } from '@/context/ToastContext';
 import dynamic from 'next/dynamic';
@@ -48,32 +54,32 @@ import dynamic from 'next/dynamic';
 // ── DYNAMIC CHART IMPORTS (Client-Side Only to Avoid SSR Hydration Mismatch) ──
 const ApplicationVolumeChart = dynamic(
   () => import('@/components/dashboard/ApplicationVolumeChart'),
-  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 rounded-xl" /> }
+  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 dark:bg-slate-800/60 rounded-xl" /> }
 );
 
 const UserGrowthChart = dynamic(
   () => import('@/components/dashboard/UserGrowthChart'),
-  { ssr: false, loading: () => <div className="h-48 w-full animate-pulse bg-slate-100 rounded-xl" /> }
+  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 dark:bg-slate-800/60 rounded-xl" /> }
 );
 
 const ConversionVelocityChart = dynamic(
   () => import('@/components/dashboard/ConversionVelocityChart'),
-  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 rounded-xl" /> }
+  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 dark:bg-slate-800/60 rounded-xl" /> }
 );
 
 const JobsDistributionChart = dynamic(
   () => import('@/components/dashboard/JobsDistributionChart'),
-  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 rounded-xl" /> }
+  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 dark:bg-slate-800/60 rounded-xl" /> }
 );
 
 const SkillDistributionPieChart = dynamic(
   () => import('@/components/dashboard/SkillDistributionPieChart'),
-  { ssr: false, loading: () => <div className="h-48 w-full animate-pulse bg-slate-100 rounded-xl" /> }
+  { ssr: false, loading: () => <div className="h-52 w-full animate-pulse bg-slate-100 dark:bg-slate-800/60 rounded-xl" /> }
 );
 
 const GeographicActivityChart = dynamic(
   () => import('@/components/dashboard/GeographicActivityChart'),
-  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 rounded-xl" /> }
+  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 dark:bg-slate-800/60 rounded-xl" /> }
 );
 
 const OthersBreakdownModal = dynamic(
@@ -81,81 +87,16 @@ const OthersBreakdownModal = dynamic(
   { ssr: false }
 );
 
-const renderActiveShape = (props: any) => {
-  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
-  return (
-    <g>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius + 6}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-      />
-    </g>
-  );
-};
-
-const RechartsPie = Pie as any;
-
-function formatPeriodLabel(periodStr: string, interval: string): string {
-  if (!periodStr) return '—';
-  if (interval === 'hourly') {
-    if (periodStr.includes(' ')) {
-      const parts = periodStr.split(' ');
-      const hourPart = parts[1] || '';
-      const hourNum = parseInt(hourPart.split(':')[0] || '0', 10);
-      const nextHour = (hourNum + 1) % 24;
-      const ampm = hourNum >= 12 ? 'PM' : 'AM';
-      const formatted12 = hourNum % 12 === 0 ? 12 : hourNum % 12;
-      return `${hourPart} - ${String(nextHour).padStart(2, '0')}:00 (${formatted12} ${ampm})`;
-    }
-    return periodStr;
-  }
-  if (interval === 'monthly') {
-    try {
-      const [year, month] = periodStr.split('-');
-      const d = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
-      return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    } catch {
-      return periodStr;
-    }
-  }
-  try {
-    const d = new Date(periodStr + 'T00:00:00');
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', weekday: 'short' });
-  } catch {
-    return periodStr;
-  }
-}
-
-function formatAxisTick(val: string, interval: string): string {
-  if (!val) return '';
-  if (interval === 'hourly') {
-    if (val.includes(' ')) return val.split(' ')[1];
-    return val;
-  }
-  if (interval === 'monthly') {
-    return val;
-  }
-  try {
-    const d = new Date(val + 'T00:00:00');
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  } catch {
-    return val;
-  }
-}
-
 function ChartEmptyState({ title, message }: { title?: string; message?: string }) {
   return (
-    <div className="h-64 sm:h-72 w-full flex flex-col items-center justify-center p-6 text-center bg-slate-50/60 rounded-2xl border border-dashed border-slate-200">
-      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3 text-slate-400 shadow-2xs">
-        <i className="lni lni-bar-chart text-xl" />
+    <div className="h-56 w-full flex flex-col items-center justify-center p-6 text-center bg-slate-50/70 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-700/80">
+      <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 flex items-center justify-center mb-2.5 text-slate-400">
+        <i className="lni lni-bar-chart text-lg" />
       </div>
-      <h4 className="text-sm font-body font-bold text-ink mb-1">{title || 'No Activity Recorded'}</h4>
-      <p className="text-xs font-body text-ink-muted max-w-xs">{message || 'Activity will appear here in real-time as users interact with the platform.'}</p>
+      <h4 className="text-xs font-body font-semibold text-ink dark:text-slate-200 mb-1">{title || 'No Activity Recorded'}</h4>
+      <p className="text-[11px] font-body text-ink-muted dark:text-slate-400 max-w-xs leading-relaxed">
+        {message || 'Activity will appear here in real-time as users interact with the platform.'}
+      </p>
     </div>
   );
 }
@@ -163,11 +104,13 @@ function ChartEmptyState({ title, message }: { title?: string; message?: string 
 
 function MetricHeaderStrip({ items }: { items: { label: string; value: string | number; highlight?: boolean }[] }) {
   return (
-    <div className="flex flex-wrap items-center gap-3 sm:gap-6 py-2 px-3.5 bg-slate-50/90 rounded-2xl border border-slate-200/70 mb-4 font-numeric">
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 py-2 px-3 bg-slate-50/80 dark:bg-slate-800/40 rounded-xl border border-slate-200/60 dark:border-slate-700/60 mb-4 font-numeric">
       {items.map((item, idx) => (
         <div key={idx} className="flex items-baseline gap-1.5">
-          <span className="text-[10px] font-body text-ink-muted font-semibold uppercase tracking-wider">{item.label}:</span>
-          <span className={`text-sm sm:text-base font-bold ${item.highlight ? 'text-primary-dark' : 'text-ink'}`}>
+          <span className="text-[10px] font-body text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">
+            {item.label}
+          </span>
+          <span className={`text-xs sm:text-[13px] font-bold tabular-nums ${item.highlight ? 'text-primary-dark dark:text-emerald-400' : 'text-ink dark:text-slate-100'}`}>
             {typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
           </span>
         </div>
@@ -381,9 +324,6 @@ export default function AnalyticsDashboard() {
   // Tab State
   const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'distribution' | 'health'>('overview');
   const [viewMode, setViewMode] = useState<'split' | 'charts' | 'table'>('split');
-
-  // Interactive Pie State
-  const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
 
   // Tab-specific sorting states
   const [trendsSortOrder, setTrendsSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -883,7 +823,7 @@ export default function AnalyticsDashboard() {
   //   Dimension 5: Wage Normalization & Community Trust/Moderation (`filteredCompensationCategories`, `filteredReportsBreakdown`)
 
   // User growth Recharts format
-  const transformedUserGrowth = (() => {
+  const transformedUserGrowth = useMemo(() => {
     if (!data?.registration_trends) return [];
     const grouped: Record<string, { name: string; workers: number; employers: number }> = {};
     
@@ -904,10 +844,10 @@ export default function AnalyticsDashboard() {
       const timeB = new Date(b.name || 0).getTime();
       return trendsSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
     });
-  })();
+  }, [data?.registration_trends, trendsSortOrder]);
 
   // Skill Demand - horizontal bar chart category comparator
-  const transformedJobsData = (() => {
+  const transformedJobsData = useMemo(() => {
     if (!data?.skill_demand) return [];
     const list = data.skill_demand.map((item: any) => ({
       name: item.category,
@@ -946,9 +886,9 @@ export default function AnalyticsDashboard() {
         },
       ];
     }
-  })();
+  }, [data?.skill_demand, distSortBy, distSortOrder, distLimitFilter]);
 
-  const transformedGeographicActivity = (() => {
+  const transformedGeographicActivity = useMemo(() => {
     if (!data?.geographic_activity) return [];
     
     let list: any[] = [];
@@ -993,9 +933,14 @@ export default function AnalyticsDashboard() {
     });
 
     return distLimitFilter === 10 ? list : list.slice(0, distLimitFilter);
-  })();
+  }, [data?.geographic_activity, distRegionFilter, distBarangayFilter, distSortBy, distSortOrder, distLimitFilter]);
 
-  const availableBarangays = (() => {
+  const overviewGeographicActivity = useMemo(
+    () => transformedGeographicActivity.slice(0, 6),
+    [transformedGeographicActivity]
+  );
+
+  const availableBarangays = useMemo(() => {
     if (!data?.geographic_activity || distRegionFilter === 'all') return [];
     const set = new Set<string>();
     data.geographic_activity.forEach((item: any) => {
@@ -1004,10 +949,10 @@ export default function AnalyticsDashboard() {
       }
     });
     return Array.from(set).sort();
-  })();
+  }, [data?.geographic_activity, distRegionFilter]);
 
   // Application Volume respects global date & aggregation parameters
-  const transformedApplicationVolume = (() => {
+  const transformedApplicationVolume = useMemo(() => {
     if (!data?.application_volume) return [];
     return data.application_volume.map((item: any) => ({
       name: item.period || 'Unknown',
@@ -1018,9 +963,9 @@ export default function AnalyticsDashboard() {
       const timeB = new Date(b.name || 0).getTime();
       return trendsSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
     });
-  })();
+  }, [data?.application_volume, trendsSortOrder]);
 
-  const transformedSkillDistribution = (() => {
+  const transformedSkillDistribution = useMemo(() => {
     if (!data?.skill_distribution) return [];
     const list = data.skill_distribution.map((item: any) => ({
       name: item.skill_name,
@@ -1043,7 +988,7 @@ export default function AnalyticsDashboard() {
         },
       ];
     }
-  })();
+  }, [data?.skill_distribution, distLimitFilter]);
 
   const uniqueMunicipalities = (() => {
     if (!data?.geographic_activity) return [];
@@ -1115,7 +1060,7 @@ export default function AnalyticsDashboard() {
   })();
 
   // Detailed Tabular Time-Series Data - Reconciled across Users, Job Posts, Applications, Hires, and Reports
-  const transformedDetailedTimeSeries = (() => {
+  const transformedDetailedTimeSeries = useMemo(() => {
     if (data?.detailed_time_series && data.detailed_time_series.length > 0) {
       return [...data.detailed_time_series].sort((a: any, b: any) => {
         const timeA = new Date(a.period || 0).getTime();
@@ -1196,10 +1141,10 @@ export default function AnalyticsDashboard() {
       const timeB = new Date(b.period || 0).getTime();
       return trendsSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
     });
-  })();
+  }, [data?.detailed_time_series, data?.job_post_trends, transformedUserGrowth, transformedApplicationVolume, trendsSortOrder]);
 
   // Column sums for the detailed table reconciliation
-  const detailedTotals = (() => {
+  const detailedTotals = useMemo(() => {
     return (transformedDetailedTimeSeries || []).reduce(
       (acc: any, row: any) => {
         acc.new_workers += row.new_workers || 0;
@@ -1223,17 +1168,43 @@ export default function AnalyticsDashboard() {
         reports: 0
       }
     );
-  })();
+  }, [transformedDetailedTimeSeries]);
 
   // Application-to-Hire Conversion Velocity Data for Trends Tab
-  const transformedConversionVelocity = (() => {
+  const transformedConversionVelocity = useMemo(() => {
     return (transformedDetailedTimeSeries || []).map((row: any) => ({
       name: row.period || 'Unknown',
       applications: row.applications ?? 0,
       completed_hires: row.completed_hires ?? 0,
       accepted_applications: row.accepted_applications ?? 0,
     }));
-  })();
+  }, [transformedDetailedTimeSeries]);
+
+  const handleJobsBarClick = useCallback((entry: any) => {
+    if (entry.name === 'Others' && entry.subItems?.length) {
+      setOthersModalData({
+        title: "Job Categories — 'Others' Breakdown",
+        subtitle: `Detailed breakdown of all ${entry.subItems.length} categories aggregated under 'Others'`,
+        total: entry.jobs,
+        totalOverall: transformedJobsData.reduce((acc: number, cur: any) => acc + (cur.jobs || 0), 0),
+        unit: 'job posts',
+        items: entry.subItems,
+      });
+    }
+  }, [transformedJobsData]);
+
+  const handleSkillSliceClick = useCallback((entry: any) => {
+    if (entry.name === 'Others' && entry.subItems?.length) {
+      setOthersModalData({
+        title: "Worker Skills — 'Others' Breakdown",
+        subtitle: `Detailed breakdown of all ${entry.subItems.length} skills aggregated under 'Others'`,
+        total: entry.value,
+        totalOverall: data?.user_ratio?.workers || transformedSkillDistribution.reduce((acc: number, cur: any) => acc + (cur.value || 0), 0),
+        unit: 'workers',
+        items: entry.subItems,
+      });
+    }
+  }, [data?.user_ratio?.workers, transformedSkillDistribution]);
 
   return (
     <div className="animate-fade-in print:p-0 print:bg-white">
@@ -1786,11 +1757,11 @@ export default function AnalyticsDashboard() {
               {(viewMode === 'charts' || viewMode === 'split') && (
                 <div className="space-y-4">
                   {/* PRIMARY VISUALIZATION: Platform Activity & Application Flow */}
-                  <div className="bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0 print-chart-container">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+                  <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0 print-chart-container">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
                       <div>
-                        <h3 className="font-display text-sm sm:text-base font-bold text-ink">What's Happening on SIKAP</h3>
-                        <p className="text-[11px] text-ink-muted">
+                        <h3 className="font-display text-sm sm:text-[15px] font-semibold text-ink dark:text-slate-100">What's Happening on SIKAP</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                           Volume of worker applications filed compared to active job posts ({globalPreset}, {intervalFilter} grouping).
                         </p>
                       </div>
@@ -1814,17 +1785,18 @@ export default function AnalyticsDashboard() {
                         intervalFilter={intervalFilter}
                         formatAxisTick={formatAxisTick}
                         formatPeriodLabel={formatPeriodLabel}
+                        heightClass="h-[230px]"
                       />
                     )}
                   </div>
 
                   {/* SECONDARY VISUALIZATIONS GRID (2 Columns): Registrations & Regional Demand */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 print-chart-container">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print-chart-container">
                     {/* User Registrations Breakdown */}
-                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
-                      <div className="mb-2">
-                        <h3 className="font-display text-sm font-bold text-ink">User Registrations by Role</h3>
-                        <p className="text-[11px] text-ink-muted">Worker signups vs employer registrations over time.</p>
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0">
+                      <div className="mb-3">
+                        <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">User Registrations by Role</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Worker signups vs employer registrations over time.</p>
                       </div>
 
                       <MetricHeaderStrip
@@ -1846,16 +1818,16 @@ export default function AnalyticsDashboard() {
                           intervalFilter={intervalFilter}
                           formatAxisTick={formatAxisTick}
                           formatPeriodLabel={formatPeriodLabel}
-                          heightClass="h-48"
+                          heightClass="h-56"
                         />
                       )}
                     </div>
 
                     {/* Regional Activity by Municipality */}
-                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
-                      <div className="mb-2">
-                        <h3 className="font-display text-sm font-bold text-ink">Where the Jobs Are (by Town)</h3>
-                        <p className="text-[11px] text-ink-muted">Towns with the most job posts and applications.</p>
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0">
+                      <div className="mb-3">
+                        <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Where the Jobs Are (by Town)</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Towns with the most job posts and applications.</p>
                       </div>
 
                       <MetricHeaderStrip
@@ -1866,15 +1838,15 @@ export default function AnalyticsDashboard() {
                         ]}
                       />
 
-                      {transformedGeographicActivity.length === 0 ? (
+                      {overviewGeographicActivity.length === 0 ? (
                         <ChartEmptyState
                           title="No Geographic Activity"
                           message="Geographic labor activity will display as job postings and applications are created."
                         />
                       ) : (
                         <GeographicActivityChart
-                          data={transformedGeographicActivity.slice(0, 6)}
-                          heightClass="h-48"
+                          data={overviewGeographicActivity}
+                          heightClass="h-56"
                         />
                       )}
                     </div>
@@ -2215,12 +2187,12 @@ export default function AnalyticsDashboard() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 print-chart-container">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print-chart-container">
                     {/* User Growth */}
-                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
-                      <div className="mb-2">
-                        <h3 className="font-display text-sm font-bold text-ink">User Registrations</h3>
-                        <p className="text-[11px] text-ink-muted">Registrations compared by workers vs. employers.</p>
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0">
+                      <div className="mb-3">
+                        <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">User Registrations</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Registrations compared by workers vs. employers.</p>
                       </div>
                       <MetricHeaderStrip
                         items={[
@@ -2238,11 +2210,11 @@ export default function AnalyticsDashboard() {
                     </div>
 
                     {/* Application-to-Hire Conversion Velocity Area Chart */}
-                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
-                      <div className="flex items-center justify-between mb-2">
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-3">
                         <div>
-                          <h3 className="font-display text-sm font-bold text-ink">Applications vs. Hires Over Time</h3>
-                          <p className="text-[11px] text-ink-muted">How many people applied compared to how many got hired.</p>
+                          <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Applications vs. Hires Over Time</h3>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">How many people applied compared to how many got hired.</p>
                         </div>
                         <HealthStatusBadge
                           type="conversion"
@@ -2487,13 +2459,13 @@ export default function AnalyticsDashboard() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 print-chart-container">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print-chart-container">
                     {/* Horizontal Skill Category Demand */}
-                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0">
-                      <div className="mb-2 flex items-start justify-between gap-2">
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0">
+                      <div className="mb-3 flex items-start justify-between gap-2">
                         <div>
-                          <h3 className="font-display text-sm font-bold text-ink">Most Wanted Skills</h3>
-                          <p className="text-[11px] text-ink-muted">Platform job posts ranked descending by sector category.</p>
+                          <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Most Wanted Skills</h3>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Platform job posts ranked descending by sector category.</p>
                         </div>
                         {(() => {
                           const othersEntry = transformedJobsData.find((j: any) => j.name === 'Others' && j.subItems?.length);
@@ -2501,14 +2473,7 @@ export default function AnalyticsDashboard() {
                           return (
                             <button
                               type="button"
-                              onClick={() => setOthersModalData({
-                                title: "Job Categories — 'Others' Breakdown",
-                                subtitle: `Detailed breakdown of all ${othersEntry.subItems.length} categories aggregated under 'Others'`,
-                                total: othersEntry.jobs,
-                                totalOverall: transformedJobsData.reduce((acc: number, cur: any) => acc + (cur.jobs || 0), 0),
-                                unit: 'job posts',
-                                items: othersEntry.subItems,
-                              })}
+                              onClick={() => handleJobsBarClick(othersEntry)}
                               className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-md transition-colors shrink-0 cursor-pointer"
                               title="Click to view breakdown of aggregated categories"
                             >
@@ -2528,27 +2493,16 @@ export default function AnalyticsDashboard() {
                       <JobsDistributionChart
                         data={transformedJobsData}
                         heightClass="h-56"
-                        onBarClick={(entry) => {
-                          if (entry.name === 'Others' && entry.subItems?.length) {
-                            setOthersModalData({
-                              title: "Job Categories — 'Others' Breakdown",
-                              subtitle: `Detailed breakdown of all ${entry.subItems.length} categories aggregated under 'Others'`,
-                              total: entry.jobs,
-                              totalOverall: transformedJobsData.reduce((acc: number, cur: any) => acc + (cur.jobs || 0), 0),
-                              unit: 'job posts',
-                              items: entry.subItems,
-                            });
-                          }
-                        }}
+                        onBarClick={handleJobsBarClick}
                       />
                     </div>
 
                     {/* Skill Profile Distribution Donut Chart */}
-                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col relative min-w-0">
-                      <div className="mb-2 flex items-start justify-between gap-2">
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col relative min-w-0">
+                      <div className="mb-3 flex items-start justify-between gap-2">
                         <div>
-                          <h3 className="font-display text-sm font-bold text-ink">Worker Skills</h3>
-                          <p className="text-[11px] text-ink-muted">Profile breakdown capped at Top 6 skills and grouped others.</p>
+                          <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Worker Skills</h3>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Profile breakdown capped at Top 6 skills and grouped others.</p>
                         </div>
                         {(() => {
                           const othersEntry = transformedSkillDistribution.find((s: any) => s.name === 'Others' && s.subItems?.length);
@@ -2556,14 +2510,7 @@ export default function AnalyticsDashboard() {
                           return (
                             <button
                               type="button"
-                              onClick={() => setOthersModalData({
-                                title: "Worker Skills — 'Others' Breakdown",
-                                subtitle: `Detailed breakdown of all ${othersEntry.subItems.length} skills aggregated under 'Others'`,
-                                total: othersEntry.value,
-                                totalOverall: data?.user_ratio?.workers || transformedSkillDistribution.reduce((acc: number, cur: any) => acc + (cur.value || 0), 0),
-                                unit: 'workers',
-                                items: othersEntry.subItems,
-                              })}
+                              onClick={() => handleSkillSliceClick(othersEntry)}
                               className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-md transition-colors shrink-0 cursor-pointer"
                               title="Click to view breakdown of aggregated skills"
                             >
@@ -2581,7 +2528,7 @@ export default function AnalyticsDashboard() {
                         ]}
                       />
                       {transformedSkillDistribution.length === 0 || transformedSkillDistribution.every((i: any) => (i.value || 0) === 0) ? (
-                        <div className="h-48 w-full min-w-0 relative flex items-center justify-center">
+                        <div className="h-52 w-full min-w-0 relative flex items-center justify-center">
                           <ChartEmptyState
                             title="No Skill Profiles"
                             message="Worker skill profile distribution will appear as workers register on SIKAP."
@@ -2592,28 +2539,18 @@ export default function AnalyticsDashboard() {
                           data={transformedSkillDistribution}
                           totalWorkers={data?.user_ratio?.workers ?? 0}
                           colors={COLORS}
-                          onSliceClick={(entry) => {
-                            if (entry.name === 'Others' && entry.subItems?.length) {
-                              setOthersModalData({
-                                title: "Worker Skills — 'Others' Breakdown",
-                                subtitle: `Detailed breakdown of all ${entry.subItems.length} skills aggregated under 'Others'`,
-                                total: entry.value,
-                                totalOverall: data?.user_ratio?.workers || transformedSkillDistribution.reduce((acc: number, cur: any) => acc + (cur.value || 0), 0),
-                                unit: 'workers',
-                                items: entry.subItems,
-                              });
-                            }
-                          }}
+                          heightClass="h-52"
+                          onSliceClick={handleSkillSliceClick}
                         />
                       )}
                     </div>
                   </div>
 
                   {/* Stacked Geographic Activity chart */}
-                  <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col min-w-0 print-chart-container">
-                    <div className="mb-2">
-                      <h3 className="font-display text-sm font-bold text-ink">Activity by Area</h3>
-                      <p className="text-[11px] text-ink-muted">
+                  <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0 print-chart-container">
+                    <div className="mb-3">
+                      <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Activity by Area</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         {distRegionFilter === 'all' 
                           ? 'Job Posts and Applications stacked on a single track per municipality.'
                           : `Job Posts and Applications stacked per barangay in ${distRegionFilter}.`}
@@ -3437,12 +3374,17 @@ export default function AnalyticsDashboard() {
                       </div>
                       <div className="h-28 w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={transformedUserGrowth} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
-                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 6.5 }} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 6.5 }} allowDecimals={false} />
-                            <Bar dataKey="workers" name="Workers" fill="#C95D41" isAnimationActive={false} radius={[2, 2, 0, 0]} />
-                            <Bar dataKey="employers" name="Employers" fill="#3B82F6" isAnimationActive={false} radius={[2, 2, 0, 0]} />
+                          <BarChart
+                            data={transformedUserGrowth}
+                            margin={{ top: 5, right: 5, left: -25, bottom: 0 }}
+                            barGap={3}
+                            barCategoryGap="32%"
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_PALETTE.grid} opacity={0.75} />
+                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: CHART_PALETTE.axisTick, fontSize: 6.5 }} />
+                            <YAxis axisLine={false} tickLine={false} tick={{ fill: CHART_PALETTE.axisTick, fontSize: 6.5 }} allowDecimals={false} />
+                            <Bar dataKey="workers" name="Workers" fill={CHART_PALETTE.workers} isAnimationActive={false} radius={CHART_BAR_RADIUS} barSize={10} maxBarSize={12} />
+                            <Bar dataKey="employers" name="Employers" fill={CHART_PALETTE.employers} isAnimationActive={false} radius={CHART_BAR_RADIUS} barSize={10} maxBarSize={12} />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
@@ -3459,11 +3401,11 @@ export default function AnalyticsDashboard() {
                       <div className="h-28 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart data={transformedApplicationVolume} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.6} />
-                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 6.5 }} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 6.5 }} allowDecimals={false} />
-                            <Area type="monotone" dataKey="applications" name="Applications" stroke="#C95D41" strokeWidth={1.5} fill="#C95D41" isAnimationActive={false} fillOpacity={0.12} />
-                            <Area type="monotone" dataKey="jobs" name="Job Posts" stroke="#3B82F6" strokeWidth={1.5} fill="#3B82F6" isAnimationActive={false} fillOpacity={0.12} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_PALETTE.grid} opacity={0.75} />
+                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: CHART_PALETTE.axisTick, fontSize: 6.5 }} />
+                            <YAxis axisLine={false} tickLine={false} tick={{ fill: CHART_PALETTE.axisTick, fontSize: 6.5 }} allowDecimals={false} />
+                            <Area type="monotone" dataKey="applications" name="Applications" stroke={CHART_PALETTE.applications} strokeWidth={1.5} fill={CHART_PALETTE.applications} isAnimationActive={false} fillOpacity={0.12} />
+                            <Area type="monotone" dataKey="jobs" name="Job Posts" stroke={CHART_PALETTE.jobs} strokeWidth={1.5} fill={CHART_PALETTE.jobs} isAnimationActive={false} fillOpacity={0.12} />
                           </AreaChart>
                         </ResponsiveContainer>
                       </div>

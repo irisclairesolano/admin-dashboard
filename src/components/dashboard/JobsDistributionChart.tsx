@@ -11,6 +11,13 @@ import {
   Tooltip,
   Cell,
 } from 'recharts';
+import {
+  CHART_AXIS_TICK,
+  CHART_HORIZONTAL_BAR_RADIUS,
+  CHART_HORIZONTAL_GRID_PROPS,
+  CHART_PALETTE,
+  truncateLabel,
+} from './chartTheme';
 
 export interface JobsDistributionItem {
   name: string;
@@ -34,35 +41,37 @@ const CustomTooltip = ({ active, payload }: any) => {
     const remainingCount = item.subItems.length - previewList.length;
 
     return (
-      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-ink-faint/60 dark:border-slate-700 text-xs min-w-[200px] max-w-[260px] animate-fade-in font-sans">
-        <div className="flex items-center justify-between gap-2 border-b border-ink-faint/40 dark:border-slate-700 pb-1.5 mb-2">
-          <span className="font-bold text-ink dark:text-slate-100">Others</span>
-          <span className="font-numeric font-bold text-primary dark:text-sky-400">
-            {item.jobs} job posts
+      <div className="bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl shadow-md border border-slate-200/90 dark:border-slate-700/80 text-xs min-w-[200px] max-w-[260px] font-sans">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-1.5 mb-2">
+          <span className="font-semibold text-slate-800 dark:text-slate-100">Others</span>
+          <span className="font-numeric font-semibold text-primary dark:text-sky-400 tabular-nums">
+            {item.jobs.toLocaleString()} job posts
           </span>
         </div>
 
-        <p className="text-[11px] font-semibold text-ink-muted dark:text-slate-400 mb-1.5">
+        <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1.5">
           Includes {item.subItems.length} categories:
         </p>
 
-        <ul className="space-y-1 text-[11px] text-ink-soft dark:text-slate-300 mb-2 font-numeric">
+        <ul className="space-y-1 text-[11px] text-slate-600 dark:text-slate-300 mb-2 font-numeric">
           {previewList.map((sub, i) => (
             <li key={i} className="flex justify-between items-center gap-2">
-              <span className="truncate max-w-[130px] font-medium text-ink dark:text-slate-100">
+              <span className="truncate max-w-[140px] font-medium text-slate-700 dark:text-slate-200">
                 • {sub.name}
               </span>
-              <span className="text-ink-muted dark:text-slate-400 shrink-0">{sub.value}</span>
+              <span className="text-slate-500 dark:text-slate-400 shrink-0 tabular-nums">
+                {sub.value.toLocaleString()}
+              </span>
             </li>
           ))}
           {remainingCount > 0 && (
-            <li className="text-[10px] text-ink-muted dark:text-slate-400 italic pt-0.5">
-              + {remainingCount} more categories...
+            <li className="text-[10px] text-slate-400 dark:text-slate-500 italic pt-0.5">
+              + {remainingCount} more categories
             </li>
           )}
         </ul>
 
-        <div className="pt-1.5 border-t border-ink-faint/40 dark:border-slate-700 flex items-center justify-between text-[10px] text-primary dark:text-sky-400 font-semibold">
+        <div className="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-primary dark:text-sky-400 font-semibold">
           <span>Click bar to view all</span>
           <span>→</span>
         </div>
@@ -71,10 +80,21 @@ const CustomTooltip = ({ active, payload }: any) => {
   }
 
   return (
-    <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-lg border border-ink-faint/60 dark:border-slate-700 text-xs min-w-[140px] animate-fade-in font-sans">
-      <div className="font-bold text-ink dark:text-slate-100">{item.name}</div>
-      <div className="font-numeric text-primary dark:text-sky-400 font-bold mt-0.5">
-        {item.jobs} job posts
+    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl shadow-md border border-slate-200/90 dark:border-slate-700/80 text-xs min-w-[148px] font-sans">
+      <div className="text-[11px] font-semibold text-slate-700 dark:text-slate-200 mb-1">
+        {item.name}
+      </div>
+      <div className="flex items-center justify-between gap-4">
+        <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+          <span
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: item.name === 'Others' ? CHART_PALETTE.others : CHART_PALETTE.workers }}
+          />
+          Job Posts
+        </span>
+        <span className="text-[11px] font-numeric font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+          {item.jobs.toLocaleString()}
+        </span>
       </div>
     </div>
   );
@@ -85,37 +105,50 @@ const JobsDistributionChart = memo(function JobsDistributionChart({
   heightClass = 'h-56',
   onBarClick,
 }: JobsDistributionChartProps) {
+  const barSize = data.length > 8 ? 10 : 12;
+
   return (
     <div className={`${heightClass} w-full min-w-0 font-numeric`}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
           layout="vertical"
-          margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+          margin={{ top: 8, right: 14, left: 4, bottom: 2 }}
+          barCategoryGap="28%"
         >
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E8DFCE" opacity={0.5} />
-          <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#5C4F42', fontSize: 11 }} allowDecimals={false} />
+          <CartesianGrid {...CHART_HORIZONTAL_GRID_PROPS} />
+          <XAxis
+            type="number"
+            axisLine={false}
+            tickLine={false}
+            tick={CHART_AXIS_TICK}
+            allowDecimals={false}
+          />
           <YAxis
             dataKey="name"
             type="category"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#5C4F42', fontSize: 11 }}
-            width={95}
-            tickFormatter={(value) => (value.length > 12 ? `${value.slice(0, 12)}...` : value)}
+            tick={CHART_AXIS_TICK}
+            width={116}
+            tickFormatter={(value) => truncateLabel(value, 16)}
           />
-          <Tooltip cursor={{ fill: 'rgba(148, 163, 184, 0.14)' }} content={<CustomTooltip />} />
+          <Tooltip
+            cursor={{ fill: CHART_PALETTE.cursorFill }}
+            content={<CustomTooltip />}
+          />
           <Bar
             dataKey="jobs"
             name="Job Posts"
-            radius={[0, 4, 4, 0]}
-            barSize={14}
+            radius={CHART_HORIZONTAL_BAR_RADIUS}
+            barSize={barSize}
+            maxBarSize={14}
             onClick={(entry: any) => onBarClick?.(entry)}
           >
             {data.map((entry, index) => (
               <Cell
                 key={`bar-cell-${index}`}
-                fill={entry.name === 'Others' ? '#8C7B6A' : '#3E7648'}
+                fill={entry.name === 'Others' ? CHART_PALETTE.others : CHART_PALETTE.workers}
                 className="cursor-pointer hover:opacity-85 transition-opacity"
               />
             ))}
