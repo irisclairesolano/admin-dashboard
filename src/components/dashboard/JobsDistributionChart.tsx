@@ -12,8 +12,9 @@ import {
   Cell,
 } from 'recharts';
 import {
+  Bar3DHorizontal,
+  CHART_ANIMATION,
   CHART_AXIS_TICK,
-  CHART_HORIZONTAL_BAR_RADIUS,
   CHART_HORIZONTAL_GRID_PROPS,
   CHART_PALETTE,
   getAdaptiveBarConfig,
@@ -142,9 +143,11 @@ const JobsDistributionChart = memo(function JobsDistributionChart({
           <Bar
             dataKey="jobs"
             name="Job Posts"
-            radius={CHART_HORIZONTAL_BAR_RADIUS}
+            shape={<Bar3DHorizontal />}
             barSize={barConfig.barSize}
             maxBarSize={barConfig.maxBarSize}
+            animationDuration={CHART_ANIMATION.duration}
+            animationEasing={CHART_ANIMATION.easing}
             onClick={(entry: any) => onBarClick?.(entry)}
           >
             {data.map((entry, index) => (

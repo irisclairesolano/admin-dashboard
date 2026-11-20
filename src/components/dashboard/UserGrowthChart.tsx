@@ -12,8 +12,9 @@ import {
   Legend,
 } from 'recharts';
 import {
+  Bar3DVertical,
+  CHART_ANIMATION,
   CHART_AXIS_TICK,
-  CHART_BAR_RADIUS,
   CHART_DEFAULT_MARGIN,
   CHART_GRID_PROPS,
   CHART_LEGEND_STYLE,
@@ -98,9 +99,12 @@ const UserGrowthChart = memo(function UserGrowthChart({
               dataKey="workers"
               name="Workers"
               fill={CHART_PALETTE.workers}
-              radius={CHART_BAR_RADIUS}
+              shape={<Bar3DVertical />}
               barSize={barConfig.barSize}
               maxBarSize={barConfig.maxBarSize}
+              animationBegin={0}
+              animationDuration={CHART_ANIMATION.duration}
+              animationEasing={CHART_ANIMATION.easing}
             />
           )}
           {(roleFilter === 'all' || roleFilter === 'employer') && (
@@ -108,9 +112,12 @@ const UserGrowthChart = memo(function UserGrowthChart({
               dataKey="employers"
               name="Employers"
               fill={CHART_PALETTE.employers}
-              radius={CHART_BAR_RADIUS}
+              shape={<Bar3DVertical />}
               barSize={barConfig.barSize}
               maxBarSize={barConfig.maxBarSize}
+              animationBegin={CHART_ANIMATION.staggerDelay}
+              animationDuration={CHART_ANIMATION.duration}
+              animationEasing={CHART_ANIMATION.easing}
             />
           )}
         </BarChart>

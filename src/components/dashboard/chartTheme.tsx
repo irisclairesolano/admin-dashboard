@@ -59,6 +59,79 @@ export const CHART_LEGEND_STYLE: React.CSSProperties = {
   color: '#64748B',
 };
 
+export const CHART_ANIMATION = {
+  duration: 850,
+  easing: 'ease-out' as const,
+  staggerDelay: 120,
+};
+
+interface Bar3DShapeProps {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  fill?: string;
+}
+
+/**
+ * Custom Recharts shape rendering a slim vertical 3D isometric bar with a
+ * beveled top cap, shaded right extrusion, left specular highlight, and drop shadow.
+ * Keeps `<rect>` as the sole rect primitive for deterministic geometry & tests.
+ */
+export function Bar3DVertical(props: Bar3DShapeProps) {
+  const { x = 0, y = 0, width = 0, height = 0, fill = CHART_PALETTE.workers } = props;
+  if (!width || !height || width <= 0 || height <= 0) return null;
+
+  const depth = Math.min(4, Math.max(2.5, Math.round(width * 0.32)));
+  const highlightW = Math.max(1.5, width * 0.2);
+
+  const shadowPoints = `${x + 2},${y + height} ${x + width + depth + 2},${y + height} ${x + width + depth + 2},${y + height - depth + 2} ${x + depth + 2},${y + height - depth + 2}`;
+  const topPoints = `${x},${y} ${x + depth},${y - depth} ${x + width + depth},${y - depth} ${x + width},${y}`;
+  const sidePoints = `${x + width},${y} ${x + width + depth},${y - depth} ${x + width + depth},${y + height - depth} ${x + width},${y + height}`;
+  const sheenPoints = `${x},${y} ${x + highlightW},${y} ${x + highlightW},${y + height} ${x},${y + height}`;
+
+  return (
+    <g className="recharts-3d-bar-vertical">
+      <polygon points={shadowPoints} fill="rgba(15, 23, 42, 0.08)" />
+      <rect x={x} y={y} width={width} height={height} fill={fill} rx={1.5} />
+      <polygon points={sheenPoints} fill="rgba(255, 255, 255, 0.22)" />
+      <polygon points={topPoints} fill={fill} />
+      <polygon points={topPoints} fill="rgba(255, 255, 255, 0.32)" />
+      <polygon points={sidePoints} fill={fill} />
+      <polygon points={sidePoints} fill="rgba(15, 23, 42, 0.26)" />
+    </g>
+  );
+}
+
+/**
+ * Custom Recharts shape rendering a slim horizontal 3D bar with an
+ * extruded top wall, beveled right cap, top sheen, and subtle ground shadow.
+ */
+export function Bar3DHorizontal(props: Bar3DShapeProps) {
+  const { x = 0, y = 0, width = 0, height = 0, fill = CHART_PALETTE.workers } = props;
+  if (!width || !height || width <= 0 || height <= 0) return null;
+
+  const depth = Math.min(3.5, Math.max(2.5, Math.round(height * 0.3)));
+  const sheenH = Math.max(1.5, height * 0.2);
+
+  const shadowPoints = `${x + 2},${y + height} ${x + width + 2},${y + height} ${x + width + depth + 2},${y + height + 2} ${x + 2},${y + height + 2}`;
+  const topPoints = `${x},${y} ${x + depth},${y - depth} ${x + width + depth},${y - depth} ${x + width},${y}`;
+  const rightPoints = `${x + width},${y} ${x + width + depth},${y - depth} ${x + width + depth},${y + height - depth} ${x + width},${y + height}`;
+  const sheenPoints = `${x},${y} ${x + width},${y} ${x + width},${y + sheenH} ${x},${y + sheenH}`;
+
+  return (
+    <g className="recharts-3d-bar-horizontal">
+      <polygon points={shadowPoints} fill="rgba(15, 23, 42, 0.08)" />
+      <rect x={x} y={y} width={width} height={height} fill={fill} rx={1.5} />
+      <polygon points={sheenPoints} fill="rgba(255, 255, 255, 0.22)" />
+      <polygon points={topPoints} fill={fill} />
+      <polygon points={topPoints} fill="rgba(255, 255, 255, 0.3)" />
+      <polygon points={rightPoints} fill={fill} />
+      <polygon points={rightPoints} fill="rgba(15, 23, 42, 0.26)" />
+    </g>
+  );
+}
+
 /**
  * Computes slim, well-spaced bar geometry adapted to category & series count.
  * Prevents oversized chunky bars on small datasets and crowding on large ones.

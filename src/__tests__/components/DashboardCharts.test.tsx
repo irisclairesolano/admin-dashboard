@@ -86,7 +86,7 @@ describe('chartTheme utilities', () => {
 });
 
 describe('Dashboard Recharts Components', () => {
-  it('renders slim bars (<= 14px) in UserGrowthChart across small and large datasets', () => {
+  it('renders slim 3D bars (<= 14px) in UserGrowthChart across small and large datasets', () => {
     const { container, rerender } = render(
       <UserGrowthChart
         data={[
@@ -96,7 +96,8 @@ describe('Dashboard Recharts Components', () => {
         intervalFilter="monthly"
       />
     );
-    const bars = container.querySelectorAll('.recharts-bar-rectangle path, .recharts-bar-rectangle rect');
+    expect(container.querySelectorAll('.recharts-3d-bar-vertical').length).toBe(4);
+    const bars = container.querySelectorAll('.recharts-bar-rectangle rect');
     expect(bars.length).toBe(4);
     bars.forEach((bar) => {
       const w = parseFloat(bar.getAttribute('width') || '0');
@@ -115,7 +116,7 @@ describe('Dashboard Recharts Components', () => {
         roleFilter="worker"
       />
     );
-    const singleSeriesBars = container.querySelectorAll('.recharts-bar-rectangle path, .recharts-bar-rectangle rect');
+    const singleSeriesBars = container.querySelectorAll('.recharts-bar-rectangle rect');
     expect(singleSeriesBars.length).toBe(16);
     singleSeriesBars.forEach((bar) => {
       const w = parseFloat(bar.getAttribute('width') || '0');
@@ -124,7 +125,7 @@ describe('Dashboard Recharts Components', () => {
     });
   });
 
-  it('renders both Job Posts and Applications series as slim bars in unstacked GeographicActivityChart', () => {
+  it('renders both Job Posts and Applications series as slim 3D bars in unstacked GeographicActivityChart', () => {
     const { container } = render(
       <GeographicActivityChart
         data={[
@@ -134,8 +135,9 @@ describe('Dashboard Recharts Components', () => {
         stacked={false}
       />
     );
-    // 2 series (Job Posts + Applications) * 2 towns = 4 bar rectangles
-    const bars = container.querySelectorAll('.recharts-bar-rectangle path, .recharts-bar-rectangle rect');
+    // 2 series (Job Posts + Applications) * 2 towns = 4 3D bar rectangles
+    expect(container.querySelectorAll('.recharts-3d-bar-vertical').length).toBe(4);
+    const bars = container.querySelectorAll('.recharts-bar-rectangle rect');
     expect(bars.length).toBe(4);
     bars.forEach((bar) => {
       const w = parseFloat(bar.getAttribute('width') || '0');
@@ -146,7 +148,7 @@ describe('Dashboard Recharts Components', () => {
     expect(container.textContent).toContain('Applications');
   });
 
-  it('renders GeographicActivityChart in vertical mode for <= 7 towns and horizontal mode for > 7 towns', () => {
+  it('renders GeographicActivityChart in vertical mode for <= 7 towns and 3D horizontal mode for > 7 towns', () => {
     const smallTowns = [
       { name: 'Bulan', jobs: 18, applications: 42 },
       { name: 'Irosin', jobs: 9, applications: 21 },
@@ -165,9 +167,10 @@ describe('Dashboard Recharts Components', () => {
     rerender(<GeographicActivityChart data={manyBarangays} stacked />);
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper.style.height).toBe('364px');
+    expect(container.querySelectorAll('.recharts-3d-bar-horizontal').length).toBe(20);
   });
 
-  it('renders visible dots on sparse/single-point ApplicationVolumeChart and ConversionVelocityChart datasets', () => {
+  it('renders visible dots and 3D shadow filters on ApplicationVolumeChart and ConversionVelocityChart', () => {
     const appRes = render(
       <ApplicationVolumeChart
         data={[{ name: '2026-11-20', applications: 12, jobs: 4 }]}
@@ -175,6 +178,7 @@ describe('Dashboard Recharts Components', () => {
       />
     );
     expect(appRes.container.querySelectorAll('.recharts-area-dot').length).toBeGreaterThanOrEqual(2);
+    expect(appRes.container.querySelector('#area3dShadowOverview')).toBeTruthy();
 
     const velRes = render(
       <ConversionVelocityChart
@@ -186,9 +190,10 @@ describe('Dashboard Recharts Components', () => {
       />
     );
     expect(velRes.container.querySelectorAll('.recharts-area-dot').length).toBeGreaterThanOrEqual(4);
+    expect(velRes.container.querySelector('#area3dShadowVelocity')).toBeTruthy();
   });
 
-  it('renders slim bars in JobsDistributionChart and supports SkillDistributionPieChart Others drill-down', () => {
+  it('renders slim 3D bars in JobsDistributionChart and 3D shadow filter in SkillDistributionPieChart', () => {
     const onSliceClick = vi.fn();
     const jobsRes = render(
       <JobsDistributionChart
@@ -199,7 +204,8 @@ describe('Dashboard Recharts Components', () => {
         ]}
       />
     );
-    const jobBars = jobsRes.container.querySelectorAll('.recharts-bar-rectangle path, .recharts-bar-rectangle rect');
+    expect(jobsRes.container.querySelectorAll('.recharts-3d-bar-horizontal').length).toBe(3);
+    const jobBars = jobsRes.container.querySelectorAll('.recharts-bar-rectangle rect');
     expect(jobBars.length).toBe(3);
     jobBars.forEach((bar) => {
       const h = parseFloat(bar.getAttribute('height') || '0');
@@ -217,6 +223,7 @@ describe('Dashboard Recharts Components', () => {
         onSliceClick={onSliceClick}
       />
     );
+    expect(skillRes.container.querySelector('#pie3dShadow')).toBeTruthy();
     const othersBtn = skillRes.getByRole('button', { name: /Others/i });
     fireEvent.click(othersBtn);
     expect(onSliceClick).toHaveBeenCalledTimes(1);

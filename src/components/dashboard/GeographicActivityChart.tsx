@@ -12,11 +12,12 @@ import {
   Legend,
 } from 'recharts';
 import {
+  Bar3DHorizontal,
+  Bar3DVertical,
+  CHART_ANIMATION,
   CHART_AXIS_TICK,
-  CHART_BAR_RADIUS,
   CHART_DEFAULT_MARGIN,
   CHART_GRID_PROPS,
-  CHART_HORIZONTAL_BAR_RADIUS,
   CHART_HORIZONTAL_GRID_PROPS,
   CHART_LEGEND_STYLE,
   CHART_PALETTE,
@@ -99,18 +100,24 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                   name="Job Posts"
                   fill={CHART_PALETTE.jobs}
                   stackId="a"
+                  shape={<Bar3DHorizontal />}
                   barSize={barConfig.barSize}
                   maxBarSize={barConfig.maxBarSize}
-                  radius={[0, 0, 0, 0]}
+                  animationBegin={0}
+                  animationDuration={CHART_ANIMATION.duration}
+                  animationEasing={CHART_ANIMATION.easing}
                 />
                 <Bar
                   dataKey="applications"
                   name="Applications"
                   fill={CHART_PALETTE.applications}
                   stackId="a"
+                  shape={<Bar3DHorizontal />}
                   barSize={barConfig.barSize}
                   maxBarSize={barConfig.maxBarSize}
-                  radius={CHART_HORIZONTAL_BAR_RADIUS}
+                  animationBegin={CHART_ANIMATION.staggerDelay}
+                  animationDuration={CHART_ANIMATION.duration}
+                  animationEasing={CHART_ANIMATION.easing}
                 />
               </>
             ) : hasApplicationsSeries ? (
@@ -119,17 +126,23 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                   dataKey="jobs"
                   name="Job Posts"
                   fill={CHART_PALETTE.jobs}
+                  shape={<Bar3DHorizontal />}
                   barSize={barConfig.barSize}
                   maxBarSize={barConfig.maxBarSize}
-                  radius={CHART_HORIZONTAL_BAR_RADIUS}
+                  animationBegin={0}
+                  animationDuration={CHART_ANIMATION.duration}
+                  animationEasing={CHART_ANIMATION.easing}
                 />
                 <Bar
                   dataKey="applications"
                   name="Applications"
                   fill={CHART_PALETTE.applications}
+                  shape={<Bar3DHorizontal />}
                   barSize={barConfig.barSize}
                   maxBarSize={barConfig.maxBarSize}
-                  radius={CHART_HORIZONTAL_BAR_RADIUS}
+                  animationBegin={CHART_ANIMATION.staggerDelay}
+                  animationDuration={CHART_ANIMATION.duration}
+                  animationEasing={CHART_ANIMATION.easing}
                 />
               </>
             ) : (
@@ -137,9 +150,11 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                 dataKey="jobs"
                 name="Job Posts"
                 fill={CHART_PALETTE.jobs}
+                shape={<Bar3DHorizontal />}
                 barSize={barConfig.barSize}
                 maxBarSize={barConfig.maxBarSize}
-                radius={CHART_HORIZONTAL_BAR_RADIUS}
+                animationDuration={CHART_ANIMATION.duration}
+                animationEasing={CHART_ANIMATION.easing}
               />
             )}
           </BarChart>
@@ -191,18 +206,24 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                 name="Job Posts"
                 fill={CHART_PALETTE.jobs}
                 stackId="a"
+                shape={<Bar3DVertical />}
                 barSize={barConfig.barSize}
                 maxBarSize={barConfig.maxBarSize}
-                radius={[0, 0, 0, 0]}
+                animationBegin={0}
+                animationDuration={CHART_ANIMATION.duration}
+                animationEasing={CHART_ANIMATION.easing}
               />
               <Bar
                 dataKey="applications"
                 name="Applications"
                 fill={CHART_PALETTE.applications}
                 stackId="a"
+                shape={<Bar3DVertical />}
                 barSize={barConfig.barSize}
                 maxBarSize={barConfig.maxBarSize}
-                radius={CHART_BAR_RADIUS}
+                animationBegin={CHART_ANIMATION.staggerDelay}
+                animationDuration={CHART_ANIMATION.duration}
+                animationEasing={CHART_ANIMATION.easing}
               />
             </>
           ) : hasApplicationsSeries ? (
@@ -211,17 +232,23 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                 dataKey="jobs"
                 name="Job Posts"
                 fill={CHART_PALETTE.jobs}
+                shape={<Bar3DVertical />}
                 barSize={barConfig.barSize}
                 maxBarSize={barConfig.maxBarSize}
-                radius={CHART_BAR_RADIUS}
+                animationBegin={0}
+                animationDuration={CHART_ANIMATION.duration}
+                animationEasing={CHART_ANIMATION.easing}
               />
               <Bar
                 dataKey="applications"
                 name="Applications"
                 fill={CHART_PALETTE.applications}
+                shape={<Bar3DVertical />}
                 barSize={barConfig.barSize}
                 maxBarSize={barConfig.maxBarSize}
-                radius={CHART_BAR_RADIUS}
+                animationBegin={CHART_ANIMATION.staggerDelay}
+                animationDuration={CHART_ANIMATION.duration}
+                animationEasing={CHART_ANIMATION.easing}
               />
             </>
           ) : (
@@ -229,9 +256,11 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
               dataKey="jobs"
               name="Job Posts"
               fill={CHART_PALETTE.jobs}
+              shape={<Bar3DVertical />}
               barSize={barConfig.barSize}
               maxBarSize={barConfig.maxBarSize}
-              radius={CHART_BAR_RADIUS}
+              animationDuration={CHART_ANIMATION.duration}
+              animationEasing={CHART_ANIMATION.easing}
             />
           )}
         </BarChart>

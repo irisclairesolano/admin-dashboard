@@ -1878,7 +1878,7 @@ export default function AnalyticsDashboard() {
               {(viewMode === 'charts' || viewMode === 'split') && (
                 <div className="space-y-4">
                   {/* PRIMARY VISUALIZATION: Platform Activity & Application Flow */}
-                  <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0 print-chart-container">
+                  <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0 print-chart-container transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
                       <div>
                         <h3 className="font-display text-sm sm:text-[15px] font-semibold text-ink dark:text-slate-100">What's Happening on SIKAP</h3>
@@ -1914,7 +1914,7 @@ export default function AnalyticsDashboard() {
                   {/* SECONDARY VISUALIZATIONS GRID (2 Columns): Registrations & Regional Demand */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print-chart-container">
                     {/* User Registrations Breakdown */}
-                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0">
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                       <div className="mb-3">
                         <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">User Registrations by Role</h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Worker signups vs employer registrations over time.</p>
@@ -1945,7 +1945,7 @@ export default function AnalyticsDashboard() {
                     </div>
 
                     {/* Regional Activity by Municipality */}
-                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0">
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                       <div className="mb-3">
                         <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Where the Jobs Are (by Town)</h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Towns with the most job posts and applications.</p>
@@ -1976,7 +1976,7 @@ export default function AnalyticsDashboard() {
                   {/* Funnel & Verification Summary section */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print-chart-container">
                     {/* Application-to-Hire Funnel */}
-                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between">
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                       <div>
                         <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">From Applying to Getting Hired</h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 mb-4">How many applicants move forward at each step.</p>
@@ -1991,10 +1991,10 @@ export default function AnalyticsDashboard() {
                                   <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">({step.rate})</span>
                                 </span>
                               </div>
-                              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                              <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
                                 {parseFloat(step.rate) > 0 ? (
                                   <div
-                                    className="h-full rounded-full transition-all duration-700"
+                                    className="relative h-full rounded-full overflow-hidden shadow-2xs transition-all duration-700"
                                     style={{
                                       width: step.rate,
                                       backgroundColor:
@@ -2004,7 +2004,9 @@ export default function AnalyticsDashboard() {
                                             ? CHART_PALETTE.jobs
                                             : CHART_PALETTE.hires,
                                     }}
-                                  />
+                                  >
+                                    <div className="absolute inset-x-0 top-0 h-[45%] bg-white/25 rounded-t-full pointer-events-none" />
+                                  </div>
                                 ) : (
                                   <div className="h-full w-0 transition-all duration-700" />
                                 )}
@@ -2038,7 +2040,7 @@ export default function AnalyticsDashboard() {
                     </div>
 
                     {/* Verification & Retention metrics */}
-                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between">
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                       <div>
                         <div className="flex items-center justify-between mb-1">
                           <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">ID Checks & Returning Workers</h3>
@@ -2319,7 +2321,7 @@ export default function AnalyticsDashboard() {
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print-chart-container">
                     {/* User Growth */}
-                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0">
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                       <div className="mb-3">
                         <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">User Registrations</h3>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Registrations compared by workers vs. employers.</p>
@@ -2340,7 +2342,7 @@ export default function AnalyticsDashboard() {
                     </div>
 
                     {/* Application-to-Hire Conversion Velocity Area Chart */}
-                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0">
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                       <div className="flex items-start justify-between gap-2 mb-3">
                         <div>
                           <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Applications vs. Hires Over Time</h3>
@@ -2591,7 +2593,7 @@ export default function AnalyticsDashboard() {
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print-chart-container">
                     {/* Horizontal Skill Category Demand */}
-                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0">
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                       <div className="mb-3 flex items-start justify-between gap-2">
                         <div>
                           <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Most Wanted Skills</h3>
@@ -2628,7 +2630,7 @@ export default function AnalyticsDashboard() {
                     </div>
 
                     {/* Skill Profile Distribution Donut Chart */}
-                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col relative min-w-0">
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col relative min-w-0 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                       <div className="mb-3 flex items-start justify-between gap-2">
                         <div>
                           <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Worker Skills</h3>
@@ -2677,7 +2679,7 @@ export default function AnalyticsDashboard() {
                   </div>
 
                   {/* Stacked Geographic Activity chart */}
-                  <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0 print-chart-container">
+                  <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col min-w-0 print-chart-container transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                     <div className="mb-3">
                       <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Activity by Area</h3>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -3003,7 +3005,7 @@ export default function AnalyticsDashboard() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print-chart-container">
                 {/* Two-Way Rating System */}
-                <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between">
+                <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <div>
@@ -3068,8 +3070,10 @@ export default function AnalyticsDashboard() {
                         return (
                           <div key={stars} className="flex items-center gap-2 text-xs font-body">
                             <span className="w-10 text-right text-ink font-semibold font-numeric text-[11px]">{stars}★</span>
-                            <div className="h-2 flex-1 bg-gray-100 rounded-full overflow-hidden border border-gray-200/50">
-                              <div className="h-full bg-yellow-400 rounded-full transition-all duration-1000" style={{ width: barWidth }}></div>
+                            <div className="h-2.5 flex-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner border border-slate-200/50 dark:border-slate-700/50">
+                              <div className="relative h-full bg-yellow-400 rounded-full overflow-hidden shadow-2xs transition-all duration-700" style={{ width: barWidth }}>
+                                <div className="absolute inset-x-0 top-0 h-[45%] bg-white/30 rounded-t-full pointer-events-none" />
+                              </div>
                             </div>
                             <span className="w-7 text-ink-muted text-right font-numeric text-[11px]">{count}</span>
                           </div>
@@ -3080,7 +3084,7 @@ export default function AnalyticsDashboard() {
                 </div>
 
                 {/* Wages Analytics with expandable details */}
-                <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between">
+                <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                   <div>
                     <div className="mb-3">
                       <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Compensation & Wage Analytics</h3>
@@ -3155,7 +3159,7 @@ export default function AnalyticsDashboard() {
               </div>
 
               {/* Reports Breakdown with collapsable table */}
-              <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between print-chart-container">
+              <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between print-chart-container transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Reports & Moderation Insights</h3>

@@ -12,6 +12,7 @@ import {
   Legend,
 } from 'recharts';
 import {
+  CHART_ANIMATION,
   CHART_AXIS_TICK,
   CHART_DEFAULT_MARGIN,
   CHART_GRID_PROPS,
@@ -52,13 +53,18 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={CHART_DEFAULT_MARGIN}>
           <defs>
+            <filter id="area3dShadowVelocity" x="-10%" y="-10%" width="120%" height="130%">
+              <feDropShadow dx="0" dy="4" stdDeviation="3" floodColor="#0F172A" floodOpacity="0.18" />
+            </filter>
             <linearGradient id="colorAppsVelocity" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={CHART_PALETTE.applications} stopOpacity={0.18} />
-              <stop offset="95%" stopColor={CHART_PALETTE.applications} stopOpacity={0.01} />
+              <stop offset="5%" stopColor={CHART_PALETTE.applications} stopOpacity={0.32} />
+              <stop offset="55%" stopColor={CHART_PALETTE.applications} stopOpacity={0.12} />
+              <stop offset="95%" stopColor={CHART_PALETTE.applications} stopOpacity={0.02} />
             </linearGradient>
             <linearGradient id="colorHiresVelocity" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={CHART_PALETTE.hires} stopOpacity={0.18} />
-              <stop offset="95%" stopColor={CHART_PALETTE.hires} stopOpacity={0.01} />
+              <stop offset="5%" stopColor={CHART_PALETTE.hires} stopOpacity={0.32} />
+              <stop offset="55%" stopColor={CHART_PALETTE.hires} stopOpacity={0.12} />
+              <stop offset="95%" stopColor={CHART_PALETTE.hires} stopOpacity={0.02} />
             </linearGradient>
           </defs>
           <CartesianGrid {...CHART_GRID_PROPS} />
@@ -100,11 +106,15 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
               dataKey="applications"
               name="Applications Filed"
               stroke={CHART_PALETTE.applications}
-              strokeWidth={2}
+              strokeWidth={2.5}
+              filter="url(#area3dShadowVelocity)"
               fillOpacity={1}
               fill="url(#colorAppsVelocity)"
+              animationBegin={0}
+              animationDuration={CHART_ANIMATION.duration}
+              animationEasing={CHART_ANIMATION.easing}
               dot={showDots ? { r: 3.5, strokeWidth: 2, fill: '#FFFFFF' } : false}
-              activeDot={{ r: 4, stroke: '#FFFFFF', strokeWidth: 2 }}
+              activeDot={{ r: 5, stroke: '#FFFFFF', strokeWidth: 2.5 }}
             />
           )}
           {(trendsVolumeFilter === 'all' || trendsVolumeFilter === 'hires') && (
@@ -113,11 +123,15 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
               dataKey="completed_hires"
               name="Completed Hires"
               stroke={CHART_PALETTE.hires}
-              strokeWidth={2}
+              strokeWidth={2.5}
+              filter="url(#area3dShadowVelocity)"
               fillOpacity={1}
               fill="url(#colorHiresVelocity)"
+              animationBegin={CHART_ANIMATION.staggerDelay}
+              animationDuration={CHART_ANIMATION.duration}
+              animationEasing={CHART_ANIMATION.easing}
               dot={showDots ? { r: 3.5, strokeWidth: 2, fill: '#FFFFFF' } : false}
-              activeDot={{ r: 4, stroke: '#FFFFFF', strokeWidth: 2 }}
+              activeDot={{ r: 5, stroke: '#FFFFFF', strokeWidth: 2.5 }}
             />
           )}
         </AreaChart>

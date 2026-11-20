@@ -9,7 +9,7 @@ import {
   Sector,
   Tooltip,
 } from 'recharts';
-import { CHART_PALETTE } from './chartTheme';
+import { CHART_ANIMATION, CHART_PALETTE } from './chartTheme';
 
 const RechartsPie = Pie as any;
 
@@ -24,12 +24,31 @@ const renderActiveShape = (props: any) => {
     <g>
       <Sector
         cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius + 5}
+        cy={cy + 3}
+        innerRadius={innerRadius - 1}
+        outerRadius={outerRadius + 6}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill="rgba(15, 23, 42, 0.25)"
+      />
+      <Sector
+        cx={cx}
+        cy={cy - 2}
+        innerRadius={innerRadius - 1}
+        outerRadius={outerRadius + 6}
         startAngle={startAngle}
         endAngle={endAngle}
         fill={fill}
+        filter="url(#pie3dActiveShadow)"
+      />
+      <Sector
+        cx={cx}
+        cy={cy - 2}
+        innerRadius={outerRadius + 4}
+        outerRadius={outerRadius + 6}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill="rgba(255, 255, 255, 0.35)"
       />
     </g>
   );
@@ -139,6 +158,14 @@ const SkillDistributionPieChart = memo(function SkillDistributionPieChart({
       <div className={`${heightClass} w-full min-w-0 relative flex items-center justify-center font-numeric`}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
+            <defs>
+              <filter id="pie3dShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="5" stdDeviation="4" floodColor="#0F172A" floodOpacity="0.18" />
+              </filter>
+              <filter id="pie3dActiveShadow" x="-25%" y="-25%" width="150%" height="150%">
+                <feDropShadow dx="0" dy="7" stdDeviation="5" floodColor="#0F172A" floodOpacity="0.26" />
+              </filter>
+            </defs>
             <RechartsPie
               data={data}
               cx="50%"
@@ -149,6 +176,10 @@ const SkillDistributionPieChart = memo(function SkillDistributionPieChart({
               stroke="none"
               dataKey="value"
               label={false}
+              filter="url(#pie3dShadow)"
+              isAnimationActive={true}
+              animationDuration={CHART_ANIMATION.duration}
+              animationEasing={CHART_ANIMATION.easing}
               activeIndex={activePieIndex !== null ? activePieIndex : undefined}
               activeShape={renderActiveShape}
               onMouseEnter={(_: any, index: number) => setActivePieIndex(index)}
