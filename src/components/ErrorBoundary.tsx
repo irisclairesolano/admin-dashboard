@@ -7,18 +7,23 @@ interface ErrorBoundaryProps {
 
 interface ErrorBoundaryState {
   hasError: boolean;
+  error: Error | null;
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { hasError: false };
+  state: ErrorBoundaryState = { hasError: false, error: null };
 
-  static getDerivedStateFromError(): ErrorBoundaryState {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('Dashboard error boundary caught:', error, info);
   }
+
+  handleReset = () => {
+    this.setState({ hasError: false, error: null });
+  };
 
   render() {
     if (this.state.hasError) {
@@ -29,15 +34,25 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           </div>
           <h2 className="font-display text-lg font-bold text-ink">Something went wrong</h2>
           <p className="text-sm text-ink-soft max-w-sm leading-relaxed">
-            An unexpected error occurred in the dashboard. Try refreshing the page. If this keeps
+            An unexpected error occurred in the dashboard. Try again or refresh the page. If this keeps
             happening, contact the platform administrator.
           </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-5 py-2.5 rounded-xl bg-ink text-white font-body font-semibold text-sm hover:bg-ink/80 transition-colors cursor-pointer"
-          >
-            Refresh Page
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-2.5">
+            <button
+              type="button"
+              onClick={this.handleReset}
+              className="px-5 py-2.5 rounded-xl border border-ink-faint bg-white text-ink font-body font-semibold text-sm hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              Try Again
+            </button>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="px-5 py-2.5 rounded-xl bg-ink text-white font-body font-semibold text-sm hover:bg-ink/80 transition-colors cursor-pointer"
+            >
+              Refresh Page
+            </button>
+          </div>
         </div>
       );
     }

@@ -49,43 +49,13 @@ import {
 } from '@/components/dashboard/chartTheme';
 import { exportMultiSectionCSV, formatCSVDate, formatCSVCurrency, formatCSVStatus } from '@/lib/export/csv';
 import { useToast } from '@/context/ToastContext';
-import dynamic from 'next/dynamic';
-
-// ── DYNAMIC CHART IMPORTS (Client-Side Only to Avoid SSR Hydration Mismatch) ──
-const ApplicationVolumeChart = dynamic(
-  () => import('@/components/dashboard/ApplicationVolumeChart'),
-  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 dark:bg-slate-800/60 rounded-xl" /> }
-);
-
-const UserGrowthChart = dynamic(
-  () => import('@/components/dashboard/UserGrowthChart'),
-  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 dark:bg-slate-800/60 rounded-xl" /> }
-);
-
-const ConversionVelocityChart = dynamic(
-  () => import('@/components/dashboard/ConversionVelocityChart'),
-  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 dark:bg-slate-800/60 rounded-xl" /> }
-);
-
-const JobsDistributionChart = dynamic(
-  () => import('@/components/dashboard/JobsDistributionChart'),
-  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 dark:bg-slate-800/60 rounded-xl" /> }
-);
-
-const SkillDistributionPieChart = dynamic(
-  () => import('@/components/dashboard/SkillDistributionPieChart'),
-  { ssr: false, loading: () => <div className="h-52 w-full animate-pulse bg-slate-100 dark:bg-slate-800/60 rounded-xl" /> }
-);
-
-const GeographicActivityChart = dynamic(
-  () => import('@/components/dashboard/GeographicActivityChart'),
-  { ssr: false, loading: () => <div className="h-56 w-full animate-pulse bg-slate-100 dark:bg-slate-800/60 rounded-xl" /> }
-);
-
-const OthersBreakdownModal = dynamic(
-  () => import('@/components/dashboard/OthersBreakdownModal'),
-  { ssr: false }
-);
+import ApplicationVolumeChart from '@/components/dashboard/ApplicationVolumeChart';
+import UserGrowthChart from '@/components/dashboard/UserGrowthChart';
+import ConversionVelocityChart from '@/components/dashboard/ConversionVelocityChart';
+import JobsDistributionChart from '@/components/dashboard/JobsDistributionChart';
+import SkillDistributionPieChart from '@/components/dashboard/SkillDistributionPieChart';
+import GeographicActivityChart from '@/components/dashboard/GeographicActivityChart';
+import OthersBreakdownModal from '@/components/dashboard/OthersBreakdownModal';
 
 function ChartEmptyState({ title, message }: { title?: string; message?: string }) {
   return (
@@ -1182,12 +1152,23 @@ export default function AnalyticsDashboard() {
 
   // Detailed Tabular Time-Series Data - Reconciled across Users, Job Posts, Applications, Hires, and Reports
   const transformedDetailedTimeSeries = useMemo(() => {
+    const comparePeriods = (aPeriod: unknown, bPeriod: unknown) => {
+      const aStr = String(aPeriod || '');
+      const bStr = String(bPeriod || '');
+      const timeA = new Date(aStr || 0).getTime();
+      const timeB = new Date(bStr || 0).getTime();
+      if (Number.isNaN(timeA) || Number.isNaN(timeB)) {
+        return trendsSortOrder === 'asc'
+          ? aStr.localeCompare(bStr)
+          : bStr.localeCompare(aStr);
+      }
+      return trendsSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
+    };
+
     if (data?.detailed_time_series && data.detailed_time_series.length > 0) {
-      return [...data.detailed_time_series].sort((a: any, b: any) => {
-        const timeA = new Date(a.period || 0).getTime();
-        const timeB = new Date(b.period || 0).getTime();
-        return trendsSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
-      });
+      return [...data.detailed_time_series].sort((a: any, b: any) =>
+        comparePeriods(a.period, b.period)
+      );
     }
 
     // Client-side fallback reconciliation if backend cache hasn't invalidated yet
@@ -1198,9 +1179,9 @@ export default function AnalyticsDashboard() {
       if (!map[p]) {
         map[p] = {
           period: p,
-          new_workers: u.workers ?? 0,
-          new_employers: u.employers ?? 0,
-          total_users: (u.workers ?? 0) + (u.employers ?? 0),
+          new_workers: Number(u.workers) || 0,
+          new_employers: Number(u.employers) || 0,
+          total_users: (Number(u.workers) || 0) + (Number(u.employers) || 0),
           job_posts: 0,
           applications: 0,
           accepted_applications: 0,
@@ -1208,9 +1189,9 @@ export default function AnalyticsDashboard() {
           reports: 0
         };
       } else {
-        map[p].new_workers = u.workers ?? 0;
-        map[p].new_employers = u.employers ?? 0;
-        map[p].total_users = (u.workers ?? 0) + (u.employers ?? 0);
+        map[p].new_workers = Number(u.workers) || 0;
+        map[p].new_employers = Number(u.employers) || 0;
+        map[p].total_users = (Number(u.workers) || 0) + (Number(u.employers) || 0);
       }
     });
 
@@ -1222,17 +1203,17 @@ export default function AnalyticsDashboard() {
           new_workers: 0,
           new_employers: 0,
           total_users: 0,
-          job_posts: a.jobs ?? 0,
-          applications: a.applications ?? 0,
-          accepted_applications: a.accepted_applications ?? 0,
-          completed_hires: a.completed_hires ?? 0,
+          job_posts: Number(a.jobs) || 0,
+          applications: Number(a.applications) || 0,
+          accepted_applications: Number(a.accepted_applications) || 0,
+          completed_hires: Number(a.completed_hires) || 0,
           reports: 0
         };
       } else {
-        map[p].job_posts = a.jobs ?? 0;
-        map[p].applications = a.applications ?? 0;
-        map[p].accepted_applications = a.accepted_applications ?? 0;
-        map[p].completed_hires = a.completed_hires ?? 0;
+        map[p].job_posts = Number(a.jobs) || 0;
+        map[p].applications = Number(a.applications) || 0;
+        map[p].accepted_applications = Number(a.accepted_applications) || 0;
+        map[p].completed_hires = Number(a.completed_hires) || 0;
       }
     });
 
@@ -1245,37 +1226,35 @@ export default function AnalyticsDashboard() {
             new_workers: 0,
             new_employers: 0,
             total_users: 0,
-            job_posts: parseInt(j.job_posts || 0, 10),
+            job_posts: parseInt(j.job_posts || 0, 10) || 0,
             applications: 0,
             accepted_applications: 0,
             completed_hires: 0,
             reports: 0
           };
         } else {
-          map[p].job_posts = parseInt(j.job_posts || 0, 10);
+          map[p].job_posts = parseInt(j.job_posts || 0, 10) || 0;
         }
       });
     }
 
-    return Object.values(map).sort((a: any, b: any) => {
-      const timeA = new Date(a.period || 0).getTime();
-      const timeB = new Date(b.period || 0).getTime();
-      return trendsSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
-    });
+    return Object.values(map).sort((a: any, b: any) =>
+      comparePeriods(a.period, b.period)
+    );
   }, [data?.detailed_time_series, data?.job_post_trends, transformedUserGrowth, transformedApplicationVolume, trendsSortOrder]);
 
   // Column sums for the detailed table reconciliation
   const detailedTotals = useMemo(() => {
     return (transformedDetailedTimeSeries || []).reduce(
       (acc: any, row: any) => {
-        acc.new_workers += row.new_workers || 0;
-        acc.new_employers += row.new_employers || 0;
-        acc.total_users += row.total_users || 0;
-        acc.job_posts += row.job_posts || 0;
-        acc.applications += row.applications || 0;
-        acc.accepted_applications += row.accepted_applications || 0;
-        acc.completed_hires += row.completed_hires || 0;
-        acc.reports += row.reports || 0;
+        acc.new_workers += Number(row.new_workers) || 0;
+        acc.new_employers += Number(row.new_employers) || 0;
+        acc.total_users += Number(row.total_users) || 0;
+        acc.job_posts += Number(row.job_posts) || 0;
+        acc.applications += Number(row.applications) || 0;
+        acc.accepted_applications += Number(row.accepted_applications) || 0;
+        acc.completed_hires += Number(row.completed_hires) || 0;
+        acc.reports += Number(row.reports) || 0;
         return acc;
       },
       {
@@ -1293,12 +1272,18 @@ export default function AnalyticsDashboard() {
 
   // Application-to-Hire Conversion Velocity Data for Trends Tab
   const transformedConversionVelocity = useMemo(() => {
-    return (transformedDetailedTimeSeries || []).map((row: any) => ({
+    const list = (transformedDetailedTimeSeries || []).map((row: any) => ({
       name: row.period || 'Unknown',
-      applications: row.applications ?? 0,
-      completed_hires: row.completed_hires ?? 0,
-      accepted_applications: row.accepted_applications ?? 0,
+      applications: Number(row.applications) || 0,
+      completed_hires: Number(row.completed_hires) || 0,
+      accepted_applications: Number(row.accepted_applications) || 0,
     }));
+
+    if (!list.some((item) => item.applications > 0 || item.completed_hires > 0)) {
+      return [];
+    }
+
+    return list;
   }, [transformedDetailedTimeSeries]);
 
   const handleJobsBarClick = useCallback((entry: any) => {
@@ -1767,7 +1752,7 @@ export default function AnalyticsDashboard() {
                     <i className="lni lni-comments text-primary-dark" />
                     <span className="font-semibold text-ink">Chats:</span>
                     <span className="font-numeric text-ink">
-                      <b>{convStats.active_conversations.toLocaleString()}</b> active chats · <b>{convStats.messages_today.toLocaleString()}</b> today · <b>{convStats.avg_messages_per_hire}</b> avg/hire
+                      <b>{(convStats.active_conversations ?? 0).toLocaleString()}</b> active chats · <b>{(convStats.messages_today ?? 0).toLocaleString()}</b> today · <b>{convStats.avg_messages_per_hire ?? 0}</b> avg/hire
                     </span>
                   </div>
 
@@ -2333,12 +2318,19 @@ export default function AnalyticsDashboard() {
                           { label: 'Employers', value: detailedTotals.new_employers }
                         ]}
                       />
-                      <UserGrowthChart
-                        data={transformedUserGrowth}
-                        intervalFilter={intervalFilter}
-                        roleFilter={trendsRoleFilter}
-                        heightClass="h-56"
-                      />
+                      {transformedUserGrowth.length === 0 ? (
+                        <ChartEmptyState
+                          title="No New Registrations"
+                          message="Zero worker or employer sign-ups occurred during this selected window."
+                        />
+                      ) : (
+                        <UserGrowthChart
+                          data={transformedUserGrowth}
+                          intervalFilter={intervalFilter}
+                          roleFilter={trendsRoleFilter}
+                          heightClass="h-56"
+                        />
+                      )}
                     </div>
 
                     {/* Application-to-Hire Conversion Velocity Area Chart */}
@@ -2363,12 +2355,19 @@ export default function AnalyticsDashboard() {
                           }
                         ]}
                       />
-                      <ConversionVelocityChart
-                        data={transformedConversionVelocity}
-                        intervalFilter={intervalFilter}
-                        trendsVolumeFilter={trendsVolumeFilter}
-                        heightClass="h-56"
-                      />
+                      {transformedConversionVelocity.length === 0 ? (
+                        <ChartEmptyState
+                          title="No Application or Hiring Activity"
+                          message={`No job applications or completed hires were recorded between ${from} and ${to}.`}
+                        />
+                      ) : (
+                        <ConversionVelocityChart
+                          data={transformedConversionVelocity}
+                          intervalFilter={intervalFilter}
+                          trendsVolumeFilter={trendsVolumeFilter}
+                          heightClass="h-56"
+                        />
+                      )}
                     </div>
                   </div>
                 </>
@@ -2622,11 +2621,18 @@ export default function AnalyticsDashboard() {
                           { label: 'Total Job Posts', value: transformedJobsData.reduce((acc: number, cur: any) => acc + (cur.jobs || 0), 0) }
                         ]}
                       />
-                      <JobsDistributionChart
-                        data={transformedJobsData}
-                        heightClass="h-56"
-                        onBarClick={handleJobsBarClick}
-                      />
+                      {transformedJobsData.length === 0 ? (
+                        <ChartEmptyState
+                          title="No Job Postings Recorded"
+                          message={`No job postings were recorded between ${from} and ${to}.`}
+                        />
+                      ) : (
+                        <JobsDistributionChart
+                          data={transformedJobsData}
+                          heightClass="h-56"
+                          onBarClick={handleJobsBarClick}
+                        />
+                      )}
                     </div>
 
                     {/* Skill Profile Distribution Donut Chart */}
@@ -2696,11 +2702,18 @@ export default function AnalyticsDashboard() {
                         { label: 'Applications', value: transformedGeographicActivity.reduce((acc: number, c: any) => acc + (c.applications || 0), 0) }
                       ]}
                     />
-                    <GeographicActivityChart
-                      data={transformedGeographicActivity}
-                      stacked={true}
-                      heightClass="h-56"
-                    />
+                    {transformedGeographicActivity.length === 0 ? (
+                      <ChartEmptyState
+                        title="No Regional Activity"
+                        message="No geographic activity recorded for this filter and date window."
+                      />
+                    ) : (
+                      <GeographicActivityChart
+                        data={transformedGeographicActivity}
+                        stacked={true}
+                        heightClass="h-56"
+                      />
+                    )}
                   </div>
                 </>
               )}

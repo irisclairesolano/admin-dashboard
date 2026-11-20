@@ -21,6 +21,7 @@ import {
   ChartTooltip,
   formatAxisTick as defaultFormatAxisTick,
   formatPeriodLabel as defaultFormatPeriodLabel,
+  isChartAnimationActive,
   renderCompactLegendText,
 } from './chartTheme';
 
@@ -47,6 +48,7 @@ const ApplicationVolumeChart = memo(function ApplicationVolumeChart({
   margin = CHART_DEFAULT_MARGIN,
 }: ApplicationVolumeChartProps) {
   const showDots = data.length <= 3;
+  const animationActive = isChartAnimationActive();
 
   return (
     <div className={`${heightClass} w-full min-w-0 font-numeric`}>
@@ -109,6 +111,7 @@ const ApplicationVolumeChart = memo(function ApplicationVolumeChart({
             filter="url(#area3dShadowOverview)"
             fillOpacity={1}
             fill="url(#colorAppsOverview)"
+            isAnimationActive={animationActive}
             animationBegin={0}
             animationDuration={CHART_ANIMATION.duration}
             animationEasing={CHART_ANIMATION.easing}
@@ -124,6 +127,7 @@ const ApplicationVolumeChart = memo(function ApplicationVolumeChart({
             filter="url(#area3dShadowOverview)"
             fillOpacity={1}
             fill="url(#colorJobsOverview)"
+            isAnimationActive={animationActive}
             animationBegin={CHART_ANIMATION.staggerDelay}
             animationDuration={CHART_ANIMATION.duration}
             animationEasing={CHART_ANIMATION.easing}

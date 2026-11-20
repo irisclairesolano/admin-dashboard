@@ -21,6 +21,7 @@ import {
   ChartTooltip,
   formatAxisTick as defaultFormatAxisTick,
   formatPeriodLabel as defaultFormatPeriodLabel,
+  isChartAnimationActive,
   renderCompactLegendText,
 } from './chartTheme';
 
@@ -47,6 +48,7 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
   heightClass = 'h-56',
 }: ConversionVelocityChartProps) {
   const showDots = data.length <= 3;
+  const animationActive = isChartAnimationActive();
 
   return (
     <div className={`${heightClass} w-full min-w-0 font-numeric`}>
@@ -110,6 +112,7 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
               filter="url(#area3dShadowVelocity)"
               fillOpacity={1}
               fill="url(#colorAppsVelocity)"
+              isAnimationActive={animationActive}
               animationBegin={0}
               animationDuration={CHART_ANIMATION.duration}
               animationEasing={CHART_ANIMATION.easing}
@@ -127,6 +130,7 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
               filter="url(#area3dShadowVelocity)"
               fillOpacity={1}
               fill="url(#colorHiresVelocity)"
+              isAnimationActive={animationActive}
               animationBegin={CHART_ANIMATION.staggerDelay}
               animationDuration={CHART_ANIMATION.duration}
               animationEasing={CHART_ANIMATION.easing}

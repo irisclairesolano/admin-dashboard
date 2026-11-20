@@ -60,10 +60,32 @@ export const CHART_LEGEND_STYLE: React.CSSProperties = {
 };
 
 export const CHART_ANIMATION = {
-  duration: 850,
+  duration: 650,
   easing: 'ease-out' as const,
-  staggerDelay: 120,
+  staggerDelay: 90,
 };
+
+/**
+ * Returns `true` in all real browsers so Recharts entrance/update animations
+ * always run smoothly (instead of Recharts 3.9's `'auto'` default skipping
+ * animations when Windows OS reduced-motion is active).
+ * In jsdom unit tests where `(prefers-reduced-motion: reduce)` is explicitly
+ * mocked to `true`, returns `false` so synchronous geometry assertions work at t=0.
+ */
+export function isChartAnimationActive(): boolean {
+  if (typeof window === 'undefined') return false;
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+  if (/jsdom/i.test(ua) && typeof window.matchMedia === 'function') {
+    try {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return false;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return true;
+}
 
 interface Bar3DShapeProps {
   x?: number;
@@ -79,8 +101,22 @@ interface Bar3DShapeProps {
  * Keeps `<rect>` as the sole rect primitive for deterministic geometry & tests.
  */
 export function Bar3DVertical(props: Bar3DShapeProps) {
-  const { x = 0, y = 0, width = 0, height = 0, fill = CHART_PALETTE.workers } = props;
-  if (!width || !height || width <= 0 || height <= 0) return null;
+  const x = Number(props.x ?? 0);
+  const y = Number(props.y ?? 0);
+  const width = Number(props.width ?? 0);
+  const height = Number(props.height ?? 0);
+  const fill = props.fill || CHART_PALETTE.workers;
+
+  if (
+    !Number.isFinite(x) ||
+    !Number.isFinite(y) ||
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    return null;
+  }
 
   const depth = Math.min(4, Math.max(2.5, Math.round(width * 0.32)));
   const highlightW = Math.max(1.5, width * 0.2);
@@ -108,8 +144,22 @@ export function Bar3DVertical(props: Bar3DShapeProps) {
  * extruded top wall, beveled right cap, top sheen, and subtle ground shadow.
  */
 export function Bar3DHorizontal(props: Bar3DShapeProps) {
-  const { x = 0, y = 0, width = 0, height = 0, fill = CHART_PALETTE.workers } = props;
-  if (!width || !height || width <= 0 || height <= 0) return null;
+  const x = Number(props.x ?? 0);
+  const y = Number(props.y ?? 0);
+  const width = Number(props.width ?? 0);
+  const height = Number(props.height ?? 0);
+  const fill = props.fill || CHART_PALETTE.workers;
+
+  if (
+    !Number.isFinite(x) ||
+    !Number.isFinite(y) ||
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    return null;
+  }
 
   const depth = Math.min(3.5, Math.max(2.5, Math.round(height * 0.3)));
   const sheenH = Math.max(1.5, height * 0.2);

@@ -23,6 +23,7 @@ import {
   formatAxisTick as defaultFormatAxisTick,
   formatPeriodLabel as defaultFormatPeriodLabel,
   getAdaptiveBarConfig,
+  isChartAnimationActive,
   renderCompactLegendText,
 } from './chartTheme';
 
@@ -52,6 +53,7 @@ const UserGrowthChart = memo(function UserGrowthChart({
 }: UserGrowthChartProps) {
   const seriesCount = roleFilter === 'all' ? 2 : 1;
   const barConfig = getAdaptiveBarConfig(data.length, seriesCount);
+  const animationActive = isChartAnimationActive();
 
   return (
     <div className={`${heightClass} w-full min-w-0 font-numeric`}>
@@ -102,6 +104,7 @@ const UserGrowthChart = memo(function UserGrowthChart({
               shape={<Bar3DVertical />}
               barSize={barConfig.barSize}
               maxBarSize={barConfig.maxBarSize}
+              isAnimationActive={animationActive}
               animationBegin={0}
               animationDuration={CHART_ANIMATION.duration}
               animationEasing={CHART_ANIMATION.easing}
@@ -115,6 +118,7 @@ const UserGrowthChart = memo(function UserGrowthChart({
               shape={<Bar3DVertical />}
               barSize={barConfig.barSize}
               maxBarSize={barConfig.maxBarSize}
+              isAnimationActive={animationActive}
               animationBegin={CHART_ANIMATION.staggerDelay}
               animationDuration={CHART_ANIMATION.duration}
               animationEasing={CHART_ANIMATION.easing}

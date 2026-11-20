@@ -23,6 +23,7 @@ import {
   CHART_PALETTE,
   ChartTooltip,
   getAdaptiveBarConfig,
+  isChartAnimationActive,
   renderCompactLegendText,
   truncateLabel,
 } from './chartTheme';
@@ -51,6 +52,7 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
   const hasApplicationsSeries = data.some((d) => typeof d.applications === 'number');
   const seriesCount = !stacked && hasApplicationsSeries ? 2 : 1;
   const barConfig = getAdaptiveBarConfig(data.length, seriesCount);
+  const animationActive = isChartAnimationActive();
 
   if (useHorizontalLayout) {
     const dynamicHeight = Math.max(224, Math.min(data.length * 32 + 44, 420));
@@ -103,6 +105,7 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                   shape={<Bar3DHorizontal />}
                   barSize={barConfig.barSize}
                   maxBarSize={barConfig.maxBarSize}
+                  isAnimationActive={animationActive}
                   animationBegin={0}
                   animationDuration={CHART_ANIMATION.duration}
                   animationEasing={CHART_ANIMATION.easing}
@@ -115,6 +118,7 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                   shape={<Bar3DHorizontal />}
                   barSize={barConfig.barSize}
                   maxBarSize={barConfig.maxBarSize}
+                  isAnimationActive={animationActive}
                   animationBegin={CHART_ANIMATION.staggerDelay}
                   animationDuration={CHART_ANIMATION.duration}
                   animationEasing={CHART_ANIMATION.easing}
@@ -129,6 +133,7 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                   shape={<Bar3DHorizontal />}
                   barSize={barConfig.barSize}
                   maxBarSize={barConfig.maxBarSize}
+                  isAnimationActive={animationActive}
                   animationBegin={0}
                   animationDuration={CHART_ANIMATION.duration}
                   animationEasing={CHART_ANIMATION.easing}
@@ -140,6 +145,7 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                   shape={<Bar3DHorizontal />}
                   barSize={barConfig.barSize}
                   maxBarSize={barConfig.maxBarSize}
+                  isAnimationActive={animationActive}
                   animationBegin={CHART_ANIMATION.staggerDelay}
                   animationDuration={CHART_ANIMATION.duration}
                   animationEasing={CHART_ANIMATION.easing}
@@ -153,6 +159,8 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                 shape={<Bar3DHorizontal />}
                 barSize={barConfig.barSize}
                 maxBarSize={barConfig.maxBarSize}
+                isAnimationActive={animationActive}
+                animationBegin={0}
                 animationDuration={CHART_ANIMATION.duration}
                 animationEasing={CHART_ANIMATION.easing}
               />
@@ -209,6 +217,7 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                 shape={<Bar3DVertical />}
                 barSize={barConfig.barSize}
                 maxBarSize={barConfig.maxBarSize}
+                isAnimationActive={animationActive}
                 animationBegin={0}
                 animationDuration={CHART_ANIMATION.duration}
                 animationEasing={CHART_ANIMATION.easing}
@@ -221,6 +230,7 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                 shape={<Bar3DVertical />}
                 barSize={barConfig.barSize}
                 maxBarSize={barConfig.maxBarSize}
+                isAnimationActive={animationActive}
                 animationBegin={CHART_ANIMATION.staggerDelay}
                 animationDuration={CHART_ANIMATION.duration}
                 animationEasing={CHART_ANIMATION.easing}
@@ -235,6 +245,7 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                 shape={<Bar3DVertical />}
                 barSize={barConfig.barSize}
                 maxBarSize={barConfig.maxBarSize}
+                isAnimationActive={animationActive}
                 animationBegin={0}
                 animationDuration={CHART_ANIMATION.duration}
                 animationEasing={CHART_ANIMATION.easing}
@@ -246,6 +257,7 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                 shape={<Bar3DVertical />}
                 barSize={barConfig.barSize}
                 maxBarSize={barConfig.maxBarSize}
+                isAnimationActive={animationActive}
                 animationBegin={CHART_ANIMATION.staggerDelay}
                 animationDuration={CHART_ANIMATION.duration}
                 animationEasing={CHART_ANIMATION.easing}
@@ -259,6 +271,8 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
               shape={<Bar3DVertical />}
               barSize={barConfig.barSize}
               maxBarSize={barConfig.maxBarSize}
+              isAnimationActive={animationActive}
+              animationBegin={0}
               animationDuration={CHART_ANIMATION.duration}
               animationEasing={CHART_ANIMATION.easing}
             />

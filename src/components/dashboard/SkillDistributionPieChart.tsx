@@ -9,7 +9,7 @@ import {
   Sector,
   Tooltip,
 } from 'recharts';
-import { CHART_ANIMATION, CHART_PALETTE } from './chartTheme';
+import { CHART_ANIMATION, CHART_PALETTE, isChartAnimationActive } from './chartTheme';
 
 const RechartsPie = Pie as any;
 
@@ -143,6 +143,7 @@ const SkillDistributionPieChart = memo(function SkillDistributionPieChart({
   onSliceClick,
 }: SkillDistributionPieChartProps) {
   const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
+  const animationActive = isChartAnimationActive();
 
   const handleSliceClick = (entry: SkillDistributionItem) => {
     if (onSliceClick) {
@@ -177,7 +178,8 @@ const SkillDistributionPieChart = memo(function SkillDistributionPieChart({
               dataKey="value"
               label={false}
               filter="url(#pie3dShadow)"
-              isAnimationActive={true}
+              isAnimationActive={animationActive}
+              animationBegin={0}
               animationDuration={CHART_ANIMATION.duration}
               animationEasing={CHART_ANIMATION.easing}
               activeIndex={activePieIndex !== null ? activePieIndex : undefined}

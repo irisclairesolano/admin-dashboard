@@ -18,6 +18,7 @@ import {
   CHART_HORIZONTAL_GRID_PROPS,
   CHART_PALETTE,
   getAdaptiveBarConfig,
+  isChartAnimationActive,
   truncateLabel,
 } from './chartTheme';
 
@@ -108,6 +109,7 @@ const JobsDistributionChart = memo(function JobsDistributionChart({
   onBarClick,
 }: JobsDistributionChartProps) {
   const barConfig = getAdaptiveBarConfig(data.length, 1);
+  const animationActive = isChartAnimationActive();
 
   return (
     <div className={`${heightClass} w-full min-w-0 font-numeric`}>
@@ -146,6 +148,8 @@ const JobsDistributionChart = memo(function JobsDistributionChart({
             shape={<Bar3DHorizontal />}
             barSize={barConfig.barSize}
             maxBarSize={barConfig.maxBarSize}
+            isAnimationActive={animationActive}
+            animationBegin={0}
             animationDuration={CHART_ANIMATION.duration}
             animationEasing={CHART_ANIMATION.easing}
             onClick={(entry: any) => onBarClick?.(entry)}
