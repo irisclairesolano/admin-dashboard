@@ -107,18 +107,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070D0C] text-slate-100 relative flex flex-col justify-between overflow-x-hidden overflow-y-auto selection:bg-teal-400 selection:text-slate-950">
-      
-      {/* ── Ambient Background Glows & Subtle Grid ──────────────────────── */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-        {/* Soft radial emerald / cyan halos */}
-        <div className="absolute top-1/4 -left-24 w-[520px] h-[520px] bg-emerald-500/12 rounded-full blur-[140px]" />
-        <div className="absolute top-1/3 right-4 w-[580px] h-[580px] bg-teal-500/15 rounded-full blur-[160px]" />
-        <div className="absolute -bottom-24 left-1/3 w-[460px] h-[460px] bg-cyan-500/8 rounded-full blur-[140px]" />
+    <div className="min-h-screen bg-paper dark:bg-slate-950 text-ink dark:text-slate-100 relative flex flex-col justify-between overflow-x-hidden overflow-y-auto selection:bg-primary selection:text-white dark:selection:bg-sky-400 dark:selection:text-slate-950 transition-colors">
 
-        {/* Delicate tech grid overlay */}
+      {/* ── Ambient Background Glows & Subtle Grid (SIKAP Pastel Palette) ── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute -top-24 -left-24 w-[480px] h-[480px] bg-accent-sky/45 dark:bg-sky-900/20 rounded-full blur-[130px]" />
+        <div className="absolute top-1/4 -right-16 w-[520px] h-[520px] bg-accent-peach/45 dark:bg-rose-900/15 rounded-full blur-[140px]" />
+        <div className="absolute -bottom-24 left-1/3 w-[440px] h-[440px] bg-accent-mint/35 dark:bg-emerald-950/20 rounded-full blur-[130px]" />
+
+        {/* Delicate blueprint grid overlay */}
         <svg
-          className="absolute inset-0 w-full h-full opacity-[0.035]"
+          className="absolute inset-0 w-full h-full opacity-[0.045] dark:opacity-[0.035]"
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
@@ -128,7 +127,7 @@ export default function LoginPage() {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1"
-                className="text-emerald-400"
+                className="text-primary dark:text-sky-400"
               />
             </pattern>
           </defs>
@@ -137,10 +136,10 @@ export default function LoginPage() {
       </div>
 
       {/* ── Top Navigation Bar ────────────────────────────────────────────── */}
-      <header className="w-full z-30 px-6 sm:px-10 lg:px-14 py-3 sm:py-3.5 flex items-center justify-between border-b border-emerald-950/40 bg-[#070D0C]/60 backdrop-blur-md shrink-0">
-        
-        {/* Left: Official SIKAP Logo */}
-        <div className="flex items-center gap-3">
+      <header className="w-full z-30 px-6 sm:px-10 lg:px-14 py-3 sm:py-3.5 flex items-center justify-between border-b border-ink-faint/70 dark:border-slate-800 bg-white/70 dark:bg-slate-950/75 backdrop-blur-xl shrink-0">
+
+        {/* Left: Official SIKAP Wordmark + Admin Pill */}
+        <div className="flex items-center gap-2.5">
           <div className="relative h-7 w-24 sm:h-8 sm:w-28 flex items-center">
             <Image
               src="/logo/04_Wordmark.png"
@@ -148,294 +147,307 @@ export default function LoginPage() {
               width={112}
               height={32}
               priority
-              className="object-contain brightness-0 invert opacity-95 hover:opacity-100 transition-opacity"
+              className="object-contain dark:brightness-0 dark:invert opacity-95 hover:opacity-100 transition-opacity"
             />
           </div>
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-body font-semibold bg-primary-tint dark:bg-slate-800 text-primary dark:text-slate-300 border border-primary/15 dark:border-slate-700">
+            Admin
+          </span>
         </div>
 
-        {/* Right: Location Badge with Pulsing Live Dot */}
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#0E1A18]/90 border border-emerald-500/25 text-xs font-semibold text-emerald-300 shadow-xs backdrop-blur-sm">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50" />
+        {/* Right: Location Badge */}
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 dark:bg-slate-900/90 border border-ink-faint/80 dark:border-slate-700 text-xs font-semibold text-ink-soft dark:text-slate-200 shadow-2xs backdrop-blur-sm">
+          <span className="w-2 h-2 rounded-full bg-accent-mintDeep dark:bg-emerald-400 animate-pulse" />
           <span>Sorsogon, Philippines</span>
         </div>
       </header>
 
       {/* ── Main Hero Section ─────────────────────────────────────────────── */}
-      <main className="relative z-20 flex-1 min-h-0 max-w-7xl mx-auto w-full px-6 sm:px-10 lg:px-14 py-3 sm:py-4 lg:py-6 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 lg:gap-12">
-        
-        {/* ── Left Column: Value Prop & Local Context ── */}
+      <main className="relative z-20 flex-1 min-h-0 max-w-7xl mx-auto w-full px-6 sm:px-10 lg:px-14 py-4 sm:py-6 lg:py-8 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 lg:gap-12">
+
+        {/* ── Left Column: SIKAP Brand Hero ── */}
         <div className="flex-1 max-w-xl text-left space-y-3 sm:space-y-4 lg:space-y-5 animate-slide-up order-2 lg:order-1">
-          
-          {/* Capstone Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0C1917]/90 border border-emerald-500/30 text-emerald-300 text-xs font-semibold tracking-wide shadow-xs backdrop-blur-sm">
-            <Shield className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Capstone Research Project</span>
+
+          {/* Eyebrow Badge */}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-tint/90 dark:bg-slate-900/90 border border-primary/15 dark:border-slate-700 text-primary dark:text-sky-300 text-[11px] font-bold uppercase tracking-wider shadow-2xs backdrop-blur-sm">
+            <Shield className="w-3.5 h-3.5 text-primary dark:text-sky-400" />
+            <span>Built for Informal Work · Admin Console</span>
           </div>
 
           {/* Heading */}
-          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl xl:text-[44px] font-black tracking-tight text-white leading-[1.12]">
-            Local Skills &amp; Labor<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300">
-              Workforce Management
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-[42px] xl:text-[46px] font-black tracking-tight text-ink dark:text-white leading-[1.12]">
+            Trusted Local Work.<br />
+            Steward the{' '}
+            <span className="italic text-primary-soft dark:text-sky-300">
+              Kabuhayan.
             </span>
           </h1>
 
           {/* Description */}
-          <p className="font-body text-xs sm:text-sm text-slate-300/85 leading-relaxed max-w-lg">
+          <p className="font-body text-xs sm:text-sm text-ink-soft dark:text-slate-300 leading-relaxed max-w-lg">
             The administrative console behind the SIKAP mobile job platform.
-            Verify identities, moderate job posts, track applications, and keep
-            Bulan&apos;s workforce community safe.
+            Verify identities, moderate job listings, and keep Sorsogon&apos;s
+            informal workforce community safe and trusted.
           </p>
 
-          {/* Feature Badges Row */}
+          {/* Feature / Value Props Row */}
           <div className="flex flex-wrap items-center gap-2 pt-0.5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0D1817]/80 border border-emerald-500/20 text-xs font-medium text-slate-200 backdrop-blur-sm hover:border-emerald-500/40 transition-colors">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/85 dark:bg-slate-900/80 border border-ink-faint/80 dark:border-slate-700 text-xs font-medium text-ink-soft dark:text-slate-200 shadow-2xs backdrop-blur-sm">
+              <ShieldCheck className="w-3.5 h-3.5 text-accent-mintDeep dark:text-emerald-400" />
               <span>ID Verification</span>
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0D1817]/80 border border-emerald-500/20 text-xs font-medium text-slate-200 backdrop-blur-sm hover:border-emerald-500/40 transition-colors">
-              <Briefcase className="w-3.5 h-3.5 text-teal-400" />
-              <span>Job Listings</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/85 dark:bg-slate-900/80 border border-ink-faint/80 dark:border-slate-700 text-xs font-medium text-ink-soft dark:text-slate-200 shadow-2xs backdrop-blur-sm">
+              <Briefcase className="w-3.5 h-3.5 text-primary dark:text-sky-400" />
+              <span>Job Moderation</span>
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0D1817]/80 border border-emerald-500/20 text-xs font-medium text-slate-200 backdrop-blur-sm hover:border-emerald-500/40 transition-colors">
-              <AlertTriangle className="w-3.5 h-3.5 text-emerald-300" />
-              <span>Safety &amp; Moderation</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/85 dark:bg-slate-900/80 border border-ink-faint/80 dark:border-slate-700 text-xs font-medium text-ink-soft dark:text-slate-200 shadow-2xs backdrop-blur-sm">
+              <AlertTriangle className="w-3.5 h-3.5 text-primary-soft dark:text-sky-300" />
+              <span>Safety &amp; Trust</span>
             </div>
           </div>
 
-          {/* Team Credits: Clean, Integrated Bottom-Left Signature */}
-          <div className="pt-2 sm:pt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
-            <span className="font-bold uppercase tracking-wider text-emerald-400 text-[11px] mr-1">
+          {/* Team Credits */}
+          <div className="pt-2 sm:pt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted dark:text-slate-400">
+            <span className="font-bold uppercase tracking-wider text-primary dark:text-sky-400 text-[11px] mr-1">
               TEAM
             </span>
-            <span className="text-slate-300">
-              <strong className="text-white font-semibold">Solano</strong> Developer
+            <span className="text-ink-soft dark:text-slate-300">
+              <strong className="text-ink dark:text-white font-semibold">Solano</strong> Developer
             </span>
-            <span className="text-slate-700 hidden sm:inline">•</span>
-            <span className="text-slate-300">
-              <strong className="text-white font-semibold">Bohol</strong> Project Manager
+            <span className="text-ink-light dark:text-slate-700 hidden sm:inline">•</span>
+            <span className="text-ink-soft dark:text-slate-300">
+              <strong className="text-ink dark:text-white font-semibold">Bohol</strong> Project Manager
             </span>
-            <span className="text-slate-700 hidden sm:inline">•</span>
-            <span className="text-slate-300">
-              <strong className="text-white font-semibold">Escultura</strong> Systems Analyst
+            <span className="text-ink-light dark:text-slate-700 hidden sm:inline">•</span>
+            <span className="text-ink-soft dark:text-slate-300">
+              <strong className="text-ink dark:text-white font-semibold">Escultura</strong> Systems Analyst
             </span>
-            <span className="text-slate-700 hidden sm:inline">•</span>
-            <span className="text-slate-300">
-              <strong className="text-white font-semibold">Deticio</strong> Technical Writer
+            <span className="text-ink-light dark:text-slate-700 hidden sm:inline">•</span>
+            <span className="text-ink-soft dark:text-slate-300">
+              <strong className="text-ink dark:text-white font-semibold">Deticio</strong> Technical Writer
             </span>
           </div>
         </div>
 
         {/* ── Right Column: Administrator Portal Sign-In Card ── */}
-        <div className="w-full max-w-md sm:w-[400px] lg:w-[420px] bg-[#0A1413]/85 rounded-2xl sm:rounded-3xl border border-emerald-500/20 shadow-2xl shadow-emerald-950/60 p-5 sm:p-6 lg:p-7 relative z-20 animate-slide-up flex-shrink-0 order-1 lg:order-2 backdrop-blur-xl">
-          
-          {/* Card Header */}
-          <div className="mb-3.5 text-left">
-            <h2 className="font-display text-xl sm:text-2xl font-black text-white tracking-tight">
-              {mfaRequired ? 'Two-Factor Challenge' : 'Administrator Portal'}
-            </h2>
-            <p className="font-body text-xs text-slate-400 mt-1 leading-relaxed">
-              {mfaRequired
-                ? 'Enter the 6-digit TOTP code generated by your authenticator application.'
-                : 'Sign in with your authorized credentials to manage municipal platform assets.'}
-            </p>
-          </div>
+        <div className="relative w-full max-w-md sm:w-[400px] lg:w-[420px] flex-shrink-0 order-1 lg:order-2 animate-slide-up">
+          {/* Card-scoped ambient pastel glows matching SIKAP LoginScreen */}
+          <div className="pointer-events-none absolute -top-6 -right-6 w-36 h-36 rounded-full bg-accent-peach/40 dark:bg-rose-500/15 blur-2xl" />
+          <div className="pointer-events-none absolute -bottom-6 -left-6 w-36 h-36 rounded-full bg-accent-sky/45 dark:bg-sky-500/15 blur-2xl" />
 
-          {/* Error / Lockout Alert */}
-          {error && (
-            <div
-              className={`border px-3 py-2 rounded-lg mb-3 text-xs font-medium flex flex-col gap-1.5 animate-fade-in ${
-                error.includes('Lockout reset')
-                  ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
-                  : 'bg-rose-950/40 border-rose-500/40 text-rose-300'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="flex-1">{error}</span>
+          <div className="relative z-20 bg-white/85 dark:bg-slate-900/85 rounded-2xl sm:rounded-3xl border border-white/80 dark:border-slate-800 shadow-glass p-5 sm:p-6 lg:p-7 backdrop-blur-xl">
+
+            {/* Card Header */}
+            <div className="mb-4 text-left">
+              <h2 className="font-display text-xl sm:text-2xl font-black text-ink dark:text-white tracking-tight">
+                {mfaRequired ? 'Two-Factor Challenge' : 'Administrator Portal'}
+              </h2>
+              <p className="font-body text-xs text-ink-muted dark:text-slate-400 mt-1 leading-relaxed">
+                {mfaRequired
+                  ? 'Enter the 6-digit TOTP code generated by your authenticator application.'
+                  : 'Sign in with your authorized credentials to manage the SIKAP platform.'}
+              </p>
+            </div>
+
+            {/* Error / Lockout Alert */}
+            {error && (
+              <div
+                className={`border px-3 py-2 rounded-xl mb-3.5 text-xs font-medium flex flex-col gap-1.5 animate-fade-in ${
+                  error.includes('Lockout reset')
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300'
+                    : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="flex-1">{error}</span>
+                </div>
+                {error.toLowerCase().includes('too many') && process.env.NODE_ENV === 'development' && (
+                  <button
+                    type="button"
+                    onClick={handleResetLockout}
+                    disabled={resettingThrottle}
+                    className="self-start mt-0.5 px-3 py-1 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white rounded-lg font-bold text-xs transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                  >
+                    {resettingThrottle ? 'Unlocking...' : '🔓 Reset Lockout Now'}
+                  </button>
+                )}
               </div>
-              {error.toLowerCase().includes('too many') && process.env.NODE_ENV === 'development' && (
+            )}
+
+            {!mfaRequired ? (
+              <form onSubmit={handleLogin} className="space-y-3.5">
+
+                {/* Email Address */}
+                <div>
+                  <label htmlFor="admin-email" className="block font-body font-semibold text-ink-soft dark:text-slate-300 text-xs mb-1">
+                    Email address
+                  </label>
+                  <div className="relative flex items-center">
+                    <Mail className="w-4 h-4 text-ink-muted dark:text-slate-400 absolute left-3 pointer-events-none" />
+                    <input
+                      id="admin-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full pl-9 pr-3.5 py-2.5 bg-paper/80 dark:bg-slate-950/80 rounded-xl border border-ink-faint dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-primary dark:focus:border-sky-400 focus:ring-2 focus:ring-primary/15 dark:focus:ring-sky-400/20 outline-none font-body text-sm text-ink dark:text-slate-100 transition-all placeholder:text-ink-light dark:placeholder:text-slate-500"
+                      placeholder="admin@sikap.ph"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label htmlFor="admin-password" className="font-body font-semibold text-ink-soft dark:text-slate-300 text-xs">
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setError('To reset your administrator password or 2FA, please contact your municipal system administrator.')}
+                      className="text-xs font-semibold text-primary-soft dark:text-sky-400 hover:text-primary dark:hover:text-sky-300 transition-colors cursor-pointer"
+                    >
+                      Forgot?
+                    </button>
+                  </div>
+                  <div className="relative flex items-center">
+                    <Lock className="w-4 h-4 text-ink-muted dark:text-slate-400 absolute left-3 pointer-events-none" />
+                    <input
+                      id="admin-password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full pl-9 pr-10 py-2.5 bg-paper/80 dark:bg-slate-950/80 rounded-xl border border-ink-faint dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-primary dark:focus:border-sky-400 focus:ring-2 focus:ring-primary/15 dark:focus:ring-sky-400/20 outline-none font-body text-sm text-ink dark:text-slate-100 transition-all placeholder:text-ink-light dark:placeholder:text-slate-500"
+                      placeholder="Enter your password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2.5 text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-200 p-1 cursor-pointer transition-colors"
+                      aria-label="Toggle password visibility"
+                    >
+                      {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Keep Me Signed In Checkbox */}
+                <div className="flex items-center gap-2 pt-0.5">
+                  <input
+                    id="remember-me"
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded border-ink-faint dark:border-slate-700 bg-white dark:bg-slate-900 text-primary dark:text-sky-400 focus:ring-primary/20 dark:focus:ring-sky-400/20 focus:ring-offset-0 cursor-pointer accent-primary"
+                  />
+                  <label
+                    htmlFor="remember-me"
+                    className="text-xs text-ink-soft dark:text-slate-300 font-medium cursor-pointer select-none"
+                  >
+                    Keep me signed in
+                  </label>
+                </div>
+
+                {/* Sign In Button: Midnight Navy matching SIKAP primary Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-primary hover:bg-primary-hover dark:bg-sky-500 dark:hover:bg-sky-400 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed text-white dark:text-slate-950 font-body font-bold py-2.5 sm:py-3 rounded-xl shadow-md shadow-primary/20 dark:shadow-sky-500/20 transition-all flex justify-center items-center gap-2 text-sm mt-3.5 cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 dark:border-slate-950/30 border-t-white dark:border-t-slate-950 rounded-full animate-spin" />
+                      <span>Signing In...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Sign In</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleMfaVerify} className="space-y-3.5">
+                <div>
+                  <label htmlFor="admin-totp" className="block font-body font-semibold text-ink-soft dark:text-slate-300 text-xs mb-1">
+                    6-Digit Verification Code
+                  </label>
+                  <input
+                    id="admin-totp"
+                    type="text"
+                    maxLength={10}
+                    value={totpCode}
+                    onChange={(e) => setTotpCode(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-paper/80 dark:bg-slate-950/80 rounded-xl border border-ink-faint dark:border-slate-700 focus:bg-white dark:focus:bg-slate-900 focus:border-primary dark:focus:border-sky-400 focus:ring-2 focus:ring-primary/15 dark:focus:ring-sky-400/20 outline-none font-mono text-center text-lg tracking-widest text-ink dark:text-white font-bold transition-all placeholder:text-ink-light dark:placeholder:text-slate-500"
+                    placeholder="000000"
+                    autoFocus
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading || !totpCode}
+                  className="w-full bg-primary hover:bg-primary-hover dark:bg-sky-500 dark:hover:bg-sky-400 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white dark:text-slate-950 font-body font-bold py-2.5 sm:py-3 rounded-xl shadow-md shadow-primary/20 dark:shadow-sky-500/20 transition-all flex justify-center items-center gap-2 text-sm mt-3 cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 dark:border-slate-950/30 border-t-white dark:border-t-slate-950 rounded-full animate-spin" />
+                      <span>Verifying...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Verify &amp; Access Portal</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+
                 <button
                   type="button"
-                  onClick={handleResetLockout}
-                  disabled={resettingThrottle}
-                  className="self-start mt-0.5 px-3 py-1 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white rounded-lg font-bold text-xs transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+                  onClick={() => {
+                    setMfaRequired(false);
+                    setTotpCode('');
+                    setError('');
+                  }}
+                  className="w-full text-center text-xs font-semibold text-ink-muted dark:text-slate-400 hover:text-primary dark:hover:text-sky-300 transition-colors mt-1.5 block cursor-pointer"
                 >
-                  {resettingThrottle ? 'Unlocking...' : '🔓 Reset Lockout Now'}
+                  &larr; Back to password login
                 </button>
-              )}
+              </form>
+            )}
+
+            {/* Secured Access Divider */}
+            <div className="relative my-4 flex items-center justify-center">
+              <div className="w-full border-t border-ink-faint/80 dark:border-slate-800" />
+              <span className="relative bg-white/95 dark:bg-slate-900 px-3 text-[10px] uppercase font-bold tracking-widest text-ink-muted dark:text-slate-400">
+                SECURED ACCESS
+              </span>
             </div>
-          )}
 
-          {!mfaRequired ? (
-            <form onSubmit={handleLogin} className="space-y-3">
-              
-              {/* Email Address */}
-              <div>
-                <label className="block font-body font-medium text-slate-300 text-xs mb-1">
-                  Email address
-                </label>
-                <div className="relative flex items-center">
-                  <Mail className="w-4 h-4 text-slate-500 absolute left-3 pointer-events-none" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-9 pr-3.5 py-2.5 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-body text-sm text-slate-100 transition-all placeholder:text-slate-400"
-                    placeholder="admin@sikap.ph"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="font-body font-medium text-slate-300 text-xs">
-                    Password
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setError('To reset your administrator password or 2FA, please contact your municipal system administrator.')}
-                    className="text-xs font-semibold text-teal-400 hover:text-teal-300 transition-colors cursor-pointer"
-                  >
-                    Forgot?
-                  </button>
-                </div>
-                <div className="relative flex items-center">
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 pointer-events-none" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-9 pr-10 py-2.5 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-body text-sm text-slate-100 transition-all placeholder:text-slate-400"
-                    placeholder="Enter your password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2.5 text-slate-500 hover:text-slate-300 p-1 cursor-pointer transition-colors"
-                    aria-label="Toggle password visibility"
-                  >
-                    {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Keep Me Signed In Checkbox */}
-              <div className="flex items-center gap-2 pt-0.5">
-                <input
-                  id="remember-me"
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-3.5 h-3.5 rounded border-slate-700 bg-[#060D0C] text-teal-400 focus:ring-teal-400/20 focus:ring-offset-0 cursor-pointer accent-teal-400"
-                />
-                <label
-                  htmlFor="remember-me"
-                  className="text-xs text-slate-300 font-medium cursor-pointer select-none"
-                >
-                  Keep me signed in
-                </label>
-              </div>
-
-              {/* Sign In Button: Vibrant Glowing Mint/Teal Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-[#6ee7b7] via-[#2dd4bf] to-[#38bdf8] hover:brightness-110 active:scale-[0.98] disabled:opacity-75 disabled:cursor-not-allowed text-slate-950 font-body font-bold py-2.5 sm:py-3 rounded-xl shadow-lg shadow-teal-500/25 transition-all flex justify-center items-center gap-2 text-sm mt-3.5 cursor-pointer"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                    <span>Signing In...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Sign In</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleMfaVerify} className="space-y-3">
-              <div>
-                <label className="block font-body font-medium text-slate-300 text-xs mb-1">
-                  6-Digit Verification Code
-                </label>
-                <input
-                  type="text"
-                  maxLength={10}
-                  value={totpCode}
-                  onChange={(e) => setTotpCode(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-[#060D0C]/90 rounded-xl border border-emerald-950/80 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 outline-none font-mono text-center text-lg tracking-widest text-white font-bold transition-all placeholder:text-slate-400"
-                  placeholder="000000"
-                  autoFocus
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || !totpCode}
-                className="w-full bg-gradient-to-r from-[#6ee7b7] via-[#2dd4bf] to-[#38bdf8] hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-body font-bold py-2.5 sm:py-3 rounded-xl shadow-lg shadow-teal-500/25 transition-all flex justify-center items-center gap-2 text-sm mt-3 cursor-pointer"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                    <span>Verifying...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Verify &amp; Access Portal</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setMfaRequired(false);
-                  setTotpCode('');
-                  setError('');
-                }}
-                className="w-full text-center text-xs font-semibold text-slate-400 hover:text-teal-300 transition-colors mt-1.5 block"
-              >
-                &larr; Back to password login
-              </button>
-            </form>
-          )}
-
-          {/* Secured Access Divider */}
-          <div className="relative my-3.5 flex items-center justify-center">
-            <div className="w-full border-t border-slate-800/80" />
-            <span className="absolute bg-[#0A1413] px-3 text-[10px] uppercase font-bold tracking-widest text-slate-500">
-              SECURED ACCESS
-            </span>
-          </div>
-
-          {/* Card Bottom Security Notice */}
-          <div className="flex items-center justify-center gap-2 text-[10px] sm:text-[11px] text-slate-400">
-            <Shield className="w-3.5 h-3.5 text-teal-400/80 flex-shrink-0" />
-            <span>Authorized personnel only. All admin actions are logged.</span>
+            {/* Card Bottom Security Notice */}
+            <div className="flex items-center justify-center gap-2 text-[10px] sm:text-[11px] text-ink-muted dark:text-slate-400">
+              <Shield className="w-3.5 h-3.5 text-primary-soft dark:text-sky-400 flex-shrink-0" />
+              <span>Authorized personnel only. All admin actions are logged.</span>
+            </div>
           </div>
         </div>
       </main>
 
       {/* ── Minimal Bottom Edge ───────────────────────────────────────────── */}
-      <div className="w-full px-6 sm:px-10 lg:px-14 py-2 sm:py-2.5 border-t border-slate-900/90 flex flex-col sm:flex-row items-center justify-between text-[10px] sm:text-[11px] text-slate-500/80 relative z-20 gap-1 shrink-0">
+      <footer className="w-full px-6 sm:px-10 lg:px-14 py-2.5 border-t border-ink-faint/60 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-[10px] sm:text-[11px] text-ink-muted dark:text-slate-400 relative z-20 gap-1 shrink-0 bg-white/40 dark:bg-slate-950/40 backdrop-blur-sm">
         <span>&copy; {new Date().getFullYear()} SIKAP Project · Skills &amp; Job Matching Platform</span>
-        <span className="hidden sm:inline">Local Skills &amp; Labor Workforce Management</span>
-      </div>
+        <span className="hidden sm:inline">Built for Informal Work · Sorsogon, Philippines</span>
+      </footer>
     </div>
   );
 }
