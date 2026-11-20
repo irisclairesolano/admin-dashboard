@@ -225,15 +225,6 @@ function LogsPageContent() {
 
         <div className="flex flex-wrap items-center gap-2 mt-3 md:mt-0 text-xs">
           <button
-            onClick={() => handleExport('csv')}
-            disabled={exporting}
-            className="flex items-center px-3 py-1.5 bg-white text-ink-soft hover:text-ink rounded-lg font-body font-semibold border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white transition-colors text-xs disabled:opacity-50 cursor-pointer"
-          >
-            <Download className="w-3.5 h-3.5 mr-1.5" />
-            {exporting ? 'Exporting...' : 'Export CSV'}
-          </button>
-
-          <button
             onClick={() => handleExport('xlsx')}
             disabled={exporting}
             className="flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-body font-semibold border border-emerald-700 shadow-2xs transition-colors text-xs disabled:opacity-50 cursor-pointer"

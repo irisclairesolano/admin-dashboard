@@ -88,7 +88,7 @@ export function CommandPalette({ isOpen, onClose, onOpen2FA }: CommandPalettePro
       id: 'nav-reports',
       title: 'Export Reports & Demographics',
       category: 'Navigation',
-      description: 'Generate multi-section Excel/CSV and municipal breakdowns',
+      description: 'Generate multi-section Excel (.xlsx) and municipal breakdowns',
       icon: FileSpreadsheet,
       action: () => { router.push('/dashboard/export-reports'); onClose(); },
     },
@@ -126,7 +126,7 @@ export function CommandPalette({ isOpen, onClose, onOpen2FA }: CommandPalettePro
     },
     {
       id: 'action-export-reports',
-      title: 'Jump to Excel & CSV Report Center',
+      title: 'Jump to Excel (.xlsx) Report Center',
       category: 'Actions',
       description: 'Directly download master workbooks and filtered datasets',
       icon: Download,

@@ -1052,7 +1052,7 @@ function ExportReportsContent() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in pb-12">
+    <div className="space-y-6 print:space-y-2 animate-fade-in pb-12 print:pb-0 print:pt-0 print:mt-0">
       {/* ── SCREEN TITLE & ACTION BAR (HIDDEN IN PRINT) ── */}
       <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -1073,16 +1073,6 @@ function ExportReportsContent() {
           >
             <i className={`lni lni-reload text-xs ${isAnyLoading ? 'animate-spin' : ''}`} />
             Refresh
-          </button>
-
-          <button
-            onClick={() => handleExportReport('csv')}
-            disabled={isAnyLoading}
-            className="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-            title="Export active report view as CSV (.csv)"
-          >
-            <i className="lni lni-download text-xs" />
-            Export CSV
           </button>
 
           <button
@@ -1579,11 +1569,11 @@ function ExportReportsContent() {
       </div>
 
       {/* ── PRINT-ONLY SUMMARY HEADER ── */}
-      <div className="hidden print:block text-center border-b-2 border-black pb-4 mb-6">
+      <div className="hidden print:block !mt-0 text-center border-b-2 border-black pb-2 mb-3">
         <div className="text-base font-sans font-bold uppercase tracking-wider text-black">
           {getReportTitle()}
         </div>
-        <div className="flex justify-between items-center text-[10px] text-gray-600 font-sans mt-3 px-2">
+        <div className="flex justify-between items-center text-[10px] text-gray-600 font-sans mt-1.5 px-2">
           <span>Date Generated: {new Date().toLocaleString()}</span>
           <span>Coverage: {datePreset === 'all' ? 'All Time' : datePreset.toUpperCase()}</span>
           <span>Prepared by: {adminName} (System Administrator)</span>
@@ -1759,14 +1749,6 @@ function ExportReportsContent() {
                         </span>
                       </div>
                       <div className="no-print flex items-center gap-2">
-                        <button
-                          onClick={() => handleExportDemographics('csv')}
-                          className="px-3.5 py-1.5 bg-slate-700 hover:bg-slate-800 text-white font-body text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                          title="Export current filtered municipal & barangay demographics as CSV"
-                        >
-                          <i className="lni lni-download text-xs" />
-                          Export Demographics (CSV)
-                        </button>
                         <button
                           onClick={() => handleExportDemographics('xlsx')}
                           className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-body text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"

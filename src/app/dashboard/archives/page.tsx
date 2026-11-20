@@ -363,14 +363,6 @@ function ArchivesPageContent() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => handleExport('csv')}
-            className="flex items-center px-3 py-1.5 bg-white rounded-lg text-ink-soft hover:text-ink font-body font-semibold hover:bg-slate-50 border border-ink-faint/40 shadow-2xs transition-colors text-xs cursor-pointer"
-            title={`Export ${activeTab} to CSV`}
-          >
-            <i className="lni lni-download mr-1.5 text-xs text-ink-muted group-hover:text-ink transition-colors" />
-            Export CSV
-          </button>
-          <button
             onClick={() => handleExport('xlsx')}
             className="flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-body font-semibold border border-emerald-700 shadow-2xs transition-colors text-xs cursor-pointer"
             title={`Export ${activeTab} to styled Excel (.xlsx)`}

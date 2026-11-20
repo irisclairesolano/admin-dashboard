@@ -1,6 +1,6 @@
 'use client';
 
-import { adminApi, prefetchAll } from '@/api/admin';
+import { adminApi, prefetchAll, prefetchRouteData } from '@/api/admin';
 import { useSSEReports } from '@/hooks/useSSEReports';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -238,15 +238,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     } catch (e) { console.error(e); }
   }, [router]);
 
-  // ── Parallel pre-fetch & Load individual notifications (Always Fresh) ─────
-  const fetchNotifications = useCallback(async (silent = false) => {
+  // ── Parallel pre-fetch & Load individual notifications ────────────────────
+  const fetchNotifications = useCallback(async (silent = false, forceRefresh = false) => {
     try {
       if (!silent) setIsSyncing(true);
-      // Pass forceRefresh=true so real-time polling never reads stale 60-second cached responses
+      // On initial mount (forceRefresh=false), reuse/populate the shared cache key (`getVerifications(true)`)
+      // so the Verifications, Moderation, and Support pages render immediately on first click.
+      // On background polling / SSE events (forceRefresh=true), fetch fresh data.
       const [verificationsRes, reportsRes, ticketsRes] = await Promise.all([
-        adminApi.getVerifications(false, true),
-        adminApi.getReports('open', 1, '', false, true),
-        adminApi.getSupportTickets(true),
+        adminApi.getVerifications(true, forceRefresh),
+        adminApi.getReports('open', 1, '', false, forceRefresh),
+        adminApi.getSupportTickets(forceRefresh),
       ]);
 
       const list: DashboardNotification[] = [];
@@ -365,7 +367,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     // Load notification badges using shared in-flight/cache first so we don't starve the active page,
     // then warm secondary tabs in the background after the active page has rendered.
-    fetchNotifications(false).catch(() => {});
+    fetchNotifications(false, false).catch(() => {});
 
     const timer = setTimeout(() => {
       prefetchAll()
@@ -375,7 +377,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .catch(() => {
           setPrefetchStatus('error');
         });
-    }, 1500);
+    }, 600);
 
     return () => clearTimeout(timer);
   }, [fetchNotifications]);
@@ -390,7 +392,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // When a real-time SSE report alert arrives, instantly re-sync notifications
   useEffect(() => {
     if (newReportCount > 0) {
-      fetchNotifications(true);
+      fetchNotifications(true, true);
     }
   }, [newReportCount, latestReportAt, fetchNotifications]);
 
@@ -398,14 +400,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     let lastVisibleSync = 0;
     const handleRefresh = () => {
-      fetchNotifications(true);
+      fetchNotifications(true, true);
     };
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
         const now = Date.now();
         if (now - lastVisibleSync > 15000) {
           lastVisibleSync = now;
-          fetchNotifications(true);
+          fetchNotifications(true, true);
         }
       }
     };
@@ -418,7 +420,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [fetchNotifications]);
 
   // Auto-refresh notifications every 30 seconds (SSE handles instant real-time report alerts)
-  usePolling(() => fetchNotifications(true), 30000);
+  usePolling(() => fetchNotifications(true, true), 30000);
 
   const handleLogout = () => {
     authStorage.clearSession();
@@ -622,9 +624,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="fixed inset-0 w-full print:static print:h-auto bg-paper flex overflow-hidden">
       {/* Decorative background blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-soft/50 dark:bg-primary/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-30 animate-pulse-slow" />
-      <div className="absolute top-[20%] right-[-5%] w-72 h-72 bg-accent-sky/50 dark:bg-sky-900/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-30 animate-pulse-slow" style={{ animationDelay: '1s' }} />
-      <div className="absolute bottom-[-10%] left-[20%] w-80 h-80 bg-accent-mint/40 dark:bg-emerald-950/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-20 animate-pulse-slow" style={{ animationDelay: '2s' }} />
+      <div className="no-print absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-soft/50 dark:bg-primary/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-30 animate-pulse-slow" />
+      <div className="no-print absolute top-[20%] right-[-5%] w-72 h-72 bg-accent-sky/50 dark:bg-sky-900/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-30 animate-pulse-slow" style={{ animationDelay: '1s' }} />
+      <div className="no-print absolute bottom-[-10%] left-[20%] w-80 h-80 bg-accent-mint/40 dark:bg-emerald-950/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-70 dark:opacity-20 animate-pulse-slow" style={{ animationDelay: '2s' }} />
 
       {/* Mobile header */}
       <div className="no-print lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-slate-900/90 backdrop-blur-md border-b border-white/50 dark:border-slate-800 z-20 flex items-center justify-between px-2.5 sm:px-4 shadow-sm flex-shrink-0 gap-1">
@@ -718,6 +720,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <Link
                           href={item.href}
                           onClick={() => setSidebarOpen(false)}
+                          onMouseEnter={() => {
+                            router.prefetch(item.href);
+                            prefetchRouteData(item.href);
+                          }}
+                          onFocus={() => {
+                            router.prefetch(item.href);
+                            prefetchRouteData(item.href);
+                          }}
                           aria-label={item.name}
                           className={`
                             group flex items-center text-sm font-body font-semibold rounded-2xl
@@ -963,8 +973,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         )}
 
-        <main ref={mainContentRef} className="flex-1 min-h-0 min-w-0 w-full mx-auto relative overflow-y-auto pt-16 lg:pt-0 [scrollbar-gutter:stable]">
-          <div className="p-3 sm:p-4 md:p-6 animate-fade-in max-w-[1560px] mx-auto min-h-full flex flex-col">
+        <main ref={mainContentRef} className="flex-1 min-h-0 min-w-0 w-full mx-auto relative overflow-y-auto pt-16 lg:pt-0 print:pt-0 print:overflow-visible [scrollbar-gutter:stable]">
+          <div className="p-3 sm:p-4 md:p-6 print:p-0 print:max-w-none print:min-h-0 animate-fade-in max-w-[1560px] mx-auto min-h-full flex flex-col">
             <ErrorBoundary>
               {children}
             </ErrorBoundary>
@@ -1056,7 +1066,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => fetchNotifications(false)}
+                    onClick={() => fetchNotifications(false, true)}
                     disabled={isSyncing}
                     className="p-2 text-ink-soft dark:text-slate-400 hover:text-primary dark:hover:text-primary-soft hover:bg-white/80 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                     title="Refresh notifications"

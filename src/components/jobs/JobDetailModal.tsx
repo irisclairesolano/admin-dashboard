@@ -557,58 +557,6 @@ export default function JobDetailModal({
                   </div>
                 </div>
               )}
-
-              {/* Quick Actions Panel in Overview */}
-              <div className="pt-4 border-t border-ink-faint flex flex-wrap items-center justify-between gap-3">
-                <div className="text-xs text-ink-muted">
-                  <span>Job ID: #{currentJob.id}</span>
-                  <span className="mx-2">•</span>
-                  <span>Reference: {currentJob.reference_number || 'N/A'}</span>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {currentJob.deleted_at ? (
-                    onRestore && (
-                      <button
-                        disabled={actionLoading === currentJob.id}
-                        onClick={() => onRestore(currentJob.id)}
-                        className="px-4 py-2 bg-status-success text-white text-xs font-bold rounded-xl hover:bg-status-success/90 transition flex items-center gap-1.5 shadow-sm cursor-pointer"
-                      >
-                        <Undo className="w-3.5 h-3.5" />
-                        Restore Job Post
-                      </button>
-                    )
-                  ) : (
-                    <>
-                      {onSuspendToggle && (
-                        <button
-                          disabled={actionLoading === currentJob.id}
-                          onClick={() => onSuspendToggle(currentJob.id, currentJob.status)}
-                          className={`px-4 py-2 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm border cursor-pointer ${
-                            currentJob.status === 'suspended'
-                              ? 'bg-status-success text-white hover:bg-status-success/90 border-status-success'
-                              : 'bg-white border-ink-faint text-ink hover:bg-ink hover:text-white'
-                          }`}
-                        >
-                          <UserX className="w-3.5 h-3.5" />
-                          {currentJob.status === 'suspended' ? 'Unsuspend Job Post' : 'Suspend Job Post'}
-                        </button>
-                      )}
-
-                      {onDelete && (
-                        <button
-                          disabled={actionLoading === currentJob.id}
-                          onClick={() => onDelete(currentJob.id)}
-                          className="px-4 py-2 bg-status-error/10 border border-status-error/20 text-status-error text-xs font-bold rounded-xl hover:bg-status-error hover:text-white transition flex items-center gap-1.5 shadow-sm cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          Soft Delete
-                        </button>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
             </div>
           )}
 
@@ -883,6 +831,58 @@ export default function JobDetailModal({
               </div>
             </div>
           )}
+        </div>
+
+        {/* Sticky Quick Actions Footer */}
+        <div className="shrink-0 border-t border-ink-faint bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-xs text-ink-muted">
+            <span>Job ID: #{currentJob.id}</span>
+            <span className="mx-2">•</span>
+            <span>Reference: {currentJob.reference_number || 'N/A'}</span>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {currentJob.deleted_at ? (
+              onRestore && (
+                <button
+                  disabled={actionLoading === currentJob.id}
+                  onClick={() => onRestore(currentJob.id)}
+                  className="px-4 py-2 bg-status-success text-white text-xs font-bold rounded-xl hover:bg-status-success/90 transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Undo className="w-3.5 h-3.5" />
+                  Restore Job Post
+                </button>
+              )
+            ) : (
+              <>
+                {onSuspendToggle && (
+                  <button
+                    disabled={actionLoading === currentJob.id}
+                    onClick={() => onSuspendToggle(currentJob.id, currentJob.status)}
+                    className={`px-4 py-2 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shadow-sm border cursor-pointer ${
+                      currentJob.status === 'suspended'
+                        ? 'bg-status-success text-white hover:bg-status-success/90 border-status-success'
+                        : 'bg-white border-ink-faint text-ink hover:bg-ink hover:text-white'
+                    }`}
+                  >
+                    <UserX className="w-3.5 h-3.5" />
+                    {currentJob.status === 'suspended' ? 'Unsuspend Job Post' : 'Suspend Job Post'}
+                  </button>
+                )}
+
+                {onDelete && (
+                  <button
+                    disabled={actionLoading === currentJob.id}
+                    onClick={() => onDelete(currentJob.id)}
+                    className="px-4 py-2 bg-status-error/10 border border-status-error/20 text-status-error text-xs font-bold rounded-xl hover:bg-status-error hover:text-white transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Soft Delete
+                  </button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 

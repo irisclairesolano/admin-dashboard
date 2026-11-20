@@ -382,14 +382,21 @@
 
 @media print {
   @page {
-    margin: 12mm 15mm;
+    margin: 6mm 8mm;
   }
   body, html {
     height: auto !important;
-    min-height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
     overflow: visible !important;
     background: #ffffff !important;
     color: #000000 !important;
+  }
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
   }
   a[href]:after {
     content: none !important;

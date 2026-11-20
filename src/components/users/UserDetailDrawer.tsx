@@ -949,75 +949,6 @@ export default function UserDetailDrawer({
                       )}
                     </>
                   )}
-
-                  {/* Administrative Actions Panel */}
-                  <div className="border-t border-ink-faint pt-6">
-                    <h4 className="text-xs font-bold text-ink-soft uppercase tracking-wider mb-3">Administrative Actions</h4>
-                    {selectedDetailUser.role === 'admin' ? (
-                      <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center gap-3">
-                        <ShieldCheck className="w-5 h-5 text-primary shrink-0" />
-                        <p className="text-xs text-ink font-medium leading-relaxed">
-                          This is a protected system administrator account. Suspension and deletion controls are disabled for platform safety and role security.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="flex flex-wrap gap-3">
-                        {selectedDetailUser.verification_status !== 'approved' && (() => {
-                          const hasDocs = hasSubmittedDocs(selectedDetailUser);
-                          return (
-                            <button
-                              disabled={actionLoading === selectedDetailUser.id || !hasDocs}
-                              onClick={hasDocs ? onVerify : undefined}
-                              className={`px-5 py-3 text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-sm ${
-                                !hasDocs
-                                  ? 'bg-ink-faint text-ink-muted cursor-not-allowed opacity-60'
-                                  : 'bg-status-success text-white hover:bg-status-success/90'
-                              }`}
-                              title={!hasDocs ? 'Cannot verify: User has not uploaded identification documents yet' : 'Review & Verify User'}
-                            >
-                              <CheckCircle2 className="w-4 h-4" />
-                              <span>{hasDocs ? 'Manually Verify User' : 'Awaiting ID Upload'}</span>
-                            </button>
-                          );
-                        })()}
-
-                        <button
-                          disabled={actionLoading === selectedDetailUser.id}
-                          onClick={() => onSuspend(selectedDetailUser.id, selectedDetailUser.is_suspended)}
-                          className={`px-5 py-3 text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-sm border ${selectedDetailUser.is_suspended
-                              ? 'bg-status-warning/10 border-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
-                              : 'bg-white border-ink-faint text-ink hover:bg-ink hover:text-white'
-                            }`}
-                          title={selectedDetailUser.is_suspended ? 'Unsuspend User' : 'Suspend User'}
-                        >
-                          <UserX className="w-4 h-4" />
-                          <span>{selectedDetailUser.is_suspended ? 'Unsuspend User' : 'Suspend User'}</span>
-                        </button>
-
-                        {selectedDetailUser.deleted_at ? (
-                          <button
-                            disabled={actionLoading === selectedDetailUser.id}
-                            onClick={() => onRestore(selectedDetailUser.id)}
-                            className="px-5 py-3 bg-paper-dark border border-ink-faint text-ink text-sm font-semibold rounded-xl hover:bg-ink hover:text-white transition-all flex items-center gap-1.5 shadow-sm"
-                            title="Restore User"
-                          >
-                            <Undo className="w-4 h-4" />
-                            <span>Restore Soft Deleted User</span>
-                          </button>
-                        ) : (
-                          <button
-                            disabled={actionLoading === selectedDetailUser.id}
-                            onClick={() => onDelete(selectedDetailUser.id)}
-                            className="px-5 py-3 bg-status-error/10 border border-status-error/20 text-status-error text-sm font-semibold rounded-xl hover:bg-status-error hover:text-white transition-all flex items-center gap-1.5 shadow-sm"
-                            title="Delete User"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            <span>Soft Delete User</span>
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
                 </div>
               )}
 
@@ -1445,6 +1376,77 @@ export default function UserDetailDrawer({
                 </div>
               )}
             </>
+          )}
+        </div>
+
+        {/* Sticky Administrative Actions Footer */}
+        <div className="shrink-0 border-t border-ink-faint bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-6 py-4">
+          {selectedDetailUser.role === 'admin' ? (
+            <div className="bg-primary/5 border border-primary/20 rounded-2xl px-4 py-2.5 flex items-center gap-3">
+              <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
+              <p className="text-xs text-ink font-medium leading-relaxed">
+                This is a protected system administrator account. Suspension and deletion controls are disabled for platform safety and role security.
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="text-xs font-bold text-ink-soft uppercase tracking-wider">Administrative Actions</span>
+              <div className="flex flex-wrap items-center gap-2.5">
+                {selectedDetailUser.verification_status !== 'approved' && (() => {
+                  const hasDocs = hasSubmittedDocs(selectedDetailUser);
+                  return (
+                    <button
+                      disabled={actionLoading === selectedDetailUser.id || !hasDocs}
+                      onClick={hasDocs ? onVerify : undefined}
+                      className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-sm ${
+                        !hasDocs
+                          ? 'bg-ink-faint text-ink-muted cursor-not-allowed opacity-60'
+                          : 'bg-status-success text-white hover:bg-status-success/90 cursor-pointer'
+                      }`}
+                      title={!hasDocs ? 'Cannot verify: User has not uploaded identification documents yet' : 'Review & Verify User'}
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>{hasDocs ? 'Manually Verify User' : 'Awaiting ID Upload'}</span>
+                    </button>
+                  );
+                })()}
+
+                <button
+                  disabled={actionLoading === selectedDetailUser.id}
+                  onClick={() => onSuspend(selectedDetailUser.id, selectedDetailUser.is_suspended)}
+                  className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-sm border cursor-pointer ${selectedDetailUser.is_suspended
+                      ? 'bg-status-warning/10 border-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
+                      : 'bg-white border-ink-faint text-ink hover:bg-ink hover:text-white'
+                    }`}
+                  title={selectedDetailUser.is_suspended ? 'Unsuspend User' : 'Suspend User'}
+                >
+                  <UserX className="w-4 h-4" />
+                  <span>{selectedDetailUser.is_suspended ? 'Unsuspend User' : 'Suspend User'}</span>
+                </button>
+
+                {selectedDetailUser.deleted_at ? (
+                  <button
+                    disabled={actionLoading === selectedDetailUser.id}
+                    onClick={() => onRestore(selectedDetailUser.id)}
+                    className="px-4 py-2 bg-paper-dark border border-ink-faint text-ink text-xs sm:text-sm font-semibold rounded-xl hover:bg-ink hover:text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                    title="Restore User"
+                  >
+                    <Undo className="w-4 h-4" />
+                    <span>Restore Soft Deleted User</span>
+                  </button>
+                ) : (
+                  <button
+                    disabled={actionLoading === selectedDetailUser.id}
+                    onClick={() => onDelete(selectedDetailUser.id)}
+                    className="px-4 py-2 bg-status-error/10 border border-status-error/20 text-status-error text-xs sm:text-sm font-semibold rounded-xl hover:bg-status-error hover:text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                    title="Delete User"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Soft Delete User</span>
+                  </button>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>

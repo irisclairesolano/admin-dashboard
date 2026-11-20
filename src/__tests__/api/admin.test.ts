@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { adminApi, apiClient, clearApiCache } from '@/api/admin';
+import { adminApi, apiClient, clearApiCache, prefetchAll, prefetchRouteData } from '@/api/admin';
 
 describe('Admin API Suite', () => {
   beforeEach(() => {
@@ -172,6 +172,61 @@ describe('Admin API Suite', () => {
 
       expect(apiClient.patch).toHaveBeenCalledWith('/admin/users/7/restore');
       expect(response.data.message).toBe('User restored');
+    });
+  });
+
+  describe('Page Navigation Prefetching & Cache Hit Alignment', () => {
+    it('prefetchAll warms the exact query strings requested by Verifications, Users, Jobs, Moderation, Blacklist, Profanity, Skills, and Support pages', async () => {
+      const getSpy = vi.spyOn(apiClient, 'get').mockImplementation(async (url: string) => ({
+        data: { success: true, data: [{ id: 1, url }] },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {} as any,
+      }));
+
+      await prefetchAll();
+
+      expect(getSpy).toHaveBeenCalledWith('/admin/verifications?all=1&status=all');
+      expect(getSpy).toHaveBeenCalledWith('/admin/users?all=1');
+      expect(getSpy).toHaveBeenCalledWith('/admin/jobs?all=1');
+      expect(getSpy).toHaveBeenCalledWith('/admin/reports?status=open&page=1');
+      expect(getSpy).toHaveBeenCalledWith('/admin/support');
+      expect(getSpy).toHaveBeenCalledWith('/admin/blacklist?page=1');
+      expect(getSpy).toHaveBeenCalledWith('/admin/profanity-words');
+      expect(getSpy).toHaveBeenCalledWith('/admin/skills');
+
+      const callsAfterPrefetch = getSpy.mock.calls.length;
+
+      // Subsequent initial loads on those pages hit the warm cache with zero extra network calls
+      await adminApi.getVerifications(true, false);
+      await adminApi.getUsers({ trashed: false, all: true, forceRefresh: false });
+      await adminApi.getJobs({ trashed: false, all: true, forceRefresh: false });
+      await adminApi.getReports('open', 1, '', false, false);
+      await adminApi.getSupportTickets(false);
+      await adminApi.getBlacklist('all', 1, '');
+      await adminApi.getProfanityWords();
+      await adminApi.getSkillsCatalog(false);
+
+      expect(getSpy.mock.calls.length).toBe(callsAfterPrefetch);
+    });
+
+    it('prefetchRouteData warms route-specific endpoints on sidebar hover/focus', async () => {
+      const getSpy = vi.spyOn(apiClient, 'get').mockResolvedValue({
+        data: { success: true, data: [] },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {} as any,
+      });
+
+      prefetchRouteData('/dashboard/users');
+      prefetchRouteData('/dashboard/jobs');
+      prefetchRouteData('/dashboard/verifications');
+
+      expect(getSpy).toHaveBeenCalledWith('/admin/users?all=1');
+      expect(getSpy).toHaveBeenCalledWith('/admin/jobs?all=1');
+      expect(getSpy).toHaveBeenCalledWith('/admin/verifications?all=1&status=all');
     });
   });
 });

@@ -294,6 +294,25 @@ export default function AnalyticsDashboard() {
   // Tab State
   const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'distribution' | 'health'>('overview');
   const [viewMode, setViewMode] = useState<'split' | 'charts' | 'table'>('split');
+  const [healthBarsReady, setHealthBarsReady] = useState(false);
+
+  useEffect(() => {
+    if (activeTab !== 'health') {
+      setHealthBarsReady(false);
+      return;
+    }
+    setHealthBarsReady(false);
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        setHealthBarsReady(true);
+      });
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      if (raf2) cancelAnimationFrame(raf2);
+    };
+  }, [activeTab, data]);
 
   // Tab-specific sorting states
   const [trendsSortOrder, setTrendsSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -1301,12 +1320,16 @@ export default function AnalyticsDashboard() {
 
   const handleSkillSliceClick = useCallback((entry: any) => {
     if (entry.name === 'Others' && entry.subItems?.length) {
+      const totalSkillAssignments = transformedSkillDistribution.reduce(
+        (acc: number, cur: any) => acc + (cur.value || 0),
+        0
+      );
       setOthersModalData({
         title: "Worker Skills — 'Others' Breakdown",
         subtitle: `Detailed breakdown of all ${entry.subItems.length} skills aggregated under 'Others'`,
         total: entry.value,
-        totalOverall: data?.user_ratio?.workers || transformedSkillDistribution.reduce((acc: number, cur: any) => acc + (cur.value || 0), 0),
-        unit: 'workers',
+        totalOverall: totalSkillAssignments || data?.user_ratio?.workers || 0,
+        unit: 'skill entries',
         items: entry.subItems,
       });
     }
@@ -1318,7 +1341,7 @@ export default function AnalyticsDashboard() {
       <style jsx global>{`
         @page {
           size: A4 landscape;
-          margin: 8mm 10mm 8mm 10mm;
+          margin: 5mm 8mm 5mm 8mm;
         }
         @media screen {
           .print-only-report {
@@ -1331,7 +1354,7 @@ export default function AnalyticsDashboard() {
         @media print {
           @page {
             size: A4 landscape;
-            margin: 8mm 10mm 8mm 10mm;
+            margin: 5mm 8mm 5mm 8mm;
           }
           html, body, #__next, main, div {
             overflow: visible !important;
@@ -2216,13 +2239,6 @@ export default function AnalyticsDashboard() {
                     <span>Check: these totals match the numbers at the top.</span>
                     <div className="flex items-center gap-3">
                       <button
-                        onClick={() => handleExportSummary('csv')}
-                        className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
-                      >
-                        <i className="lni lni-download text-xs" />
-                        Export Table as CSV
-                      </button>
-                      <button
                         onClick={() => handleExportSummary('xlsx')}
                         className="text-emerald-700 font-bold hover:underline cursor-pointer flex items-center gap-1"
                       >
@@ -2470,13 +2486,6 @@ export default function AnalyticsDashboard() {
                   <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-0.5">
                     <span>Check: these totals match the numbers at the top.</span>
                     <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => handleExportSummary('csv')}
-                        className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
-                      >
-                        <i className="lni lni-download text-xs" />
-                        Export Table as CSV
-                      </button>
                       <button
                         onClick={() => handleExportSummary('xlsx')}
                         className="text-emerald-700 font-bold hover:underline cursor-pointer flex items-center gap-1"
@@ -2918,13 +2927,6 @@ export default function AnalyticsDashboard() {
                     <span>Reconciliation check: Job Posts and Applications reconcile with database totals for this time window.</span>
                     <div className="flex items-center gap-3">
                       <button
-                        onClick={() => distTableView === 'geographic' ? handleExportGeographic('csv') : handleExportSummary('csv')}
-                        className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
-                      >
-                        <i className="lni lni-download text-xs" />
-                        {distTableView === 'geographic' ? 'Export Demographics CSV' : 'Export Table as CSV'}
-                      </button>
-                      <button
                         onClick={() => distTableView === 'geographic' ? handleExportGeographic('xlsx') : handleExportSummary('xlsx')}
                         className="text-emerald-700 font-bold hover:underline cursor-pointer flex items-center gap-1"
                       >
@@ -3016,7 +3018,7 @@ export default function AnalyticsDashboard() {
                     )}
                   </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print-chart-container">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print-chart-container animate-fade-in">
                 {/* Two-Way Rating System */}
                 <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                   <div>
@@ -3074,7 +3076,7 @@ export default function AnalyticsDashboard() {
                     <hr className="my-3 border-ink-faint/30" />
                     <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-soft mb-2">How Many of Each Star</h4>
                     <div className="space-y-1.5">
-                      {[5, 4, 3, 2, 1].map((stars) => {
+                      {[5, 4, 3, 2, 1].map((stars, idx) => {
                         const matches = data?.ratings?.distribution?.find((d: any) => Math.round(d.rating) === stars);
                         const count = matches ? matches.count : 0;
                         const totalReviews = data?.ratings?.distribution?.reduce((acc: number, d: any) => acc + d.count, 0) || 1;
@@ -3084,7 +3086,13 @@ export default function AnalyticsDashboard() {
                           <div key={stars} className="flex items-center gap-2 text-xs font-body">
                             <span className="w-10 text-right text-ink font-semibold font-numeric text-[11px]">{stars}★</span>
                             <div className="h-2.5 flex-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner border border-slate-200/50 dark:border-slate-700/50">
-                              <div className="relative h-full bg-yellow-400 rounded-full overflow-hidden shadow-2xs transition-all duration-700" style={{ width: barWidth }}>
+                              <div
+                                className="relative h-full bg-yellow-400 rounded-full overflow-hidden shadow-2xs transition-all duration-700 ease-out"
+                                style={{
+                                  width: healthBarsReady ? barWidth : '0%',
+                                  transitionDelay: `${idx * 70}ms`,
+                                }}
+                              >
                                 <div className="absolute inset-x-0 top-0 h-[45%] bg-white/30 rounded-t-full pointer-events-none" />
                               </div>
                             </div>
@@ -3172,7 +3180,7 @@ export default function AnalyticsDashboard() {
               </div>
 
               {/* Reports Breakdown with collapsable table */}
-              <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between print-chart-container transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between print-chart-container transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md animate-fade-in">
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Reports & Moderation Insights</h3>
@@ -3202,16 +3210,34 @@ export default function AnalyticsDashboard() {
                   </div>
 
                   <h4 className="text-[11px] font-bold uppercase tracking-wider text-ink-soft mb-2">Top Violation Categories</h4>
-                  <div className="space-y-1.5 mb-3">
-                    {[...filteredReportsBreakdown]
-                      .sort((a: any, b: any) => b.count - a.count)
-                      .slice(0, 3)
-                      .map((r: any, idx: number) => (
-                        <div key={idx} className="flex justify-between items-center text-xs font-body bg-slate-50/70 px-2.5 py-1.5 rounded-lg border border-ink-faint/20">
-                          <span className="font-semibold text-ink capitalize text-xs">{r.type.replace(/_/g, ' ')}</span>
-                          <span className="font-bold text-status-error text-xs">{r.count} reports</span>
-                        </div>
-                      ))}
+                  <div className="space-y-2 mb-3">
+                    {(() => {
+                      const topViolations = [...filteredReportsBreakdown]
+                        .sort((a: any, b: any) => b.count - a.count)
+                        .slice(0, 3);
+                      const maxViolationCount = Math.max(...topViolations.map((v: any) => Number(v.count) || 0), 1);
+
+                      return topViolations.map((r: any, idx: number) => {
+                        const pct = Math.max(8, Math.round(((Number(r.count) || 0) / maxViolationCount) * 100));
+                        return (
+                          <div key={idx} className="bg-slate-50/70 px-2.5 py-2 rounded-lg border border-ink-faint/20 space-y-1.5">
+                            <div className="flex justify-between items-center text-xs font-body">
+                              <span className="font-semibold text-ink capitalize text-xs">{r.type.replace(/_/g, ' ')}</span>
+                              <span className="font-bold text-status-error text-xs font-numeric">{r.count} reports</span>
+                            </div>
+                            <div className="h-1.5 w-full bg-slate-200/70 dark:bg-slate-800 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-rose-500 rounded-full transition-all duration-700 ease-out"
+                                style={{
+                                  width: healthBarsReady ? `${pct}%` : '0%',
+                                  transitionDelay: `${idx * 90}ms`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
                     {filteredReportsBreakdown.length === 0 && (
                       <div className="text-xs text-ink-muted text-center py-1.5">No violations matching the filter.</div>
                     )}
@@ -3369,13 +3395,6 @@ export default function AnalyticsDashboard() {
                 <div className="flex items-center justify-between text-[11px] font-body text-ink-muted pt-0.5">
                   <span>Reconciliation check: Report counts synchronize with the Platform Reports queue and Audit logs.</span>
                   <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => handleExportSummary('csv')}
-                      className="text-primary-dark font-bold hover:underline cursor-pointer flex items-center gap-1"
-                    >
-                      <i className="lni lni-download text-xs" />
-                      Export Table as CSV
-                    </button>
                     <button
                       onClick={() => handleExportSummary('xlsx')}
                       className="text-emerald-700 font-bold hover:underline cursor-pointer flex items-center gap-1"

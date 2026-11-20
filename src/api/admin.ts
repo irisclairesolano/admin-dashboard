@@ -112,7 +112,7 @@ const storeResponse = (url: string, response: { data: any; status: number }) => 
   const payload = { data: response.data, status: response.status };
   apiCache.set(url, { data: payload, timestamp: Date.now() });
 
-  if (typeof window === 'undefined' || url.includes('all=1')) return;
+  if (typeof window === 'undefined') return;
   try {
     const serialized = JSON.stringify(payload);
     if (serialized.length > MAX_PERSIST_CHARS) return;
@@ -611,18 +611,71 @@ export const warmUpServer = (): Promise<void> => {
 };
 
 /**
- * Pre-fetches all admin dashboard section data in parallel and populates
- * the stale-while-revalidate cache. Call this after warmUpServer() resolves
- * so every section is instant on first navigation.
+ * Pre-fetches the exact API endpoint(s) required by a specific dashboard route
+ * when the user hovers or focuses its sidebar link.
+ */
+export const prefetchRouteData = (href: string): void => {
+  switch (href) {
+    case '/dashboard/verifications':
+      void adminApi.getVerifications(true).catch(() => {});
+      break;
+    case '/dashboard/users':
+      void adminApi.getUsers({ trashed: false, all: true }).catch(() => {});
+      break;
+    case '/dashboard/jobs':
+      void adminApi.getJobs({ trashed: false, all: true }).catch(() => {});
+      break;
+    case '/dashboard/moderation':
+      void adminApi.getReports('open', 1).catch(() => {});
+      break;
+    case '/dashboard/blacklist':
+      void adminApi.getBlacklist('all', 1, '').catch(() => {});
+      break;
+    case '/dashboard/profanity':
+      void adminApi.getProfanityWords().catch(() => {});
+      break;
+    case '/dashboard/skills':
+      void adminApi.getSkillsCatalog().catch(() => {});
+      break;
+    case '/dashboard/support':
+      void adminApi.getSupportTickets().catch(() => {});
+      break;
+    case '/dashboard/archives':
+      void Promise.allSettled([
+        adminApi.getUsers({ trashed: true, all: true }),
+        adminApi.getJobs({ trashed: true, all: true }),
+      ]);
+      break;
+    case '/dashboard/logs':
+      void adminApi.getLogs(1).catch(() => {});
+      break;
+    case '/dashboard/export-reports':
+      void Promise.allSettled([
+        adminApi.getUsers({ all: true }),
+        adminApi.getJobs({ all: true }),
+        adminApi.getVerifications(true),
+        adminApi.getReports('all', 1, '', true),
+      ]);
+      break;
+    default:
+      break;
+  }
+};
+
+/**
+ * Pre-fetches all admin dashboard section data in parallel using the exact cache
+ * keys requested by each page on mount, populating the stale-while-revalidate cache
+ * so every section renders immediately on first navigation.
  */
 export const prefetchAll = (): Promise<void> => {
-  // Only warm the core operational tabs so we don't saturate the backend
-  // with heavy 1-year analytics, archive, or audit log queries on every login.
   return Promise.allSettled([
-    adminApi.getVerifications(),
-    adminApi.getUsers(),
-    adminApi.getJobs(),
+    adminApi.getVerifications(true),
+    adminApi.getUsers({ trashed: false, all: true }),
+    adminApi.getJobs({ trashed: false, all: true }),
     adminApi.getReports('open', 1),
     adminApi.getSupportTickets(),
+    adminApi.getBlacklist('all', 1, ''),
+    adminApi.getProfanityWords(),
+    adminApi.getSkillsCatalog(),
   ]).then(() => {});
 };

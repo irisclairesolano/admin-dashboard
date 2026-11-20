@@ -1010,16 +1010,6 @@ function UsersContent() {
           </select>
 
           <button
-            onClick={() => handleExport('csv')}
-            aria-label="Export users as CSV"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
-            title="Export filtered users directory as CSV"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>Export CSV</span>
-          </button>
-
-          <button
             onClick={() => handleExport('xlsx')}
             aria-label="Export users as Excel"
             className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg border border-emerald-700 shadow-2xs transition font-body font-bold text-xs cursor-pointer"

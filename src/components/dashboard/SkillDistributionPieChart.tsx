@@ -69,10 +69,10 @@ interface SkillDistributionPieChartProps {
   onSliceClick?: (entry: SkillDistributionItem) => void;
 }
 
-const CustomTooltip = ({ active, payload, totalWorkers }: any) => {
+const CustomTooltip = ({ active, payload, totalSkillCount }: any) => {
   if (!active || !payload || !payload.length) return null;
   const item: SkillDistributionItem = payload[0].payload;
-  const pct = totalWorkers > 0 ? ((item.value / totalWorkers) * 100).toFixed(1) : '0';
+  const pct = totalSkillCount > 0 ? ((item.value / totalSkillCount) * 100).toFixed(1) : '0';
 
   if (item.name === 'Others' && item.subItems && item.subItems.length > 0) {
     const previewList = item.subItems.slice(0, 4);
@@ -144,6 +144,7 @@ const SkillDistributionPieChart = memo(function SkillDistributionPieChart({
 }: SkillDistributionPieChartProps) {
   const [activePieIndex, setActivePieIndex] = useState<number | null>(null);
   const animationActive = isChartAnimationActive();
+  const totalSkillCount = data.reduce((sum, entry) => sum + (Number(entry.value) || 0), 0);
 
   const handleSliceClick = (entry: SkillDistributionItem) => {
     if (onSliceClick) {
@@ -196,7 +197,7 @@ const SkillDistributionPieChart = memo(function SkillDistributionPieChart({
                 />
               ))}
             </RechartsPie>
-            <Tooltip content={<CustomTooltip totalWorkers={totalWorkers} />} />
+            <Tooltip content={<CustomTooltip totalSkillCount={totalSkillCount || totalWorkers} />} />
           </PieChart>
         </ResponsiveContainer>
 
@@ -208,7 +209,7 @@ const SkillDistributionPieChart = memo(function SkillDistributionPieChart({
                 {data[activePieIndex].name}
               </span>
               <strong className="text-lg font-numeric font-bold text-slate-900 dark:text-slate-100 leading-tight mt-0.5 tabular-nums">
-                {((data[activePieIndex].value / (totalWorkers || 1)) * 100).toFixed(0)}%
+                {((data[activePieIndex].value / (totalSkillCount || totalWorkers || 1)) * 100).toFixed(0)}%
               </strong>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
                 {data[activePieIndex].value.toLocaleString()} workers

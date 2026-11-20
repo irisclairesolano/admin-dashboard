@@ -286,14 +286,6 @@ function SupportTicketsPageContent() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => handleExport('csv')}
-            className="flex items-center px-3.5 h-10 bg-white dark:bg-slate-900/80 text-ink-soft hover:text-ink text-sm font-body font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer"
-            title="Export support tickets to CSV"
-          >
-            <i className="lni lni-download mr-2 text-sm text-ink-muted group-hover:text-ink transition-colors" />
-            Export CSV
-          </button>
-          <button
             onClick={() => handleExport('xlsx')}
             className="flex items-center px-3.5 h-10 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-body font-medium rounded-xl transition-all border border-emerald-700 shadow-2xs cursor-pointer"
             title="Export support tickets to styled Excel (.xlsx)"

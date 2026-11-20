@@ -412,16 +412,6 @@ function ModerationPageContent() {
           </div>
 
           <button
-            onClick={() => handleExport('csv')}
-            aria-label="Export moderation audit as CSV"
-            className="flex items-center gap-2 px-3.5 h-10 bg-white dark:bg-slate-900/80 rounded-xl border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white dark:hover:bg-slate-800 text-ink-soft transition font-body font-medium text-sm cursor-pointer"
-            title="Export filtered moderation audit as CSV"
-          >
-            <i className="lni lni-download text-sm" />
-            <span>Export CSV</span>
-          </button>
-
-          <button
             onClick={() => handleExport('xlsx')}
             aria-label="Export moderation audit as Excel"
             className="flex items-center gap-2 px-3.5 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl border border-emerald-700 shadow-2xs transition font-body font-medium text-sm cursor-pointer"

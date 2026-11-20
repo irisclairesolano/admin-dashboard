@@ -618,16 +618,6 @@ function JobsPageContent() {
           </div>
 
           <button
-            onClick={() => handleExport('csv')}
-            aria-label="Export jobs as CSV"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg border border-ink-faint/40 shadow-2xs hover:bg-slate-900 hover:text-white text-ink-soft transition font-body font-bold text-xs cursor-pointer"
-            title="Export filtered job postings as CSV"
-          >
-            <i className="lni lni-download text-xs" />
-            <span>Export CSV</span>
-          </button>
-
-          <button
             onClick={() => handleExport('xlsx')}
             aria-label="Export jobs as Excel"
             className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg border border-emerald-700 shadow-2xs transition font-body font-bold text-xs cursor-pointer"

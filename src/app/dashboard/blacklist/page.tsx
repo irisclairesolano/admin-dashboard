@@ -295,17 +295,6 @@ export default function BlacklistPage() {
           </div>
 
           <button
-            onClick={() => handleExport('csv')}
-            disabled={exporting}
-            aria-label="Export blacklist to CSV"
-            className="flex items-center px-3 py-2 bg-white text-ink-soft hover:text-ink text-xs font-body font-semibold rounded-xl hover:bg-slate-50 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer disabled:opacity-60"
-            title="Export blacklist records to CSV"
-          >
-            <Download className={`w-3.5 h-3.5 mr-1.5 text-ink-muted group-hover:text-ink transition-colors ${exporting ? 'animate-bounce' : ''}`} />
-            {exporting ? 'Exporting...' : 'Export CSV'}
-          </button>
-
-          <button
             onClick={() => handleExport('xlsx')}
             disabled={exporting}
             aria-label="Export blacklist to Excel"
