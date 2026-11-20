@@ -91,12 +91,12 @@ describe('UsersPage Component', () => {
       trashed: false,
       all: true,
     }));
-    expect(adminApi.getUsers).toHaveBeenCalledWith(expect.objectContaining({
-      trashed: true,
-      all: true,
-    }));
 
     await waitFor(() => {
+      expect(adminApi.getUsers).toHaveBeenCalledWith(expect.objectContaining({
+        trashed: true,
+        all: true,
+      }));
       expect(screen.getByText('Nena Cruz')).toBeInTheDocument();
       expect(screen.getByText('Jose Santos')).toBeInTheDocument();
       expect(screen.getByText('Suspended Worker')).toBeInTheDocument();

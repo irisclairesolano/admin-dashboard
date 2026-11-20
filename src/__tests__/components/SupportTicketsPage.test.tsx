@@ -112,7 +112,8 @@ describe('SupportTicketsPage Component', () => {
     fireEvent.click(openCard);
 
     // Check modal contents
-    expect(screen.getByText('Ticket Details')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('Ticket #1')).toBeInTheDocument();
     expect(screen.getAllByText('I cannot log in to my worker account.')).toHaveLength(2);
 
 
