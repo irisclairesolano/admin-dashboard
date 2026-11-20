@@ -272,7 +272,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           description: `${u.role === 'employer' ? 'Employer' : 'Worker'} submitted ID credentials (${u.municipality || 'Sorsogon'}).`,
           timestamp: u.updated_at || u.created_at || new Date().toISOString(),
           priority: 'attention',
-          link: `/dashboard/verifications?search=${encodeURIComponent(u.name || '')}`,
+          link: `/dashboard/verifications?inspect=${u.id}`,
           targetId: u.id,
         });
       });
@@ -288,7 +288,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           description: `${r.reporter?.name ? `Reported by ${r.reporter.name}: ` : ''}${r.description || r.reason || 'Flagged content review needed.'}`,
           timestamp: r.created_at || new Date().toISOString(),
           priority: 'critical',
-          link: `/dashboard/moderation?search=${encodeURIComponent(r.description || r.type || '')}`,
+          link: `/dashboard/moderation?inspect=${r.id}`,
           targetId: r.id,
         });
       });
@@ -303,7 +303,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           description: `From ${t.user?.name || 'User'}: ${t.message ? (t.message.length > 70 ? t.message.slice(0, 70) + '...' : t.message) : 'Open inquiry ticket.'}`,
           timestamp: t.created_at || new Date().toISOString(),
           priority: 'update',
-          link: `/dashboard/support?search=${encodeURIComponent(t.subject || t.user?.name || '')}`,
+          link: `/dashboard/support?inspect=${t.id}`,
           targetId: t.id,
         });
       });
@@ -363,14 +363,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     setPrefetchStatus('loading');
 
-    // Initial pre-fetch + load notification counts
-    Promise.all([prefetchAll(), fetchNotifications(true)])
-      .then(() => {
-        setPrefetchStatus('ready');
-      })
-      .catch(() => {
-        setPrefetchStatus('error');
-      });
+    // Load notification badges using shared in-flight/cache first so we don't starve the active page,
+    // then warm secondary tabs in the background after the active page has rendered.
+    fetchNotifications(false).catch(() => {});
+
+    const timer = setTimeout(() => {
+      prefetchAll()
+        .then(() => {
+          setPrefetchStatus('ready');
+        })
+        .catch(() => {
+          setPrefetchStatus('error');
+        });
+    }, 1500);
+
+    return () => clearTimeout(timer);
   }, [fetchNotifications]);
 
   // When visiting the moderation page, automatically clear the SSE new reports alert counter
@@ -387,28 +394,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [newReportCount, latestReportAt, fetchNotifications]);
 
-  // Listen for real-time notification refresh events, window focus, and tab visibility
+  // Listen for real-time notification refresh events and tab visibility (throttled)
   useEffect(() => {
+    let lastVisibleSync = 0;
     const handleRefresh = () => {
       fetchNotifications(true);
     };
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        fetchNotifications(true);
+        const now = Date.now();
+        if (now - lastVisibleSync > 15000) {
+          lastVisibleSync = now;
+          fetchNotifications(true);
+        }
       }
     };
     window.addEventListener('admin:refresh-notifications', handleRefresh);
-    window.addEventListener('focus', handleRefresh);
     document.addEventListener('visibilitychange', handleVisibility);
     return () => {
       window.removeEventListener('admin:refresh-notifications', handleRefresh);
-      window.removeEventListener('focus', handleRefresh);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [fetchNotifications]);
 
-  // Auto-refresh notifications every 8 seconds for responsive real-time updates
-  usePolling(() => fetchNotifications(true), 8000);
+  // Auto-refresh notifications every 30 seconds (SSE handles instant real-time report alerts)
+  usePolling(() => fetchNotifications(true), 30000);
 
   const handleLogout = () => {
     authStorage.clearSession();

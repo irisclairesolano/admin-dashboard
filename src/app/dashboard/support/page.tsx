@@ -33,6 +33,8 @@ interface SupportTicket {
 function SupportTicketsPageContent() {
   const searchParams = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
+  const inspectIdParam = searchParams.get('inspect');
+  const handledInspectRef = React.useRef<string | null>(null);
 
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +67,18 @@ function SupportTicketsPageContent() {
     setSearchTerm(urlSearch);
     setCurrentPage(1);
   }, [urlSearch]);
+
+  // Auto-open specific support ticket modal when deep-linked via ?inspect=<id>
+  useEffect(() => {
+    if (!inspectIdParam || handledInspectRef.current === inspectIdParam) return;
+    const targetId = Number(inspectIdParam);
+    if (!targetId) return;
+    const match = tickets.find((t) => Number(t.id) === targetId);
+    if (match) {
+      handledInspectRef.current = inspectIdParam;
+      setSelectedTicket(match);
+    }
+  }, [inspectIdParam, tickets]);
 
   const fetchTickets = async (silent = false) => {
     try {

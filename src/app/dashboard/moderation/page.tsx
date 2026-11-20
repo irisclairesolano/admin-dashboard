@@ -12,6 +12,7 @@ import { exportMultiSectionCSV, formatCSVDate, formatCSVStatus } from '@/lib/exp
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 const JobDetailModal = dynamic(() => import('@/components/jobs/JobDetailModal'), {
   ssr: false,
@@ -74,6 +75,8 @@ function ModerationPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
+  const inspectIdParam = searchParams.get('inspect');
+  const handledInspectRef = React.useRef<string | null>(null);
 
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,6 +88,18 @@ function ModerationPageContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [selectedReport, setSelectedReport] = useState<any | null>(null);
+
+  // Auto-open specific report modal when deep-linked via ?inspect=<id>
+  useEffect(() => {
+    if (!inspectIdParam || handledInspectRef.current === inspectIdParam) return;
+    const targetId = Number(inspectIdParam);
+    if (!targetId) return;
+    const match = reports.find((r) => Number(r.id) === targetId);
+    if (match) {
+      handledInspectRef.current = inspectIdParam;
+      setSelectedReport(match);
+    }
+  }, [inspectIdParam, reports]);
   const [targetDetails, setTargetDetails] = useState<any | null>(null);
   const [targetLoading, setTargetLoading] = useState(false);
   const [inspectedJob, setInspectedJob] = useState<any | null>(null);
@@ -626,7 +641,9 @@ function ModerationPageContent() {
                   Report #{selectedReport.id}
                 </span>
                 <span className="px-2.5 py-0.5 rounded-md text-[11px] font-body font-bold capitalize bg-status-error/10 text-status-error border border-status-error/20">
-                  {selectedReport.type?.replace(/_/g, ' ') || 'Flagged Content'}
+                  {isJobReport && selectedReport.type === 'fake_account'
+                    ? 'Fake / Scam Job'
+                    : selectedReport.type?.replace(/_/g, ' ') || 'Flagged Content'}
                 </span>
                 <span className="text-xs font-body text-ink-muted dark:text-slate-400">
                   {formatDateTime(selectedReport.created_at)}
@@ -866,12 +883,8 @@ function ModerationPageContent() {
                     <button
                       type="button"
                       onClick={() => {
-                        const userQuery = targetUser?.id || targetUser?.name;
-                        if (userQuery) {
-                          router.push(`/dashboard/users?search=${encodeURIComponent(userQuery)}`);
-                        } else {
-                          router.push(`/dashboard/users?search=${selectedReport.reportable_id}`);
-                        }
+                        const targetId = targetUser?.id || selectedReport.reportable_id;
+                        router.push(`/dashboard/users?inspect=${targetId}`);
                       }}
                       className="w-full px-3.5 py-2 rounded-xl bg-white/90 dark:bg-slate-900/70 hover:bg-white dark:hover:bg-slate-800 text-ink dark:text-slate-200 font-body font-semibold text-xs border border-ink-faint/50 dark:border-slate-700 transition-all flex items-center justify-between cursor-pointer"
                     >
@@ -886,7 +899,7 @@ function ModerationPageContent() {
                       <>
                         <button
                           type="button"
-                          onClick={() => router.push(`/dashboard/jobs?search=${selectedReport.reportable_id}`)}
+                          onClick={() => router.push(`/dashboard/jobs?inspect=${selectedReport.reportable_id}`)}
                           className="w-full px-3.5 py-2 rounded-xl bg-white/90 dark:bg-slate-900/70 hover:bg-white dark:hover:bg-slate-800 text-ink dark:text-slate-200 font-body font-semibold text-xs border border-ink-faint/50 dark:border-slate-700 transition-all flex items-center justify-between cursor-pointer"
                         >
                           <span className="flex items-center gap-2">
@@ -950,9 +963,9 @@ function ModerationPageContent() {
       )}
 
       {/* Evidence Image Preview Lightbox */}
-      {previewImage && (
+      {previewImage && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
           onClick={() => setPreviewImage(null)}
           role="dialog"
           aria-modal="true"
@@ -972,7 +985,8 @@ function ModerationPageContent() {
               onClick={(e) => e.stopPropagation()}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <AlertDialog

@@ -39,7 +39,7 @@ apiClient.interceptors.response.use(
 
 // Stale-While-Revalidate Cache for Admin Dashboard
 const apiCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 60 * 1000; // 60 seconds TTL (instant tab switching with background revalidation)
+const CACHE_TTL = 120 * 1000; // 2 minutes TTL (instant tab switching with background revalidation; mutations invalidate immediately)
 
 // Identical GETs that are already on the wire share one promise (avoids duplicate requests
 // when e.g. the layout badge and a page both ask for the same endpoint at mount).
@@ -616,23 +616,13 @@ export const warmUpServer = (): Promise<void> => {
  * so every section is instant on first navigation.
  */
 export const prefetchAll = (): Promise<void> => {
-  // Compute a default 1-year analytics window
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  const yearAgo = new Date(now);
-  yearAgo.setFullYear(now.getFullYear() - 1);
-
+  // Only warm the core operational tabs so we don't saturate the backend
+  // with heavy 1-year analytics, archive, or audit log queries on every login.
   return Promise.allSettled([
     adminApi.getVerifications(),
     adminApi.getUsers(),
-    adminApi.getUsers(true),           // archived users
     adminApi.getJobs(),
-    adminApi.getJobs(true),            // archived jobs
     adminApi.getReports('open', 1),
-    adminApi.getAnalytics(fmt(yearAgo), fmt(now)),
     adminApi.getSupportTickets(),
-    adminApi.getLogs(1),
-    adminApi.getProfanityWords(),
   ]).then(() => {});
 };

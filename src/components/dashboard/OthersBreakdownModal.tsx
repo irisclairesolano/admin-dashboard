@@ -118,7 +118,7 @@ export default function OthersBreakdownModal({
     totalOverall && totalOverall > 0 ? ((total / totalOverall) * 100).toFixed(1) : null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div
         className="fixed inset-0"
         onClick={onClose}

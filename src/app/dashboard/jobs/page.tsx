@@ -22,6 +22,8 @@ const JobDetailModal = dynamic(() => import('@/components/jobs/JobDetailModal'),
 function JobsPageContent() {
   const searchParams = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
+  const inspectIdParam = searchParams.get('inspect');
+  const handledInspectRef = React.useRef<string | null>(null);
 
   const [activeJobs, setActiveJobs] = useState<any[]>([]);
   const [archivedJobs, setArchivedJobs] = useState<any[]>([]);
@@ -54,6 +56,33 @@ function JobsPageContent() {
   const isArchivedView = statusFilter === 'Archived';
   const currentJobList = isArchivedView ? archivedJobs : activeJobs;
   const jobs = currentJobList;
+
+  // Auto-open specific job modal when deep-linked via ?inspect=<id>
+  useEffect(() => {
+    if (!inspectIdParam || handledInspectRef.current === inspectIdParam) return;
+    const targetId = Number(inspectIdParam);
+    if (!targetId) return;
+
+    const match =
+      activeJobs.find((j) => Number(j.id) === targetId) ||
+      archivedJobs.find((j) => Number(j.id) === targetId);
+    if (match) {
+      handledInspectRef.current = inspectIdParam;
+      setSelectedDetailJob(match);
+      return;
+    }
+
+    if (!loading) {
+      handledInspectRef.current = inspectIdParam;
+      adminApi
+        .getJob(targetId)
+        .then((res) => {
+          const jobObj = res?.data?.data || res?.data?.job || res?.data;
+          if (jobObj) setSelectedDetailJob(jobObj);
+        })
+        .catch(() => {});
+    }
+  }, [inspectIdParam, activeJobs, archivedJobs, loading]);
 
   const handleExport = async (format: 'csv' | 'xlsx') => {
     if (!jobs || jobs.length === 0) {

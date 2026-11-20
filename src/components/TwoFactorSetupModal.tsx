@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { adminApi } from '@/api/admin';
 import { ShieldCheck, Copy, Check, Loader2, X, AlertTriangle, KeyRound, Lock, ShieldAlert } from 'lucide-react';
 
@@ -101,8 +102,8 @@ export const TwoFactorSetupModal: React.FC<TwoFactorSetupModalProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 dark:bg-black/70 backdrop-blur-sm animate-fade-in overflow-y-auto" role="dialog" aria-modal="true">
+  const modalNode = (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/50 dark:bg-black/70 backdrop-blur-sm animate-fade-in overflow-y-auto" role="dialog" aria-modal="true">
       <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-white/50 dark:border-slate-700/70 relative my-auto">
         <button
           onClick={onClose}
@@ -350,4 +351,7 @@ export const TwoFactorSetupModal: React.FC<TwoFactorSetupModalProps> = ({
       </div>
     </div>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(modalNode, document.body);
 };

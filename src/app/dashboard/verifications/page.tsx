@@ -46,6 +46,8 @@ function VerificationsPageContent() {
   const searchParams = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
   const urlTab = searchParams.get('tab');
+  const inspectIdParam = searchParams.get('inspect');
+  const handledInspectRef = React.useRef<string | null>(null);
 
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,6 +89,31 @@ function VerificationsPageContent() {
     setSearchTerm(urlSearch);
     setCurrentPage(1);
   }, [urlSearch]);
+
+  // Auto-open specific verification modal when deep-linked via ?inspect=<id>
+  useEffect(() => {
+    if (!inspectIdParam || handledInspectRef.current === inspectIdParam) return;
+    const targetId = Number(inspectIdParam);
+    if (!targetId) return;
+
+    const match = users.find((u) => Number(u.id) === targetId);
+    if (match) {
+      handledInspectRef.current = inspectIdParam;
+      setReviewUser(match);
+      return;
+    }
+
+    if (!loading) {
+      handledInspectRef.current = inspectIdParam;
+      adminApi
+        .getUserDetails(targetId)
+        .then((res) => {
+          const userObj = res?.data?.user || res?.data;
+          if (userObj) setReviewUser(userObj);
+        })
+        .catch(() => {});
+    }
+  }, [inspectIdParam, users, loading]);
 
   const fetchVerifications = useCallback(async (silent = false, forceRefresh = false) => {
     try {

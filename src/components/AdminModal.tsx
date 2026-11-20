@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
@@ -47,8 +47,14 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   footer,
   children,
   bodyClassName = 'p-6 sm:p-7',
-  usePortal = false,
+  usePortal = true,
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -70,7 +76,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       aria-modal="true"
       aria-labelledby={titleId}
       tabIndex={-1}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-ink/50 dark:bg-black/65 backdrop-blur-md animate-fade-in outline-none"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-ink/50 dark:bg-black/65 backdrop-blur-md animate-fade-in outline-none"
       onClick={onClose}
     >
       <div
@@ -127,7 +133,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     </div>
   );
 
-  if (usePortal && typeof document !== 'undefined') {
+  if (usePortal) {
+    if (!mounted || typeof document === 'undefined') return null;
     return createPortal(modalNode, document.body);
   }
 

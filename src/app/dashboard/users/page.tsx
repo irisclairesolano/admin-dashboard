@@ -38,6 +38,8 @@ function UsersContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const urlSearch = searchParams.get('search') || '';
+  const inspectIdParam = searchParams.get('inspect');
+  const handledInspectRef = React.useRef<string | null>(null);
 
   const [activeUsers, setActiveUsers] = useState<any[]>([]);
   const [archivedUsers, setArchivedUsers] = useState<any[]>([]);
@@ -103,6 +105,33 @@ function UsersContent() {
   }, [showArchived, activeUsers, archivedUsers]);
   const [selectedDetailUser, setSelectedDetailUser] = useState<any | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+
+  // Auto-open specific user drawer when deep-linked via ?inspect=<id>
+  useEffect(() => {
+    if (!inspectIdParam || handledInspectRef.current === inspectIdParam) return;
+    const targetId = Number(inspectIdParam);
+    if (!targetId) return;
+
+    const match =
+      activeUsers.find((u) => Number(u.id) === targetId) ||
+      archivedUsers.find((u) => Number(u.id) === targetId);
+    if (match) {
+      handledInspectRef.current = inspectIdParam;
+      setSelectedDetailUser(match);
+      return;
+    }
+
+    if (!loading) {
+      handledInspectRef.current = inspectIdParam;
+      adminApi
+        .getUserDetails(targetId)
+        .then((res) => {
+          const userObj = res?.data?.user || res?.data;
+          if (userObj) setSelectedDetailUser(userObj);
+        })
+        .catch(() => {});
+    }
+  }, [inspectIdParam, activeUsers, archivedUsers, loading]);
   const [userDetailData, setUserDetailData] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState<'profile' | 'activity' | 'reviews' | 'reports' | 'logs' | 'blocks'>('profile');
 
