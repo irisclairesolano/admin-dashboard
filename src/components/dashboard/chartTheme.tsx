@@ -66,34 +66,67 @@ export const CHART_LEGEND_STYLE: React.CSSProperties = {
 export function getAdaptiveBarConfig(categoryCount: number, seriesCount: number = 1) {
   const isGrouped = seriesCount > 1;
 
-  if (categoryCount <= 3) {
+  if (isGrouped) {
+    if (categoryCount <= 4) {
+      return {
+        barSize: 11,
+        maxBarSize: 12,
+        barGap: 4,
+        barCategoryGap: '38%',
+      };
+    }
+    if (categoryCount <= 8) {
+      return {
+        barSize: 10,
+        maxBarSize: 12,
+        barGap: 4,
+        barCategoryGap: '32%',
+      };
+    }
+    if (categoryCount <= 14) {
+      return {
+        barSize: 9,
+        maxBarSize: 10,
+        barGap: 3,
+        barCategoryGap: '26%',
+      };
+    }
     return {
-      barSize: isGrouped ? 14 : 16,
-      maxBarSize: isGrouped ? 16 : 18,
-      barGap: 6,
-      barCategoryGap: '42%',
+      barSize: 7,
+      maxBarSize: 9,
+      barGap: 2,
+      barCategoryGap: '20%',
     };
   }
-  if (categoryCount <= 7) {
+
+  if (categoryCount <= 4) {
     return {
-      barSize: isGrouped ? 12 : 15,
-      maxBarSize: isGrouped ? 14 : 16,
-      barGap: 5,
-      barCategoryGap: '34%',
+      barSize: 12,
+      maxBarSize: 14,
+      barGap: 4,
+      barCategoryGap: '40%',
+    };
+  }
+  if (categoryCount <= 8) {
+    return {
+      barSize: 11,
+      maxBarSize: 13,
+      barGap: 4,
+      barCategoryGap: '32%',
     };
   }
   if (categoryCount <= 14) {
     return {
-      barSize: isGrouped ? 10 : 13,
-      maxBarSize: isGrouped ? 12 : 14,
-      barGap: 4,
-      barCategoryGap: '28%',
+      barSize: 10,
+      maxBarSize: 12,
+      barGap: 3,
+      barCategoryGap: '26%',
     };
   }
   return {
-    barSize: isGrouped ? 8 : 10,
-    maxBarSize: isGrouped ? 10 : 12,
-    barGap: 3,
+    barSize: 8,
+    maxBarSize: 10,
+    barGap: 2,
     barCategoryGap: '20%',
   };
 }

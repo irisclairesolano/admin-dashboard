@@ -47,7 +47,9 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
   // Automatically switch to horizontal bars when there are many towns/barangays
   // so municipality & barangay labels remain crisp and never overlap.
   const useHorizontalLayout = data.length > 7;
-  const barConfig = getAdaptiveBarConfig(data.length, 1);
+  const hasApplicationsSeries = data.some((d) => typeof d.applications === 'number');
+  const seriesCount = !stacked && hasApplicationsSeries ? 2 : 1;
+  const barConfig = getAdaptiveBarConfig(data.length, seriesCount);
 
   if (useHorizontalLayout) {
     const dynamicHeight = Math.max(224, Math.min(data.length * 32 + 44, 420));
@@ -59,7 +61,8 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
             data={data}
             layout="vertical"
             margin={{ top: 8, right: 16, left: 4, bottom: 2 }}
-            barCategoryGap="28%"
+            barGap={barConfig.barGap}
+            barCategoryGap={barConfig.barCategoryGap}
           >
             <CartesianGrid {...CHART_HORIZONTAL_GRID_PROPS} />
             <XAxis
@@ -76,6 +79,7 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
               tickLine={false}
               tick={CHART_AXIS_TICK}
               width={116}
+              interval={0}
               tickFormatter={(val) => truncateLabel(val, 16)}
             />
             <Tooltip
@@ -95,7 +99,8 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                   name="Job Posts"
                   fill={CHART_PALETTE.jobs}
                   stackId="a"
-                  barSize={12}
+                  barSize={barConfig.barSize}
+                  maxBarSize={barConfig.maxBarSize}
                   radius={[0, 0, 0, 0]}
                 />
                 <Bar
@@ -103,7 +108,27 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                   name="Applications"
                   fill={CHART_PALETTE.applications}
                   stackId="a"
-                  barSize={12}
+                  barSize={barConfig.barSize}
+                  maxBarSize={barConfig.maxBarSize}
+                  radius={CHART_HORIZONTAL_BAR_RADIUS}
+                />
+              </>
+            ) : hasApplicationsSeries ? (
+              <>
+                <Bar
+                  dataKey="jobs"
+                  name="Job Posts"
+                  fill={CHART_PALETTE.jobs}
+                  barSize={barConfig.barSize}
+                  maxBarSize={barConfig.maxBarSize}
+                  radius={CHART_HORIZONTAL_BAR_RADIUS}
+                />
+                <Bar
+                  dataKey="applications"
+                  name="Applications"
+                  fill={CHART_PALETTE.applications}
+                  barSize={barConfig.barSize}
+                  maxBarSize={barConfig.maxBarSize}
                   radius={CHART_HORIZONTAL_BAR_RADIUS}
                 />
               </>
@@ -112,7 +137,8 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                 dataKey="jobs"
                 name="Job Posts"
                 fill={CHART_PALETTE.jobs}
-                barSize={12}
+                barSize={barConfig.barSize}
+                maxBarSize={barConfig.maxBarSize}
                 radius={CHART_HORIZONTAL_BAR_RADIUS}
               />
             )}
@@ -174,6 +200,25 @@ const GeographicActivityChart = memo(function GeographicActivityChart({
                 name="Applications"
                 fill={CHART_PALETTE.applications}
                 stackId="a"
+                barSize={barConfig.barSize}
+                maxBarSize={barConfig.maxBarSize}
+                radius={CHART_BAR_RADIUS}
+              />
+            </>
+          ) : hasApplicationsSeries ? (
+            <>
+              <Bar
+                dataKey="jobs"
+                name="Job Posts"
+                fill={CHART_PALETTE.jobs}
+                barSize={barConfig.barSize}
+                maxBarSize={barConfig.maxBarSize}
+                radius={CHART_BAR_RADIUS}
+              />
+              <Bar
+                dataKey="applications"
+                name="Applications"
+                fill={CHART_PALETTE.applications}
                 barSize={barConfig.barSize}
                 maxBarSize={barConfig.maxBarSize}
                 radius={CHART_BAR_RADIUS}

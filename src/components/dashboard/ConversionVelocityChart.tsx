@@ -45,6 +45,8 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
   formatPeriodLabel = defaultFormatPeriodLabel,
   heightClass = 'h-56',
 }: ConversionVelocityChartProps) {
+  const showDots = data.length <= 3;
+
   return (
     <div className={`${heightClass} w-full min-w-0 font-numeric`}>
       <ResponsiveContainer width="100%" height="100%">
@@ -66,6 +68,7 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
             tickLine={false}
             tick={CHART_AXIS_TICK}
             tickFormatter={(val) => formatAxisTick(val, intervalFilter)}
+            interval={data.length <= 7 ? 0 : 'preserveStartEnd'}
             minTickGap={24}
             dy={8}
           />
@@ -100,6 +103,7 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
               strokeWidth={2}
               fillOpacity={1}
               fill="url(#colorAppsVelocity)"
+              dot={showDots ? { r: 3.5, strokeWidth: 2, fill: '#FFFFFF' } : false}
               activeDot={{ r: 4, stroke: '#FFFFFF', strokeWidth: 2 }}
             />
           )}
@@ -112,6 +116,7 @@ const ConversionVelocityChart = memo(function ConversionVelocityChart({
               strokeWidth={2}
               fillOpacity={1}
               fill="url(#colorHiresVelocity)"
+              dot={showDots ? { r: 3.5, strokeWidth: 2, fill: '#FFFFFF' } : false}
               activeDot={{ r: 4, stroke: '#FFFFFF', strokeWidth: 2 }}
             />
           )}

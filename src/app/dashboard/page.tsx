@@ -822,29 +822,58 @@ export default function AnalyticsDashboard() {
   //   Dimension 4: Application Volume & Hire Funnel Velocity (`transformedApplicationVolume`, `funnelSteps`, `transformedConversionVelocity`)
   //   Dimension 5: Wage Normalization & Community Trust/Moderation (`filteredCompensationCategories`, `filteredReportsBreakdown`)
 
-  // User growth Recharts format
+  // User growth Recharts format (reconciled across all active time-series periods)
   const transformedUserGrowth = useMemo(() => {
-    if (!data?.registration_trends) return [];
+    const hasReg = Array.isArray(data?.registration_trends) && data.registration_trends.length > 0;
+    const hasSeries = Array.isArray(data?.detailed_time_series) && data.detailed_time_series.length > 0;
+    if (!hasReg && !hasSeries) return [];
+
     const grouped: Record<string, { name: string; workers: number; employers: number }> = {};
-    
-    data.registration_trends.forEach((item: any) => {
-      const periodKey = item.period || 'Unknown';
-      if (!grouped[periodKey]) {
-        grouped[periodKey] = { name: periodKey, workers: 0, employers: 0 };
-      }
-      if (item.role === 'worker') {
-        grouped[periodKey].workers += parseInt(item.registrations);
-      } else if (item.role === 'employer') {
-        grouped[periodKey].employers += parseInt(item.registrations);
-      }
-    });
-    
-    return Object.values(grouped).sort((a: any, b: any) => {
+
+    if (hasReg) {
+      data.registration_trends.forEach((item: any) => {
+        const periodKey = item.period || 'Unknown';
+        if (!grouped[periodKey]) {
+          grouped[periodKey] = { name: periodKey, workers: 0, employers: 0 };
+        }
+        const count = parseInt(item.registrations || 0, 10) || 0;
+        if (item.role === 'worker') {
+          grouped[periodKey].workers += count;
+        } else if (item.role === 'employer') {
+          grouped[periodKey].employers += count;
+        }
+      });
+    }
+
+    if (hasSeries) {
+      data.detailed_time_series.forEach((row: any) => {
+        const periodKey = row.period || 'Unknown';
+        if (!grouped[periodKey]) {
+          grouped[periodKey] = {
+            name: periodKey,
+            workers: parseInt(row.new_workers || 0, 10) || 0,
+            employers: parseInt(row.new_employers || 0, 10) || 0,
+          };
+        }
+      });
+    }
+
+    const list = Object.values(grouped);
+    if (!list.some((item) => item.workers > 0 || item.employers > 0)) {
+      return [];
+    }
+
+    return list.sort((a: any, b: any) => {
       const timeA = new Date(a.name || 0).getTime();
       const timeB = new Date(b.name || 0).getTime();
+      if (Number.isNaN(timeA) || Number.isNaN(timeB)) {
+        return trendsSortOrder === 'asc'
+          ? String(a.name).localeCompare(String(b.name))
+          : String(b.name).localeCompare(String(a.name));
+      }
       return trendsSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
     });
-  }, [data?.registration_trends, trendsSortOrder]);
+  }, [data?.registration_trends, data?.detailed_time_series, trendsSortOrder]);
 
   // Skill Demand - horizontal bar chart category comparator
   const transformedJobsData = useMemo(() => {
@@ -893,22 +922,43 @@ export default function AnalyticsDashboard() {
     
     let list: any[] = [];
     if (distRegionFilter === 'all') {
-      // Group and aggregate by municipality to prevent duplicate chaotic barangay bars
-      const grouped: { [key: string]: { name: string; municipality: string; jobs: number; applications: number } } = {};
+      // Group and aggregate by municipality; if all activity sits within a single
+      // municipality across multiple barangays, expand to barangay breakdown rather than collapsing to 1 bar.
+      const byMuni: { [key: string]: { name: string; municipality: string; jobs: number; applications: number } } = {};
       data.geographic_activity.forEach((item: any) => {
         const muni = item.municipality || 'Unknown';
-        if (!grouped[muni]) {
-          grouped[muni] = {
+        if (!byMuni[muni]) {
+          byMuni[muni] = {
             name: muni,
             municipality: muni,
             jobs: 0,
             applications: 0
           };
         }
-        grouped[muni].jobs += parseInt(item.job_postings || 0);
-        grouped[muni].applications += parseInt(item.total_applications || 0);
+        byMuni[muni].jobs += parseInt(item.job_postings || 0, 10) || 0;
+        byMuni[muni].applications += parseInt(item.total_applications || 0, 10) || 0;
       });
-      list = Object.values(grouped);
+
+      const muniEntries = Object.values(byMuni);
+      if (muniEntries.length === 1 && data.geographic_activity.length > 1) {
+        const byArea: { [key: string]: { name: string; municipality: string; jobs: number; applications: number } } = {};
+        data.geographic_activity.forEach((item: any) => {
+          const area = item.barangay || item.municipality || 'Unknown';
+          if (!byArea[area]) {
+            byArea[area] = {
+              name: area,
+              municipality: item.municipality || 'Unknown',
+              jobs: 0,
+              applications: 0,
+            };
+          }
+          byArea[area].jobs += parseInt(item.job_postings || 0, 10) || 0;
+          byArea[area].applications += parseInt(item.total_applications || 0, 10) || 0;
+        });
+        list = Object.values(byArea);
+      } else {
+        list = muniEntries;
+      }
     } else {
       // Show barangays of the selected municipality with optional barangay filter
       let filtered = data.geographic_activity.filter((item: any) => item.municipality === distRegionFilter);
@@ -918,8 +968,8 @@ export default function AnalyticsDashboard() {
       list = filtered.map((item: any) => ({
         name: item.barangay || 'Unknown',
         municipality: item.municipality || distRegionFilter,
-        jobs: parseInt(item.job_postings || 0),
-        applications: parseInt(item.total_applications || 0)
+        jobs: parseInt(item.job_postings || 0, 10) || 0,
+        applications: parseInt(item.total_applications || 0, 10) || 0
       }));
     }
 
@@ -951,19 +1001,90 @@ export default function AnalyticsDashboard() {
     return Array.from(set).sort();
   }, [data?.geographic_activity, distRegionFilter]);
 
-  // Application Volume respects global date & aggregation parameters
+  // Application Volume respects global date & aggregation parameters and reconciles job posts & applications
   const transformedApplicationVolume = useMemo(() => {
-    if (!data?.application_volume) return [];
-    return data.application_volume.map((item: any) => ({
-      name: item.period || 'Unknown',
-      applications: parseInt(item.total_applications),
-      jobs: parseInt(item.unique_jobs),
-    })).sort((a: any, b: any) => {
+    const hasApps = Array.isArray(data?.application_volume) && data.application_volume.length > 0;
+    const hasJobs = Array.isArray(data?.job_post_trends) && data.job_post_trends.length > 0;
+    const hasSeries = Array.isArray(data?.detailed_time_series) && data.detailed_time_series.length > 0;
+    if (!hasApps && !hasJobs && !hasSeries) return [];
+
+    const grouped: Record<string, { name: string; applications: number; jobs: number; hasExplicitJobs: boolean }> = {};
+
+    if (hasApps) {
+      data.application_volume.forEach((item: any) => {
+        const p = item.period || 'Unknown';
+        grouped[p] = {
+          name: p,
+          applications: parseInt(item.total_applications || 0, 10) || 0,
+          jobs: parseInt(item.unique_jobs || 0, 10) || 0,
+          hasExplicitJobs: false,
+        };
+      });
+    }
+
+    if (hasJobs) {
+      data.job_post_trends.forEach((item: any) => {
+        const p = item.period || 'Unknown';
+        const jobPosts = parseInt(item.job_posts || 0, 10) || 0;
+        if (!grouped[p]) {
+          grouped[p] = {
+            name: p,
+            applications: 0,
+            jobs: jobPosts,
+            hasExplicitJobs: true,
+          };
+        } else {
+          grouped[p].jobs = jobPosts;
+          grouped[p].hasExplicitJobs = true;
+        }
+      });
+    }
+
+    if (hasSeries) {
+      data.detailed_time_series.forEach((row: any) => {
+        const p = row.period || 'Unknown';
+        const apps = parseInt(row.applications || 0, 10) || 0;
+        const jobPosts = parseInt(row.job_posts || 0, 10) || 0;
+        if (!grouped[p]) {
+          grouped[p] = {
+            name: p,
+            applications: apps,
+            jobs: jobPosts,
+            hasExplicitJobs: true,
+          };
+        } else {
+          if (grouped[p].applications === 0 && apps > 0) {
+            grouped[p].applications = apps;
+          }
+          if (!grouped[p].hasExplicitJobs) {
+            grouped[p].jobs = jobPosts;
+            grouped[p].hasExplicitJobs = true;
+          }
+        }
+      });
+    }
+
+    const list = Object.values(grouped).map(({ name, applications, jobs }) => ({
+      name,
+      applications,
+      jobs,
+    }));
+
+    if (!list.some((item) => item.applications > 0 || item.jobs > 0)) {
+      return [];
+    }
+
+    return list.sort((a: any, b: any) => {
       const timeA = new Date(a.name || 0).getTime();
       const timeB = new Date(b.name || 0).getTime();
+      if (Number.isNaN(timeA) || Number.isNaN(timeB)) {
+        return trendsSortOrder === 'asc'
+          ? String(a.name).localeCompare(String(b.name))
+          : String(b.name).localeCompare(String(a.name));
+      }
       return trendsSortOrder === 'asc' ? timeA - timeB : timeB - timeA;
     });
-  }, [data?.application_volume, trendsSortOrder]);
+  }, [data?.application_volume, data?.job_post_trends, data?.detailed_time_series, trendsSortOrder]);
 
   const transformedSkillDistribution = useMemo(() => {
     if (!data?.skill_distribution) return [];
@@ -1853,30 +1974,39 @@ export default function AnalyticsDashboard() {
                   </div>
 
                   {/* Funnel & Verification Summary section */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 print-chart-container">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print-chart-container">
                     {/* Application-to-Hire Funnel */}
-                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col justify-between">
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between">
                       <div>
-                        <h3 className="font-display text-sm font-bold text-ink mb-1">From Applying to Getting Hired</h3>
-                        <p className="text-[11px] text-ink-muted mb-3">How many applicants move forward at each step.</p>
+                        <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">From Applying to Getting Hired</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 mb-4">How many applicants move forward at each step.</p>
                         
-                        <div className="space-y-3">
+                        <div className="space-y-3.5">
                           {funnelSteps.map((step, idx) => (
-                            <div key={idx} className="space-y-1">
-                              <div className="flex justify-between text-xs font-semibold text-ink-soft">
-                                <span>{step.label}</span>
-                                <span className="font-bold text-ink">{step.value} <span className="text-[10px] font-normal text-ink-muted">({step.rate})</span></span>
+                            <div key={idx} className="space-y-1.5">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="font-medium text-slate-600 dark:text-slate-300">{step.label}</span>
+                                <span className="font-numeric font-semibold text-ink dark:text-slate-100 tabular-nums">
+                                  {Number(step.value).toLocaleString()}{' '}
+                                  <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">({step.rate})</span>
+                                </span>
                               </div>
-                              <div className="h-4 w-full bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden border border-gray-200/50 dark:border-slate-700">
+                              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                 {parseFloat(step.rate) > 0 ? (
                                   <div
-                                    className="h-full border-r border-white/50 flex items-center justify-end px-2 transition-all duration-1000"
-                                    style={{ width: step.rate, backgroundColor: idx === 0 ? '#3E7648' : idx === 1 ? '#0369A1' : '#15803D' }}
-                                  >
-                                    <span className="text-[10px] font-bold font-numeric text-white leading-none">{step.rate}</span>
-                                  </div>
+                                    className="h-full rounded-full transition-all duration-700"
+                                    style={{
+                                      width: step.rate,
+                                      backgroundColor:
+                                        idx === 0
+                                          ? CHART_PALETTE.workers
+                                          : idx === 1
+                                            ? CHART_PALETTE.jobs
+                                            : CHART_PALETTE.hires,
+                                    }}
+                                  />
                                 ) : (
-                                  <div className="h-full w-0 transition-all duration-1000" />
+                                  <div className="h-full w-0 transition-all duration-700" />
                                 )}
                               </div>
                             </div>
@@ -1884,41 +2014,41 @@ export default function AnalyticsDashboard() {
                         </div>
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-ink-faint/40">
+                      <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800">
                         {/* User Ratio Summary */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                          <div className="bg-white/70 p-2 rounded-lg border border-ink-faint/50">
-                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Workers</span>
-                            <strong className="text-base font-numeric text-ink mt-0.5 block">{data?.user_ratio?.workers ?? 0}</strong>
+                          <div className="bg-slate-50/80 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Workers</span>
+                            <strong className="text-sm font-numeric font-bold text-ink dark:text-slate-100 mt-0.5 block">{data?.user_ratio?.workers ?? 0}</strong>
                           </div>
-                          <div className="bg-white/70 p-2 rounded-lg border border-ink-faint/50">
-                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Employers</span>
-                            <strong className="text-base font-numeric text-ink mt-0.5 block">{data?.user_ratio?.employers ?? 0}</strong>
+                          <div className="bg-slate-50/80 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Employers</span>
+                            <strong className="text-sm font-numeric font-bold text-ink dark:text-slate-100 mt-0.5 block">{data?.user_ratio?.employers ?? 0}</strong>
                           </div>
-                          <div className="bg-white/70 p-2 rounded-lg border border-ink-faint/50">
-                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Verified</span>
-                            <strong className="text-base font-numeric text-status-success mt-0.5 block">{data?.user_ratio?.verified_users ?? 0}</strong>
+                          <div className="bg-slate-50/80 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Verified</span>
+                            <strong className="text-sm font-numeric font-bold text-status-success mt-0.5 block">{data?.user_ratio?.verified_users ?? 0}</strong>
                           </div>
-                          <div className="bg-white/70 p-2 rounded-lg border border-ink-faint/50">
-                            <span className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider block">Unverified</span>
-                            <strong className="text-base font-numeric text-status-error mt-0.5 block">{data?.user_ratio?.unverified_users ?? 0}</strong>
+                          <div className="bg-slate-50/80 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Unverified</span>
+                            <strong className="text-sm font-numeric font-bold text-status-error mt-0.5 block">{data?.user_ratio?.unverified_users ?? 0}</strong>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Verification & Retention metrics */}
-                    <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-2xs border border-ink-faint/60 flex flex-col justify-between">
+                    <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-display text-sm font-bold text-ink">ID Checks & Returning Workers</h3>
+                          <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">ID Checks & Returning Workers</h3>
                           {data?.verification?.delayed_verifications > 0 && (
                             <span className="text-[10px] bg-status-error/10 text-status-error px-2 py-0.5 rounded-full font-bold border border-status-error/20 uppercase tracking-wider">
                               {data.verification.delayed_verifications} Delayed
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-ink-muted mb-3">How fast IDs get checked and how many workers come back.</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 mb-3">How fast IDs get checked and how many workers come back.</p>
 
                         {data?.verification?.total_awaiting_user_action !== undefined && (
                           <div
@@ -2873,12 +3003,12 @@ export default function AnalyticsDashboard() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 print-chart-container">
                 {/* Two-Way Rating System */}
-                <div className="bg-white/90 p-4 rounded-xl shadow-xs border border-ink-faint/30 flex flex-col justify-between">
+                <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <h3 className="font-display text-sm font-bold text-ink">Two-Way Rating & Reputation</h3>
-                        <p className="text-[11px] text-ink-muted">Reviews exchanged between workers and employers.</p>
+                        <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Two-Way Rating & Reputation</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Reviews exchanged between workers and employers.</p>
                       </div>
                       <div className="text-right">
                         <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1 font-numeric">
@@ -2950,11 +3080,11 @@ export default function AnalyticsDashboard() {
                 </div>
 
                 {/* Wages Analytics with expandable details */}
-                <div className="bg-white/90 p-4 rounded-xl shadow-xs border border-ink-faint/30 flex flex-col justify-between">
+                <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between">
                   <div>
                     <div className="mb-3">
-                      <h3 className="font-display text-sm font-bold text-ink">Compensation & Wage Analytics</h3>
-                      <p className="text-[11px] text-ink-muted">Normalized to hourly rate (per-day ÷ 8, per-week ÷ 40, per-month ÷ 160).</p>
+                      <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Compensation & Wage Analytics</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Normalized to hourly rate (per-day ÷ 8, per-week ÷ 40, per-month ÷ 160).</p>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2.5 text-center mb-4">
@@ -3025,17 +3155,17 @@ export default function AnalyticsDashboard() {
               </div>
 
               {/* Reports Breakdown with collapsable table */}
-              <div className="bg-white/90 p-4 rounded-xl shadow-xs border border-ink-faint/30 flex flex-col justify-between print-chart-container">
+              <div className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl shadow-2xs border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between print-chart-container">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-display text-sm font-bold text-ink">Reports & Moderation Insights</h3>
+                    <h3 className="font-display text-sm font-semibold text-ink dark:text-slate-100">Reports & Moderation Insights</h3>
                     {data?.reports?.open_reports > 0 && (
                       <span className="text-[10px] bg-status-error/10 text-status-error px-2 py-0.5 rounded-full font-bold border border-status-error/20 uppercase tracking-wider">
                         {data.reports.open_reports} Open
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-ink-muted mb-3">Security violations and average moderation action times.</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 mb-3">Security violations and average moderation action times.</p>
 
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     <div className="bg-slate-50/70 p-2.5 rounded-lg border border-ink-faint/30 text-center">

@@ -16,6 +16,7 @@ import {
   CHART_HORIZONTAL_BAR_RADIUS,
   CHART_HORIZONTAL_GRID_PROPS,
   CHART_PALETTE,
+  getAdaptiveBarConfig,
   truncateLabel,
 } from './chartTheme';
 
@@ -105,7 +106,7 @@ const JobsDistributionChart = memo(function JobsDistributionChart({
   heightClass = 'h-56',
   onBarClick,
 }: JobsDistributionChartProps) {
-  const barSize = data.length > 8 ? 10 : 12;
+  const barConfig = getAdaptiveBarConfig(data.length, 1);
 
   return (
     <div className={`${heightClass} w-full min-w-0 font-numeric`}>
@@ -114,7 +115,7 @@ const JobsDistributionChart = memo(function JobsDistributionChart({
           data={data}
           layout="vertical"
           margin={{ top: 8, right: 14, left: 4, bottom: 2 }}
-          barCategoryGap="28%"
+          barCategoryGap={barConfig.barCategoryGap}
         >
           <CartesianGrid {...CHART_HORIZONTAL_GRID_PROPS} />
           <XAxis
@@ -131,6 +132,7 @@ const JobsDistributionChart = memo(function JobsDistributionChart({
             tickLine={false}
             tick={CHART_AXIS_TICK}
             width={116}
+            interval={0}
             tickFormatter={(value) => truncateLabel(value, 16)}
           />
           <Tooltip
@@ -141,8 +143,8 @@ const JobsDistributionChart = memo(function JobsDistributionChart({
             dataKey="jobs"
             name="Job Posts"
             radius={CHART_HORIZONTAL_BAR_RADIUS}
-            barSize={barSize}
-            maxBarSize={14}
+            barSize={barConfig.barSize}
+            maxBarSize={barConfig.maxBarSize}
             onClick={(entry: any) => onBarClick?.(entry)}
           >
             {data.map((entry, index) => (

@@ -45,6 +45,8 @@ const ApplicationVolumeChart = memo(function ApplicationVolumeChart({
   heightClass = 'h-56',
   margin = CHART_DEFAULT_MARGIN,
 }: ApplicationVolumeChartProps) {
+  const showDots = data.length <= 3;
+
   return (
     <div className={`${heightClass} w-full min-w-0 font-numeric`}>
       <ResponsiveContainer width="100%" height="100%">
@@ -66,6 +68,7 @@ const ApplicationVolumeChart = memo(function ApplicationVolumeChart({
             tickLine={false}
             tick={CHART_AXIS_TICK}
             tickFormatter={(val) => formatAxisTick(val, intervalFilter)}
+            interval={data.length <= 7 ? 0 : 'preserveStartEnd'}
             minTickGap={24}
             dy={8}
           />
@@ -99,6 +102,7 @@ const ApplicationVolumeChart = memo(function ApplicationVolumeChart({
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorAppsOverview)"
+            dot={showDots ? { r: 3.5, strokeWidth: 2, fill: '#FFFFFF' } : false}
             activeDot={{ r: 4, stroke: '#FFFFFF', strokeWidth: 2 }}
           />
           <Area
@@ -109,6 +113,7 @@ const ApplicationVolumeChart = memo(function ApplicationVolumeChart({
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorJobsOverview)"
+            dot={showDots ? { r: 3.5, strokeWidth: 2, fill: '#FFFFFF' } : false}
             activeDot={{ r: 4, stroke: '#FFFFFF', strokeWidth: 2 }}
           />
         </AreaChart>

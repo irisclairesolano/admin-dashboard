@@ -68,6 +68,7 @@ const UserGrowthChart = memo(function UserGrowthChart({
             tickLine={false}
             tick={CHART_AXIS_TICK}
             tickFormatter={(val) => formatAxisTick(val, intervalFilter)}
+            interval={data.length <= 7 ? 0 : 'preserveStartEnd'}
             minTickGap={20}
             dy={8}
           />
