@@ -58,17 +58,24 @@ describe('SupportTicketsPage Component', () => {
     } as any);
   });
 
-  it('fetches and displays support tickets on render', async () => {
+  it('fetches and displays support tickets on render (defaulting to open tab)', async () => {
     render(<SupportTicketsPage />);
 
     expect(adminApi.getSupportTickets).toHaveBeenCalledTimes(1);
 
     await waitFor(() => {
       expect(screen.getByText('Login issues')).toBeInTheDocument();
-      expect(screen.getByText('Billing question')).toBeInTheDocument();
       expect(screen.getByText('Alex Rivera')).toBeInTheDocument();
-      expect(screen.getByText('Maria Clara')).toBeInTheDocument();
     });
+
+    // Switch to "all" tab to view both open and resolved tickets
+    const allTab = screen.getByRole('button', { name: /^all$/i });
+    fireEvent.click(allTab);
+
+    expect(screen.getByText('Login issues')).toBeInTheDocument();
+    expect(screen.getByText('Billing question')).toBeInTheDocument();
+    expect(screen.getByText('Alex Rivera')).toBeInTheDocument();
+    expect(screen.getByText('Maria Clara')).toBeInTheDocument();
   });
 
   it('filters support tickets by status tabs', async () => {
@@ -76,8 +83,13 @@ describe('SupportTicketsPage Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Login issues')).toBeInTheDocument();
-      expect(screen.getByText('Billing question')).toBeInTheDocument();
     });
+
+    // Click "all" status filter tab
+    const allTab = screen.getByRole('button', { name: /^all$/i });
+    fireEvent.click(allTab);
+    expect(screen.getByText('Login issues')).toBeInTheDocument();
+    expect(screen.getByText('Billing question')).toBeInTheDocument();
 
     // Click "open" status filter tab
     const openTab = screen.getByRole('button', { name: /^open$/i });

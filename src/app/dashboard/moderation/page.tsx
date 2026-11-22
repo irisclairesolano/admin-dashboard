@@ -185,8 +185,8 @@ function ModerationPageContent() {
       if (!silent) setLoading(true);
       const [res, openRes] = await Promise.all([
         adminApi.getReports(statusFilter, currentPage, searchTerm),
-        // Fetch open reports count if not already filtering by open
-        statusFilter === 'open' ? Promise.resolve(null) : adminApi.getReports('open', 1, '', true).catch(() => null),
+        // Reuse the shared cached open-reports query from layout.tsx (which includes pagination `total`)
+        statusFilter === 'open' ? Promise.resolve(null) : adminApi.getReports('open', 1).catch(() => null),
       ]);
       setReports(res.data.data || []);
       setTotalPages(res.data.last_page || 1);
