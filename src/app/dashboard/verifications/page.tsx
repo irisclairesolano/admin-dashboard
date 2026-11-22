@@ -328,7 +328,7 @@ function VerificationsPageContent() {
               {statusTab === 'pending' && (
                 <div className="relative">
                   <select
-                    aria-label="Filter by SLA status"
+                    aria-label="Filter by wait time status"
                     value={slaFilter}
                     onChange={(e) => {
                       setSlaFilter(e.target.value as any);
@@ -541,7 +541,7 @@ function VerificationsPageContent() {
                   {statusTab === 'rejected' ? (
                     <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[24%]">Rejection Reason</th>
                   ) : (
-                    <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[24%]">Submitted & SLA Age</th>
+                    <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[24%]">Submitted & Wait Time</th>
                   )}
                   <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[14%] text-right">
                     {statusTab === 'rejected' ? 'Status' : 'Action'}
@@ -637,7 +637,7 @@ function VerificationsPageContent() {
                                   >
                                     {sla.isOverdue && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />}
                                     <i className="lni lni-timer text-xs" />
-                                    <span>SLA: {sla.label}</span>
+                                    <span>Wait: {sla.label}</span>
                                   </span>
                                 );
                               })()}

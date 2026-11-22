@@ -81,7 +81,7 @@ function ModerationPageContent() {
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'open' | 'resolved' | 'dismissed'>('open');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'resolved' | 'dismissed'>('open');
   const [openCount, setOpenCount] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState(urlSearch);
   const [currentPage, setCurrentPage] = useState(1);
@@ -348,13 +348,14 @@ function ModerationPageContent() {
   if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">Content Moderation & Safety</h1>
-            <span className="bg-status-error/10 text-status-error font-body font-bold text-xs px-2.5 py-0.5 rounded-full border border-status-error/20">
-              Violation & Abuse Queue
+    <div className="animate-fade-in space-y-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">Content Moderation &amp; Safety</h1>
+            <span className="inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-700 dark:text-rose-300 font-body font-bold text-[11px] px-2.5 py-1 rounded-full border border-rose-500/25 whitespace-nowrap shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+              Violation &amp; Abuse Queue
             </span>
           </div>
           <p className="text-xs text-ink-muted mt-1">
@@ -362,10 +363,11 @@ function ModerationPageContent() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 mt-3 md:mt-0 text-sm">
+        <div className="flex flex-wrap items-center gap-2 text-sm shrink-0">
           {/* Status Tabs with Badges */}
-          <div className="flex items-center gap-1.5 bg-white/90 dark:bg-slate-900/80 p-1 rounded-xl border border-ink-faint/40 shadow-2xs h-10">
+          <div className="flex items-center gap-1 bg-white/90 dark:bg-slate-900/80 p-1 rounded-xl border border-ink-faint/40 shadow-2xs h-10">
             {([
+              { id: 'all', label: 'All', count: statusFilter === 'all' ? (reports.length) : null, highlight: false },
               { id: 'open', label: 'Open', count: openCount, highlight: true },
               { id: 'resolved', label: 'Resolved', count: statusFilter === 'resolved' ? (reports.length) : null, highlight: false },
               { id: 'dismissed', label: 'Dismissed', count: statusFilter === 'dismissed' ? (reports.length) : null, highlight: false },
@@ -376,14 +378,14 @@ function ModerationPageContent() {
                   setStatusFilter(id as any);
                   setCurrentPage(1);
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1 text-sm font-body font-medium rounded-lg capitalize transition-all cursor-pointer ${statusFilter === id
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-body font-medium rounded-lg capitalize transition-all cursor-pointer whitespace-nowrap ${statusFilter === id
                   ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs font-semibold'
                   : 'text-ink-soft hover:text-ink hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
                   }`}
               >
                 <span>{label}</span>
                 {typeof count === 'number' && count > 0 && (
-                  <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${statusFilter === id
+                  <span className={`px-1.5 py-0.5 rounded-full text-[11px] font-bold leading-none ${statusFilter === id
                     ? 'bg-white/20 text-white'
                     : highlight
                       ? 'bg-status-error/15 text-status-error border border-status-error/30'
@@ -396,7 +398,7 @@ function ModerationPageContent() {
             ))}
           </div>
 
-          <div className="relative w-full md:w-56 group">
+          <div className="relative w-full sm:w-52 group">
             <input
               type="text"
               aria-label="Search reports"
@@ -414,7 +416,7 @@ function ModerationPageContent() {
           <button
             onClick={() => handleExport('xlsx')}
             aria-label="Export moderation audit as Excel"
-            className="flex items-center gap-2 px-3.5 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl border border-emerald-700 shadow-2xs transition font-body font-medium text-sm cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl border border-emerald-700 shadow-2xs transition font-body font-semibold text-xs sm:text-sm cursor-pointer whitespace-nowrap"
             title="Export filtered moderation audit as styled Excel (.xlsx)"
           >
             <i className="lni lni-download text-sm" />
@@ -424,7 +426,7 @@ function ModerationPageContent() {
           <button
             onClick={() => fetchReports(false)}
             aria-label="Refresh reports list"
-            className="w-10 h-10 bg-white dark:bg-slate-900/80 rounded-xl border border-ink-faint/40 shadow-2xs hover:bg-slate-100 dark:hover:bg-slate-800 text-ink-soft hover:text-primary transition flex items-center justify-center cursor-pointer"
+            className="w-10 h-10 bg-white dark:bg-slate-900/80 rounded-xl border border-ink-faint/40 shadow-2xs hover:bg-slate-100 dark:hover:bg-slate-800 text-ink-soft hover:text-primary transition flex items-center justify-center cursor-pointer shrink-0"
             title="Refresh list"
           >
             <i className={`lni lni-reload text-sm ${loading ? 'animate-spin' : ''}`} />
@@ -445,14 +447,14 @@ function ModerationPageContent() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[850px] text-left font-body table-fixed border-collapse">
+            <table className="w-full min-w-[920px] text-left font-body table-fixed border-collapse">
               <thead className="bg-slate-50/70 dark:bg-slate-900/50 border-b border-ink-faint/30">
                 <tr>
-                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[15%]">Target / Type</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[14%]">Target / Type</th>
                   <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[22%]">Reported By</th>
-                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[33%]">Reason / Description</th>
-                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[15%]">Reported At</th>
-                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[15%] text-right">Actions</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[30%]">Reason / Description</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[14%]">Reported At</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[20%] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-faint/20">
@@ -520,14 +522,14 @@ function ModerationPageContent() {
                         {formatDateTime(report.created_at)}
                       </td>
                       <td className="px-4 py-3.5 text-right">
-                        {statusFilter === 'open' ? (
-                          <div className="flex justify-end items-center space-x-2">
+                        {!report.status || report.status === 'open' || report.status === 'pending' ? (
+                          <div className="flex justify-end items-center gap-1.5 whitespace-nowrap">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedReport(report);
                               }}
-                              className="btn-glass text-xs h-9"
+                              className="btn-glass text-xs h-8 px-2.5 whitespace-nowrap shrink-0"
                             >
                               <i className="lni lni-shield text-xs" />
                               <span>Take Action</span>
@@ -560,9 +562,9 @@ function ModerationPageContent() {
                             </Tooltip>
                           </div>
                         ) : (
-                          <span className={`px-2.5 py-1 rounded-md text-xs font-body font-medium border ${statusFilter === 'resolved' ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                          <span className={`px-2.5 py-1 rounded-md text-xs font-body font-medium border capitalize ${report.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                             }`}>
-                            {statusFilter}
+                            {report.status}
                           </span>
                         )}
                       </td>

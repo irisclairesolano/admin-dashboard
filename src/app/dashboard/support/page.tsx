@@ -40,7 +40,7 @@ function SupportTicketsPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState(urlSearch);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'processing' | 'resolved'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'processing' | 'resolved'>('open');
   
   // Modal state
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);

@@ -45,9 +45,8 @@ const CACHE_TTL = 120 * 1000; // 2 minutes TTL (instant tab switching with backg
 // when e.g. the layout badge and a page both ask for the same endpoint at mount).
 const inFlight = new Map<string, Promise<any>>();
 
-// Large payloads (all=1 masterlists) are kept in memory only: serialising them into
-// sessionStorage blocks the main thread and quickly exhausts the storage quota.
-const MAX_PERSIST_CHARS = 200_000;
+// Large payloads exceeding storage limits are kept in memory only.
+const MAX_PERSIST_CHARS = 600_000;
 
 const SESSION_PREFIX = 'api_cache_';
 const SESSION_TIME_PREFIX = 'api_cache_time_';
@@ -156,41 +155,50 @@ const freshGet = (url: string) => {
 const cachedGet = async (url: string) => {
   const now = Date.now();
 
-  // 1. Return from memory cache if fresh
+  // 1. Return from memory cache if fresh; if stale in memory, return immediately and revalidate in background
   const memoryCached = apiCache.get(url);
-  if (memoryCached && (now - memoryCached.timestamp < CACHE_TTL)) {
+  if (memoryCached) {
+    if (now - memoryCached.timestamp < CACHE_TTL) {
+      return memoryCached.data;
+    }
+    void fetchAndStore(url).catch(() => {});
     return memoryCached.data;
   }
 
-  // 2. Return from sessionStorage if fresh
+  // 2. Check sessionStorage before firing any network request
   let localData: any = null;
   let isFresh = false;
+  let storedTimestamp = 0;
   if (typeof window !== 'undefined') {
     try {
       const stored = sessionStorage.getItem(SESSION_PREFIX + url);
       const storedTime = sessionStorage.getItem(SESSION_TIME_PREFIX + url);
       if (stored && storedTime) {
-        const age = now - parseInt(storedTime);
+        storedTimestamp = parseInt(storedTime, 10);
+        const age = now - storedTimestamp;
         if (age < CACHE_TTL) {
           isFresh = true;
         }
         localData = JSON.parse(stored);
       }
     } catch {
-      // Ignore
+      // Ignore storage parse error
     }
   }
 
-  const fetchPromise = fetchAndStore(url);
-
   if (localData) {
+    // Hydrate in-memory cache so subsequent reads avoid JSON.parse
+    apiCache.set(url, {
+      data: localData,
+      timestamp: isFresh ? storedTimestamp : now - CACHE_TTL,
+    });
     if (!isFresh) {
-      fetchPromise.catch(console.error); // Revalidate quietly in background
+      void fetchAndStore(url).catch(() => {}); // Revalidate quietly in background only when stale
     }
     return localData;
   }
 
-  return await fetchPromise;
+  return await fetchAndStore(url);
 };
 
 // Admin-specific API endpoints
@@ -663,19 +671,31 @@ export const prefetchRouteData = (href: string): void => {
 };
 
 /**
- * Pre-fetches all admin dashboard section data in parallel using the exact cache
- * keys requested by each page on mount, populating the stale-while-revalidate cache
- * so every section renders immediately on first navigation.
+ * Pre-fetches all admin dashboard section data in small sequential batches of 2
+ * using the exact cache keys requested by each page on mount. Batching prevents
+ * saturating browser connection slots and backend PHP workers on initial load.
  */
-export const prefetchAll = (): Promise<void> => {
-  return Promise.allSettled([
-    adminApi.getVerifications(true),
-    adminApi.getUsers({ trashed: false, all: true }),
-    adminApi.getJobs({ trashed: false, all: true }),
-    adminApi.getReports('open', 1),
-    adminApi.getSupportTickets(),
-    adminApi.getBlacklist('all', 1, ''),
-    adminApi.getProfanityWords(),
-    adminApi.getSkillsCatalog(),
-  ]).then(() => {});
+export const prefetchAll = async (): Promise<void> => {
+  const batches: Array<() => Promise<unknown>[]> = [
+    () => [
+      adminApi.getVerifications(true),
+      adminApi.getReports('open', 1),
+    ],
+    () => [
+      adminApi.getSupportTickets(),
+      adminApi.getUsers({ trashed: false, all: true }),
+    ],
+    () => [
+      adminApi.getJobs({ trashed: false, all: true }),
+      adminApi.getBlacklist('all', 1, ''),
+    ],
+    () => [
+      adminApi.getProfanityWords(),
+      adminApi.getSkillsCatalog(),
+    ],
+  ];
+
+  for (const runBatch of batches) {
+    await Promise.allSettled(runBatch());
+  }
 };

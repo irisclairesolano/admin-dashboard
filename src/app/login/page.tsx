@@ -446,9 +446,8 @@ export default function LoginPage() {
       </main>
 
       {/* ── Minimal Bottom Edge ───────────────────────────────────────────── */}
-      <footer className="w-full px-4 sm:px-8 lg:px-14 py-3 border-t border-ink-faint/60 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-center sm:text-left text-[10px] sm:text-[11px] text-ink-muted dark:text-slate-400 relative z-20 gap-1 shrink-0 bg-white/40 dark:bg-slate-950/40 backdrop-blur-sm">
-        <span>&copy; {new Date().getFullYear()} SIKAP Project · Skills &amp; Job Matching Platform</span>
-        <span className="hidden sm:inline">Built for Informal Work · Sorsogon, Philippines</span>
+      <footer className="w-full px-4 sm:px-8 lg:px-14 py-3 border-t border-ink-faint/60 dark:border-slate-800/80 flex items-center justify-center text-center text-[10px] sm:text-[11px] text-ink-muted dark:text-slate-400 relative z-20 shrink-0 bg-white/40 dark:bg-slate-950/40 backdrop-blur-sm">
+        <span>&copy; 2026 SIKAP Project · Capstone</span>
       </footer>
     </div>
   );

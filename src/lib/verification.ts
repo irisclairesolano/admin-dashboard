@@ -217,7 +217,7 @@ export function getSlaStatus(
     return {
       durationText: 'Just now',
       label: 'Just now (Normal)',
-      modalLabel: 'SLA: Just now in queue',
+      modalLabel: 'Wait: Just now in queue',
       color: 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 font-medium',
       isOverdue: false,
       badge: 'normal',
@@ -230,7 +230,7 @@ export function getSlaStatus(
     return {
       durationText: 'Just now',
       label: 'Just now (Normal)',
-      modalLabel: 'SLA: Just now in queue',
+      modalLabel: 'Wait: Just now in queue',
       color: 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 font-medium',
       isOverdue: false,
       badge: 'normal',
@@ -246,7 +246,7 @@ export function getSlaStatus(
     return {
       durationText,
       label: `${durationText} (Overdue)`,
-      modalLabel: `SLA: ${durationText} in queue (Overdue)`,
+      modalLabel: `Wait: ${durationText} in queue (Overdue)`,
       color: 'bg-rose-500/10 text-rose-800 dark:text-rose-300 border border-rose-500/25 font-semibold',
       isOverdue: true,
       badge: 'overdue',
@@ -257,7 +257,7 @@ export function getSlaStatus(
     return {
       durationText,
       label: `${durationText} (Urgent)`,
-      modalLabel: `SLA: ${durationText} in queue (Urgent)`,
+      modalLabel: `Wait: ${durationText} in queue (Urgent)`,
       color: 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/20 font-medium',
       isOverdue: false,
       badge: 'urgent',
@@ -268,7 +268,7 @@ export function getSlaStatus(
     return {
       durationText,
       label: `${durationText} (Priority)`,
-      modalLabel: `SLA: ${durationText} in queue (Priority)`,
+      modalLabel: `Wait: ${durationText} in queue (Priority)`,
       color: 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 font-medium',
       isOverdue: false,
       badge: 'priority',
@@ -278,7 +278,7 @@ export function getSlaStatus(
   return {
     durationText,
     label: `${durationText} (Normal)`,
-    modalLabel: `SLA: ${durationText} in queue`,
+    modalLabel: `Wait: ${durationText} in queue`,
     color: 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 font-medium',
     isOverdue: false,
     badge: 'normal',

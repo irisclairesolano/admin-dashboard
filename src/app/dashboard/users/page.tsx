@@ -850,61 +850,91 @@ function UsersContent() {
         </div>
       </div>
 
-      {/* 6 Stat Cards: Total, Workers, Employers, Admins, Pending Review, Archived */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 mb-4">
-        <StatCard
-          title="Total Users"
-          value={activeUsers.length + archivedUsers.length}
-          iconClass="lni lni-users"
-          bg="from-slate-100 to-slate-200"
-          iconColor="text-slate-700"
+      {/* Stat Cards: Full-width Total Users hero + 2 rows of 3 cards */}
+      <div className="space-y-3 mb-4">
+        <button
+          type="button"
           onClick={() => { setShowArchived(false); setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }}
-        />
-        <StatCard
-          title="Workers"
-          value={activeUsers.filter(u => u.role === 'worker').length}
-          iconClass="lni lni-user"
-          bg="from-emerald-50 to-emerald-100"
-          iconColor="text-emerald-700"
-          onClick={() => { setShowArchived(false); setRoleFilter('worker'); setFilter('all'); setCurrentPage(1); }}
-        />
-        <StatCard
-          title="Employers"
-          value={activeUsers.filter(u => u.role === 'employer').length}
-          iconClass="lni lni-briefcase"
-          bg="from-amber-50 to-amber-100"
-          iconColor="text-amber-700"
-          onClick={() => { setShowArchived(false); setRoleFilter('employer'); setFilter('all'); setCurrentPage(1); }}
-        />
-        <StatCard
-          title="Admins"
-          value={activeUsers.filter(u => u.role === 'admin').length}
-          iconClass="lni lni-shield"
-          bg="from-indigo-50 to-indigo-100"
-          iconColor="text-indigo-700"
-          onClick={() => { setShowArchived(false); setRoleFilter('admin'); setFilter('all'); setCurrentPage(1); }}
-        />
-        <StatCard
-          title="Pending Review"
-          value={activeUsers.filter(u => {
-            if (u.role === 'admin') return false;
-            const isApproved = u.verification_status === 'approved' || !!u.verification_badge;
-            const isRejected = u.verification_status === 'rejected' || u.registration_status === 'rejected';
-            return !isApproved && !isRejected && hasSubmittedDocs(u);
-          }).length}
-          iconClass="lni lni-warning"
-          bg="from-orange-50 to-orange-100"
-          iconColor="text-orange-700"
-          onClick={() => { setShowArchived(false); setFilter('pending_review'); setRoleFilter('all'); setCurrentPage(1); }}
-        />
-        <StatCard
-          title="Archived & Deleted"
-          value={archivedUsers.length}
-          iconClass="lni lni-trash-can"
-          bg="from-rose-50 to-rose-100"
-          iconColor="text-rose-700"
-          onClick={() => { setShowArchived(true); setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }}
-        />
+          className="w-full text-left bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-xl p-4 border border-ink-faint/30 shadow-2xs hover:shadow-sm hover:border-ink-faint/60 transition-all flex items-center justify-between gap-4 cursor-pointer"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center shrink-0">
+              <i className="lni lni-users text-xl text-slate-700 dark:text-slate-200" />
+            </div>
+            <div>
+              <div className="text-xs font-body font-semibold text-ink-muted uppercase tracking-wider">Total Users</div>
+              <div className="text-2xl font-display font-bold text-ink font-numeric mt-0.5">
+                {activeUsers.length + archivedUsers.length}
+              </div>
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-4 text-xs font-body text-ink-muted">
+            <span><strong className="text-ink font-numeric">{activeUsers.length}</strong> Active</span>
+            <span className="text-ink-faint">•</span>
+            <span><strong className="text-ink font-numeric">{archivedUsers.length}</strong> Archived</span>
+          </div>
+        </button>
+
+        {/* Row 1: Role Breakdown (Employers, Workers, Admins) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <StatCard
+            title="Employers"
+            value={activeUsers.filter(u => u.role === 'employer').length}
+            iconClass="lni lni-briefcase"
+            bg="from-amber-50 to-amber-100"
+            iconColor="text-amber-700"
+            onClick={() => { setShowArchived(false); setRoleFilter('employer'); setFilter('all'); setCurrentPage(1); }}
+          />
+          <StatCard
+            title="Workers"
+            value={activeUsers.filter(u => u.role === 'worker').length}
+            iconClass="lni lni-user"
+            bg="from-emerald-50 to-emerald-100"
+            iconColor="text-emerald-700"
+            onClick={() => { setShowArchived(false); setRoleFilter('worker'); setFilter('all'); setCurrentPage(1); }}
+          />
+          <StatCard
+            title="Admins"
+            value={activeUsers.filter(u => u.role === 'admin').length}
+            iconClass="lni lni-shield"
+            bg="from-indigo-50 to-indigo-100"
+            iconColor="text-indigo-700"
+            onClick={() => { setShowArchived(false); setRoleFilter('admin'); setFilter('all'); setCurrentPage(1); }}
+          />
+        </div>
+
+        {/* Row 2: Action & Lifecycle Breakdown (Pending Review, Needs User Action, Archived & Deleted) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <StatCard
+            title="Pending Review"
+            value={activeUsers.filter(u => {
+              if (u.role === 'admin') return false;
+              const isApproved = u.verification_status === 'approved' || !!u.verification_badge;
+              const isRejected = u.verification_status === 'rejected' || u.registration_status === 'rejected';
+              return !isApproved && !isRejected && hasSubmittedDocs(u);
+            }).length}
+            iconClass="lni lni-warning"
+            bg="from-orange-50 to-orange-100"
+            iconColor="text-orange-700"
+            onClick={() => { setShowArchived(false); setFilter('pending_review'); setRoleFilter('all'); setCurrentPage(1); }}
+          />
+          <StatCard
+            title="Needs User Action"
+            value={incompleteUsers.length}
+            iconClass="lni lni-hourglass"
+            bg="from-sky-50 to-sky-100"
+            iconColor="text-sky-700"
+            onClick={() => { setShowArchived(false); setFilter('pending_id_upload'); setRoleFilter('all'); setCurrentPage(1); }}
+          />
+          <StatCard
+            title="Archived & Deleted"
+            value={archivedUsers.length}
+            iconClass="lni lni-trash-can"
+            bg="from-rose-50 to-rose-100"
+            iconColor="text-rose-700"
+            onClick={() => { setShowArchived(true); setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }}
+          />
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2.5 mb-4">
@@ -1029,23 +1059,16 @@ function UsersContent() {
               <strong>{incompleteUsers.length} incomplete registration{incompleteUsers.length === 1 ? '' : 's'}</strong> awaiting ID upload are hidden from this active directory.
             </span>
           </div>
-          <div className="flex items-center gap-2.5 shrink-0">
-            <button
-              onClick={() => router.push('/dashboard/verifications')}
-              className="text-amber-900 font-bold hover:underline cursor-pointer flex items-center gap-1"
-            >
-              <span>Review in Verifications</span>
-              <span aria-hidden="true">&rarr;</span>
-            </button>
-            <span className="text-amber-300">|</span>
+          <div className="flex items-center shrink-0">
             <button
               onClick={() => {
                 setShowIncomplete(true);
                 setCurrentPage(1);
               }}
-              className="text-amber-800 hover:text-amber-950 cursor-pointer font-semibold underline"
+              className="text-amber-900 font-bold hover:underline cursor-pointer flex items-center gap-1"
             >
-              Show here ({incompleteUsers.length})
+              <span>View list ({incompleteUsers.length})</span>
+              <span aria-hidden="true">&rarr;</span>
             </button>
           </div>
         </div>

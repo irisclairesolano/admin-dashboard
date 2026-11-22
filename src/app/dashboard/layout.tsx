@@ -365,21 +365,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     setPrefetchStatus('loading');
 
-    // Load notification badges using shared in-flight/cache first so we don't starve the active page,
-    // then warm secondary tabs in the background after the active page has rendered.
-    fetchNotifications(false, false).catch(() => {});
+    // Let the currently active tab fire its own primary request first (0ms),
+    // then load notification badges shortly after and warm secondary tabs in staggered batches
+    // only after the notification sync finishes.
+    let cancelled = false;
+    let prefetchTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const timer = setTimeout(() => {
-      prefetchAll()
-        .then(() => {
-          setPrefetchStatus('ready');
-        })
-        .catch(() => {
-          setPrefetchStatus('error');
+    const notifTimer = setTimeout(() => {
+      fetchNotifications(false, false)
+        .catch(() => {})
+        .finally(() => {
+          if (cancelled) return;
+          prefetchTimer = setTimeout(() => {
+            prefetchAll()
+              .then(() => {
+                if (!cancelled) setPrefetchStatus('ready');
+              })
+              .catch(() => {
+                if (!cancelled) setPrefetchStatus('error');
+              });
+          }, 800);
         });
-    }, 600);
+    }, 200);
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(notifTimer);
+      if (prefetchTimer) clearTimeout(prefetchTimer);
+    };
   }, [fetchNotifications]);
 
   // When visiting the moderation page, automatically clear the SSE new reports alert counter

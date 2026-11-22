@@ -228,5 +228,18 @@ describe('Admin API Suite', () => {
       expect(getSpy).toHaveBeenCalledWith('/admin/jobs?all=1');
       expect(getSpy).toHaveBeenCalledWith('/admin/verifications?all=1&status=all');
     });
+
+    it('returns fresh sessionStorage entries immediately with zero network requests', async () => {
+      const url = '/admin/profanity-words';
+      const cachedPayload = { data: { data: ['badword'] }, status: 200 };
+      sessionStorage.setItem('api_cache_' + url, JSON.stringify(cachedPayload));
+      sessionStorage.setItem('api_cache_time_' + url, Date.now().toString());
+
+      const getSpy = vi.spyOn(apiClient, 'get');
+
+      const res = await adminApi.getProfanityWords();
+      expect(res.data.data).toEqual(['badword']);
+      expect(getSpy).not.toHaveBeenCalled();
+    });
   });
 });

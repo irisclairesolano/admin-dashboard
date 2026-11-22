@@ -64,7 +64,7 @@ export function CommandPalette({ isOpen, onClose, onOpen2FA }: CommandPalettePro
       id: 'nav-verifications',
       title: 'ID Verifications',
       category: 'Navigation',
-      description: 'Review government ID submissions and SLA queues',
+      description: 'Review government ID submissions and wait-time queues',
       icon: FileCheck,
       action: () => { router.push('/dashboard/verifications'); onClose(); },
     },
@@ -216,7 +216,7 @@ export function CommandPalette({ isOpen, onClose, onOpen2FA }: CommandPalettePro
           <input
             ref={inputRef}
             type="text"
-            placeholder="Type a command, page, or action... (e.g. users, export, SLA, moderation)"
+            placeholder="Type a command, page, or action... (e.g. users, export, queue, moderation)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full bg-transparent text-sm sm:text-base font-body text-ink dark:text-slate-100 placeholder:text-ink-muted/70 dark:placeholder:text-slate-500 outline-none"
