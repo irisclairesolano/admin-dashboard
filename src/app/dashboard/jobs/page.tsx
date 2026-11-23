@@ -375,6 +375,9 @@ function JobsPageContent() {
 
     const normalizedFilter = statusFilter.toLowerCase().replace(/\s+/g, '_');
     const normalizedStatus = (j.status || '').toLowerCase().replace(/\s+/g, '_');
+    if (normalizedFilter === 'in_progress') {
+      return matchesSearch && (normalizedStatus === 'in_progress' || normalizedStatus === 'closed_in_progress');
+    }
     return matchesSearch && normalizedStatus === normalizedFilter;
   });
 
@@ -578,61 +581,73 @@ function JobsPageContent() {
 
   return (
     <>
-      <div className="animate-fade-in">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+      <div className="animate-fade-in space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">Job Posts</h1>
-            <p className="text-xs text-ink-muted mt-0.5">
+            <h1 className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100 tracking-tight">Job Posts</h1>
+            <p className="text-xs sm:text-sm text-ink-muted dark:text-slate-400 mt-1">
               Monitor and moderate active job postings on the platform.
             </p>
           </div>
         </div>
 
         {/* 6 Stat Cards: Total, Open, In Progress, Completed, Cancelled, Suspended & Archived */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 mb-4">
-          <StatCard title="Total Posts" value={activeJobs.length + archivedJobs.length} iconClass="lni lni-briefcase" bg="from-slate-100 to-slate-200" iconColor="text-slate-700" onClick={() => setStatusFilter('All')} />
-          <StatCard title="Open" value={activeJobs.filter(j => j.status === 'open').length} iconClass="lni lni-play" bg="from-emerald-50 to-emerald-100" iconColor="text-emerald-700" onClick={() => setStatusFilter('Open')} />
-          <StatCard title="In Progress" value={activeJobs.filter(j => j.status === 'in_progress' || j.status === 'in progress').length} iconClass="lni lni-pause" bg="from-sky-50 to-sky-100" iconColor="text-sky-700" onClick={() => setStatusFilter('In Progress')} />
-          <StatCard title="Completed" value={activeJobs.filter(j => j.status === 'completed').length} iconClass="lni lni-checkmark-circle" bg="from-teal-50 to-teal-100" iconColor="text-teal-700" onClick={() => setStatusFilter('Completed')} />
-          <StatCard title="Cancelled" value={activeJobs.filter(j => j.status === 'cancelled').length} iconClass="lni lni-close" bg="from-rose-50 to-rose-100" iconColor="text-rose-700" onClick={() => setStatusFilter('Cancelled')} />
-          <StatCard title="Suspended & Archived" value={activeJobs.filter(j => j.status === 'suspended').length + archivedJobs.length} iconClass="lni lni-trash-can" bg="from-amber-50 to-amber-100" iconColor="text-amber-700" onClick={() => setStatusFilter(activeJobs.some(j => j.status === 'suspended') ? 'Suspended' : 'Archived')} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5">
+          <StatCard title="Total Posts" value={activeJobs.length + archivedJobs.length} iconClass="lni lni-briefcase" bg="from-slate-100 to-slate-200" iconColor="text-slate-700" active={statusFilter === 'All'} onClick={() => setStatusFilter('All')} />
+          <StatCard title="Open" value={activeJobs.filter(j => j.status === 'open').length} iconClass="lni lni-play" bg="from-emerald-50 to-emerald-100" iconColor="text-emerald-700" active={statusFilter === 'Open'} onClick={() => setStatusFilter('Open')} />
+          <StatCard title="In Progress" value={activeJobs.filter(j => j.status === 'in_progress' || j.status === 'in progress' || j.status === 'closed_in_progress').length} iconClass="lni lni-pause" bg="from-sky-50 to-sky-100" iconColor="text-sky-700" active={statusFilter === 'In Progress'} onClick={() => setStatusFilter('In Progress')} />
+          <StatCard title="Completed" value={activeJobs.filter(j => j.status === 'completed').length} iconClass="lni lni-checkmark-circle" bg="from-teal-50 to-teal-100" iconColor="text-teal-700" active={statusFilter === 'Completed'} onClick={() => setStatusFilter('Completed')} />
+          <StatCard title="Cancelled" value={activeJobs.filter(j => j.status === 'cancelled').length} iconClass="lni lni-close" bg="from-rose-50 to-rose-100" iconColor="text-rose-700" active={statusFilter === 'Cancelled'} onClick={() => setStatusFilter('Cancelled')} />
+          <StatCard title="Suspended & Archived" value={activeJobs.filter(j => j.status === 'suspended').length + archivedJobs.length} iconClass="lni lni-trash-can" bg="from-amber-50 to-amber-100" iconColor="text-amber-700" active={statusFilter === 'Suspended' || statusFilter === 'Archived'} onClick={() => setStatusFilter(activeJobs.some(j => j.status === 'suspended') ? 'Suspended' : 'Archived')} />
         </div>
 
         {/* Status Switcher & Search Bar */}
-        <div className="mb-4 flex flex-col md:flex-row gap-3 items-center">
+        <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           <StatusTabs
             options={["All", "Open", "In Progress", "Completed", "Cancelled", "Suspended", "Archived"]}
             activeKey={statusFilter}
             onSelect={setStatusFilter}
           />
-          <div className="relative flex-1 max-w-xs group">
-            <input
-              type="text"
-              aria-label="Search jobs"
-              placeholder="Search jobs..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 bg-white/90 border border-ink-faint/40 rounded-xl focus:outline-none focus:border-ink/50 transition text-xs font-body shadow-xs"
-            />
-            <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-xs" />
-          </div>
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 sm:w-64 group">
+              <input
+                type="text"
+                aria-label="Search jobs"
+                placeholder="Search jobs..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="input-admin w-full pl-9 pr-7"
+              />
+              <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none" />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  aria-label="Clear search"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white p-0.5 rounded cursor-pointer"
+                >
+                  <i className="lni lni-close text-[10px]" />
+                </button>
+              )}
+            </div>
 
-          <button
-            onClick={() => handleExport('xlsx')}
-            aria-label="Export jobs as Excel"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg border border-emerald-700 shadow-2xs transition font-body font-bold text-xs cursor-pointer"
-            title="Export filtered job postings as styled Excel (.xlsx)"
-          >
-            <i className="lni lni-download text-xs" />
-            <span>Excel (.xlsx)</span>
-          </button>
+            <button
+              onClick={() => handleExport('xlsx')}
+              aria-label="Export jobs as Excel"
+              className="btn-export"
+              title="Export filtered job postings as styled Excel (.xlsx)"
+            >
+              <i className="lni lni-download text-xs" />
+              <span>Excel (.xlsx)</span>
+            </button>
+          </div>
         </div>
 
         {/* Table layout (fixed w-full to prevent shifts) */}
-        <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden mt-4">
+        <div className="table-surface">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left font-body table-fixed border-collapse">
-              <thead className="bg-slate-50/70 border-b border-ink-faint/30">
+              <thead className="bg-slate-50/80 dark:bg-slate-800/60 border-b border-ink-faint/40 dark:border-slate-800">
                 <tr>
                   <th className="px-3 py-3 w-[4%] text-center">
                     <input
@@ -788,24 +803,29 @@ function JobsPageContent() {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center mt-6 space-x-4">
-            <button
-              onClick={goToPrev}
-              disabled={currentPage === 1}
-              className="px-3 py-1.5 text-xs font-body font-bold rounded-lg bg-white/80 backdrop-blur-md border border-ink-faint/30 disabled:opacity-50 hover:bg-white transition-colors"
-            >
-              Previous
-            </button>
-            <span className="text-xs text-ink-soft font-body font-semibold">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={goToNext}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1.5 text-xs font-body font-bold rounded-lg bg-white/80 backdrop-blur-md border border-ink-faint/30 disabled:opacity-50 hover:bg-white transition-colors"
-            >
-              Next
-            </button>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-5 px-4">
+            <p className="text-xs sm:text-sm font-body text-ink-soft dark:text-slate-300">
+              Showing <span className="font-semibold text-ink dark:text-slate-100 font-numeric">{(currentPage - 1) * pageSize + 1}</span>–<span className="font-semibold text-ink dark:text-slate-100 font-numeric">{Math.min(currentPage * pageSize, filteredJobs.length)}</span> of{' '}
+              <span className="font-semibold text-ink dark:text-slate-100 font-numeric">{filteredJobs.length}</span> &bull; Page {currentPage} of {totalPages}
+            </p>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={goToPrev}
+                disabled={currentPage === 1}
+                aria-label="Previous page"
+                className="px-3 py-1.5 text-xs font-body font-bold rounded-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-ink-faint/30 dark:border-slate-700 disabled:opacity-50 hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                Previous
+              </button>
+              <button
+                onClick={goToNext}
+                disabled={currentPage === totalPages}
+                aria-label="Next page"
+                className="px-3 py-1.5 text-xs font-body font-bold rounded-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-ink-faint/30 dark:border-slate-700 disabled:opacity-50 hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

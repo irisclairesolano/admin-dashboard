@@ -319,15 +319,15 @@ export default function UserDetailDrawer({
       />
 
       {/* Centered Modal Body - covers sizeable ~80% width of screen */}
-      <div className="relative w-full max-w-5xl lg:w-4/5 h-[92vh] sm:h-[90vh] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col z-10 animate-fade-in border border-white/50 dark:border-slate-700/70 overflow-hidden">
+      <div className="relative w-full max-w-5xl lg:w-4/5 h-[92vh] sm:h-[90vh] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl flex flex-col z-10 animate-fade-in border border-ink-faint/40 dark:border-slate-700/80 overflow-hidden">
         {/* Compact Sticky Header / Top Summary */}
-        <div className="px-4 py-3 sm:px-5 sm:py-3.5 bg-paper-cream border-b border-ink-faint flex flex-col gap-2.5 relative shrink-0">
+        <div className="px-5 py-4 sm:px-6 sm:py-4 bg-slate-50/80 dark:bg-slate-800/50 border-b border-ink-faint/40 dark:border-slate-800 flex flex-col gap-2.5 relative shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 sm:top-3.5 sm:right-4 p-1.5 rounded-full hover:bg-ink-faint/50 text-ink-muted hover:text-ink transition-colors cursor-pointer"
+            className="absolute top-3.5 right-4 sm:top-4 sm:right-5 w-8 h-8 rounded-xl bg-white/80 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Close details"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
 
           <div className="flex items-center gap-3.5 pr-9">

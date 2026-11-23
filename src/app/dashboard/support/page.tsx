@@ -277,35 +277,35 @@ function SupportTicketsPageContent() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="animate-fade-in space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">Support Tickets</h1>
-          <p className="text-xs text-ink-muted mt-0.5">Manage and reply to user inquiries.</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100 tracking-tight">Support Tickets</h1>
+          <p className="text-xs sm:text-sm text-ink-muted dark:text-slate-400 mt-1">Manage and reply to user inquiries.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => handleExport('xlsx')}
-            className="flex items-center px-3.5 h-10 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-body font-medium rounded-xl transition-all border border-emerald-700 shadow-2xs cursor-pointer"
+            className="btn-export gap-1.5"
             title="Export support tickets to styled Excel (.xlsx)"
           >
-            <i className="lni lni-download mr-2 text-sm" />
+            <i className="lni lni-download text-xs" />
             Excel (.xlsx)
           </button>
           <button 
             onClick={() => fetchTickets(false)}
             disabled={loading}
-            className="flex items-center px-3.5 h-10 bg-white dark:bg-slate-900/80 text-ink-soft hover:text-ink text-sm font-body font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all border border-ink-faint/40 shadow-2xs group cursor-pointer"
+            className="btn-glass gap-1.5 group"
           >
-            <i className={`lni lni-reload mr-2 text-sm ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+            <i className={`lni lni-reload text-xs ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
             Refresh
           </button>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md px-4 py-3 rounded-2xl border border-ink-faint/30 shadow-xs flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="card-surface px-4 py-3 flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           {[
             { id: 'all', label: 'All', count: tickets.length, highlight: false },
@@ -317,15 +317,15 @@ function SupportTicketsPageContent() {
               key={id}
               aria-label={id}
               onClick={() => { setStatusFilter(id as any); setCurrentPage(1); }}
-              className={`flex items-center gap-2 px-3.5 h-10 text-sm font-body rounded-xl capitalize transition-all cursor-pointer ${
+              className={`inline-flex items-center gap-2 px-3.5 h-9 text-xs font-body font-semibold rounded-xl capitalize transition-all cursor-pointer border ${
                 statusFilter === id 
-                  ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs font-semibold' 
-                  : 'text-ink-soft hover:text-ink bg-white/70 dark:bg-slate-800/60 border border-ink-faint/40 font-medium'
+                  ? 'bg-ink text-white dark:bg-slate-800 border-ink dark:border-slate-700 shadow-2xs' 
+                  : 'text-ink-soft dark:text-slate-300 hover:text-ink dark:hover:text-white bg-white/90 dark:bg-slate-800/60 border-ink-faint/40 dark:border-slate-700'
               }`}
             >
               <span>{label}</span>
               {count > 0 && (
-                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                <span className={`px-1.5 py-0.5 rounded-full text-[11px] font-bold leading-none ${
                   statusFilter === id
                     ? 'bg-white/20 text-white'
                     : highlight
@@ -347,10 +347,21 @@ function SupportTicketsPageContent() {
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
+              setCurrentPage(1);
             }}
-            className="w-full pl-9 pr-3.5 h-10 bg-white dark:bg-slate-900/80 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/95 focus:border-ink/50 outline-none text-sm font-body transition"
+            className="input-admin w-full pl-9 pr-8"
           />
-          <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-sm" />
+          <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-xs" />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => { setSearchTerm(''); setCurrentPage(1); }}
+              aria-label="Clear search"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white p-0.5 rounded-md transition-colors cursor-pointer"
+            >
+              <i className="lni lni-close text-xs" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -423,24 +434,30 @@ function SupportTicketsPageContent() {
       </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center items-center mt-6 space-x-4">
-          <button
-            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1.5 text-xs font-body font-bold rounded-lg bg-white/80 backdrop-blur-md border border-ink-faint/30 disabled:opacity-50 hover:bg-white transition-colors"
-          >
-            Previous
-          </button>
-          <span className="text-xs text-ink-soft font-body font-semibold">
-            Page {currentPage} of {totalPages}
+        <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-3 px-1">
+          <span className="text-xs text-ink-muted dark:text-slate-400 font-body font-medium">
+            Showing {(currentPage - 1) * itemsPerPage + 1}&ndash;{Math.min(currentPage * itemsPerPage, filteredTickets.length)} of {filteredTickets.length} tickets &bull; Page {currentPage} of {totalPages}
           </span>
-          <button
-            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="px-3 py-1.5 text-xs font-body font-bold rounded-lg bg-white/80 backdrop-blur-md border border-ink-faint/30 disabled:opacity-50 hover:bg-white transition-colors"
-          >
-            Next
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              aria-label="Previous page"
+              onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 text-xs font-body font-bold rounded-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-ink-faint/30 dark:border-slate-700/80 disabled:opacity-50 hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              aria-label="Next page"
+              onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 text-xs font-body font-bold rounded-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-ink-faint/30 dark:border-slate-700/80 disabled:opacity-50 hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 

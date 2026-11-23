@@ -277,19 +277,19 @@ export default function VerificationModal({
       data-testid="verification-modal"
     >
       <div 
-        className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl max-w-2xl w-full shadow-2xl border border-white/50 dark:border-slate-700/70 overflow-hidden flex flex-col max-h-[90vh] my-auto relative z-10 animate-scale-up"
+        className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl max-w-2xl w-full shadow-2xl border border-ink-faint/40 dark:border-slate-700/80 overflow-hidden flex flex-col max-h-[90vh] my-auto relative z-10 animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-5 sm:p-6 border-b border-ink-faint flex justify-between items-center bg-paper-cream flex-shrink-0 sticky top-0 z-10">
-          <h2 id="verification-title" className="font-display text-2xl text-ink">Review ID Document</h2>
+        <div className="px-6 py-4 border-b border-ink-faint/40 dark:border-slate-800 flex justify-between items-center bg-slate-50/80 dark:bg-slate-800/50 flex-shrink-0 sticky top-0 z-10">
+          <h2 id="verification-title" className="font-display text-lg sm:text-xl font-bold text-ink dark:text-slate-100">Review ID Document</h2>
           <button 
             onClick={onClose} 
-            className="p-2 -mr-2 text-ink-muted hover:text-ink hover:bg-ink-faint/50 rounded-full transition-colors cursor-pointer flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary" 
+            className="w-8 h-8 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white bg-slate-100/80 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary" 
             aria-label="Close modal" 
             data-testid="modal-close-btn"
           >
-            <XCircle className="w-6 h-6" />
+            <XCircle className="w-5 h-5" />
           </button>
         </div>
 

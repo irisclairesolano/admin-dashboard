@@ -171,31 +171,31 @@ export default function BulkUserActionModal({
         if (e.target === e.currentTarget && !loading) onClose();
       }}
     >
-      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl max-w-lg w-full shadow-2xl border border-white/50 dark:border-slate-700/70 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl max-w-lg w-full shadow-2xl border border-ink-faint/40 dark:border-slate-700/80 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className={`p-5 border-b border-ink-faint flex justify-between items-center ${actionColorClasses.bg}`}>
+        <div className={`px-6 py-4 border-b border-ink-faint/40 dark:border-slate-800 flex justify-between items-center ${actionColorClasses.bg}`}>
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-2xl ${actionColorClasses.iconBg} flex items-center justify-center flex-shrink-0 shadow-xs`}>
+            <div className={`w-9 h-9 rounded-xl ${actionColorClasses.iconBg} flex items-center justify-center flex-shrink-0 shadow-2xs`}>
               {actionType === 'delete' ? (
-                <Trash2 className="w-5 h-5" />
+                <Trash2 className="w-4 h-4" />
               ) : actionType === 'suspend' ? (
-                <UserX className="w-5 h-5" />
+                <UserX className="w-4 h-4" />
               ) : (
-                <UserCheck className="w-5 h-5" />
+                <UserCheck className="w-4 h-4" />
               )}
             </div>
             <div>
-              <h2 className="font-display text-lg text-ink font-bold">{actionTitle}</h2>
-              <p className="text-xs text-ink-muted">Administrative bulk moderation safeguard</p>
+              <h2 className="font-display text-lg text-ink dark:text-slate-100 font-bold">{actionTitle}</h2>
+              <p className="text-xs text-ink-muted dark:text-slate-400">Administrative bulk moderation safeguard</p>
             </div>
           </div>
           <button
             onClick={onClose}
             disabled={loading}
             aria-label="Close modal"
-            className="p-2 hover:bg-paper rounded-full text-ink-muted hover:text-ink transition-colors disabled:opacity-50 cursor-pointer"
+            className="w-8 h-8 rounded-xl bg-slate-100/80 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white flex items-center justify-center transition-colors disabled:opacity-50 cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 

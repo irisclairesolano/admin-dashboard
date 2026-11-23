@@ -180,22 +180,22 @@ export default function BulkJobActionModal({
         if (e.target === e.currentTarget && !loading) onClose();
       }}
     >
-      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl max-w-lg w-full shadow-2xl border border-white/50 dark:border-slate-700/70 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl max-w-lg w-full shadow-2xl border border-ink-faint/40 dark:border-slate-700/80 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
         {/* Modal Header */}
-        <div className={`p-5 border-b border-ink-faint flex justify-between items-center ${actionColorClasses.bg}`}>
+        <div className={`px-6 py-4 border-b border-ink-faint/40 dark:border-slate-800 flex justify-between items-center ${actionColorClasses.bg}`}>
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-2xl ${actionColorClasses.iconBg} flex items-center justify-center flex-shrink-0 shadow-xs`}>
+            <div className={`w-9 h-9 rounded-xl ${actionColorClasses.iconBg} flex items-center justify-center flex-shrink-0 shadow-2xs`}>
               {actionType === 'delete' ? (
-                <Trash2 className="w-5 h-5" />
+                <Trash2 className="w-4 h-4" />
               ) : actionType === 'suspend' ? (
-                <PauseCircle className="w-5 h-5" />
+                <PauseCircle className="w-4 h-4" />
               ) : (
-                <PlayCircle className="w-5 h-5" />
+                <PlayCircle className="w-4 h-4" />
               )}
             </div>
             <div>
-              <h2 className="font-display text-lg text-ink font-bold">{actionTitle}</h2>
-              <p className="text-xs text-ink-muted">Strict administrative confirmation required</p>
+              <h2 className="font-display text-lg text-ink dark:text-slate-100 font-bold">{actionTitle}</h2>
+              <p className="text-xs text-ink-muted dark:text-slate-400">Strict administrative confirmation required</p>
             </div>
           </div>
           <button

@@ -373,7 +373,28 @@
     scrollbar-width: none;
   }
   .btn-glass {
-    @apply inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-800 text-ink dark:text-slate-100 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs backdrop-blur-md transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20;
+    @apply inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 bg-white/85 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 text-ink dark:text-slate-100 border border-ink-faint/60 dark:border-slate-700/80 shadow-2xs backdrop-blur-md transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 bg-ink hover:bg-ink-soft dark:bg-slate-800 dark:hover:bg-slate-700 text-white border border-ink dark:border-slate-700 shadow-2xs transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-export {
+    @apply inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700/80 shadow-2xs transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-icon {
+    @apply inline-flex items-center justify-center w-9 h-9 rounded-xl shrink-0 bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-ink-soft dark:text-slate-300 hover:text-primary dark:hover:text-sky-400 border border-ink-faint/60 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .input-admin {
+    @apply h-9 px-3.5 bg-white/90 dark:bg-slate-900/85 rounded-xl border border-ink-faint/60 dark:border-slate-700/80 shadow-2xs focus:bg-white dark:focus:bg-slate-900 focus:border-ink/50 dark:focus:border-sky-400/60 focus:ring-2 focus:ring-primary/10 outline-none text-xs font-body text-ink dark:text-slate-100 placeholder:text-ink-muted dark:placeholder:text-slate-400 transition-all;
+  }
+  .select-admin {
+    @apply h-9 px-3 bg-white/90 dark:bg-slate-900/85 rounded-xl border border-ink-faint/60 dark:border-slate-700/80 shadow-2xs focus:bg-white dark:focus:bg-slate-900 focus:border-ink/50 dark:focus:border-sky-400/60 outline-none text-xs font-body font-semibold text-ink dark:text-slate-200 transition-all cursor-pointer;
+  }
+  .card-surface {
+    @apply bg-white/90 dark:bg-slate-900/85 backdrop-blur-md rounded-2xl border border-ink-faint/40 dark:border-slate-800 shadow-xs;
+  }
+  .table-surface {
+    @apply bg-white/90 dark:bg-slate-900/85 backdrop-blur-md rounded-2xl border border-ink-faint/40 dark:border-slate-800 shadow-xs overflow-hidden;
   }
   .badge-neutral {
     @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100/80 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80;

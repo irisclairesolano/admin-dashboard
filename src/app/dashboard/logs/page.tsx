@@ -211,30 +211,47 @@ function LogsPageContent() {
     return null;
   }
 
-  if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-12 h-12 bg-status-error/10 rounded-full flex items-center justify-center mb-3">
+          <i className="lni lni-warning text-xl text-status-error" />
+        </div>
+        <h2 className="text-base font-body font-bold text-ink dark:text-slate-100 mb-1">Failed to load audit logs</h2>
+        <p className="text-ink-muted dark:text-slate-400 font-body text-xs mb-4">{error}</p>
+        <button
+          type="button"
+          onClick={() => { setError(''); fetchLogs(); }}
+          className="px-4 py-2 bg-ink dark:bg-primary text-white font-body font-semibold rounded-lg hover:bg-ink-soft transition-colors text-xs cursor-pointer"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+    <div className="animate-fade-in space-y-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">Audit Logs</h1>
-          <p className="text-xs text-ink-muted mt-0.5">
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100 tracking-tight">Audit Logs</h1>
+          <p className="text-xs sm:text-sm text-ink-muted dark:text-slate-400 mt-1">
             Track administrator actions and system activities.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 mt-3 md:mt-0 text-xs">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
           <button
             onClick={() => handleExport('xlsx')}
             disabled={exporting}
-            className="flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-body font-semibold border border-emerald-700 shadow-2xs transition-colors text-xs disabled:opacity-50 cursor-pointer"
+            className="btn-export gap-1.5"
             title="Export audit logs as styled Excel (.xlsx)"
           >
-            <Download className="w-3.5 h-3.5 mr-1.5" />
+            <Download className="w-3.5 h-3.5" />
             {exporting ? 'Exporting...' : 'Excel (.xlsx)'}
           </button>
           
-          <form onSubmit={handleSearchSubmit} className="relative w-full md:w-72 group">
+          <form onSubmit={handleSearchSubmit} className="relative w-full md:w-64 group">
             <input
               type="text"
               placeholder="Search activity, admin, or target..."
@@ -244,46 +261,56 @@ function LogsPageContent() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-9 pr-3.5 h-10 bg-white/90 dark:bg-slate-900/80 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/95 focus:border-ink/50 outline-none text-sm font-body transition"
+              className="input-admin w-full pl-9 pr-8"
             />
-            <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-sm" />
+            <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-xs" />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => { setSearchTerm(''); setCurrentPage(1); }}
+                aria-label="Clear search"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white p-0.5 rounded-md transition-colors cursor-pointer"
+              >
+                <i className="lni lni-close text-xs" />
+              </button>
+            )}
           </form>
         </div>
       </div>
 
       {/* Date Range Inputs & Action Filter & Admin Filter */}
-      <div className="flex flex-wrap gap-2.5 items-center mb-5 font-body text-sm">
-        <div className="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/80 border border-ink-faint/40 px-3 h-10 rounded-xl shadow-2xs">
-          <span className="text-xs text-ink-muted font-semibold">From:</span>
+      <div className="flex flex-wrap gap-2.5 items-center font-body text-xs">
+        <div className="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/90 border border-ink-faint/40 dark:border-slate-700 px-3 h-9 rounded-xl shadow-2xs">
+          <span className="text-xs text-ink-muted dark:text-slate-400 font-semibold">From:</span>
           <input
             type="date"
             aria-label="From date"
             value={dateFrom}
             onChange={(e) => { setDateFrom(e.target.value); setCurrentPage(1); }}
-            className="bg-transparent text-sm text-ink outline-none border-none font-medium cursor-pointer"
+            className="bg-transparent text-xs text-ink dark:text-slate-100 outline-none border-none font-medium cursor-pointer"
           />
         </div>
 
-        <div className="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/80 border border-ink-faint/40 px-3 h-10 rounded-xl shadow-2xs">
-          <span className="text-xs text-ink-muted font-semibold">To:</span>
+        <div className="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/90 border border-ink-faint/40 dark:border-slate-700 px-3 h-9 rounded-xl shadow-2xs">
+          <span className="text-xs text-ink-muted dark:text-slate-400 font-semibold">To:</span>
           <input
             type="date"
             aria-label="To date"
             value={dateTo}
             onChange={(e) => { setDateTo(e.target.value); setCurrentPage(1); }}
-            className="bg-transparent text-sm text-ink outline-none border-none font-medium cursor-pointer"
+            className="bg-transparent text-xs text-ink dark:text-slate-100 outline-none border-none font-medium cursor-pointer"
           />
         </div>
 
-        <div className="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/80 border border-ink-faint/40 px-3 h-10 rounded-xl shadow-2xs">
-          <span className="text-xs text-ink-muted font-semibold">Admin:</span>
+        <div className="flex items-center space-x-2 bg-white/90 dark:bg-slate-900/90 border border-ink-faint/40 dark:border-slate-700 px-3 h-9 rounded-xl shadow-2xs">
+          <span className="text-xs text-ink-muted dark:text-slate-400 font-semibold">Admin:</span>
           <input
             type="text"
             aria-label="Filter by admin name"
             placeholder="Any admin..."
             value={adminNameFilter}
             onChange={(e) => { setAdminNameFilter(e.target.value); setCurrentPage(1); }}
-            className="bg-transparent text-sm text-ink outline-none border-none font-medium w-32 placeholder:text-ink-muted placeholder:font-normal"
+            className="bg-transparent text-xs text-ink dark:text-slate-100 outline-none border-none font-medium w-32 placeholder:text-ink-muted dark:placeholder:text-slate-500 placeholder:font-normal"
           />
         </div>
 
@@ -294,7 +321,7 @@ function LogsPageContent() {
             setActionFilter(e.target.value);
             setCurrentPage(1);
           }}
-          className="px-3 h-10 rounded-xl font-body font-medium text-sm transition-colors whitespace-nowrap bg-white/90 dark:bg-slate-900/80 border border-ink-faint/40 text-ink-soft focus:bg-white dark:focus:bg-slate-900/95 outline-none cursor-pointer shadow-2xs"
+          className="select-admin"
         >
           <option value="">All Actions</option>
           {Array.from(new Set(Object.keys(ACTION_TYPES).filter((k) => !k.includes('.')))).map((act) => (
@@ -306,7 +333,7 @@ function LogsPageContent() {
           <button
             type="button"
             onClick={handleClearFilters}
-            className="flex items-center gap-1.5 px-3 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-ink-soft text-xs font-semibold transition-colors cursor-pointer"
+            className="btn-glass gap-1.5"
           >
             <i className="lni lni-reload text-xs" />
             Clear Filters
@@ -315,7 +342,7 @@ function LogsPageContent() {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
+      <div className="table-surface">
         {loading ? (
           <div className="p-6 space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -410,19 +437,23 @@ function LogsPageContent() {
       {totalPages > 1 && (
         <div className="flex justify-center items-center mt-6 space-x-4">
           <button
+            type="button"
+            aria-label="Previous page"
             onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1.5 text-xs font-body font-bold rounded-lg bg-white/80 backdrop-blur-md border border-ink-faint/30 disabled:opacity-50 hover:bg-white transition-colors"
+            className="px-3 py-1.5 text-xs font-body font-bold rounded-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-ink-faint/30 dark:border-slate-700/80 disabled:opacity-50 hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             Previous
           </button>
-          <span className="text-xs text-ink-soft font-body font-semibold">
+          <span className="text-xs text-ink-soft dark:text-slate-300 font-body font-semibold">
             Page {currentPage} of {totalPages}
           </span>
           <button
+            type="button"
+            aria-label="Next page"
             onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="px-3 py-1.5 text-xs font-body font-bold rounded-lg bg-white/80 backdrop-blur-md border border-ink-faint/30 disabled:opacity-50 hover:bg-white transition-colors"
+            className="px-3 py-1.5 text-xs font-body font-bold rounded-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-ink-faint/30 dark:border-slate-700/80 disabled:opacity-50 hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             Next
           </button>

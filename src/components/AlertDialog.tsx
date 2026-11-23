@@ -79,7 +79,7 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
     <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 overflow-y-auto">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-ink/40 backdrop-blur-sm transition-opacity duration-300"
+        className="fixed inset-0 bg-ink/50 dark:bg-black/65 backdrop-blur-sm transition-opacity duration-300"
         onClick={handleBackdropClick}
       />
 
@@ -91,30 +91,32 @@ export const AlertDialog: React.FC<AlertDialogProps> = ({
         aria-labelledby="alert-title"
         aria-describedby="alert-msg"
         tabIndex={-1}
-        className="bg-white/95 backdrop-blur-xl border border-white/50 w-full max-w-md rounded-3xl p-6 shadow-2xl relative z-10 transform scale-100 transition-all duration-300 animate-fade-in my-auto"
+        className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-ink-faint/40 dark:border-slate-700/80 w-full max-w-md rounded-2xl p-6 shadow-2xl relative z-10 transform scale-100 transition-all duration-200 animate-fade-in my-auto outline-none"
       >
-        <h3 id="alert-title" className="text-xl font-display font-bold text-ink mb-2">
+        <h3 id="alert-title" className="text-lg sm:text-xl font-display font-bold text-ink dark:text-slate-100 mb-2">
           {cleanTitle}
         </h3>
-        <p id="alert-msg" className="text-sm font-body text-ink-soft leading-relaxed mb-6">
+        <p id="alert-msg" className="text-sm font-body text-ink-soft dark:text-slate-300 leading-relaxed mb-6">
           {cleanMessage}
         </p>
 
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-2.5">
           {cancelText && onCancel && (
             <button
+              type="button"
               onClick={onCancel}
-              className="px-5 py-2.5 rounded-xl text-sm font-body font-semibold text-ink-soft hover:bg-ink-faint/30 border border-ink-faint/50 transition-all"
+              className="h-9 px-4 rounded-xl text-xs font-body font-semibold text-ink-soft dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-ink-faint/60 dark:border-slate-700 transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               {cancelText}
             </button>
           )}
           <button
+            type="button"
             onClick={onConfirm}
-            className={`px-5 py-2.5 rounded-xl text-sm font-body font-semibold text-white transition-all shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 cursor-pointer ${
+            className={`h-9 px-4 rounded-xl text-xs font-body font-semibold text-white transition-all shadow-sm active:scale-95 focus-visible:outline-none focus-visible:ring-2 cursor-pointer ${
               confirmVariant === 'destructive'
-                ? 'bg-rose-700 hover:bg-rose-800 focus-visible:ring-rose-500/50'
-                : 'bg-ink hover:bg-ink-soft focus-visible:ring-primary/50'
+                ? 'bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-500/50'
+                : 'bg-ink hover:bg-ink-soft dark:bg-primary dark:hover:bg-primary-hover focus-visible:ring-primary/50'
             }`}
           >
             {confirmText}

@@ -51,10 +51,10 @@ export default function UserTable({
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[800px] text-left font-body table-fixed border-collapse">
-        <thead className="bg-white/50 dark:bg-slate-800/60 border-b border-ink-faint/50 dark:border-slate-800">
+        <thead className="bg-slate-50/80 dark:bg-slate-800/60 border-b border-ink-faint/40 dark:border-slate-800">
           <tr>
             {onToggleSelectUser && (
-              <th className="px-3 py-4 w-[4%] text-center">
+              <th className="px-3 py-3.5 w-[4%] text-center">
                 <input
                   type="checkbox"
                   aria-label="Select all users"
@@ -64,19 +64,25 @@ export default function UserTable({
                 />
               </th>
             )}
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft dark:text-slate-300 text-xs uppercase tracking-wider w-[8%]">User ID</th>
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft dark:text-slate-300 text-xs uppercase tracking-wider w-[30%]">User Details</th>
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft dark:text-slate-300 text-xs uppercase tracking-wider w-[18%]">Role & Status</th>
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft dark:text-slate-300 text-xs uppercase tracking-wider w-[11%]">Joined</th>
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft dark:text-slate-300 text-xs uppercase tracking-wider w-[13%]">Last Active</th>
-            <th className="px-4 py-4 font-body font-semibold text-ink-soft dark:text-slate-300 text-xs uppercase tracking-wider w-[16%] text-right">Actions</th>
+            <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[8%]">User ID</th>
+            <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[30%]">User Details</th>
+            <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[18%]">Role & Status</th>
+            <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[11%]">Joined</th>
+            <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[13%]">Last Active</th>
+            <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[16%] text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-ink-faint/30 dark:divide-slate-800">
           {paginatedUsers.length === 0 ? (
             <tr>
-              <td colSpan={onToggleSelectUser ? 7 : 6} className="px-8 py-16 text-center text-ink-soft dark:text-slate-400">
-                No users found
+              <td colSpan={onToggleSelectUser ? 7 : 6} className="px-8 py-14 text-center text-ink-soft dark:text-slate-400">
+                <div className="flex flex-col items-center justify-center">
+                  <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
+                    <i className="lni lni-users text-xl text-slate-400" />
+                  </div>
+                  <p className="text-sm font-semibold text-ink dark:text-slate-200">No users found</p>
+                  <p className="text-xs text-ink-muted dark:text-slate-400 mt-1">Try adjusting your search query or status filters.</p>
+                </div>
               </td>
             </tr>
           ) : (
@@ -178,7 +184,12 @@ export default function UserTable({
                   </div>
                 </td>
                 <td className="px-4 py-3.5 text-xs font-body font-medium text-ink-soft dark:text-slate-300">
-                  {new Date(user.created_at).toLocaleString('en-US', { timeZone: 'Asia/Manila', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })} PHT
+                  <div>
+                    {new Date(user.created_at).toLocaleDateString('en-US', { timeZone: 'Asia/Manila', year: 'numeric', month: 'short', day: 'numeric' })}
+                  </div>
+                  <div className="text-[11px] text-ink-muted dark:text-slate-400 mt-0.5 font-numeric">
+                    {new Date(user.created_at).toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', hour12: true })} PHT
+                  </div>
                 </td>
                 <td className="px-4 py-3.5 text-xs text-ink-soft dark:text-slate-300 whitespace-nowrap">
                   <div className="flex items-center text-ink-muted dark:text-slate-400 font-body font-medium">
@@ -192,13 +203,13 @@ export default function UserTable({
                 </td>
                 <td className="px-4 py-3.5 text-right">
                   {user.role !== 'admin' && (
-                    <div className="flex flex-col gap-1.5 items-end justify-center">
+                    <div className="flex flex-wrap gap-1.5 items-center justify-end">
                       {user.deleted_at ? (
                         onRestore && (
                           <button
                             disabled={actionLoading === user.id}
                             onClick={() => onRestore(user.id)}
-                            className="w-24 py-1.5 text-xs font-body font-semibold rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white transition-all text-center cursor-pointer"
+                            className="px-3 py-1.5 text-xs font-body font-semibold rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white transition-all text-center cursor-pointer"
                           >
                             Restore
                           </button>
@@ -213,7 +224,7 @@ export default function UserTable({
                               <button
                                 disabled={actionLoading === user.id}
                                 onClick={() => onVerify(user)}
-                                className="w-24 py-1.5 text-xs font-body font-semibold rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white transition-all text-center cursor-pointer"
+                                className="px-3 py-1.5 text-xs font-body font-semibold rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white transition-all text-center cursor-pointer"
                                 title="Review & Verify User"
                               >
                                 Verify
@@ -222,7 +233,7 @@ export default function UserTable({
                               <button
                                 disabled
                                 title={verifInfo.disabledReason || 'Cannot verify: User has not uploaded ID documents yet'}
-                                className="w-24 py-1.5 text-xs font-body font-medium rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-slate-400 cursor-not-allowed opacity-70 text-center"
+                                className="px-2.5 py-1.5 text-xs font-body font-medium rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-slate-400 cursor-not-allowed opacity-70 text-center"
                               >
                                 {verifInfo.statusKey === 'rejected' ? 'Rejected' : 'No ID'}
                               </button>
@@ -231,7 +242,7 @@ export default function UserTable({
                           <button
                             disabled={actionLoading === user.id}
                             onClick={() => onSuspend(user)}
-                            className={`w-24 py-1.5 text-xs font-body font-medium rounded-lg border transition-all text-center cursor-pointer ${
+                            className={`px-3 py-1.5 text-xs font-body font-medium rounded-lg border transition-all text-center cursor-pointer ${
                               user.is_suspended
                                 ? 'bg-amber-500/10 border-amber-500/20 text-amber-800 dark:text-amber-300 hover:bg-amber-500 hover:text-white'
                                 : 'bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-ink dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700'
@@ -242,7 +253,7 @@ export default function UserTable({
                           <button
                             disabled={actionLoading === user.id}
                             onClick={() => onDelete(user.id)}
-                            className="w-24 py-1.5 text-xs font-body font-medium rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 hover:bg-rose-600 hover:text-white transition-all text-center cursor-pointer"
+                            className="px-3 py-1.5 text-xs font-body font-medium rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 hover:bg-rose-600 hover:text-white transition-all text-center cursor-pointer"
                           >
                             Delete
                           </button>

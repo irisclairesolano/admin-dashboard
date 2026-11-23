@@ -458,7 +458,7 @@ export default function AnalyticsDashboard() {
           onChange={(e) => {
             setPreset(e.target.value);
           }}
-          className="bg-white/90 dark:bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs text-xs font-body font-semibold text-slate-700 dark:text-slate-200 outline-none focus:border-ink cursor-pointer"
+          className="select-admin"
         >
           {presets.map((p) => (
             <option key={p} value={p}>{p}</option>
@@ -466,7 +466,7 @@ export default function AnalyticsDashboard() {
         </select>
 
         {preset === 'Custom Date' ? (
-          <div className="flex items-center gap-1.5 bg-white/90 dark:bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs">
+          <div className="flex items-center gap-1.5 bg-white/90 dark:bg-slate-900/90 px-3 h-9 rounded-xl border border-ink-faint/40 dark:border-slate-700 shadow-2xs">
             <input
               aria-label={`${tab} custom start date`}
               type="date"
@@ -489,7 +489,7 @@ export default function AnalyticsDashboard() {
           </div>
         ) : (
           from && to && (
-            <span className="text-[11px] font-numeric font-medium text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-slate-900/80 px-2 py-1 rounded-lg border border-slate-200/60 dark:border-slate-800 hidden sm:inline-block shadow-2xs">
+            <span className="inline-flex items-center h-9 text-xs font-numeric font-medium text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-slate-900/80 px-3 rounded-xl border border-ink-faint/40 dark:border-slate-800 hidden sm:inline-flex shadow-2xs">
               {from} to {to}
             </span>
           )
@@ -1498,20 +1498,20 @@ export default function AnalyticsDashboard() {
 
       <div className="screen-only">
         {/* Sticky Top Filter & Header Bar */}
-        <div className="sticky top-0 z-30 bg-paper/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-ink-faint/60 dark:border-slate-800 -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6 py-2 mb-3 no-print shadow-2xs flex flex-col gap-2">
+        <div className="sticky top-0 z-30 bg-paper/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-ink-faint/60 dark:border-slate-800 -mx-4 sm:-mx-5 md:-mx-6 lg:-mx-8 px-4 sm:px-5 md:px-6 lg:px-8 py-3 mb-5 no-print shadow-2xs flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div>
-              <h1 className="text-xl font-display font-bold text-ink dark:text-slate-100 tracking-tight">Overview</h1>
+              <h1 className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100 tracking-tight">Overview</h1>
             </div>
 
           {/* Date Filter & Aggregation Components */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             {/* Master Excel Export Button */}
             <button
               type="button"
               disabled={isExportingExcel}
               onClick={handleExportMasterExcel}
-              className="flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl shadow-xs text-xs font-body font-bold transition-all cursor-pointer disabled:opacity-50"
+              className="btn-export gap-1.5"
               title="Download complete multi-sheet platform master workbook"
             >
               {isExportingExcel ? (
@@ -1542,7 +1542,7 @@ export default function AnalyticsDashboard() {
                 aria-controls={`panel-${tab.id}`}
                 id={`tab-${tab.id}`}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`py-1.5 px-3 font-body text-xs border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+                className={`py-2 px-3.5 font-body text-xs border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === tab.id
                     ? 'border-ink dark:border-blue-400 text-ink dark:text-blue-400 font-bold'
                     : 'border-transparent text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-200 font-medium'
@@ -1554,12 +1554,12 @@ export default function AnalyticsDashboard() {
           </div>
 
           {/* View Mode Switcher: Charts | Table | Split */}
-          <div className="flex items-center gap-1 self-start sm:self-auto bg-white/90 dark:bg-slate-900/90 p-0.5 rounded-lg border border-slate-200/80 dark:border-slate-800 shadow-2xs no-print">
+          <div className="flex items-center gap-1 self-start sm:self-auto bg-white/90 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-2xs no-print">
             <button
               type="button"
               onClick={() => setViewMode('charts')}
               title="View Visual Charts only"
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
                 viewMode === 'charts' ? 'bg-ink dark:bg-blue-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
@@ -1570,7 +1570,7 @@ export default function AnalyticsDashboard() {
               type="button"
               onClick={() => setViewMode('table')}
               title="View Detailed Table only"
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
                 viewMode === 'table' ? 'bg-ink dark:bg-blue-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
@@ -1581,7 +1581,7 @@ export default function AnalyticsDashboard() {
               type="button"
               onClick={() => setViewMode('split')}
               title="Split View: Visual charts and tables"
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
                 viewMode === 'split' ? 'bg-ink dark:bg-blue-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
@@ -1658,19 +1658,19 @@ export default function AnalyticsDashboard() {
           )}
         </div>
       ) : data && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {/* Thematic Operational Clusters (Executive Vitals) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 print-card-grid print:hidden">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 print-card-grid print:hidden">
                 {/* Card 1: Ecosystem Growth */}
                 <div
                   role="button"
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/users')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/users'); }}
-                  className="cursor-pointer group p-3.5 sm:p-4 rounded-2xl border border-white/60 dark:border-slate-700/60 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md shadow-glass hover:shadow-md dark:hover:bg-slate-800/80 dark:hover:border-slate-600 transition-all duration-200 flex flex-col justify-between"
+                  className="cursor-pointer group p-4 rounded-2xl border border-ink-faint/40 dark:border-slate-800 bg-white/90 dark:bg-slate-900/85 backdrop-blur-md shadow-xs hover:shadow-md dark:hover:bg-slate-800/80 dark:hover:border-slate-700 transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between">
@@ -1678,7 +1678,7 @@ export default function AnalyticsDashboard() {
                       <i className="lni lni-users text-sm text-primary-dark/80 dark:text-blue-400" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
-                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink dark:text-slate-100 tracking-tight">
+                      <h3 className="text-2xl font-numeric font-bold text-ink dark:text-slate-100 tracking-tight">
                         {(data?.kpis?.total_users?.value ?? 0).toLocaleString()}
                       </h3>
                     </div>
@@ -1695,15 +1695,15 @@ export default function AnalyticsDashboard() {
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/jobs')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/jobs'); }}
-                  className="cursor-pointer group p-3.5 sm:p-4 rounded-2xl border border-white/60 dark:border-slate-700/60 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md shadow-glass hover:shadow-md dark:hover:bg-slate-800/80 dark:hover:border-slate-600 transition-all duration-200 flex flex-col justify-between"
+                  className="cursor-pointer group p-4 rounded-2xl border border-ink-faint/40 dark:border-slate-800 bg-white/90 dark:bg-slate-900/85 backdrop-blur-md shadow-xs hover:shadow-md dark:hover:bg-slate-800/80 dark:hover:border-slate-700 transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs sm:text-sm font-semibold text-ink-muted dark:text-slate-400">Job Posts</span>
+                      <span className="text-xs font-semibold text-ink-muted dark:text-slate-400">Job Posts</span>
                       <i className="lni lni-briefcase text-sm text-sky-700/80 dark:text-sky-400" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
-                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink dark:text-slate-100 tracking-tight">
+                      <h3 className="text-2xl font-numeric font-bold text-ink dark:text-slate-100 tracking-tight">
                         {(data?.kpis?.active_jobs?.value ?? 0).toLocaleString()}
                       </h3>
                     </div>
@@ -1720,15 +1720,15 @@ export default function AnalyticsDashboard() {
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/jobs')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/jobs'); }}
-                  className="cursor-pointer group p-3.5 sm:p-4 rounded-2xl border border-white/60 dark:border-slate-700/60 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md shadow-glass hover:shadow-md dark:hover:bg-slate-800/80 dark:hover:border-slate-600 transition-all duration-200 flex flex-col justify-between"
+                  className="cursor-pointer group p-4 rounded-2xl border border-ink-faint/40 dark:border-slate-800 bg-white/90 dark:bg-slate-900/85 backdrop-blur-md shadow-xs hover:shadow-md dark:hover:bg-slate-800/80 dark:hover:border-slate-700 transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs sm:text-sm font-semibold text-ink-muted dark:text-slate-400">Job Applications</span>
+                      <span className="text-xs font-semibold text-ink-muted dark:text-slate-400">Job Applications</span>
                       <i className="lni lni-files text-sm text-emerald-700/80 dark:text-emerald-400" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
-                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink dark:text-slate-100 tracking-tight">
+                      <h3 className="text-2xl font-numeric font-bold text-ink dark:text-slate-100 tracking-tight">
                         {(data?.kpis?.applications?.value ?? 0).toLocaleString()}
                       </h3>
                     </div>
@@ -1745,15 +1745,15 @@ export default function AnalyticsDashboard() {
                   tabIndex={0}
                   onClick={() => router.push('/dashboard/moderation')}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard/moderation'); }}
-                  className="cursor-pointer group p-3.5 sm:p-4 rounded-2xl border border-white/60 dark:border-slate-700/60 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md shadow-glass hover:shadow-md dark:hover:bg-slate-800/80 dark:hover:border-slate-600 transition-all duration-200 flex flex-col justify-between"
+                  className="cursor-pointer group p-4 rounded-2xl border border-ink-faint/40 dark:border-slate-800 bg-white/90 dark:bg-slate-900/85 backdrop-blur-md shadow-xs hover:shadow-md dark:hover:bg-slate-800/80 dark:hover:border-slate-700 transition-all duration-200 flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs sm:text-sm font-semibold text-ink-muted dark:text-slate-400">Reports Received</span>
+                      <span className="text-xs font-semibold text-ink-muted dark:text-slate-400">Reports Received</span>
                       <i className="lni lni-shield text-sm text-rose-700/80 dark:text-rose-400" />
                     </div>
                     <div className="mt-1 flex items-baseline gap-2">
-                      <h3 className="text-2xl sm:text-3xl font-numeric font-bold text-ink dark:text-slate-100 tracking-tight">
+                      <h3 className="text-2xl font-numeric font-bold text-ink dark:text-slate-100 tracking-tight">
                         {(data?.kpis?.unresolved_reports?.value ?? 0).toLocaleString()}
                       </h3>
                       <HealthStatusBadge type="reports" value={data?.kpis?.unresolved_reports?.value ?? 0} />
@@ -1770,11 +1770,11 @@ export default function AnalyticsDashboard() {
 
               {/* Compact Platform Vitals & Messaging Pulse Strip */}
               {convStats && (
-                <div className="flex flex-wrap items-center justify-between gap-3 px-3.5 py-2 bg-white/80 backdrop-blur-md rounded-xl border border-ink-faint/60 shadow-2xs text-xs">
-                  <div className="flex items-center gap-2 text-ink-soft">
-                    <i className="lni lni-comments text-primary-dark" />
-                    <span className="font-semibold text-ink">Chats:</span>
-                    <span className="font-numeric text-ink">
+                <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 card-surface text-xs">
+                  <div className="flex items-center gap-2 text-ink-soft dark:text-slate-300">
+                    <i className="lni lni-comments text-primary-dark dark:text-sky-400" />
+                    <span className="font-semibold text-ink dark:text-slate-100">Chats:</span>
+                    <span className="font-numeric text-ink dark:text-slate-100">
                       <b>{(convStats.active_conversations ?? 0).toLocaleString()}</b> active chats · <b>{(convStats.messages_today ?? 0).toLocaleString()}</b> today · <b>{convStats.avg_messages_per_hire ?? 0}</b> avg/hire
                     </span>
                   </div>

@@ -236,7 +236,24 @@ function VerificationsPageContent() {
     });
   }, [users]);
 
-  if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-12 h-12 bg-status-error/10 rounded-full flex items-center justify-center mb-3">
+          <i className="lni lni-warning text-xl text-status-error" />
+        </div>
+        <h2 className="text-base font-body font-bold text-ink dark:text-slate-100 mb-1">Failed to load verifications</h2>
+        <p className="text-ink-muted dark:text-slate-400 font-body text-xs mb-4">{error}</p>
+        <button
+          type="button"
+          onClick={() => { setError(''); fetchVerifications(false, true); }}
+          className="px-4 py-2 bg-ink dark:bg-primary text-white font-body font-semibold rounded-lg hover:bg-ink-soft transition-colors text-xs cursor-pointer"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   // 1. Pending: only users who submitted verification documents and are awaiting review (not approved, not rejected, not badged)
   const allPendingUsers = users.filter((u) => {
@@ -308,13 +325,13 @@ function VerificationsPageContent() {
   const paginatedUsers = displayedUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+    <div className="animate-fade-in space-y-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">ID Verifications</h1>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100 tracking-tight">ID Verifications</h1>
             {allPendingUsers.length > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-xs font-bold font-numeric bg-primary text-white shadow-2xs">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold font-numeric bg-primary text-white shadow-2xs">
                 {allPendingUsers.length} Pending
               </span>
             )}
@@ -325,15 +342,15 @@ function VerificationsPageContent() {
               </span>
             )}
           </div>
-          <p className="text-xs text-ink-muted mt-0.5">
+          <p className="text-xs sm:text-sm text-ink-muted dark:text-slate-400 mt-1">
             Review and approve user-submitted government IDs to grant platform access.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 mt-3 md:mt-0 text-xs">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
           {statusTab !== 'awaiting_upload' && (
             <>
-              <div className="relative w-full md:w-60 group">
+              <div className="relative w-full sm:w-64 group">
                 <input
                   type="text"
                   aria-label={statusTab === 'pending' ? 'Search pending users' : 'Search users'}
@@ -343,9 +360,19 @@ function VerificationsPageContent() {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full pl-8 pr-3 py-1.5 bg-white/90 dark:bg-slate-900/90 rounded-xl border border-ink-faint/40 dark:border-slate-700 shadow-xs focus:bg-white dark:focus:bg-slate-900 focus:border-ink/50 dark:focus:border-slate-500 outline-none text-xs font-body transition text-ink dark:text-slate-200 placeholder:text-ink-muted dark:placeholder:text-slate-400"
+                  className="input-admin w-full pl-9 pr-7"
                 />
-                <i className="lni lni-search text-ink-muted dark:text-slate-400 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
+                <i className="lni lni-search text-ink-muted dark:text-slate-400 absolute left-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none" />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => { setSearchTerm(''); setCurrentPage(1); }}
+                    aria-label="Clear search"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white p-0.5 rounded cursor-pointer"
+                  >
+                    <i className="lni lni-close text-[10px]" />
+                  </button>
+                )}
               </div>
 
               {statusTab === 'pending' && (
@@ -357,7 +384,7 @@ function VerificationsPageContent() {
                       setSlaFilter(e.target.value as any);
                       setCurrentPage(1);
                     }}
-                    className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
+                    className="select-admin appearance-none pl-3 pr-7"
                   >
                     <option value="all" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">All SLAs</option>
                     <option value="overdue" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">🚨 Overdue (&gt;48h)</option>
@@ -377,7 +404,7 @@ function VerificationsPageContent() {
                     setSortOrder(e.target.value as any);
                     setCurrentPage(1);
                   }}
-                  className="appearance-none pl-3 pr-7 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
+                  className="select-admin appearance-none pl-3 pr-7"
                 >
                   <option value="newest" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Newest First</option>
                   <option value="oldest" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Oldest First</option>
@@ -390,7 +417,7 @@ function VerificationsPageContent() {
           <button
             onClick={() => fetchVerifications(false, true)}
             aria-label="Refresh verifications list"
-            className="p-1.5 bg-white dark:bg-slate-900 rounded-lg border border-ink-faint/40 dark:border-slate-700 shadow-2xs hover:bg-slate-100 dark:hover:bg-slate-800 text-ink-soft dark:text-slate-300 hover:text-primary dark:hover:text-primary transition flex items-center justify-center cursor-pointer"
+            className="btn-icon"
             title="Refresh list"
           >
             <i className={`lni lni-reload text-xs ${loading ? 'animate-spin' : ''}`} />
@@ -399,22 +426,22 @@ function VerificationsPageContent() {
       </div>
 
       {/* Status Tabs Navigation */}
-      <div className="flex flex-wrap items-center gap-2 mb-4 border-b border-ink-faint/30 pb-3">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-ink-faint/30 dark:border-slate-800 pb-3">
         <button
           onClick={() => {
             setStatusTab('pending');
             setCurrentPage(1);
           }}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 h-9 px-3.5 rounded-xl text-xs font-body font-semibold transition-all cursor-pointer ${
             statusTab === 'pending'
-              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white dark:border dark:border-slate-700 shadow-2xs'
-              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
+              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white border border-ink dark:border-slate-700 shadow-2xs'
+              : 'bg-white/80 dark:bg-slate-900/70 text-ink-soft dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700/80'
           }`}
         >
           <span>Pending Review</span>
           <span
-            className={`px-1.5 py-0.5 rounded-full text-xs font-numeric font-medium ${
-              statusTab === 'pending' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-ink-muted dark:text-slate-300'
+            className={`px-1.5 py-0.5 rounded-full text-[11px] font-numeric font-bold leading-none ${
+              statusTab === 'pending' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-ink-muted dark:text-slate-300'
             }`}
           >
             {allPendingUsers.length}
@@ -426,16 +453,16 @@ function VerificationsPageContent() {
             setStatusTab('awaiting_upload');
             setCurrentPage(1);
           }}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 h-9 px-3.5 rounded-xl text-xs font-body font-semibold transition-all cursor-pointer ${
             statusTab === 'awaiting_upload'
-              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white dark:border dark:border-slate-700 shadow-2xs'
-              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
+              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white border border-ink dark:border-slate-700 shadow-2xs'
+              : 'bg-white/80 dark:bg-slate-900/70 text-ink-soft dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700/80'
           }`}
         >
           <span>Action Required from User</span>
           <span
-            className={`px-1.5 py-0.5 rounded-full text-xs font-numeric font-medium ${
-              statusTab === 'awaiting_upload' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-ink-muted dark:text-slate-300'
+            className={`px-1.5 py-0.5 rounded-full text-[11px] font-numeric font-bold leading-none ${
+              statusTab === 'awaiting_upload' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-ink-muted dark:text-slate-300'
             }`}
           >
             {allActionRequiredUsers.length}
@@ -447,16 +474,16 @@ function VerificationsPageContent() {
             setStatusTab('rejected');
             setCurrentPage(1);
           }}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 h-9 px-3.5 rounded-xl text-xs font-body font-semibold transition-all cursor-pointer ${
             statusTab === 'rejected'
-              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white dark:border dark:border-slate-700 shadow-2xs'
-              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
+              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white border border-ink dark:border-slate-700 shadow-2xs'
+              : 'bg-white/80 dark:bg-slate-900/70 text-ink-soft dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700/80'
           }`}
         >
           <span>Rejected / Awaiting Re-upload</span>
           <span
-            className={`px-1.5 py-0.5 rounded-full text-xs font-numeric font-medium ${
-              statusTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-ink-muted dark:text-slate-300'
+            className={`px-1.5 py-0.5 rounded-full text-[11px] font-numeric font-bold leading-none ${
+              statusTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-ink-muted dark:text-slate-300'
             }`}
           >
             {allRejectedUsers.length}
@@ -468,16 +495,16 @@ function VerificationsPageContent() {
             setStatusTab('approved');
             setCurrentPage(1);
           }}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 h-9 px-3.5 rounded-xl text-xs font-body font-semibold transition-all cursor-pointer ${
             statusTab === 'approved'
-              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white dark:border dark:border-slate-700 shadow-2xs'
-              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
+              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white border border-ink dark:border-slate-700 shadow-2xs'
+              : 'bg-white/80 dark:bg-slate-900/70 text-ink-soft dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700/80'
           }`}
         >
           <span>Approved</span>
           <span
-            className={`px-1.5 py-0.5 rounded-full text-xs font-numeric font-medium ${
-              statusTab === 'approved' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-ink-muted dark:text-slate-300'
+            className={`px-1.5 py-0.5 rounded-full text-[11px] font-numeric font-bold leading-none ${
+              statusTab === 'approved' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-ink-muted dark:text-slate-300'
             }`}
           >
             {allApprovedUsers.length}
@@ -489,16 +516,16 @@ function VerificationsPageContent() {
             setStatusTab('all');
             setCurrentPage(1);
           }}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-body font-semibold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 h-9 px-3.5 rounded-xl text-xs font-body font-semibold transition-all cursor-pointer ${
             statusTab === 'all'
-              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white dark:border dark:border-slate-700 shadow-2xs'
-              : 'bg-white/80 dark:bg-slate-800/80 text-ink-muted dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700'
+              ? 'bg-ink text-white dark:bg-slate-800 dark:text-white border border-ink dark:border-slate-700 shadow-2xs'
+              : 'bg-white/80 dark:bg-slate-900/70 text-ink-soft dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700/80'
           }`}
         >
           <span>All Records</span>
           <span
-            className={`px-1.5 py-0.5 rounded-full text-xs font-numeric font-medium ${
-              statusTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-ink-muted dark:text-slate-300'
+            className={`px-1.5 py-0.5 rounded-full text-[11px] font-numeric font-bold leading-none ${
+              statusTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-ink-muted dark:text-slate-300'
             }`}
           >
             {users.length}
@@ -522,7 +549,7 @@ function VerificationsPageContent() {
         )
       ) : (
         <>
-          <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
+          <div className="table-surface">
             {loading ? (
           <div className="p-6 space-y-3">
             {[1, 2, 3].map((i) => (
@@ -713,17 +740,18 @@ function VerificationsPageContent() {
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6 px-4">
-          <p className="text-sm font-body text-ink-soft">
-            Page <span className="font-semibold text-ink">{currentPage}</span> of{' '}
-            <span className="font-semibold text-ink">{totalPages}</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-5 px-4">
+          <p className="text-xs sm:text-sm font-body text-ink-soft dark:text-slate-300">
+            Showing <span className="font-semibold text-ink dark:text-slate-100 font-numeric">{(currentPage - 1) * itemsPerPage + 1}</span>–<span className="font-semibold text-ink dark:text-slate-100 font-numeric">{Math.min(currentPage * itemsPerPage, displayedUsers.length)}</span> of{' '}
+            <span className="font-semibold text-ink dark:text-slate-100 font-numeric">{displayedUsers.length}</span> &bull; Page <span className="font-semibold text-ink dark:text-slate-100 font-numeric">{currentPage}</span> of{' '}
+            <span className="font-semibold text-ink dark:text-slate-100 font-numeric">{totalPages}</span>
           </p>
           <div className="flex space-x-2">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
               aria-label="Previous page"
-              className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-2.5 rounded-xl border border-ink-faint/50 dark:border-slate-700 bg-white/70 dark:bg-slate-900/80 text-ink dark:text-slate-200 hover:bg-white/95 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               <i className="lni lni-arrow-left text-sm" />
             </button>
@@ -731,7 +759,7 @@ function VerificationsPageContent() {
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               aria-label="Next page"
-              className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="p-2.5 rounded-xl border border-ink-faint/50 dark:border-slate-700 bg-white/70 dark:bg-slate-900/80 text-ink dark:text-slate-200 hover:bg-white/95 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               <i className="lni lni-arrow-right text-sm" />
             </button>

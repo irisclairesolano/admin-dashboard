@@ -151,6 +151,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         setCommandPaletteOpen((prev) => !prev);
+      } else if (e.key === 'Escape') {
+        setDropdownOpen(false);
+        setProfileDropdownOpen(false);
+        setSidebarOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -502,13 +506,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="relative">
       <button
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="p-2.5 bg-white/70 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 text-ink dark:text-slate-200 hover:text-primary dark:hover:text-primary-soft rounded-2xl border border-white/60 dark:border-slate-800 shadow-sm transition-all relative flex items-center justify-center cursor-pointer"
+        className="w-9 h-9 bg-white/80 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 text-ink dark:text-slate-200 hover:text-primary dark:hover:text-primary-soft rounded-xl border border-ink-faint/50 dark:border-slate-800 shadow-2xs transition-all relative flex items-center justify-center cursor-pointer"
         aria-label="View notifications"
         title="Action Center & Notifications"
       >
-        <i className="lni lni-alarm text-xl"></i>
+        <i className="lni lni-alarm text-base"></i>
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-status-error text-white font-body font-bold text-[10px] rounded-full flex items-center justify-center shadow-md animate-pulse">
+          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-status-error text-white font-body font-bold text-[10px] rounded-full flex items-center justify-center shadow-sm animate-pulse">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -521,14 +525,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <button
       type="button"
       onClick={() => setIsDarkMode((prev) => !prev)}
-      className="p-2.5 bg-white/70 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 text-ink dark:text-slate-200 hover:text-primary dark:hover:text-amber-400 rounded-2xl border border-white/60 dark:border-slate-800 shadow-sm transition-all flex items-center justify-center cursor-pointer"
+      className="w-9 h-9 bg-white/80 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 text-ink dark:text-slate-200 hover:text-primary dark:hover:text-amber-400 rounded-xl border border-ink-faint/50 dark:border-slate-800 shadow-2xs transition-all flex items-center justify-center cursor-pointer"
       title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
       aria-label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
     >
       {isDarkMode ? (
-        <Sun className="w-5 h-5 text-amber-400 transition-transform duration-200 hover:rotate-45" />
+        <Sun className="w-4 h-4 text-amber-400 transition-transform duration-200 hover:rotate-45" />
       ) : (
-        <Moon className="w-5 h-5 text-ink-muted hover:text-primary transition-transform duration-200 hover:-rotate-12" />
+        <Moon className="w-4 h-4 text-ink-muted hover:text-primary transition-transform duration-200 hover:-rotate-12" />
       )}
     </button>
   );
@@ -539,12 +543,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <button
         type="button"
         onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-        className="flex items-center gap-2.5 p-1.5 pl-2 pr-2.5 bg-white/70 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 text-ink dark:text-slate-200 border border-white/60 dark:border-slate-800 rounded-2xl shadow-sm transition-all cursor-pointer focus:outline-none"
+        className="flex items-center gap-2 h-9 pl-1.5 pr-2.5 bg-white/80 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 text-ink dark:text-slate-200 border border-ink-faint/50 dark:border-slate-800 rounded-xl shadow-2xs transition-all cursor-pointer focus:outline-none"
         aria-label="Admin Profile Menu"
         aria-expanded={profileDropdownOpen}
       >
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-peach to-accent-peachBright dark:from-slate-800 dark:to-slate-700 flex items-center justify-center shadow-inner flex-shrink-0">
-          <span className="font-body font-bold text-primary-dark dark:text-primary-soft text-sm">{adminName ? adminName.charAt(0).toUpperCase() : 'A'}</span>
+        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-accent-peach to-accent-peachBright dark:from-slate-800 dark:to-slate-700 flex items-center justify-center shadow-inner flex-shrink-0">
+          <span className="font-body font-bold text-primary-dark dark:text-primary-soft text-xs">{adminName ? adminName.charAt(0).toUpperCase() : 'A'}</span>
         </div>
         <div className="hidden sm:flex flex-col text-left">
           <span className="text-xs font-body font-bold text-ink dark:text-slate-200 leading-tight truncate max-w-[110px] md:max-w-[130px]">{adminName || 'Admin'}</span>
@@ -668,20 +672,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Sidebar */}
       <aside className={`no-print
-        fixed inset-y-0 left-0 z-30 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-r border-white/50 dark:border-slate-800 shadow-glass
+        fixed inset-y-0 left-0 z-30 bg-white/75 dark:bg-slate-900/85 backdrop-blur-xl border-r border-ink-faint/40 dark:border-slate-800 shadow-glass
         transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
         lg:static lg:flex-shrink-0 lg:self-stretch h-full min-h-full flex flex-col overflow-hidden
-        ${sidebarOpen ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0'}
-        ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-72'}
+        ${sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'}
+        ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'}
       `}>
         {/* Sidebar Header */}
-        <div className={`h-16 lg:h-20 flex items-center border-b border-ink-faint/30 dark:border-slate-800 flex-shrink-0 transition-all duration-300 ${
+        <div className={`h-16 flex items-center border-b border-ink-faint/40 dark:border-slate-800 flex-shrink-0 transition-all duration-300 ${
           sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-5'
         }`}>
           {!sidebarCollapsed ? (
             <>
               <div className="flex items-center min-w-0">
-                <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={135} height={36} className="h-9 object-contain dark:brightness-0 dark:invert" priority />
+                <Image src="/logo/04_Wordmark.png" alt="SIKAP Logo" width={128} height={34} className="h-8 object-contain dark:brightness-0 dark:invert" priority />
                 <span className="text-[10px] font-body font-semibold text-ink-muted dark:text-slate-400 ml-1.5 bg-ink-faint/30 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-ink-faint/50 dark:border-slate-700 flex-shrink-0">Admin</span>
               </div>
               <button
@@ -711,7 +715,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         <div className={`flex flex-col flex-1 min-h-0 overflow-hidden transition-all duration-300 ${
-          sidebarCollapsed ? 'p-2' : 'p-4'
+          sidebarCollapsed ? 'p-2' : 'p-3.5'
         }`}>
           {/* Scrollable Navigation Area */}
           <nav className="flex-1 overflow-y-auto overflow-x-hidden pr-1 [scrollbar-width:thin] [scrollbar-color:theme(colors.ink.faint)_transparent] space-y-4">
@@ -742,13 +746,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             prefetchRouteData(item.href);
                           }}
                           aria-label={item.name}
+                          aria-current={isActive ? 'page' : undefined}
                           className={`
-                            group flex items-center text-sm font-body font-semibold rounded-2xl
-                            transition-all duration-300 relative
-                            ${sidebarCollapsed ? 'justify-center w-12 h-12 mx-auto p-0' : 'px-3.5 py-2.5'}
+                            group flex items-center text-[13px] font-body font-semibold rounded-xl
+                            transition-all duration-200 relative
+                            ${sidebarCollapsed ? 'justify-center w-11 h-11 mx-auto p-0' : 'px-3 py-2.5'}
                             ${isActive
-                              ? 'bg-ink dark:bg-slate-800 text-white shadow-md transform scale-[1.01]'
-                              : 'text-ink-soft dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/60 hover:text-ink dark:hover:text-slate-100 hover:shadow-xs'
+                              ? 'bg-ink dark:bg-slate-800 text-white shadow-sm'
+                              : 'text-ink-soft dark:text-slate-400 hover:bg-white/70 dark:hover:bg-slate-800/60 hover:text-ink dark:hover:text-slate-100'
                             }
                           `}
                         >
@@ -882,7 +887,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── Persistent Content Wrapper (Main) ──────────────────── */}
       <div className="flex-1 min-h-0 min-w-0 flex flex-col h-full overflow-hidden relative">
         {/* Desktop Top Header (Content Page Side) */}
-        <header className="no-print hidden lg:flex items-center justify-between h-14 px-6 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/50 dark:border-slate-800 z-20 shrink-0 gap-6 sticky top-0">
+        <header className="no-print hidden lg:flex items-center justify-between h-16 px-6 lg:px-8 bg-white/75 dark:bg-slate-900/85 backdrop-blur-xl border-b border-ink-faint/40 dark:border-slate-800 z-20 shrink-0 gap-6 sticky top-0">
           <div className="flex items-center gap-3 shrink-0">
             {/* Sidebar expand button (only shown when sidebar is collapsed to avoid duplicate chevrons) */}
             {sidebarCollapsed && (
@@ -891,17 +896,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onClick={() => setSidebarCollapsed(false)}
                 title="Expand sidebar"
                 aria-label="Expand sidebar"
-                className="w-8 h-8 rounded-lg bg-white/80 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700 hover:border-ink-faint dark:hover:border-slate-600 text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-100 shadow-2xs flex items-center justify-center transition-all cursor-pointer group shrink-0"
+                className="w-9 h-9 rounded-xl bg-white/80 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700 hover:border-ink-faint dark:hover:border-slate-600 text-ink-muted dark:text-slate-400 hover:text-ink dark:hover:text-slate-100 shadow-2xs flex items-center justify-center transition-all cursor-pointer group shrink-0"
               >
                 <i className="lni lni-menu text-sm transition-transform duration-300 group-hover:scale-110" />
               </button>
             )}
 
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-body uppercase tracking-wider text-ink-muted dark:text-slate-400">Admin Dashboard</span>
+              <span className="text-[11px] font-body font-medium uppercase tracking-wider text-ink-muted dark:text-slate-400">Admin Dashboard</span>
               <span className="text-ink-faint dark:text-slate-700">/</span>
-              <span className="text-xs font-display font-bold text-ink dark:text-slate-200 capitalize truncate max-w-[160px]">
-                {pathname.replace('/dashboard', '').replace('/', '') || 'Analytics Overview'}
+              <span className="text-xs font-display font-bold text-ink dark:text-slate-200 truncate max-w-[200px]">
+                {rawNavItems.find((i) => i.href === pathname)?.name || (pathname === '/dashboard/reports' ? 'Moderation' : pathname.replace('/dashboard', '').replace('/', '').replace(/-/g, ' ') || 'Analytics Overview')}
               </span>
             </div>
           </div>
@@ -931,7 +936,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             {/* Dark Mode Toggle */}
             <DarkModeToggle />
 
@@ -939,14 +944,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <button
               type="button"
               onClick={() => setSoundAlertsEnabled((prev) => !prev)}
-              className="p-2.5 bg-white/70 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 text-ink dark:text-slate-200 hover:text-primary dark:hover:text-primary-soft rounded-2xl border border-white/60 dark:border-slate-800 hover:border-primary/30 shadow-sm transition-all flex items-center justify-center cursor-pointer"
+              className="w-9 h-9 bg-white/80 hover:bg-white dark:bg-slate-900/80 dark:hover:bg-slate-800 text-ink dark:text-slate-200 hover:text-primary dark:hover:text-primary-soft rounded-xl border border-ink-faint/50 dark:border-slate-800 hover:border-primary/30 shadow-2xs transition-all flex items-center justify-center cursor-pointer"
               title={soundAlertsEnabled ? 'Mute alert sounds' : 'Enable alert sounds'}
               aria-label={soundAlertsEnabled ? 'Mute alert sounds' : 'Enable alert sounds'}
             >
               {soundAlertsEnabled ? (
-                <Volume2 className="w-5 h-5 text-primary dark:text-sky-400" />
+                <Volume2 className="w-4 h-4 text-primary dark:text-sky-400" />
               ) : (
-                <VolumeX className="w-5 h-5 text-ink-muted dark:text-slate-400" />
+                <VolumeX className="w-4 h-4 text-ink-muted dark:text-slate-400" />
               )}
             </button>
 
@@ -987,7 +992,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         )}
 
         <main ref={mainContentRef} className="flex-1 min-h-0 min-w-0 w-full mx-auto relative overflow-y-auto pt-16 lg:pt-0 print:pt-0 print:overflow-visible [scrollbar-gutter:stable]">
-          <div className="p-3 sm:p-4 md:p-6 print:p-0 print:max-w-none print:min-h-0 animate-fade-in max-w-[1560px] mx-auto min-h-full flex flex-col">
+          <div className="p-4 sm:p-5 md:p-6 lg:px-8 lg:py-6 print:p-0 print:max-w-none print:min-h-0 animate-fade-in max-w-[1560px] mx-auto min-h-full flex flex-col">
             <ErrorBoundary>
               {children}
             </ErrorBoundary>
@@ -1131,13 +1136,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </button>
                 <button
                   onClick={() => setNotificationFilter('verifications')}
-                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer whitespace-nowrap ${
                     notificationFilter === 'verifications'
                       ? 'bg-primary dark:bg-primary-soft text-white shadow-sm'
                       : 'bg-white/60 dark:bg-slate-800/60 text-ink-soft dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-ink dark:hover:text-slate-100'
                   }`}
                 >
                   IDs ({notifications.filter(n => n.category === 'verification').length})
+                </button>
+                <button
+                  onClick={() => setNotificationFilter('support')}
+                  className={`px-3 py-1.5 rounded-xl font-body font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    notificationFilter === 'support'
+                      ? 'bg-amber-600 text-white shadow-sm'
+                      : 'bg-white/60 dark:bg-slate-800/60 text-ink-soft dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-ink dark:hover:text-slate-100'
+                  }`}
+                >
+                  Support ({notifications.filter(n => n.category === 'support').length})
                 </button>
               </div>
 

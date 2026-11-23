@@ -349,46 +349,84 @@ function ArchivesPageContent() {
     }
   };
 
-  if (loading) return <div className="text-center py-20 font-body text-ink-muted">Loading archives...</div>;
-  if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
+  if (loading) {
+    return (
+      <div className="animate-fade-in space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">Archives</h1>
+            <p className="text-xs text-ink-muted mt-0.5">Manage soft-deleted accounts and job postings.</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="h-24 bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-ink-faint/30 animate-pulse" />
+          <div className="h-24 bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-ink-faint/30 animate-pulse" />
+        </div>
+        <div className="bg-white/90 dark:bg-slate-900/80 rounded-xl border border-ink-faint/30 p-6 space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-12 bg-ink-faint/20 dark:bg-slate-800 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-12 h-12 bg-status-error/10 rounded-full flex items-center justify-center mb-3">
+          <i className="lni lni-warning text-xl text-status-error" />
+        </div>
+        <h2 className="text-base font-body font-bold text-ink dark:text-slate-100 mb-1">Failed to load archives</h2>
+        <p className="text-ink-muted dark:text-slate-400 font-body text-xs mb-4">{error}</p>
+        <button
+          type="button"
+          onClick={() => { setError(''); fetchArchives(true); }}
+          className="px-4 py-2 bg-ink dark:bg-primary text-white font-body font-semibold rounded-lg hover:bg-ink-soft transition-colors text-xs cursor-pointer"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex items-center justify-between mb-4">
+    <div className="animate-fade-in space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">Archives</h1>
-          <p className="text-xs text-ink-muted mt-0.5">
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100 tracking-tight">Archives</h1>
+          <p className="text-xs sm:text-sm text-ink-muted dark:text-slate-400 mt-1">
             Manage soft-deleted accounts and job postings.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => handleExport('xlsx')}
-            className="flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-body font-semibold border border-emerald-700 shadow-2xs transition-colors text-xs cursor-pointer"
+            className="btn-export gap-1.5"
             title={`Export ${activeTab} to styled Excel (.xlsx)`}
           >
-            <i className="lni lni-download mr-1.5 text-xs" />
+            <i className="lni lni-download text-xs" />
             Excel (.xlsx)
           </button>
           <button 
             onClick={() => fetchArchives(true, true)}
             disabled={isRefreshing}
-            className="flex items-center px-3 py-1.5 bg-white rounded-lg text-ink-soft hover:text-ink font-body font-semibold hover:bg-slate-50 border border-ink-faint/40 shadow-2xs transition-colors text-xs cursor-pointer disabled:opacity-60"
+            className="btn-glass gap-1.5"
           >
-            <i className={`lni lni-reload mr-1.5 text-xs ${isRefreshing ? 'animate-spin' : ''}`} />
+            <i className={`lni lni-reload text-xs ${isRefreshing ? 'animate-spin' : ''}`} />
             {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
       </div>
 
       {/* 2 Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         <StatCard
           title="Deleted Users"
           value={users.length}
           iconClass="lni lni-user"
           bg="from-rose-50 to-rose-100"
           iconColor="text-rose-600"
+          active={activeTab === 'Deleted Users'}
           onClick={() => setActiveTab('Deleted Users')}
         />
         <StatCard
@@ -397,12 +435,13 @@ function ArchivesPageContent() {
           iconClass="lni lni-briefcase"
           bg="from-amber-50 to-amber-100"
           iconColor="text-amber-600"
+          active={activeTab === 'Deleted Jobs'}
           onClick={() => setActiveTab('Deleted Jobs')}
         />
       </div>
 
       {/* Tab Switcher & Search Bar */}
-      <div className="mb-4 flex flex-col md:flex-row gap-3 justify-between items-center">
+      <div className="flex flex-col md:flex-row gap-3 justify-between items-center">
         <StatusTabs
           options={[`Deleted Users (${users.length})`, `Deleted Jobs (${jobs.length})`]}
           activeKey={activeTab.startsWith('Deleted Users') ? `Deleted Users (${users.length})` : `Deleted Jobs (${jobs.length})`}
@@ -418,9 +457,19 @@ function ArchivesPageContent() {
                 aria-label="Search deleted users"
                 value={userSearch}
                 onChange={e => setUserSearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 bg-white/90 border border-ink-faint/40 rounded-xl focus:outline-none focus:border-ink/50 transition text-xs font-body shadow-xs"
+                className="input-admin w-full pl-9 pr-7"
               />
-              <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
+              <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none" />
+              {userSearch && (
+                <button
+                  type="button"
+                  onClick={() => setUserSearch('')}
+                  aria-label="Clear search"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white p-0.5 rounded cursor-pointer"
+                >
+                  <i className="lni lni-close text-[10px]" />
+                </button>
+              )}
             </>
           ) : (
             <>
@@ -430,24 +479,48 @@ function ArchivesPageContent() {
                 aria-label="Search deleted jobs"
                 value={jobSearch}
                 onChange={e => setJobSearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 bg-white/90 border border-ink-faint/40 rounded-xl focus:outline-none focus:border-ink/50 transition text-xs font-body shadow-xs"
+                className="input-admin w-full pl-9 pr-7"
               />
-              <i className="lni lni-search text-ink-muted absolute left-2.5 top-1/2 transform -translate-y-1/2 text-xs" />
+              <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none" />
+              {jobSearch && (
+                <button
+                  type="button"
+                  onClick={() => setJobSearch('')}
+                  aria-label="Clear search"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white p-0.5 rounded cursor-pointer"
+                >
+                  <i className="lni lni-close text-[10px]" />
+                </button>
+              )}
             </>
           )}
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
+      <div className="table-surface">
         {activeTab === 'Deleted Users' ? (
           <div>
-            <div className="px-4 py-2.5 border-b border-ink-faint/30 bg-slate-50/60 flex items-center">
+            <div className="px-4 py-3 border-b border-ink-faint/30 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/50 flex items-center">
               <i className="lni lni-user text-status-error mr-2 text-sm" />
-              <h2 className="font-display text-sm text-ink font-bold">Deleted Users List</h2>
+              <h2 className="font-display text-sm text-ink dark:text-slate-100 font-bold">Deleted Users List</h2>
             </div>
             {filteredUsers.length === 0 ? (
-              <div className="p-6 text-center text-ink-muted font-body text-xs">No deleted users found.</div>
+              <div className="p-10 flex flex-col items-center justify-center text-center text-ink-muted dark:text-slate-400 font-body">
+                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
+                  <i className="lni lni-archive text-xl text-slate-400" />
+                </div>
+                <p className="text-sm font-semibold text-ink dark:text-slate-200">No deleted users found.</p>
+                {userSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setUserSearch('')}
+                    className="mt-2 text-xs font-semibold text-primary dark:text-sky-400 hover:underline cursor-pointer"
+                  >
+                    Clear search
+                  </button>
+                )}
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left font-body table-fixed border-collapse">
@@ -497,7 +570,7 @@ function ArchivesPageContent() {
                                 title="Restore User"
                                 aria-label="Restore User"
                               >
-                                <i className="lni lni-arrow-left text-xs" />
+                                <i className="lni lni-reload text-xs" />
                               </button>
                               <button
                                 disabled={actionLoading === `user-force-${user.id}`}
@@ -527,7 +600,21 @@ function ArchivesPageContent() {
               <h2 className="font-display text-sm text-ink font-bold">Deleted Jobs List</h2>
             </div>
             {filteredJobs.length === 0 ? (
-              <div className="p-6 text-center text-ink-muted font-body text-xs">No deleted jobs found.</div>
+              <div className="p-10 flex flex-col items-center justify-center text-center text-ink-muted dark:text-slate-400 font-body">
+                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
+                  <i className="lni lni-archive text-xl text-slate-400" />
+                </div>
+                <p className="text-sm font-semibold text-ink dark:text-slate-200">No deleted jobs found.</p>
+                {jobSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setJobSearch('')}
+                    className="mt-2 text-xs font-semibold text-primary dark:text-sky-400 hover:underline cursor-pointer"
+                  >
+                    Clear search
+                  </button>
+                )}
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left font-body table-fixed border-collapse">
@@ -568,7 +655,7 @@ function ArchivesPageContent() {
                                 title="Restore Job Post"
                                 aria-label="Restore Job Post"
                               >
-                                <i className="lni lni-arrow-left text-xs" />
+                                <i className="lni lni-reload text-xs" />
                               </button>
                               <button
                                 disabled={actionLoading === `job-force-${job.id}`}

@@ -128,24 +128,24 @@ export default function ProfanityFilterPage() {
   });
 
   return (
-    <div className="animate-fade-in max-w-5xl mx-auto space-y-5">
+    <div className="animate-fade-in space-y-5">
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">
+        <h1 className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100 tracking-tight">
           Content Moderation Word Filter
         </h1>
-        <p className="text-xs text-ink-muted mt-1">
+        <p className="text-xs sm:text-sm text-ink-muted dark:text-slate-400 mt-1">
           Configure two-tier moderation rules: hard-block prohibited language or flag context-dependent words for human review.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Left Column: Form */}
-        <div className="md:col-span-1">
-          <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md p-5 rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-glass sticky top-20 space-y-4">
+        <div className="lg:col-span-1">
+          <div className="card-surface p-5 sticky top-20 space-y-4">
             <div>
-              <h3 className="text-sm font-display font-bold text-ink">Add Moderation Word</h3>
-              <p className="text-[11px] text-ink-muted mt-0.5">
+              <h3 className="text-sm font-display font-bold text-ink dark:text-slate-100">Add Moderation Word</h3>
+              <p className="text-xs text-ink-muted dark:text-slate-400 mt-0.5">
                 Define the word and its enforcement severity tier.
               </p>
             </div>
@@ -161,7 +161,7 @@ export default function ProfanityFilterPage() {
                   placeholder="e.g. bakla, bading, spamword"
                   value={newWord}
                   onChange={(e) => setNewWord(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-slate-50 rounded-xl border border-ink-faint/50 outline-none text-xs font-body focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 transition-all"
+                  className="input-admin w-full"
                   disabled={addLoading}
                   required
                 />
@@ -169,39 +169,39 @@ export default function ProfanityFilterPage() {
 
               {/* Action Tier Selector */}
               <div>
-                <label className="block text-xs font-body font-semibold text-ink-muted uppercase tracking-wider mb-2">
+                <label className="block text-[11px] font-body font-semibold text-ink-muted uppercase tracking-wider mb-2">
                   Action Policy Tier
                 </label>
                 <div className="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setNewAction('block')}
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border text-sm font-body font-medium transition-all cursor-pointer ${
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-body font-medium transition-all cursor-pointer ${
                       newAction === 'block'
                         ? 'bg-rose-500/10 border-rose-500/30 text-rose-900 dark:text-rose-300 shadow-2xs font-semibold'
-                        : 'bg-white/80 dark:bg-slate-800/80 border-ink-faint/50 text-ink-muted hover:bg-slate-50 dark:hover:bg-slate-800'
+                        : 'bg-white/80 dark:bg-slate-800/80 border-ink-faint/50 dark:border-slate-700 text-ink-muted hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
                     <Ban className="w-4 h-4 mb-1 text-rose-600 dark:text-rose-400" />
                     <span>Block</span>
-                    <span className="text-xs font-normal text-rose-700/80 dark:text-rose-400/80 mt-0.5">Hard reject (422)</span>
+                    <span className="text-[11px] font-normal text-rose-700/80 dark:text-rose-400/80 mt-0.5">Hard reject (422)</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setNewAction('flag')}
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border text-sm font-body font-medium transition-all cursor-pointer ${
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-body font-medium transition-all cursor-pointer ${
                       newAction === 'flag'
                         ? 'bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-300 shadow-2xs font-semibold'
-                        : 'bg-white/80 dark:bg-slate-800/80 border-ink-faint/50 text-ink-muted hover:bg-slate-50 dark:hover:bg-slate-800'
+                        : 'bg-white/80 dark:bg-slate-800/80 border-ink-faint/50 dark:border-slate-700 text-ink-muted hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
                     <Flag className="w-4 h-4 mb-1 text-amber-600 dark:text-amber-400" />
                     <span>Flag</span>
-                    <span className="text-xs font-normal text-amber-700/80 dark:text-amber-400/80 mt-0.5">Context review</span>
+                    <span className="text-[11px] font-normal text-amber-700/80 dark:text-amber-400/80 mt-0.5">Context review</span>
                   </button>
                 </div>
-                <p className="text-xs text-ink-muted mt-2 leading-relaxed">
+                <p className="text-xs text-ink-muted dark:text-slate-400 mt-2 leading-relaxed">
                   {newAction === 'block'
                     ? 'Prohibits submission outright across job posts, profiles, and listings.'
                     : 'Allows conversational submission (reviews/notes) and auto-routes a report to Moderation.'}
@@ -211,7 +211,7 @@ export default function ProfanityFilterPage() {
               <button
                 type="submit"
                 disabled={addLoading || !newWord.trim()}
-                className="w-full flex items-center justify-center gap-2 h-11 px-4 rounded-xl text-sm font-body font-semibold text-white bg-ink hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xs cursor-pointer"
+                className="w-full btn-primary gap-2"
               >
                 {addLoading ? (
                   <>
@@ -233,18 +233,18 @@ export default function ProfanityFilterPage() {
         </div>
 
         {/* Right Column: Words List */}
-        <div className="md:col-span-2">
-          <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md p-5 rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-glass space-y-4">
+        <div className="lg:col-span-2">
+          <div className="card-surface p-5 space-y-4">
             {/* List Header & Tabs */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-ink-faint/30">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-ink-faint/30 dark:border-slate-800">
               <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
                   onClick={() => setActiveTab('all')}
-                  className={`px-3.5 py-1.5 rounded-xl text-sm font-body transition-all cursor-pointer ${
+                  className={`inline-flex items-center h-9 px-3.5 rounded-xl text-xs font-body font-semibold transition-all cursor-pointer border ${
                     activeTab === 'all'
-                      ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs font-semibold'
-                      : 'bg-white/80 dark:bg-slate-800/80 border border-ink-faint/50 text-ink-soft hover:bg-slate-50 dark:hover:bg-slate-800 font-medium'
+                      ? 'bg-ink text-white dark:bg-slate-800 border-ink dark:border-slate-700 shadow-2xs'
+                      : 'bg-white/90 dark:bg-slate-800/80 border-ink-faint/50 dark:border-slate-700 text-ink-soft dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
                   All ({words.length})
@@ -252,10 +252,10 @@ export default function ProfanityFilterPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab('block')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-body transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-xs font-body font-semibold transition-all cursor-pointer border ${
                     activeTab === 'block'
-                      ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs font-semibold'
-                      : 'bg-white/80 dark:bg-slate-800/80 border border-ink-faint/50 text-ink-soft hover:bg-slate-50 dark:hover:bg-slate-800 font-medium'
+                      ? 'bg-ink text-white dark:bg-slate-800 border-ink dark:border-slate-700 shadow-2xs'
+                      : 'bg-white/90 dark:bg-slate-800/80 border-ink-faint/50 dark:border-slate-700 text-ink-soft dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
                   <Ban className="w-3.5 h-3.5 text-rose-600" />
@@ -264,10 +264,10 @@ export default function ProfanityFilterPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab('flag')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-body transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl text-xs font-body font-semibold transition-all cursor-pointer border ${
                     activeTab === 'flag'
-                      ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs font-semibold'
-                      : 'bg-white/80 dark:bg-slate-800/80 border border-ink-faint/50 text-ink-soft hover:bg-slate-50 dark:hover:bg-slate-800 font-medium'
+                      ? 'bg-ink text-white dark:bg-slate-800 border-ink dark:border-slate-700 shadow-2xs'
+                      : 'bg-white/90 dark:bg-slate-800/80 border-ink-faint/50 dark:border-slate-700 text-ink-soft dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
                   <Flag className="w-3.5 h-3.5 text-amber-600" />
@@ -282,7 +282,7 @@ export default function ProfanityFilterPage() {
                   placeholder="Search words..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-3.5 h-10 bg-slate-50 dark:bg-slate-800 rounded-xl border border-ink-faint/50 outline-none text-sm font-body focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 transition-all"
+                  className="input-admin w-full"
                 />
               </div>
             </div>

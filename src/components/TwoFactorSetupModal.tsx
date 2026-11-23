@@ -103,39 +103,39 @@ export const TwoFactorSetupModal: React.FC<TwoFactorSetupModalProps> = ({
   };
 
   const modalNode = (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-black/50 dark:bg-black/70 backdrop-blur-sm animate-fade-in overflow-y-auto" role="dialog" aria-modal="true">
-      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-white/50 dark:border-slate-700/70 relative my-auto">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-ink/50 dark:bg-black/70 backdrop-blur-sm animate-fade-in overflow-y-auto" role="dialog" aria-modal="true">
+      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-ink-faint/40 dark:border-slate-700/80 relative my-auto">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+          className="absolute top-4 right-4 w-8 h-8 rounded-xl bg-slate-100/80 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
           aria-label="Close modal"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center border ${
             step === 'disable'
-              ? 'bg-rose-50 text-status-error border-rose-200'
+              ? 'bg-rose-50 dark:bg-rose-950/40 text-status-error border-rose-200 dark:border-rose-800/50'
               : isCurrentlyEnabled
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                : 'bg-primary/10 text-primary border-primary/20'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50'
+                : 'bg-primary/10 text-primary dark:text-sky-400 border-primary/20'
           }`}>
             {step === 'disable' ? (
-              <ShieldAlert className="w-5 h-5" />
+              <ShieldAlert className="w-4 h-4" />
             ) : (
-              <ShieldCheck className="w-5 h-5" />
+              <ShieldCheck className="w-4 h-4" />
             )}
           </div>
           <div>
-            <h3 className="font-display font-bold text-lg text-ink">
+            <h3 className="font-display font-bold text-lg text-ink dark:text-slate-100">
               {step === 'disable'
                 ? 'Disable Two-Factor Authentication'
                 : isCurrentlyEnabled
                   ? 'Manage Two-Factor Authentication'
                   : 'Two-Factor Authentication'}
             </h3>
-            <p className="text-xs text-ink-muted">
+            <p className="text-xs text-ink-muted dark:text-slate-400">
               {isCurrentlyEnabled ? 'Enterprise security management' : 'Mandatory enterprise security protocol'}
             </p>
           </div>

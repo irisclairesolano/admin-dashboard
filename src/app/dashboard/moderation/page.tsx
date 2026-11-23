@@ -345,27 +345,44 @@ function ModerationPageContent() {
     (r.reportable_type || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-12 h-12 bg-status-error/10 rounded-full flex items-center justify-center mb-3">
+          <i className="lni lni-warning text-xl text-status-error" />
+        </div>
+        <h2 className="text-base font-body font-bold text-ink dark:text-slate-100 mb-1">Failed to load moderation reports</h2>
+        <p className="text-ink-muted dark:text-slate-400 font-body text-xs mb-4">{error}</p>
+        <button
+          type="button"
+          onClick={() => { setError(''); fetchReports(false); }}
+          className="px-4 py-2 bg-ink dark:bg-primary text-white font-body font-semibold rounded-lg hover:bg-ink-soft transition-colors text-xs cursor-pointer"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="animate-fade-in space-y-4">
+    <div className="animate-fade-in space-y-5">
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">Content Moderation &amp; Safety</h1>
+            <h1 className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100 tracking-tight">Content Moderation &amp; Safety</h1>
             <span className="inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-700 dark:text-rose-300 font-body font-bold text-[11px] px-2.5 py-1 rounded-full border border-rose-500/25 whitespace-nowrap shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
               Violation &amp; Abuse Queue
             </span>
           </div>
-          <p className="text-xs text-ink-muted mt-1">
+          <p className="text-xs sm:text-sm text-ink-muted dark:text-slate-400 mt-1">
             Review, investigate, and resolve user-submitted complaints, scams, and flagged content.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 text-sm shrink-0">
+        <div className="flex flex-wrap items-center gap-2 text-xs shrink-0">
           {/* Status Tabs with Badges */}
-          <div className="flex items-center gap-1 bg-white/90 dark:bg-slate-900/80 p-1 rounded-xl border border-ink-faint/40 shadow-2xs h-10">
+          <div className="flex items-center gap-1 bg-white/90 dark:bg-slate-900/80 p-1 rounded-xl border border-ink-faint/40 dark:border-slate-800 shadow-2xs h-9">
             {([
               { id: 'all', label: 'All', count: statusFilter === 'all' ? (reports.length) : null, highlight: false },
               { id: 'open', label: 'Open', count: openCount, highlight: true },
@@ -378,9 +395,9 @@ function ModerationPageContent() {
                   setStatusFilter(id as any);
                   setCurrentPage(1);
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-body font-medium rounded-lg capitalize transition-all cursor-pointer whitespace-nowrap ${statusFilter === id
+                className={`flex items-center gap-1.5 px-3 h-7 text-xs font-body font-medium rounded-lg capitalize transition-all cursor-pointer whitespace-nowrap ${statusFilter === id
                   ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs font-semibold'
-                  : 'text-ink-soft hover:text-ink hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
+                  : 'text-ink-soft dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
                   }`}
               >
                 <span>{label}</span>
@@ -398,7 +415,7 @@ function ModerationPageContent() {
             ))}
           </div>
 
-          <div className="relative w-full sm:w-52 group">
+          <div className="relative w-full sm:w-56 group">
             <input
               type="text"
               aria-label="Search reports"
@@ -408,25 +425,35 @@ function ModerationPageContent() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-9 pr-3.5 h-10 bg-white/90 dark:bg-slate-900/80 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/95 focus:border-ink/50 outline-none text-sm font-body transition"
+              className="input-admin w-full pl-9 pr-7"
             />
-            <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-sm" />
+            <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none" />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => { setSearchTerm(''); setCurrentPage(1); }}
+                aria-label="Clear search"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white p-0.5 rounded cursor-pointer"
+              >
+                <i className="lni lni-close text-[10px]" />
+              </button>
+            )}
           </div>
 
           <button
             onClick={() => handleExport('xlsx')}
             aria-label="Export moderation audit as Excel"
-            className="flex items-center gap-1.5 px-3.5 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl border border-emerald-700 shadow-2xs transition font-body font-semibold text-xs sm:text-sm cursor-pointer whitespace-nowrap"
+            className="btn-export gap-1.5"
             title="Export filtered moderation audit as styled Excel (.xlsx)"
           >
-            <i className="lni lni-download text-sm" />
+            <i className="lni lni-download text-xs" />
             <span>Excel (.xlsx)</span>
           </button>
 
           <button
             onClick={() => fetchReports(false)}
             aria-label="Refresh reports list"
-            className="w-10 h-10 bg-white dark:bg-slate-900/80 rounded-xl border border-ink-faint/40 shadow-2xs hover:bg-slate-100 dark:hover:bg-slate-800 text-ink-soft hover:text-primary transition flex items-center justify-center cursor-pointer shrink-0"
+            className="btn-icon shrink-0"
             title="Refresh list"
           >
             <i className={`lni lni-reload text-sm ${loading ? 'animate-spin' : ''}`} />
@@ -434,7 +461,7 @@ function ModerationPageContent() {
         </div>
       </div>
 
-      <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
+      <div className="table-surface">
         {loading && reports.length === 0 ? (
           <div className="p-6 space-y-3">
             {[1, 2, 3].map((i) => (

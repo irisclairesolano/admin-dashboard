@@ -822,19 +822,36 @@ function UsersContent() {
     }
   };
 
-  if (error) return <div className="text-center py-20 text-status-error font-body">{error}</div>;
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-12 h-12 bg-status-error/10 rounded-full flex items-center justify-center mb-3">
+          <i className="lni lni-warning text-xl text-status-error" />
+        </div>
+        <h2 className="text-base font-body font-bold text-ink dark:text-slate-100 mb-1">Failed to load users</h2>
+        <p className="text-ink-muted dark:text-slate-400 font-body text-xs mb-4">{error}</p>
+        <button
+          type="button"
+          onClick={() => { setError(''); fetchUsers(true); }}
+          className="px-4 py-2 bg-ink dark:bg-primary text-white font-body font-semibold rounded-lg hover:bg-ink-soft transition-colors text-xs cursor-pointer"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+    <div className="animate-fade-in space-y-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">User Management</h1>
-          <p className="text-xs text-ink-muted mt-0.5">
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100 tracking-tight">User Management</h1>
+          <p className="text-xs sm:text-sm text-ink-muted dark:text-slate-400 mt-1">
             Monitor, suspend, or remove users from the platform.
           </p>
         </div>
 
-        <div className="mt-3 md:mt-0 relative w-full md:w-72 group">
+        <div className="relative w-full md:w-72 group">
           <input
             type="text"
             aria-label="Search users by name or email"
@@ -844,18 +861,32 @@ function UsersContent() {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-9 pr-3 py-1.5 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 outline-none font-body transition-all text-xs"
+            className="input-admin w-full pl-9 pr-7"
           />
-          <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-xs" />
+          <i className="lni lni-search text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 text-xs pointer-events-none" />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => { setSearchTerm(''); setCurrentPage(1); }}
+              aria-label="Clear search"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white p-0.5 rounded cursor-pointer"
+            >
+              <i className="lni lni-close text-[10px]" />
+            </button>
+          )}
         </div>
       </div>
 
       {/* Stat Cards: Total Users on the left spanning both rows + 6 cards in a 3x2 grid on the right */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <button
           type="button"
           onClick={() => { setShowArchived(false); setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }}
-          className="sm:col-span-2 lg:col-span-1 lg:row-span-2 h-full text-left bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-xl p-4 border border-ink-faint/30 dark:border-slate-800 shadow-xs hover:shadow-md hover:-translate-y-0.5 dark:hover:bg-slate-850 dark:hover:border-slate-700 transition-all flex flex-col justify-between gap-4 cursor-pointer"
+          className={`sm:col-span-2 lg:col-span-1 lg:row-span-2 h-full text-left bg-white/90 dark:bg-slate-900/85 backdrop-blur-md rounded-2xl p-4 sm:p-5 border transition-all flex flex-col justify-between gap-4 cursor-pointer ${
+            !showArchived && filter === 'all' && roleFilter === 'all'
+              ? 'border-primary/60 dark:border-sky-400/60 ring-2 ring-primary/15 dark:ring-sky-400/20 shadow-sm'
+              : 'border-ink-faint/40 dark:border-slate-800 shadow-xs'
+          } hover:shadow-md hover:-translate-y-0.5 dark:hover:bg-slate-850 dark:hover:border-slate-700`}
         >
           <div className="flex items-start justify-between gap-2 w-full">
             <div>
@@ -884,6 +915,7 @@ function UsersContent() {
           iconClass="lni lni-briefcase"
           bg="from-amber-50 to-amber-100"
           iconColor="text-amber-700"
+          active={!showArchived && roleFilter === 'employer' && filter === 'all'}
           onClick={() => { setShowArchived(false); setRoleFilter('employer'); setFilter('all'); setCurrentPage(1); }}
         />
         <StatCard
@@ -892,6 +924,7 @@ function UsersContent() {
           iconClass="lni lni-user"
           bg="from-emerald-50 to-emerald-100"
           iconColor="text-emerald-700"
+          active={!showArchived && roleFilter === 'worker' && filter === 'all'}
           onClick={() => { setShowArchived(false); setRoleFilter('worker'); setFilter('all'); setCurrentPage(1); }}
         />
         <StatCard
@@ -900,6 +933,7 @@ function UsersContent() {
           iconClass="lni lni-shield"
           bg="from-indigo-50 to-indigo-100"
           iconColor="text-indigo-700"
+          active={!showArchived && roleFilter === 'admin' && filter === 'all'}
           onClick={() => { setShowArchived(false); setRoleFilter('admin'); setFilter('all'); setCurrentPage(1); }}
         />
 
@@ -915,6 +949,7 @@ function UsersContent() {
           iconClass="lni lni-warning"
           bg="from-orange-50 to-orange-100"
           iconColor="text-orange-700"
+          active={!showArchived && filter === 'pending_review'}
           onClick={() => { setShowArchived(false); setFilter('pending_review'); setRoleFilter('all'); setCurrentPage(1); }}
         />
         <StatCard
@@ -923,6 +958,7 @@ function UsersContent() {
           iconClass="lni lni-hourglass"
           bg="from-sky-50 to-sky-100"
           iconColor="text-sky-700"
+          active={!showArchived && filter === 'pending_id_upload'}
           onClick={() => { setShowArchived(false); setFilter('pending_id_upload'); setRoleFilter('all'); setCurrentPage(1); }}
         />
         <StatCard
@@ -931,42 +967,43 @@ function UsersContent() {
           iconClass="lni lni-trash-can"
           bg="from-rose-50 to-rose-100"
           iconColor="text-rose-700"
+          active={showArchived}
           onClick={() => { setShowArchived(true); setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }}
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2.5 mb-4">
-        <div className="flex space-x-1.5 overflow-x-auto pb-1">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
           <button
             onClick={() => { setFilter('all'); setCurrentPage(1); }}
-            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'all' ? 'bg-ink text-white' : 'bg-white/70 text-ink-soft hover:bg-white border border-ink-faint/40'}`}>
+            className={`h-9 px-3.5 rounded-xl font-body font-semibold text-xs transition-all whitespace-nowrap cursor-pointer ${filter === 'all' ? 'bg-ink dark:bg-slate-800 text-white shadow-2xs border border-ink dark:border-slate-700' : 'bg-white/80 dark:bg-slate-900/70 text-ink-soft dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700/80'}`}>
             All Users
           </button>
           <button
             onClick={() => { setFilter('verified'); setCurrentPage(1); }}
-            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'verified' ? 'bg-emerald-700 text-white' : 'bg-white/70 dark:bg-slate-800/80 text-ink-soft dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'}`}>
+            className={`h-9 px-3.5 rounded-xl font-body font-semibold text-xs transition-all whitespace-nowrap cursor-pointer ${filter === 'verified' ? 'bg-emerald-700 text-white shadow-2xs border border-emerald-700' : 'bg-white/80 dark:bg-slate-900/70 text-ink-soft dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700/80'}`}>
             Verified
           </button>
           <button
             onClick={() => { setFilter('pending_review'); setCurrentPage(1); }}
-            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'pending_review' ? 'bg-amber-700 text-white' : 'bg-white/70 dark:bg-slate-800/80 text-ink-soft dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'}`}>
+            className={`h-9 px-3.5 rounded-xl font-body font-semibold text-xs transition-all whitespace-nowrap cursor-pointer ${filter === 'pending_review' ? 'bg-amber-700 text-white shadow-2xs border border-amber-700' : 'bg-white/80 dark:bg-slate-900/70 text-ink-soft dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700/80'}`}>
             Pending Review
           </button>
           <button
             onClick={() => { setFilter('pending_id_upload'); setCurrentPage(1); }}
-            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'pending_id_upload' ? 'bg-orange-700 text-white' : 'bg-white/70 dark:bg-slate-800/80 text-ink-soft dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 dark:border-slate-700'}`}>
+            className={`h-9 px-3.5 rounded-xl font-body font-semibold text-xs transition-all whitespace-nowrap cursor-pointer ${filter === 'pending_id_upload' ? 'bg-orange-700 text-white shadow-2xs border border-orange-700' : 'bg-white/80 dark:bg-slate-900/70 text-ink-soft dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700/80'}`}>
             Incomplete Onboarding ({incompleteUsers.length})
           </button>
           <button
             onClick={() => { setFilter('rejected'); setCurrentPage(1); }}
-            className={`px-3 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap ${filter === 'rejected' ? 'bg-status-error text-white' : 'bg-white/70 text-ink-soft hover:bg-white border border-ink-faint/40'}`}>
+            className={`h-9 px-3.5 rounded-xl font-body font-semibold text-xs transition-all whitespace-nowrap cursor-pointer ${filter === 'rejected' ? 'bg-status-error text-white shadow-2xs border border-status-error' : 'bg-white/80 dark:bg-slate-900/70 text-ink-soft dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/50 dark:border-slate-700/80'}`}>
             Rejected
           </button>
         </div>
 
-        <div className="flex items-center space-x-2 text-xs">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
           {incompleteUsers.length > 0 && filter === 'all' && (
-            <label className="flex items-center space-x-1.5 bg-white/70 border border-ink-faint/40 px-2.5 py-1.5 rounded-lg text-xs font-body font-semibold text-ink-soft cursor-pointer hover:bg-white transition-all select-none">
+            <label className="flex items-center space-x-1.5 h-9 bg-white/85 dark:bg-slate-900/80 border border-ink-faint/60 dark:border-slate-700/80 px-3 rounded-xl text-xs font-body font-semibold text-ink-soft dark:text-slate-300 cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-all select-none shadow-2xs">
               <input
                 type="checkbox"
                 aria-label="Include incomplete onboarding registrations"
@@ -981,7 +1018,7 @@ function UsersContent() {
             </label>
           )}
 
-          <label className="flex items-center space-x-1.5 bg-white/70 border border-ink-faint/40 px-2.5 py-1.5 rounded-lg text-xs font-body font-semibold text-ink-soft cursor-pointer hover:bg-white transition-all select-none">
+          <label className="flex items-center space-x-1.5 h-9 bg-white/85 dark:bg-slate-900/80 border border-ink-faint/60 dark:border-slate-700/80 px-3 rounded-xl text-xs font-body font-semibold text-ink-soft dark:text-slate-300 cursor-pointer hover:bg-white dark:hover:bg-slate-800 transition-all select-none shadow-2xs">
             <input
               type="checkbox"
               aria-label="Show archived users"
@@ -1002,7 +1039,7 @@ function UsersContent() {
               setRoleFilter(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="px-2.5 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
+            className="select-admin"
           >
             <option value="all" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">All Roles</option>
             <option value="worker" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Workers</option>
@@ -1017,7 +1054,7 @@ function UsersContent() {
               setSortBy(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="px-2.5 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
+            className="select-admin"
           >
             <option value="created_at" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Date Registered</option>
             <option value="name" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Name (Alphabetical)</option>
@@ -1031,7 +1068,7 @@ function UsersContent() {
               setSortOrder(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="px-2.5 py-1.5 rounded-lg font-body font-semibold text-xs transition-colors whitespace-nowrap bg-white dark:bg-slate-900 border border-ink-faint/40 dark:border-slate-700 text-ink dark:text-slate-200 focus:bg-white dark:focus:bg-slate-900 outline-none cursor-pointer"
+            className="select-admin"
           >
             <option value="desc" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Newest</option>
             <option value="asc" className="bg-white dark:bg-slate-900 text-ink dark:text-slate-200">Oldest</option>
@@ -1040,7 +1077,7 @@ function UsersContent() {
           <button
             onClick={() => handleExport('xlsx')}
             aria-label="Export users as Excel"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg border border-emerald-700 shadow-2xs transition font-body font-bold text-xs cursor-pointer"
+            className="btn-export"
             title="Export filtered users directory as styled Excel (.xlsx)"
           >
             <Download className="w-3.5 h-3.5" />
@@ -1072,7 +1109,7 @@ function UsersContent() {
         </div>
       )}
 
-      <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xs border border-ink-faint/30 overflow-hidden">
+      <div className="table-surface">
         <UserTable
           paginatedUsers={paginatedUsers}
           loading={loading}
@@ -1090,23 +1127,26 @@ function UsersContent() {
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6 px-4">
-          <p className="text-sm font-body text-ink-soft">
-            Page <span className="font-semibold text-ink">{currentPage}</span> of{' '}
-            <span className="font-semibold text-ink">{totalPages}</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-5 px-4">
+          <p className="text-xs sm:text-sm font-body text-ink-soft dark:text-slate-300">
+            Showing <span className="font-semibold text-ink dark:text-slate-100 font-numeric">{(currentPage - 1) * itemsPerPage + 1}</span>–<span className="font-semibold text-ink dark:text-slate-100 font-numeric">{Math.min(currentPage * itemsPerPage, sortedUsers.length)}</span> of{' '}
+            <span className="font-semibold text-ink dark:text-slate-100 font-numeric">{sortedUsers.length}</span> &bull; Page <span className="font-semibold text-ink dark:text-slate-100 font-numeric">{currentPage}</span> of{' '}
+            <span className="font-semibold text-ink dark:text-slate-100 font-numeric">{totalPages}</span>
           </p>
           <div className="flex space-x-2">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Previous page"
+              className="p-2.5 rounded-xl border border-ink-faint/50 dark:border-slate-700 bg-white/70 dark:bg-slate-900/80 text-ink dark:text-slate-200 hover:bg-white/95 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="p-2.5 rounded-xl border border-ink-faint/50 bg-white/70 text-ink hover:bg-white/95 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              aria-label="Next page"
+              className="p-2.5 rounded-xl border border-ink-faint/50 dark:border-slate-700 bg-white/70 dark:bg-slate-900/80 text-ink dark:text-slate-200 hover:bg-white/95 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               <ArrowRight className="w-5 h-5" />
             </button>

@@ -81,10 +81,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-full ${SIZE_CLASSES[size]} max-h-[90vh] flex flex-col overflow-hidden rounded-3xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl border border-white/60 dark:border-slate-700/70`}
+        className={`relative w-full ${SIZE_CLASSES[size]} max-h-[90vh] flex flex-col overflow-hidden rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border border-ink-faint/40 dark:border-slate-700/80`}
       >
         {/* Sticky Glass Header */}
-        <div className="shrink-0 px-5 sm:px-7 py-4 sm:py-5 bg-white/75 dark:bg-slate-900/75 backdrop-blur-md border-b border-ink-faint/30 dark:border-slate-700/60 flex items-start justify-between gap-4">
+        <div className="shrink-0 px-6 py-4 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-ink-faint/40 dark:border-slate-800 flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             {badge && <div className="flex flex-wrap items-center gap-2 mb-1.5">{badge}</div>}
             <h2
@@ -100,13 +100,13 @@ export const AdminModal: React.FC<AdminModalProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             {headerRight}
             <button
               type="button"
               onClick={onClose}
               aria-label="Close modal"
-              className="w-9 h-9 rounded-full bg-paper/80 dark:bg-slate-800/80 hover:bg-ink-faint/60 dark:hover:bg-slate-700 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-xl bg-slate-100/80 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -118,7 +118,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
         {/* Sticky Glass Footer */}
         {hasFooter && (
-          <div className="shrink-0 px-5 sm:px-7 py-3.5 sm:py-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-ink-faint/30 dark:border-slate-700/60">
+          <div className="shrink-0 px-6 py-3.5 bg-slate-50/80 dark:bg-slate-900/85 backdrop-blur-md border-t border-ink-faint/40 dark:border-slate-800">
             {footer ? (
               footer
             ) : (

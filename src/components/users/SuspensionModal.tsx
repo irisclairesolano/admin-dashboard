@@ -69,43 +69,43 @@ export default function SuspensionModal({
         if (e.target === e.currentTarget && !loading) onClose();
       }}
     >
-      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/50 dark:border-slate-700/70 flex flex-col animate-in fade-in zoom-in-95 duration-200 my-auto">
-        <div className="p-6 border-b border-ink-faint dark:border-slate-700 flex justify-between items-center bg-status-error/5 dark:bg-rose-950/40 shrink-0">
+      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-ink-faint/40 dark:border-slate-700/80 flex flex-col animate-in fade-in zoom-in-95 duration-200 my-auto">
+        <div className="px-6 py-4 border-b border-ink-faint/40 dark:border-slate-800 flex justify-between items-center bg-status-error/5 dark:bg-rose-950/30 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-status-error/10 text-status-error flex items-center justify-center">
-              <ShieldAlert className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-status-error/10 text-status-error flex items-center justify-center">
+              <ShieldAlert className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-display text-xl text-ink font-bold">Suspend User</h2>
-              <p className="text-xs text-ink-muted">Set suspension duration and reason</p>
+              <h2 className="font-display text-lg text-ink dark:text-slate-100 font-bold">Suspend User</h2>
+              <p className="text-xs text-ink-muted dark:text-slate-400">Set suspension duration and reason</p>
             </div>
           </div>
           <button
             onClick={onClose}
             disabled={loading}
             aria-label="Close modal"
-            className="p-2 hover:bg-paper rounded-full text-ink-muted hover:text-ink transition-colors disabled:opacity-50"
+            className="w-8 h-8 rounded-xl bg-slate-100/80 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white flex items-center justify-center transition-colors disabled:opacity-50 cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 font-body space-y-4">
-          <div className="p-3.5 bg-paper rounded-2xl border border-ink-faint/60">
-            <span className="text-[11px] font-bold text-ink-muted uppercase tracking-wider block">Target User</span>
-            <div className="font-semibold text-ink text-sm mt-0.5">{user.name}</div>
-            <div className="text-xs text-ink-soft">{user.email} &bull; ID #{user.id}</div>
+          <div className="p-3.5 bg-slate-50/80 dark:bg-slate-800/60 rounded-xl border border-ink-faint/50 dark:border-slate-700/80">
+            <span className="text-[10px] font-bold text-ink-muted dark:text-slate-400 uppercase tracking-wider block">Target User</span>
+            <div className="font-semibold text-ink dark:text-slate-100 text-sm mt-0.5">{user.name}</div>
+            <div className="text-xs text-ink-soft dark:text-slate-300">{user.email} &bull; ID #{user.id}</div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-ink-soft uppercase tracking-wider mb-1.5">
+            <label className="block text-[11px] font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider mb-1.5">
               Suspension Duration <span className="text-status-error">*</span>
             </label>
             <select
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
               disabled={loading}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-ink-faint bg-paper-cream text-ink text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              className="w-full h-9 px-3 rounded-xl border border-ink-faint/60 dark:border-slate-700 bg-white dark:bg-slate-800 text-ink dark:text-slate-100 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
             >
               {DURATION_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -116,7 +116,7 @@ export default function SuspensionModal({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-ink-soft uppercase tracking-wider mb-1.5">
+            <label className="block text-[11px] font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider mb-1.5">
               Reason for Suspension <span className="text-status-error">*</span>
             </label>
             <textarea
@@ -128,24 +128,24 @@ export default function SuspensionModal({
               rows={3}
               placeholder="Provide a clear explanation for this suspension..."
               disabled={loading}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-ink-faint bg-paper-cream text-ink text-sm placeholder:text-ink-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-ink-faint/60 dark:border-slate-700 bg-white dark:bg-slate-800 text-ink dark:text-slate-100 text-xs placeholder:text-ink-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
             />
             {error && <p className="text-xs text-status-error font-medium mt-1">{error}</p>}
           </div>
 
-          <div className="pt-2 flex items-center justify-end gap-3">
+          <div className="pt-2 flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-ink-soft hover:text-ink rounded-xl border border-ink-faint hover:bg-paper transition-all disabled:opacity-50"
+              className="h-9 px-4 text-xs font-semibold text-ink-soft dark:text-slate-300 hover:text-ink rounded-xl border border-ink-faint/60 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 text-xs font-bold uppercase tracking-wider text-white bg-status-error hover:bg-status-error/90 rounded-xl shadow-sm transition-all disabled:opacity-50 flex items-center gap-2"
+              className="h-9 px-4 text-xs font-semibold text-white bg-status-error hover:bg-status-error/90 rounded-xl shadow-xs transition-all disabled:opacity-50 flex items-center gap-2 cursor-pointer"
             >
               {loading && <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               <span>Confirm Suspension</span>

@@ -9,6 +9,7 @@ interface StatCardProps {
   bg?: string;             // e.g. 'from-accent-sky to-accent-skyDeep/40'
   className?: string;
   onClick?: () => void;
+  active?: boolean;
   trend?: 'up' | 'down' | 'neutral';
   trendValue?: string;     // e.g. '+12%' or '-3'
   trendLabel?: string;     // e.g. 'vs last month'
@@ -67,6 +68,7 @@ export default function StatCard({
   bg = 'from-primary-soft to-primary-soft/50',
   className = '',
   onClick,
+  active = false,
   trend,
   trendValue,
   trendLabel,
@@ -84,22 +86,27 @@ export default function StatCard({
 
   return (
     <div
-      className={`h-full flex flex-col justify-between bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-xl p-3.5 sm:p-4 border border-ink-faint/30 dark:border-slate-800 shadow-xs transition-all ${
-        onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5 dark:hover:bg-slate-850 dark:hover:border-slate-700' : ''
+      className={`h-full min-h-[96px] flex flex-col justify-between bg-white/90 dark:bg-slate-900/85 backdrop-blur-md rounded-2xl p-4 sm:p-4.5 border transition-all duration-200 ${
+        active
+          ? 'border-primary/60 dark:border-sky-400/60 ring-2 ring-primary/15 dark:ring-sky-400/20 shadow-sm'
+          : 'border-ink-faint/40 dark:border-slate-800 shadow-xs'
+      } ${
+        onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5 hover:border-ink-faint/70 dark:hover:bg-slate-850 dark:hover:border-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40' : ''
       } ${className}`}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
+      aria-pressed={onClick && active ? true : undefined}
       tabIndex={onClick ? 0 : undefined}
-      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); } : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
       aria-label={onClick ? `${title}: ${value}` : undefined}
     >
-      <div className="flex items-start justify-between gap-2 h-full">
+      <div className="flex items-start justify-between gap-3 h-full">
         <div className="min-w-0 flex-1 flex flex-col justify-between h-full">
-          <p className="text-[11px] font-body font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider mb-1">{title}</p>
+          <p className="text-[11px] font-body font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider mb-1.5 leading-snug">{title}</p>
           <div>
-            <p className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100">{value}</p>
+            <p className="text-2xl font-display font-bold text-ink dark:text-slate-100 font-numeric tracking-tight leading-none">{value}</p>
             {trendValue && (
-              <div className={`flex items-center gap-1 mt-1 text-xs font-body font-semibold ${trendColor}`}>
+              <div className={`flex items-center gap-1 mt-1.5 text-xs font-body font-semibold ${trendColor}`}>
                 {trendIcon && <i className={`${trendIcon} text-[10px]`} />}
                 <span>{trendValue}</span>
                 {trendLabel && <span className="text-ink-muted dark:text-slate-400 font-normal">{trendLabel}</span>}
@@ -108,7 +115,7 @@ export default function StatCard({
           </div>
         </div>
         {(Icon || iconClass) && (
-          <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br ${bg} ${darkStyles.container} flex items-center justify-center shadow-inner flex-shrink-0`}>
+          <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br ${bg} ${darkStyles.container} flex items-center justify-center shadow-inner flex-shrink-0`}>
             {Icon
               ? <Icon className={`w-4 h-4 ${iconColor} ${darkStyles.icon}`} />
               : <i className={`${iconClass} ${iconColor} ${darkStyles.icon} text-base`} />}

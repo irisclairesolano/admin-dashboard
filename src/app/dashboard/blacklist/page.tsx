@@ -267,19 +267,19 @@ export default function BlacklistPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink flex items-center gap-2.5">
-            <span className="p-2 rounded-2xl bg-rose-500/10 text-rose-600">
-              <Ban className="w-6 h-6" />
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100 tracking-tight flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+              <Ban className="w-4 h-4" />
             </span>
-            Blacklist & Restrictions Registry
+            Blacklist &amp; Restrictions Registry
           </h1>
-          <p className="text-xs text-ink-muted mt-1">
+          <p className="text-xs sm:text-sm text-ink-muted dark:text-slate-400 mt-1">
             Historical registry of banned, suspended, and deleted identities used for automated verification cross-checks.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <div className="relative w-full sm:w-72">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-full sm:w-64">
             <input
               type="text"
               aria-label="Search blacklist by name, email, phone, or reason"
@@ -289,41 +289,52 @@ export default function BlacklistPage() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-9 pr-3 py-2 bg-white/90 rounded-xl border border-ink-faint/40 shadow-xs focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 outline-none font-body transition-all text-xs"
+              className="input-admin w-full pl-9 pr-7"
             />
-            <Search className="w-3.5 h-3.5 text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-ink-muted absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => { setSearchTerm(''); setCurrentPage(1); }}
+                aria-label="Clear search"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white p-0.5 rounded cursor-pointer"
+              >
+                <i className="lni lni-close text-[10px]" />
+              </button>
+            )}
           </div>
 
           <button
             onClick={() => handleExport('xlsx')}
             disabled={exporting}
             aria-label="Export blacklist to Excel"
-            className="flex items-center px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-body font-semibold rounded-xl transition-all border border-emerald-700 shadow-2xs cursor-pointer disabled:opacity-60"
+            className="btn-export gap-1.5"
             title="Export blacklist records to styled Excel (.xlsx)"
           >
-            <Download className={`w-3.5 h-3.5 mr-1.5 ${exporting ? 'animate-bounce' : ''}`} />
+            <Download className={`w-3.5 h-3.5 ${exporting ? 'animate-bounce' : ''}`} />
             {exporting ? 'Exporting...' : 'Excel (.xlsx)'}
           </button>
 
           <button
             onClick={fetchBlacklist}
             aria-label="Refresh blacklist registry"
-            className="p-2.5 bg-white rounded-xl border border-ink-faint/40 shadow-2xs hover:bg-slate-50 text-ink-soft hover:text-primary transition flex items-center justify-center cursor-pointer"
+            className="btn-icon"
             title="Refresh registry"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-primary' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-primary' : ''}`} />
           </button>
         </div>
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         <StatCard
           title="Total Restrictions"
           value={stats.total}
           iconClass="lni lni-shield"
           bg="from-slate-100 to-slate-200"
           iconColor="text-slate-700"
+          active={activeTab === 'all'}
           onClick={() => handleTabChange('all')}
         />
         <StatCard
@@ -332,6 +343,7 @@ export default function BlacklistPage() {
           iconClass="lni lni-ban"
           bg="from-rose-50 to-rose-100"
           iconColor="text-rose-700"
+          active={activeTab === 'banned'}
           onClick={() => handleTabChange('banned')}
         />
         <StatCard
@@ -340,6 +352,7 @@ export default function BlacklistPage() {
           iconClass="lni lni-timer"
           bg="from-amber-50 to-amber-100"
           iconColor="text-amber-700"
+          active={activeTab === 'suspended'}
           onClick={() => handleTabChange('suspended')}
         />
         <StatCard
@@ -348,6 +361,7 @@ export default function BlacklistPage() {
           iconClass="lni lni-trash-can"
           bg="from-purple-50 to-purple-100"
           iconColor="text-purple-700"
+          active={activeTab === 'deleted_by_admin'}
           onClick={() => handleTabChange('deleted_by_admin')}
         />
         <StatCard
@@ -356,12 +370,13 @@ export default function BlacklistPage() {
           iconClass="lni lni-user"
           bg="from-slate-50 to-slate-100"
           iconColor="text-slate-600"
+          active={activeTab === 'self_deleted'}
           onClick={() => handleTabChange('self_deleted')}
         />
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex space-x-2 overflow-x-auto pb-1">
+      <div className="flex flex-wrap gap-2 overflow-x-auto pb-0.5">
         {[
           { id: 'all', label: 'All Restrictions' },
           { id: 'banned', label: 'Banned' },
@@ -372,10 +387,10 @@ export default function BlacklistPage() {
           <button
             key={tab.id}
             onClick={() => handleTabChange(tab.id as any)}
-            className={`px-4 py-2 rounded-xl font-body text-sm transition-all whitespace-nowrap cursor-pointer ${
+            className={`inline-flex items-center h-9 px-3.5 rounded-xl font-body text-xs font-semibold transition-all whitespace-nowrap cursor-pointer border ${
               activeTab === tab.id
-                ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs font-semibold'
-                : 'bg-white/70 dark:bg-slate-900/60 text-ink-soft hover:bg-white dark:hover:bg-slate-800 border border-ink-faint/40 font-medium'
+                ? 'bg-ink text-white dark:bg-slate-800 border-ink dark:border-slate-700 shadow-2xs'
+                : 'bg-white/90 dark:bg-slate-900/80 text-ink-soft dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 border-ink-faint/40 dark:border-slate-700'
             }`}
           >
             {tab.label}
@@ -384,7 +399,7 @@ export default function BlacklistPage() {
       </div>
 
       {/* Main Table */}
-      <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl shadow-xs border border-ink-faint/30 overflow-hidden">
+      <div className="table-surface">
         {loading ? (
           <div className="p-8 space-y-3">
             {[1, 2, 3, 4].map((i) => (

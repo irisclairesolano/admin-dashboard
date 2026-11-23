@@ -83,73 +83,73 @@ export default function JobPreviewModal({ selectedJob, onClose }: JobPreviewModa
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl max-w-lg w-full shadow-2xl border border-white/50 dark:border-slate-700/70 overflow-hidden flex flex-col max-h-[85vh]">
-        <div className="p-6 border-b border-ink-faint flex justify-between items-center bg-paper-cream">
-          <div>
-            <span className="text-xs font-mono font-semibold text-primary uppercase bg-primary/10 px-2.5 py-1 rounded-md">
+      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl max-w-lg w-full shadow-2xl border border-ink-faint/40 dark:border-slate-700/80 overflow-hidden flex flex-col max-h-[85vh]">
+        <div className="px-6 py-4 border-b border-ink-faint/40 dark:border-slate-800 flex justify-between items-start gap-3 bg-slate-50/70 dark:bg-slate-800/50">
+          <div className="min-w-0">
+            <span className="text-[11px] font-mono font-semibold text-primary dark:text-sky-400 uppercase bg-primary/10 dark:bg-sky-950/60 px-2.5 py-0.5 rounded-md border border-primary/20 dark:border-sky-800/50">
               {selectedJob.reference_number || `#${selectedJob.id}`}
             </span>
-            <h2 className="font-display text-2xl text-ink mt-2">{selectedJob.title}</h2>
+            <h2 className="font-display text-lg sm:text-xl font-bold text-ink dark:text-slate-100 mt-1.5 leading-snug">{selectedJob.title}</h2>
           </div>
           <button
             onClick={onClose}
             aria-label="Close job preview"
-            className="p-2 hover:bg-paper rounded-full text-ink-muted hover:text-ink transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-xl bg-slate-100/80 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="p-6 flex-1 overflow-y-auto font-body space-y-4">
           <div>
-            <span className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">Category</span>
-            <span className="text-sm font-medium text-ink bg-paper px-3 py-1.5 rounded-lg border border-ink-faint inline-block mt-1">
+            <span className="block text-[11px] font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider">Category</span>
+            <span className="text-xs font-semibold text-ink dark:text-slate-200 bg-slate-100/80 dark:bg-slate-800 px-3 py-1 rounded-lg border border-ink-faint/50 dark:border-slate-700 inline-block mt-1">
               {selectedJob.category || 'N/A'}
             </span>
           </div>
 
           <div>
-            <span className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">Location (Privacy Protected)</span>
-            <div className="flex items-center gap-1.5 mt-1 text-sm font-medium text-ink font-semibold">
-              <MapPin className="w-4 h-4 text-primary" />
+            <span className="block text-[11px] font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider">Location (Privacy Protected)</span>
+            <div className="flex items-center gap-1.5 mt-1 text-sm font-semibold text-ink dark:text-slate-100">
+              <MapPin className="w-4 h-4 text-primary dark:text-sky-400" />
               <span>Brgy. {selectedJob.barangay || 'N/A'}, {selectedJob.municipality || 'Bulan'}</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-800/50 border border-ink-faint/40 dark:border-slate-700/70">
             <div>
-              <span className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">Compensation</span>
-              <span className="text-sm font-bold text-status-success mt-1 block">
+              <span className="block text-[11px] font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider">Compensation</span>
+              <span className="text-sm font-bold text-status-success font-numeric mt-0.5 block">
                 ₱{(Number(selectedJob.compensation) || 0).toLocaleString()}
               </span>
             </div>
             <div>
-              <span className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">Slots Available</span>
-              <span className="text-sm font-bold text-ink mt-1 block">
+              <span className="block text-[11px] font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider">Slots Available</span>
+              <span className="text-sm font-bold text-ink dark:text-slate-100 font-numeric mt-0.5 block">
                 {(selectedJob.filled_slots ?? selectedJob.accepted_count) ?? 0} / {selectedJob.slots ?? 1} filled
               </span>
             </div>
           </div>
 
           <div>
-            <span className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">Schedule Date</span>
-            <div className="flex items-center gap-1.5 mt-1 text-sm font-medium text-ink font-semibold">
-              <Calendar className="w-4 h-4 text-ink-muted" />
+            <span className="block text-[11px] font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider">Schedule Date</span>
+            <div className="flex items-center gap-1.5 mt-1 text-sm font-semibold text-ink dark:text-slate-100">
+              <Calendar className="w-4 h-4 text-ink-muted dark:text-slate-400" />
               <span>{selectedJob.schedule_date ? new Date(selectedJob.schedule_date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</span>
             </div>
           </div>
 
           <div>
-            <span className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">Description</span>
-            <p className="text-sm text-ink-soft leading-relaxed mt-1 whitespace-pre-line bg-paper p-4 rounded-2xl border border-ink-faint">
+            <span className="block text-[11px] font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider">Description</span>
+            <p className="text-xs sm:text-sm text-ink-soft dark:text-slate-300 leading-relaxed mt-1 whitespace-pre-line bg-slate-50/70 dark:bg-slate-800/50 p-3.5 rounded-xl border border-ink-faint/40 dark:border-slate-700/70">
               {selectedJob.description}
             </p>
           </div>
 
           {selectedJob.tools_required && (
             <div>
-              <span className="block text-xs font-semibold text-ink-soft uppercase tracking-wide">Tools Required</span>
-              <p className="text-sm text-ink-soft mt-1 bg-paper p-4 rounded-2xl border border-ink-faint">
+              <span className="block text-[11px] font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider">Tools Required</span>
+              <p className="text-xs sm:text-sm text-ink-soft dark:text-slate-300 mt-1 bg-slate-50/70 dark:bg-slate-800/50 p-3.5 rounded-xl border border-ink-faint/40 dark:border-slate-700/70">
                 {selectedJob.tools_required}
               </p>
             </div>

@@ -185,14 +185,14 @@ export default function SkillsManagementPage() {
   };
 
   return (
-    <div className="animate-fade-in max-w-5xl mx-auto space-y-5">
+    <div className="animate-fade-in space-y-5">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink">
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100 tracking-tight">
             Skills Catalog &amp; Moderation
           </h1>
-          <p className="text-xs text-ink-muted mt-1">
+          <p className="text-xs sm:text-sm text-ink-muted dark:text-slate-400 mt-1">
             Manage curated worker skills and review custom skills submitted by workers.
           </p>
         </div>
@@ -210,21 +210,21 @@ export default function SkillsManagementPage() {
       {loadError && !loading && (
         <div
           role="alert"
-          className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-rose-300 dark:border-rose-500/40 shadow-glass flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+          className="card-surface p-4 border-rose-300 dark:border-rose-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
         >
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center flex-shrink-0">
               <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
             </div>
             <div>
-              <p className="text-xs font-body font-bold text-ink">Unable to load skills</p>
-              <p className="text-xs font-body text-ink-muted mt-0.5">{loadError}</p>
+              <p className="text-xs font-body font-bold text-ink dark:text-slate-100">Unable to load skills</p>
+              <p className="text-xs font-body text-ink-muted dark:text-slate-400 mt-0.5">{loadError}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => fetchSkills(true)}
-            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-ink hover:bg-ink-soft text-white text-xs font-body font-semibold transition-all shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 cursor-pointer self-start sm:self-center"
+            className="btn-primary gap-1.5 self-start sm:self-center"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Retry
@@ -232,13 +232,13 @@ export default function SkillsManagementPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Left Column: Add Curated Skill */}
-        <div className="md:col-span-1">
-          <div className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md p-5 rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-glass sticky top-20 space-y-4">
+        <div className="lg:col-span-1">
+          <div className="card-surface p-5 sticky top-20 space-y-4">
             <div>
-              <h3 className="text-sm font-display font-bold text-ink">Add Curated Skill</h3>
-              <p className="text-[11px] text-ink-muted mt-0.5">
+              <h3 className="text-sm font-display font-bold text-ink dark:text-slate-100">Add Curated Skill</h3>
+              <p className="text-xs text-ink-muted dark:text-slate-400 mt-0.5">
                 Add an official skill to the global catalog. Matching worker custom skills are automatically promoted.
               </p>
             </div>
@@ -247,7 +247,7 @@ export default function SkillsManagementPage() {
               <div>
                 <label
                   htmlFor="new-skill-name"
-                  className="block text-xs font-body font-semibold text-ink-muted uppercase tracking-wider mb-2"
+                  className="block text-[11px] font-body font-semibold text-ink-muted uppercase tracking-wider mb-1.5"
                 >
                   Skill Name
                 </label>
@@ -260,14 +260,14 @@ export default function SkillsManagementPage() {
                   maxLength={100}
                   disabled={addLoading}
                   required
-                  className="w-full px-3.5 h-10 bg-slate-50 dark:bg-slate-800 rounded-xl border border-ink-faint/50 outline-none text-sm font-body text-ink focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 transition-all"
+                  className="input-admin w-full"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="new-skill-category"
-                  className="block text-xs font-body font-semibold text-ink-muted uppercase tracking-wider mb-2"
+                  className="block text-[11px] font-body font-semibold text-ink-muted uppercase tracking-wider mb-1.5"
                 >
                   Category
                 </label>
@@ -276,7 +276,7 @@ export default function SkillsManagementPage() {
                   value={newSkillCategory}
                   onChange={(e) => setNewSkillCategory(e.target.value)}
                   disabled={addLoading}
-                  className="w-full px-3.5 h-10 bg-slate-50 dark:bg-slate-800 rounded-xl border border-ink-faint/50 outline-none text-sm font-body text-ink focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 transition-all cursor-pointer"
+                  className="select-admin w-full"
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
@@ -289,7 +289,7 @@ export default function SkillsManagementPage() {
               <button
                 type="submit"
                 disabled={addLoading || !newSkillName.trim()}
-                className="w-full flex items-center justify-center gap-2 h-11 px-4 rounded-xl text-sm font-body font-semibold text-white bg-ink hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 cursor-pointer"
+                className="w-full btn-primary gap-2"
               >
                 {addLoading ? (
                   <>
@@ -308,17 +308,17 @@ export default function SkillsManagementPage() {
         </div>
 
         {/* Right Column: Suggestions + Catalog */}
-        <div className="md:col-span-2 space-y-5">
+        <div className="lg:col-span-2 space-y-5">
           {/* Worker Custom Skill Suggestions */}
-          <section className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md p-5 rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-glass space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-ink-faint/30">
+          <section className="card-surface p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-ink-faint/30 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                <h2 className="text-sm font-display font-bold text-ink">
+                <h2 className="text-sm font-display font-bold text-ink dark:text-slate-100">
                   Worker Custom Skill Suggestions
                 </h2>
               </div>
-              <span className="text-[11px] text-ink-muted">
+              <span className="text-xs text-ink-muted dark:text-slate-400">
                 Approve to promote or dismiss junk entries
               </span>
             </div>
@@ -409,11 +409,11 @@ export default function SkillsManagementPage() {
           </section>
 
           {/* Curated Global Catalog */}
-          <section className="bg-white/75 dark:bg-slate-900/75 backdrop-blur-md p-5 rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-glass space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-ink-faint/30">
+          <section className="card-surface p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-ink-faint/30 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <Tag className="w-4 h-4 text-ink" />
-                <h2 className="text-sm font-display font-bold text-ink">
+                <Tag className="w-4 h-4 text-ink dark:text-slate-100" />
+                <h2 className="text-sm font-display font-bold text-ink dark:text-slate-100">
                   Curated Global Catalog
                 </h2>
               </div>
@@ -429,14 +429,14 @@ export default function SkillsManagementPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search skills..."
-                    className="w-full sm:w-52 pl-9 pr-3 h-9 bg-slate-50 dark:bg-slate-800 rounded-xl border border-ink-faint/50 outline-none text-xs font-body text-ink focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 transition-all"
+                    className="input-admin w-full sm:w-52 pl-9 pr-3"
                   />
                 </div>
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
                   aria-label="Filter by category"
-                  className="px-3 h-9 bg-slate-50 dark:bg-slate-800 rounded-xl border border-ink-faint/50 outline-none text-xs font-body text-ink focus:bg-white dark:focus:bg-slate-900/90 focus:border-ink/50 transition-all cursor-pointer"
+                  className="select-admin"
                 >
                   <option value="All">All Categories</option>
                   {CATEGORIES.map((cat) => (

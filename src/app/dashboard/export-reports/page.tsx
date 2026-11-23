@@ -1052,23 +1052,23 @@ function ExportReportsContent() {
   };
 
   return (
-    <div className="space-y-6 print:space-y-2 animate-fade-in pb-12 print:pb-0 print:pt-0 print:mt-0">
+    <div className="space-y-5 print:space-y-2 animate-fade-in pb-12 print:pb-0 print:pt-0 print:mt-0">
       {/* ── SCREEN TITLE & ACTION BAR (HIDDEN IN PRINT) ── */}
       <div className="no-print flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-display font-bold text-ink">Reports</h1>
+            <h1 className="text-xl sm:text-2xl font-display font-bold text-ink dark:text-slate-100 tracking-tight">Reports</h1>
           </div>
-          <p className="text-ink-soft font-body text-sm mt-1">
+          <p className="text-xs sm:text-sm text-ink-muted dark:text-slate-400 font-body mt-1">
             Generate, view, and export platform masterlists and summary reports.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => fetchData(true)}
             disabled={isAnyLoading}
-            className="px-3.5 py-2 bg-white border border-ink-faint text-ink hover:bg-paper font-body text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="btn-glass gap-1.5"
             title="Reload latest records"
           >
             <i className={`lni lni-reload text-xs ${isAnyLoading ? 'animate-spin' : ''}`} />
@@ -1078,7 +1078,7 @@ function ExportReportsContent() {
           <button
             onClick={() => handleExportReport('xlsx')}
             disabled={isAnyLoading}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="btn-export gap-1.5"
             title="Export active report view as styled Excel (.xlsx)"
           >
             <i className="lni lni-download text-xs" />
@@ -1088,7 +1088,7 @@ function ExportReportsContent() {
           <button
             onClick={handleExportMasterExcel}
             disabled={isAnyLoading || isExportingExcel}
-            className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-body text-xs font-semibold rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center justify-center h-9 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-body text-xs font-semibold rounded-xl border border-emerald-800 shadow-2xs transition-all gap-1.5 cursor-pointer disabled:opacity-50"
             title="Export full multi-tab formatted Excel workbook with Users, Jobs, Demographics, and Verifications (.xlsx)"
           >
             <i className={`lni ${isExportingExcel ? 'lni-reload animate-spin' : 'lni-empty-file'} text-xs`} />
@@ -1098,7 +1098,7 @@ function ExportReportsContent() {
           <button
             onClick={handlePrint}
             disabled={isAnyLoading}
-            className="px-4 py-2 bg-ink hover:bg-primary-dark text-white font-body text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="btn-primary gap-1.5"
             title="Print or export PDF summary"
           >
             <i className="lni lni-printer text-xs" />
@@ -1109,7 +1109,7 @@ function ExportReportsContent() {
 
       {/* ── EXPORT ERROR NOTIFICATION (HIDDEN IN PRINT) ── */}
       {exportError && (
-        <div className="no-print flex items-center justify-between p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl shadow-xs animate-fade-in">
+        <div className="no-print flex items-center justify-between p-3.5 bg-red-50 dark:bg-rose-950/40 border border-red-200 dark:border-rose-500/40 text-red-700 dark:text-rose-200 text-xs rounded-xl shadow-xs animate-fade-in">
           <div className="flex items-center gap-2">
             <i className="lni lni-warning text-base text-red-500" />
             <span>{exportError}</span>
@@ -1126,13 +1126,13 @@ function ExportReportsContent() {
       )}
 
       {/* ── REPORT TYPE SELECTOR TABS (HIDDEN IN PRINT) ── */}
-      <div className="no-print bg-white/80 backdrop-blur-md rounded-2xl p-2 border border-white/60 shadow-xs flex flex-wrap gap-2">
+      <div className="no-print card-surface p-1.5 flex flex-wrap gap-1.5">
         <button
           onClick={() => setReportType('users')}
-          className={`flex-1 min-w-[150px] py-2.5 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-[150px] h-9 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
             reportType === 'users'
-              ? 'bg-ink text-white shadow-sm'
-              : 'text-ink-soft hover:text-ink hover:bg-white/60'
+              ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs'
+              : 'text-ink-soft dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
           }`}
         >
           <i className="lni lni-users text-sm" />
@@ -1141,22 +1141,22 @@ function ExportReportsContent() {
 
         <button
           onClick={() => setReportType('jobs')}
-          className={`flex-1 min-w-[150px] py-2.5 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-[150px] h-9 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
             reportType === 'jobs'
-              ? 'bg-ink text-white shadow-sm'
-              : 'text-ink-soft hover:text-ink hover:bg-white/60'
+              ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs'
+              : 'text-ink-soft dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
           }`}
         >
           <i className="lni lni-briefcase text-sm" />
-          Jobs & Placements ({jobs.length})
+          Jobs &amp; Placements ({jobs.length})
         </button>
 
         <button
           onClick={() => setReportType('demographics')}
-          className={`flex-1 min-w-[150px] py-2.5 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-[150px] h-9 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
             reportType === 'demographics'
-              ? 'bg-ink text-white shadow-sm'
-              : 'text-ink-soft hover:text-ink hover:bg-white/60'
+              ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs'
+              : 'text-ink-soft dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
           }`}
         >
           <i className="lni lni-map-marker text-sm" />
@@ -1165,10 +1165,10 @@ function ExportReportsContent() {
 
         <button
           onClick={() => setReportType('verifications')}
-          className={`flex-1 min-w-[150px] py-2.5 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-[150px] h-9 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
             reportType === 'verifications'
-              ? 'bg-ink text-white shadow-sm'
-              : 'text-ink-soft hover:text-ink hover:bg-white/60'
+              ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs'
+              : 'text-ink-soft dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
           }`}
         >
           <i className="lni lni-shield text-sm" />
@@ -1177,10 +1177,10 @@ function ExportReportsContent() {
 
         <button
           onClick={() => setReportType('moderation')}
-          className={`flex-1 min-w-[150px] py-2.5 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-[150px] h-9 px-3.5 rounded-xl text-xs font-body font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
             reportType === 'moderation'
-              ? 'bg-ink text-white shadow-sm'
-              : 'text-ink-soft hover:text-ink hover:bg-white/60'
+              ? 'bg-ink text-white dark:bg-slate-800 shadow-2xs'
+              : 'text-ink-soft dark:text-slate-300 hover:text-ink dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
           }`}
         >
           <i className="lni lni-bullhorn text-sm" />
@@ -1189,7 +1189,7 @@ function ExportReportsContent() {
       </div>
 
       {/* ── FILTERING CONTROLS BAR (HIDDEN IN PRINT) ── */}
-      <div className="no-print bg-white/70 backdrop-blur-md rounded-2xl p-4 border border-white/50 shadow-xs space-y-3">
+      <div className="no-print card-surface p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           {/* Search box */}
           <div className="flex-1 min-w-[240px] relative">
@@ -1199,12 +1199,12 @@ function ExportReportsContent() {
               placeholder={`Search in ${getReportTitle()}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white/90 border border-ink-faint/60 rounded-xl text-xs font-body text-ink placeholder-ink-muted focus:outline-none focus:border-primary transition-colors"
+              className="input-admin w-full pl-9 pr-8"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:text-slate-400 dark:hover:text-white cursor-pointer"
               >
                 <i className="lni lni-close text-[10px]" />
               </button>
@@ -1213,11 +1213,11 @@ function ExportReportsContent() {
 
           {/* Date range preset */}
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-body font-semibold text-ink-muted">Period:</span>
+            <span className="text-xs font-body font-semibold text-ink-muted dark:text-slate-400">Period:</span>
             <select
               value={datePreset}
               onChange={(e) => setDatePreset(e.target.value as DatePreset)}
-              className="px-3 py-2 bg-white/90 border border-ink-faint/60 rounded-xl text-xs font-body font-semibold text-ink focus:outline-none focus:border-primary cursor-pointer"
+              className="select-admin"
             >
               <option value="all">All Time</option>
               <option value="today">Today</option>
@@ -1232,14 +1232,14 @@ function ExportReportsContent() {
           {reportType === 'demographics' && (
             <>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-body font-semibold text-ink-muted">Municipality:</span>
+                <span className="text-xs font-body font-semibold text-ink-muted dark:text-slate-400">Municipality:</span>
                 <select
                   value={municipalityFilter}
                   onChange={(e) => {
                     setMunicipalityFilter(e.target.value);
                     setBarangayFilter('all');
                   }}
-                  className="px-3 py-2 bg-white/90 border border-ink-faint/60 rounded-xl text-xs font-body font-semibold text-ink focus:outline-none focus:border-primary cursor-pointer max-w-[170px]"
+                  className="select-admin max-w-[170px]"
                 >
                   <option value="all">All Municipalities</option>
                   {uniqueMunicipalities.map((m) => (
@@ -1251,11 +1251,11 @@ function ExportReportsContent() {
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-body font-semibold text-ink-muted">Barangay:</span>
+                <span className="text-xs font-body font-semibold text-ink-muted dark:text-slate-400">Barangay:</span>
                 <select
                   value={barangayFilter}
                   onChange={(e) => setBarangayFilter(e.target.value)}
-                  className="px-3 py-2 bg-white/90 border border-ink-faint/60 rounded-xl text-xs font-body font-semibold text-ink focus:outline-none focus:border-primary cursor-pointer max-w-[170px]"
+                  className="select-admin max-w-[170px]"
                 >
                   <option value="all">All Barangays</option>
                   {availableBarangays.map((b) => (
@@ -1271,11 +1271,11 @@ function ExportReportsContent() {
           {/* Contextual filter: Role (for Users & Verifications) */}
           {(reportType === 'users' || reportType === 'verifications') && (
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-body font-semibold text-ink-muted">Role:</span>
+              <span className="text-xs font-body font-semibold text-ink-muted dark:text-slate-400">Role:</span>
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value as any)}
-                className="px-3 py-2 bg-white/90 border border-ink-faint/60 rounded-xl text-xs font-body font-semibold text-ink focus:outline-none focus:border-primary cursor-pointer"
+                className="select-admin"
               >
                 <option value="all">All Roles</option>
                 <option value="worker">Workers Only</option>
@@ -1287,11 +1287,11 @@ function ExportReportsContent() {
           {/* Contextual filter: Category (for Jobs) */}
           {reportType === 'jobs' && (
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-body font-semibold text-ink-muted">Category:</span>
+              <span className="text-xs font-body font-semibold text-ink-muted dark:text-slate-400">Category:</span>
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-3 py-2 bg-white/90 border border-ink-faint/60 rounded-xl text-xs font-body font-semibold text-ink focus:outline-none focus:border-primary cursor-pointer max-w-[150px]"
+                className="select-admin max-w-[150px]"
               >
                 <option value="all">All Categories</option>
                 {jobCategories.map((c) => (
@@ -1306,11 +1306,11 @@ function ExportReportsContent() {
           {/* Status filter (for Users, Jobs, Verifications) */}
           {reportType !== 'demographics' && (
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-body font-semibold text-ink-muted">Status:</span>
+              <span className="text-xs font-body font-semibold text-ink-muted dark:text-slate-400">Status:</span>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 bg-white/90 border border-ink-faint/60 rounded-xl text-xs font-body font-semibold text-ink focus:outline-none focus:border-primary cursor-pointer"
+                className="select-admin"
               >
                 <option value="all">All Statuses</option>
                 {reportType === 'users' && (
