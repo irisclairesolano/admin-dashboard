@@ -447,14 +447,14 @@ function ModerationPageContent() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[920px] text-left font-body table-fixed border-collapse">
+            <table className="w-full min-w-[1040px] text-left font-body table-fixed border-collapse">
               <thead className="bg-slate-50/70 dark:bg-slate-900/50 border-b border-ink-faint/30">
                 <tr>
-                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[14%]">Target / Type</th>
-                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[22%]">Reported By</th>
-                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[30%]">Reason / Description</th>
-                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[14%]">Reported At</th>
-                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[20%] text-right">Actions</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[13%]">Target / Type</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[21%]">Reported By</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[28%]">Reason / Description</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[15%]">Reported At</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted text-xs uppercase tracking-wider w-[23%] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-faint/20">
@@ -518,7 +518,7 @@ function ModerationPageContent() {
                           {parseModerationNote(report.description).cleanDisplay}
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 text-sm font-body font-medium text-ink-soft whitespace-nowrap font-numeric">
+                      <td className="px-4 py-3.5 text-xs font-body font-medium text-ink-soft font-numeric">
                         {formatDateTime(report.created_at)}
                       </td>
                       <td className="px-4 py-3.5 text-right">
@@ -541,7 +541,7 @@ function ModerationPageContent() {
                                   e.stopPropagation();
                                   handleResolve(report.id, 'dismissed');
                                 }}
-                                className="w-8 h-8 rounded-lg bg-white/80 dark:bg-slate-800 border border-ink-faint/50 text-ink-soft hover:text-ink hover:border-ink transition-all shadow-2xs flex items-center justify-center cursor-pointer"
+                                className="w-8 h-8 shrink-0 rounded-lg bg-white/80 dark:bg-slate-800 border border-ink-faint/50 text-ink-soft hover:text-ink hover:border-ink transition-all shadow-2xs flex items-center justify-center cursor-pointer"
                                 title="Dismiss Report"
                               >
                                 <i className="lni lni-close text-xs" />
@@ -554,7 +554,7 @@ function ModerationPageContent() {
                                   e.stopPropagation();
                                   handleResolve(report.id, 'resolved');
                                 }}
-                                className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white transition-all shadow-2xs flex items-center justify-center cursor-pointer"
+                                className="w-8 h-8 shrink-0 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white transition-all shadow-2xs flex items-center justify-center cursor-pointer"
                                 title="Mark as Resolved"
                               >
                                 <i className="lni lni-checkmark-circle text-xs" />

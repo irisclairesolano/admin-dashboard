@@ -115,6 +115,29 @@ function VerificationsPageContent() {
     }
   }, [inspectIdParam, users, loading]);
 
+  // When inspecting an approved/rejected user whose private document URLs were deferred during the bulk list query,
+  // hydrate fresh signed URLs on demand via getUserDetails.
+  useEffect(() => {
+    if (!reviewUser?.id) return;
+    const rawDoc = reviewUser.document_url || reviewUser.selfie_url || (Array.isArray(reviewUser.business_documents) ? reviewUser.business_documents[0] : null);
+    if (typeof rawDoc === 'string' && rawDoc.includes('/storage/v1/object/') && !rawDoc.includes('token=')) {
+      let active = true;
+      adminApi
+        .getUserDetails(reviewUser.id)
+        .then((res) => {
+          if (!active) return;
+          const full = res?.data?.user || res?.data;
+          if (full && full.id === reviewUser.id) {
+            setReviewUser((prev: any) => (prev && prev.id === full.id ? { ...prev, ...full } : prev));
+          }
+        })
+        .catch(() => {});
+      return () => {
+        active = false;
+      };
+    }
+  }, [reviewUser?.id, reviewUser?.document_url, reviewUser?.selfie_url, reviewUser?.business_documents]);
+
   const fetchVerifications = useCallback(async (silent = false, forceRefresh = false) => {
     try {
       if (!silent) setLoading(true);
@@ -532,18 +555,18 @@ function VerificationsPageContent() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left font-body table-fixed border-collapse">
+            <table className="w-full min-w-[820px] text-left font-body table-fixed border-collapse">
               <thead className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-ink-faint/30 dark:border-slate-800">
                 <tr>
                   <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[10%]">User ID</th>
-                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[36%]">User Details</th>
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[33%]">User Details</th>
                   <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[16%]">Role</th>
                   {statusTab === 'rejected' ? (
                     <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[24%]">Rejection Reason</th>
                   ) : (
                     <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[24%]">Submitted & Wait Time</th>
                   )}
-                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[14%] text-right">
+                  <th className="px-4 py-3.5 font-body font-semibold text-ink-muted dark:text-slate-400 text-xs uppercase tracking-wider w-[17%] text-right">
                     {statusTab === 'rejected' ? 'Status' : 'Action'}
                   </th>
                 </tr>

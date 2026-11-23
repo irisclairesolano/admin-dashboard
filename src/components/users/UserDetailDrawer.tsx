@@ -319,34 +319,25 @@ export default function UserDetailDrawer({
       />
 
       {/* Centered Modal Body - covers sizeable ~80% width of screen */}
-      <div className="relative w-full max-w-5xl lg:w-4/5 h-[88vh] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col z-10 animate-fade-in border border-white/50 dark:border-slate-700/70 overflow-hidden">
-        {/* Header / Top Summary */}
-        <div className="p-6 bg-paper-cream border-b border-ink-faint flex flex-col gap-4 relative shrink-0">
+      <div className="relative w-full max-w-5xl lg:w-4/5 h-[92vh] sm:h-[90vh] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col z-10 animate-fade-in border border-white/50 dark:border-slate-700/70 overflow-hidden">
+        {/* Compact Sticky Header / Top Summary */}
+        <div className="px-4 py-3 sm:px-5 sm:py-3.5 bg-paper-cream border-b border-ink-faint flex flex-col gap-2.5 relative shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 p-2 rounded-full hover:bg-ink-faint/50 text-ink-muted hover:text-ink transition-colors"
+            className="absolute top-3 right-3 sm:top-3.5 sm:right-4 p-1.5 rounded-full hover:bg-ink-faint/50 text-ink-muted hover:text-ink transition-colors cursor-pointer"
             aria-label="Close details"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
 
-          <div className="flex items-start gap-5">
-            <Avatar name={selectedDetailUser.name} url={selectedDetailUser.avatar_url} size="lg" isSuspended={selectedDetailUser.is_suspended} />
-            <div className="flex-1 min-w-0 pr-10">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 id="user-drawer-title" className="text-2xl font-display font-bold text-ink truncate" title={selectedDetailUser.name}>
+          <div className="flex items-center gap-3.5 pr-9">
+            <Avatar name={selectedDetailUser.name} url={selectedDetailUser.avatar_url} size="md" isSuspended={selectedDetailUser.is_suspended} />
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <h2 id="user-drawer-title" className="text-lg sm:text-xl font-display font-bold text-ink truncate" title={selectedDetailUser.name}>
                   {selectedDetailUser.name}
                 </h2>
-                {selectedDetailUser.deleted_at && (
-                  <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20 uppercase tracking-wider">
-                    Archived / Soft Deleted
-                  </span>
-                )}
-              </div>
-              <p className="text-sm font-body text-ink-muted truncate mt-0.5">{selectedDetailUser.email}</p>
-
-              <div className="flex flex-wrap gap-2 mt-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider shadow-2xs ${
+                <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider shadow-2xs ${
                   selectedDetailUser.role === 'admin'
                     ? 'bg-ink text-white dark:bg-slate-800 border border-ink-faint/30'
                     : 'badge-neutral'
@@ -354,24 +345,30 @@ export default function UserDetailDrawer({
                   {selectedDetailUser.role === 'admin' ? (selectedDetailUser.admin_role || 'Staff Administrator') : selectedDetailUser.role}
                 </span>
 
+                {selectedDetailUser.deleted_at && (
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20 uppercase tracking-wider">
+                    Archived
+                  </span>
+                )}
+
                 {selectedDetailUser.role === 'admin' && (
-                  <span className="flex items-center text-xs font-semibold text-primary dark:text-sky-400 bg-primary/10 dark:bg-sky-950/40 px-2.5 py-0.5 rounded-full border border-primary/20 dark:border-sky-800 uppercase tracking-wider">
-                    <ShieldCheck className="w-3.5 h-3.5 mr-1" /> Protected Admin
+                  <span className="flex items-center text-[11px] font-semibold text-primary dark:text-sky-400 bg-primary/10 dark:bg-sky-950/40 px-2 py-0.5 rounded-full border border-primary/20 dark:border-sky-800 uppercase tracking-wider">
+                    <ShieldCheck className="w-3 h-3 mr-1" /> Protected Admin
                   </span>
                 )}
 
                 {selectedDetailUser.is_suspended && (
-                  <span className="flex items-center text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20 uppercase tracking-wider">
-                    <ShieldAlert className="w-3.5 h-3.5 mr-1" /> Suspended
+                  <span className="flex items-center text-[11px] font-semibold text-rose-700 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20 uppercase tracking-wider">
+                    <ShieldAlert className="w-3 h-3 mr-1" /> Suspended
                   </span>
                 )}
 
                 {selectedDetailUser.role !== 'admin' && (() => {
                   const verifInfo = getUserVerificationInfo(selectedDetailUser);
                   return (
-                    <span className={`flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${verifInfo.badgeClass}`}>
-                      {verifInfo.statusKey === 'approved' && <CheckCircle2 className="w-3.5 h-3.5 mr-1" />}
-                      {verifInfo.statusKey === 'rejected' && <AlertCircle className="w-3.5 h-3.5 mr-1" />}
+                    <span className={`flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full border uppercase tracking-wider ${verifInfo.badgeClass}`}>
+                      {verifInfo.statusKey === 'approved' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                      {verifInfo.statusKey === 'rejected' && <AlertCircle className="w-3 h-3 mr-1" />}
                       {verifInfo.statusKey !== 'approved' && verifInfo.statusKey !== 'rejected' && (
                         <span className="w-1.5 h-1.5 rounded-full mr-1.5 bg-current opacity-70" />
                       )}
@@ -380,22 +377,23 @@ export default function UserDetailDrawer({
                   );
                 })()}
               </div>
+              <p className="text-xs sm:text-sm font-body text-ink-muted truncate mt-0.5">{selectedDetailUser.email}</p>
             </div>
           </div>
 
-          {/* Stats Summary Line */}
-          <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-2 text-sm text-ink-soft font-body bg-white/40 p-3 rounded-2xl border border-white/50">
+          {/* Compact Stats Summary Line */}
+          <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 text-xs text-ink-soft font-body bg-white/50 dark:bg-slate-800/50 px-3 py-1.5 rounded-xl border border-white/60 dark:border-slate-700/60">
             {selectedDetailUser.role !== 'admin' ? (
               <>
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-primary" />
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
                   <span>Brgy. {selectedDetailUser.barangay || 'N/A'}, {selectedDetailUser.municipality || 'N/A'}</span>
                 </div>
                 {userDetailData && (
                   <>
-                    <div className="w-1.5 h-1.5 bg-ink-faint rounded-full hidden sm:block" />
-                    <div className="flex items-center gap-1.5">
-                      <Star className="w-4 h-4 text-status-gold fill-status-gold" />
+                    <div className="w-1 h-1 bg-ink-faint rounded-full hidden sm:block" />
+                    <div className="flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 text-status-gold fill-status-gold shrink-0" />
                       <span>
                         {(userDetailData.stats.reviews_count ?? 0) === 0
                           ? 'No ratings yet (0 reviews)'
@@ -404,37 +402,37 @@ export default function UserDetailDrawer({
                     </div>
                     {selectedDetailUser.role === 'employer' && (
                       <>
-                        <div className="w-1.5 h-1.5 bg-ink-faint rounded-full hidden sm:block" />
-                        <div className="flex items-center gap-1.5">
-                          <Briefcase className="w-4 h-4 text-primary" />
+                        <div className="w-1 h-1 bg-ink-faint rounded-full hidden sm:block" />
+                        <div className="flex items-center gap-1">
+                          <Briefcase className="w-3.5 h-3.5 text-primary shrink-0" />
                           <span>{userDetailData.stats.job_posts_count ?? 0} Job Posts</span>
                         </div>
-                        <div className="w-1.5 h-1.5 bg-ink-faint rounded-full hidden sm:block" />
-                        <div className="flex items-center gap-1.5">
-                          <Users className="w-4 h-4 text-primary" />
+                        <div className="w-1 h-1 bg-ink-faint rounded-full hidden sm:block" />
+                        <div className="flex items-center gap-1">
+                          <Users className="w-3.5 h-3.5 text-primary shrink-0" />
                           <span>{userDetailData.stats.hired_workers_count ?? 0} Hires</span>
                         </div>
                       </>
                     )}
                     {selectedDetailUser.role === 'worker' && (
                       <>
-                        <div className="w-1.5 h-1.5 bg-ink-faint rounded-full hidden sm:block" />
-                        <div className="flex items-center gap-1.5">
-                          <Briefcase className="w-4 h-4 text-primary" />
+                        <div className="w-1 h-1 bg-ink-faint rounded-full hidden sm:block" />
+                        <div className="flex items-center gap-1">
+                          <Briefcase className="w-3.5 h-3.5 text-primary shrink-0" />
                           <span>{userDetailData.stats.applications_count ?? 0} Applications</span>
                         </div>
-                        <div className="w-1.5 h-1.5 bg-ink-faint rounded-full hidden sm:block" />
-                        <div className="flex items-center gap-1.5">
-                          <Award className="w-4 h-4 text-status-success" />
+                        <div className="w-1 h-1 bg-ink-faint rounded-full hidden sm:block" />
+                        <div className="flex items-center gap-1">
+                          <Award className="w-3.5 h-3.5 text-status-success shrink-0" />
                           <span>{userDetailData.stats.completed_jobs_count ?? 0} Completed</span>
                         </div>
                       </>
                     )}
                     {userDetailData.stats.blocked_users_count !== undefined && (
                       <>
-                        <div className="w-1.5 h-1.5 bg-ink-faint rounded-full hidden sm:block" />
-                        <div className="flex items-center gap-1.5 text-xs text-ink-muted">
-                          <UserX className="w-3.5 h-3.5 text-status-danger" />
+                        <div className="w-1 h-1 bg-ink-faint rounded-full hidden sm:block" />
+                        <div className="flex items-center gap-1 text-ink-muted">
+                          <UserX className="w-3.5 h-3.5 text-status-danger shrink-0" />
                           <span>Blocked {userDetailData.stats.blocked_users_count} · Blocked by {userDetailData.stats.blocked_by_count ?? 0}</span>
                         </div>
                       </>
@@ -444,18 +442,18 @@ export default function UserDetailDrawer({
               </>
             ) : (
               <>
-                <div className="flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-primary" />
+                <div className="flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-primary shrink-0" />
                   <span className="font-semibold text-ink">System Administrator</span>
                 </div>
-                <div className="w-1.5 h-1.5 bg-ink-faint rounded-full hidden sm:block" />
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-ink-muted" />
+                <div className="w-1 h-1 bg-ink-faint rounded-full hidden sm:block" />
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-ink-muted shrink-0" />
                   <span>Joined: {new Date(selectedDetailUser.created_at).toLocaleDateString()}</span>
                 </div>
-                <div className="w-1.5 h-1.5 bg-ink-faint rounded-full hidden sm:block" />
-                <div className="flex items-center gap-1.5">
-                  <Lock className={`w-4 h-4 ${selectedDetailUser.two_factor_confirmed_at ? 'text-status-success' : 'text-ink-muted'}`} />
+                <div className="w-1 h-1 bg-ink-faint rounded-full hidden sm:block" />
+                <div className="flex items-center gap-1">
+                  <Lock className={`w-3.5 h-3.5 shrink-0 ${selectedDetailUser.two_factor_confirmed_at ? 'text-status-success' : 'text-ink-muted'}`} />
                   <span>2FA: {selectedDetailUser.two_factor_confirmed_at ? 'Enabled' : 'Disabled'}</span>
                 </div>
               </>
@@ -463,33 +461,8 @@ export default function UserDetailDrawer({
           </div>
         </div>
 
-        {/* Inconsistency Warning & Missing Document Info (Workers & Employers only) */}
-        {selectedDetailUser.role !== 'admin' && selectedDetailUser.verification_status !== 'approved' && (
-          <div className="px-6 pt-4 shrink-0">
-            {(() => {
-              const hasDocs = hasSubmittedDocs(selectedDetailUser);
-
-              if (!hasDocs) {
-                return (
-                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="text-sm font-bold text-amber-800 dark:text-amber-200">Pending Identification Upload</h4>
-                      <p className="text-xs text-amber-700/90 dark:text-amber-300 mt-1 leading-relaxed">
-                        This user has registered their account but has not yet uploaded their government ID or business registration documents (Status: Pending ID Upload). Platform verification is disabled until valid identification documents are submitted.
-                      </p>
-                    </div>
-                  </div>
-                );
-              }
-
-              return null;
-            })()}
-          </div>
-        )}
-
-        {/* Tab Controls (Role Appropriate) */}
-        <div className="flex border-b border-ink-faint px-6 mt-4 shrink-0 overflow-x-auto pb-1 gap-2">
+        {/* Compact Tab Controls (Role Appropriate) */}
+        <div className="flex border-b border-ink-faint px-4 sm:px-5 shrink-0 overflow-x-auto gap-1 bg-white/60 dark:bg-slate-900/60">
           {(selectedDetailUser.role === 'admin'
             ? [
                 { id: 'profile', label: 'Admin Details' },
@@ -507,7 +480,7 @@ export default function UserDetailDrawer({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`py-3 px-4 font-body font-bold text-sm border-b-2 transition-all whitespace-nowrap ${
+              className={`py-2 px-3 font-body font-bold text-xs sm:text-sm border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === tab.id ? 'border-primary text-primary' : 'border-transparent text-ink-muted hover:text-ink'
               }`}
             >
@@ -516,8 +489,20 @@ export default function UserDetailDrawer({
           ))}
         </div>
 
-        {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 font-body">
+        {/* Scrollable Content Body */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 font-body">
+          {/* Missing Document Notice inside scrollable area so it never compresses the viewport */}
+          {selectedDetailUser.role !== 'admin' && selectedDetailUser.verification_status !== 'approved' && !hasSubmittedDocs(selectedDetailUser) && (
+            <div className="mb-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl p-3 sm:p-3.5 flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-xs sm:text-sm font-bold text-amber-800 dark:text-amber-200">Pending Identification Upload</h4>
+                <p className="text-xs text-amber-700/90 dark:text-amber-300 mt-0.5 leading-relaxed">
+                  This user has registered their account but has not yet uploaded their government ID or business registration documents (Status: Pending ID Upload). Platform verification is disabled until valid identification documents are submitted.
+                </p>
+              </div>
+            </div>
+          )}
           {detailLoading ? (
             <div className="flex flex-col items-center justify-center py-20 text-ink-muted">
               <RefreshCw className="w-8 h-8 animate-spin text-primary" />
@@ -1380,32 +1365,32 @@ export default function UserDetailDrawer({
         </div>
 
         {/* Sticky Administrative Actions Footer */}
-        <div className="shrink-0 border-t border-ink-faint bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-6 py-4">
+        <div className="shrink-0 border-t border-ink-faint bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-4 py-2.5 sm:px-5 sm:py-3">
           {selectedDetailUser.role === 'admin' ? (
-            <div className="bg-primary/5 border border-primary/20 rounded-2xl px-4 py-2.5 flex items-center gap-3">
+            <div className="bg-primary/5 border border-primary/20 rounded-xl px-3.5 py-2 flex items-center gap-2.5">
               <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
-              <p className="text-xs text-ink font-medium leading-relaxed">
+              <p className="text-xs text-ink font-medium leading-snug">
                 This is a protected system administrator account. Suspension and deletion controls are disabled for platform safety and role security.
               </p>
             </div>
           ) : (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <span className="text-xs font-bold text-ink-soft uppercase tracking-wider">Administrative Actions</span>
-              <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
+              <span className="text-[11px] font-bold text-ink-soft uppercase tracking-wider">Administrative Actions</span>
+              <div className="flex flex-wrap items-center gap-2">
                 {selectedDetailUser.verification_status !== 'approved' && (() => {
                   const hasDocs = hasSubmittedDocs(selectedDetailUser);
                   return (
                     <button
                       disabled={actionLoading === selectedDetailUser.id || !hasDocs}
                       onClick={hasDocs ? onVerify : undefined}
-                      className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-sm ${
+                      className={`px-3.5 py-1.5 sm:py-2 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-sm ${
                         !hasDocs
                           ? 'bg-ink-faint text-ink-muted cursor-not-allowed opacity-60'
                           : 'bg-status-success text-white hover:bg-status-success/90 cursor-pointer'
                       }`}
                       title={!hasDocs ? 'Cannot verify: User has not uploaded identification documents yet' : 'Review & Verify User'}
                     >
-                      <CheckCircle2 className="w-4 h-4" />
+                      <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>{hasDocs ? 'Manually Verify User' : 'Awaiting ID Upload'}</span>
                     </button>
                   );
@@ -1414,13 +1399,13 @@ export default function UserDetailDrawer({
                 <button
                   disabled={actionLoading === selectedDetailUser.id}
                   onClick={() => onSuspend(selectedDetailUser.id, selectedDetailUser.is_suspended)}
-                  className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-sm border cursor-pointer ${selectedDetailUser.is_suspended
+                  className={`px-3.5 py-1.5 sm:py-2 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-sm border cursor-pointer ${selectedDetailUser.is_suspended
                       ? 'bg-status-warning/10 border-status-warning/20 text-status-warning hover:bg-status-warning hover:text-white'
                       : 'bg-white border-ink-faint text-ink hover:bg-ink hover:text-white'
                     }`}
                   title={selectedDetailUser.is_suspended ? 'Unsuspend User' : 'Suspend User'}
                 >
-                  <UserX className="w-4 h-4" />
+                  <UserX className="w-3.5 h-3.5" />
                   <span>{selectedDetailUser.is_suspended ? 'Unsuspend User' : 'Suspend User'}</span>
                 </button>
 
@@ -1428,20 +1413,20 @@ export default function UserDetailDrawer({
                   <button
                     disabled={actionLoading === selectedDetailUser.id}
                     onClick={() => onRestore(selectedDetailUser.id)}
-                    className="px-4 py-2 bg-paper-dark border border-ink-faint text-ink text-xs sm:text-sm font-semibold rounded-xl hover:bg-ink hover:text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                    className="px-3.5 py-1.5 sm:py-2 bg-paper-dark border border-ink-faint text-ink text-xs font-semibold rounded-xl hover:bg-ink hover:text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
                     title="Restore User"
                   >
-                    <Undo className="w-4 h-4" />
+                    <Undo className="w-3.5 h-3.5" />
                     <span>Restore Soft Deleted User</span>
                   </button>
                 ) : (
                   <button
                     disabled={actionLoading === selectedDetailUser.id}
                     onClick={() => onDelete(selectedDetailUser.id)}
-                    className="px-4 py-2 bg-status-error/10 border border-status-error/20 text-status-error text-xs sm:text-sm font-semibold rounded-xl hover:bg-status-error hover:text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                    className="px-3.5 py-1.5 sm:py-2 bg-status-error/10 border border-status-error/20 text-status-error text-xs font-semibold rounded-xl hover:bg-status-error hover:text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
                     title="Delete User"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                     <span>Soft Delete User</span>
                   </button>
                 )}

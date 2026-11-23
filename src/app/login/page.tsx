@@ -32,7 +32,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     warmUpServer();
-  }, []);
+    router.prefetch('/dashboard/verifications');
+  }, [router]);
 
   const handleResetLockout = async () => {
     try {
@@ -75,6 +76,8 @@ export default function LoginPage() {
         authStorage.setPermissions(res.data.permissions, rememberMe);
       }
 
+      // Start loading verifications data immediately while Next.js transitions routes
+      void adminApi.getVerifications(true).catch(() => {});
       router.push('/dashboard/verifications');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid administrative credentials');
@@ -98,6 +101,8 @@ export default function LoginPage() {
         authStorage.setPermissions(res.data.permissions, rememberMe);
       }
 
+      // Start loading verifications data immediately while Next.js transitions routes
+      void adminApi.getVerifications(true).catch(() => {});
       router.push('/dashboard/verifications');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid authenticator or recovery code.');

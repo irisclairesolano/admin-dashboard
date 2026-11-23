@@ -850,91 +850,89 @@ function UsersContent() {
         </div>
       </div>
 
-      {/* Stat Cards: Full-width Total Users hero + 2 rows of 3 cards */}
-      <div className="space-y-3 mb-4">
+      {/* Stat Cards: Total Users on the left spanning both rows + 6 cards in a 3x2 grid on the right */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         <button
           type="button"
           onClick={() => { setShowArchived(false); setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }}
-          className="w-full text-left bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-xl p-4 border border-ink-faint/30 shadow-2xs hover:shadow-sm hover:border-ink-faint/60 transition-all flex items-center justify-between gap-4 cursor-pointer"
+          className="sm:col-span-2 lg:col-span-1 lg:row-span-2 h-full text-left bg-white/90 dark:bg-slate-900/80 backdrop-blur-md rounded-xl p-4 border border-ink-faint/30 dark:border-slate-800 shadow-xs hover:shadow-md hover:-translate-y-0.5 dark:hover:bg-slate-850 dark:hover:border-slate-700 transition-all flex flex-col justify-between gap-4 cursor-pointer"
         >
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center shrink-0">
-              <i className="lni lni-users text-xl text-slate-700 dark:text-slate-200" />
-            </div>
+          <div className="flex items-start justify-between gap-2 w-full">
             <div>
-              <div className="text-xs font-body font-semibold text-ink-muted uppercase tracking-wider">Total Users</div>
-              <div className="text-2xl font-display font-bold text-ink font-numeric mt-0.5">
+              <p className="text-[11px] font-body font-semibold text-ink-muted dark:text-slate-400 uppercase tracking-wider mb-1">
+                Total Users
+              </p>
+              <p className="text-3xl sm:text-4xl font-display font-bold text-ink dark:text-slate-100 font-numeric mt-1">
                 {activeUsers.length + archivedUsers.length}
-              </div>
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-800/80 dark:border dark:border-slate-700/60 flex items-center justify-center shadow-inner shrink-0">
+              <i className="lni lni-users text-lg text-slate-700 dark:text-slate-300" />
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-4 text-xs font-body text-ink-muted">
-            <span><strong className="text-ink font-numeric">{activeUsers.length}</strong> Active</span>
-            <span className="text-ink-faint">•</span>
-            <span><strong className="text-ink font-numeric">{archivedUsers.length}</strong> Archived</span>
+          <div className="flex items-center gap-3 pt-3 border-t border-ink-faint/30 dark:border-slate-800 text-xs font-body text-ink-muted dark:text-slate-400 w-full">
+            <span><strong className="text-ink dark:text-slate-100 font-numeric">{activeUsers.length}</strong> Active</span>
+            <span className="text-ink-faint dark:text-slate-700">•</span>
+            <span><strong className="text-ink dark:text-slate-100 font-numeric">{archivedUsers.length}</strong> Archived</span>
           </div>
         </button>
 
-        {/* Row 1: Role Breakdown (Employers, Workers, Admins) */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <StatCard
-            title="Employers"
-            value={activeUsers.filter(u => u.role === 'employer').length}
-            iconClass="lni lni-briefcase"
-            bg="from-amber-50 to-amber-100"
-            iconColor="text-amber-700"
-            onClick={() => { setShowArchived(false); setRoleFilter('employer'); setFilter('all'); setCurrentPage(1); }}
-          />
-          <StatCard
-            title="Workers"
-            value={activeUsers.filter(u => u.role === 'worker').length}
-            iconClass="lni lni-user"
-            bg="from-emerald-50 to-emerald-100"
-            iconColor="text-emerald-700"
-            onClick={() => { setShowArchived(false); setRoleFilter('worker'); setFilter('all'); setCurrentPage(1); }}
-          />
-          <StatCard
-            title="Admins"
-            value={activeUsers.filter(u => u.role === 'admin').length}
-            iconClass="lni lni-shield"
-            bg="from-indigo-50 to-indigo-100"
-            iconColor="text-indigo-700"
-            onClick={() => { setShowArchived(false); setRoleFilter('admin'); setFilter('all'); setCurrentPage(1); }}
-          />
-        </div>
+        {/* Row 1 (Cols 2-4): Role Breakdown (Employers, Workers, Admins) */}
+        <StatCard
+          title="Employers"
+          value={activeUsers.filter(u => u.role === 'employer').length}
+          iconClass="lni lni-briefcase"
+          bg="from-amber-50 to-amber-100"
+          iconColor="text-amber-700"
+          onClick={() => { setShowArchived(false); setRoleFilter('employer'); setFilter('all'); setCurrentPage(1); }}
+        />
+        <StatCard
+          title="Workers"
+          value={activeUsers.filter(u => u.role === 'worker').length}
+          iconClass="lni lni-user"
+          bg="from-emerald-50 to-emerald-100"
+          iconColor="text-emerald-700"
+          onClick={() => { setShowArchived(false); setRoleFilter('worker'); setFilter('all'); setCurrentPage(1); }}
+        />
+        <StatCard
+          title="Admins"
+          value={activeUsers.filter(u => u.role === 'admin').length}
+          iconClass="lni lni-shield"
+          bg="from-indigo-50 to-indigo-100"
+          iconColor="text-indigo-700"
+          onClick={() => { setShowArchived(false); setRoleFilter('admin'); setFilter('all'); setCurrentPage(1); }}
+        />
 
-        {/* Row 2: Action & Lifecycle Breakdown (Pending Review, Needs User Action, Archived & Deleted) */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <StatCard
-            title="Pending Review"
-            value={activeUsers.filter(u => {
-              if (u.role === 'admin') return false;
-              const isApproved = u.verification_status === 'approved' || !!u.verification_badge;
-              const isRejected = u.verification_status === 'rejected' || u.registration_status === 'rejected';
-              return !isApproved && !isRejected && hasSubmittedDocs(u);
-            }).length}
-            iconClass="lni lni-warning"
-            bg="from-orange-50 to-orange-100"
-            iconColor="text-orange-700"
-            onClick={() => { setShowArchived(false); setFilter('pending_review'); setRoleFilter('all'); setCurrentPage(1); }}
-          />
-          <StatCard
-            title="Needs User Action"
-            value={incompleteUsers.length}
-            iconClass="lni lni-hourglass"
-            bg="from-sky-50 to-sky-100"
-            iconColor="text-sky-700"
-            onClick={() => { setShowArchived(false); setFilter('pending_id_upload'); setRoleFilter('all'); setCurrentPage(1); }}
-          />
-          <StatCard
-            title="Archived & Deleted"
-            value={archivedUsers.length}
-            iconClass="lni lni-trash-can"
-            bg="from-rose-50 to-rose-100"
-            iconColor="text-rose-700"
-            onClick={() => { setShowArchived(true); setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }}
-          />
-        </div>
+        {/* Row 2 (Cols 2-4): Action & Lifecycle Breakdown (Pending Review, Needs User Action, Archived & Deleted) */}
+        <StatCard
+          title="Pending Review"
+          value={activeUsers.filter(u => {
+            if (u.role === 'admin') return false;
+            const isApproved = u.verification_status === 'approved' || !!u.verification_badge;
+            const isRejected = u.verification_status === 'rejected' || u.registration_status === 'rejected';
+            return !isApproved && !isRejected && hasSubmittedDocs(u);
+          }).length}
+          iconClass="lni lni-warning"
+          bg="from-orange-50 to-orange-100"
+          iconColor="text-orange-700"
+          onClick={() => { setShowArchived(false); setFilter('pending_review'); setRoleFilter('all'); setCurrentPage(1); }}
+        />
+        <StatCard
+          title="Needs User Action"
+          value={incompleteUsers.length}
+          iconClass="lni lni-hourglass"
+          bg="from-sky-50 to-sky-100"
+          iconColor="text-sky-700"
+          onClick={() => { setShowArchived(false); setFilter('pending_id_upload'); setRoleFilter('all'); setCurrentPage(1); }}
+        />
+        <StatCard
+          title="Archived & Deleted"
+          value={archivedUsers.length}
+          iconClass="lni lni-trash-can"
+          bg="from-rose-50 to-rose-100"
+          iconColor="text-rose-700"
+          onClick={() => { setShowArchived(true); setFilter('all'); setRoleFilter('all'); setCurrentPage(1); }}
+        />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2.5 mb-4">
