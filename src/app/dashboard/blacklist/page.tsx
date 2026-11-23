@@ -35,6 +35,13 @@ export default function BlacklistPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [serverCounts, setServerCounts] = useState<{
+    total: number;
+    banned: number;
+    suspended: number;
+    deleted_by_admin: number;
+    self_deleted: number;
+  } | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
 
@@ -57,6 +64,9 @@ export default function BlacklistPage() {
       setLoading(true);
       const res = await adminApi.getBlacklist(activeTab, currentPage, debouncedSearch);
       const data = res.data;
+      if (data && data.counts) {
+        setServerCounts(data.counts);
+      }
       if (data && Array.isArray(data.data)) {
         setRecords(data.data);
         setTotalPages(data.last_page || 1);
@@ -216,16 +226,27 @@ export default function BlacklistPage() {
     }
   };
 
-  // Compute stat counts from current dataset or active tab
+  // Use global server-side counts (which exclude lifted/inactive bans & suspensions),
+  // falling back to client-side active counts if counts payload is unavailable.
   const stats = useMemo(() => {
+    if (serverCounts) {
+      return {
+        total: serverCounts.total,
+        banned: serverCounts.banned,
+        suspended: serverCounts.suspended,
+        deletedByAdmin: serverCounts.deleted_by_admin,
+        selfDeleted: serverCounts.self_deleted,
+      };
+    }
+
     const total = totalCount || records.length;
-    const banned = records.filter(r => r.type === 'banned').length;
-    const suspended = records.filter(r => r.type === 'suspended').length;
+    const banned = records.filter(r => r.type === 'banned' && r.is_active).length;
+    const suspended = records.filter(r => r.type === 'suspended' && r.is_active).length;
     const deletedByAdmin = records.filter(r => r.type === 'deleted_by_admin').length;
     const selfDeleted = records.filter(r => r.type === 'self_deleted').length;
 
     return { total, banned, suspended, deletedByAdmin, selfDeleted };
-  }, [records, totalCount]);
+  }, [serverCounts, records, totalCount]);
 
   const getTypeBadge = (type: string) => {
     switch (type) {
